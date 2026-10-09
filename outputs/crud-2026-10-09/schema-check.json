@@ -1,0 +1,38 @@
+{
+  "database": "daoxue_schema_check",
+  "migrations": [
+    "20261006035656_catalog_foundation",
+    "20261006040323_admin_identity_audit",
+    "20261006041548_app_identity_private_data",
+    "20261006041655_note_source_version",
+    "20261006075056_learning_membership_media",
+    "20261006080308_teacher_version",
+    "20261006102000_shopping_cart_addresses",
+    "20261006111500_pending_orders",
+    "20261009110000_domain_enum_extension",
+    "20261009120000_full_domain_foundation"
+  ],
+  "tables": 148,
+  "constraints": [
+    {
+      "contype": "f",
+      "count": 402
+    },
+    {
+      "contype": "c",
+      "count": 272
+    },
+    {
+      "contype": "u",
+      "count": 129
+    },
+    {
+      "contype": "p",
+      "count": 148
+    },
+    {
+      "contype": "x",
+      "count": 2
+    }
+  ]
+}

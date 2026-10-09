@@ -56,7 +56,7 @@ class EntitlementQuery {
 class PlanDto {
   @IsString() @Length(1, 100) title!: string;
   @IsInt() @Min(1) @Max(3) tier!: number;
-  @IsInt() @Min(1) @Max(365) days!: number;
+  @IsInt() @IsIn([30, 90, 365]) days!: number;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsString() @Length(1, 2000) description!: string;
   @IsBoolean() active!: boolean;
@@ -110,7 +110,7 @@ export class CurriculumAdminService {
         if (!['VIDEO', 'AUDIO'].includes(course.format)) throw new BadRequestException('直播、训练营与线下交付尚未配置，不能发布');
       }
       if (dto.action === 'publish') {
-        const release = await tx.courseRelease.create({ data: { courseId: id, version: course.version, title: course.title, lessons: { create: course.chapters.map(({ id: sourceId, courseId: _, ...c }) => ({ ...c, sourceId })) } } });
+        const release = await tx.courseRelease.create({ data: { courseId: id, version: course.version, title: course.title, descriptionSnapshot: course.description, teacherSnapshot: { id: course.teacher.id, name: course.teacher.name }, accessDays: course.accessDays, refundPolicySnapshot: { text: course.refundPolicy }, completionPolicySnapshot: { text: course.completionPolicy }, lessons: { create: course.chapters.map(c => ({ sourceId: c.stableKey || c.id, position: c.position, title: c.title, format: c.format, body: c.body, mediaId: c.mediaId, durationSeconds: c.durationSeconds, trial: c.trial, required: c.required })) } } });
         await tx.course.update({ where: { id }, data: { publishedReleaseId: release.id } });
       }
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'course.' + dto.action, resource: 'course', resourceId: id, changes: { reason: dto.reason, version: course.version } } });

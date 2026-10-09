@@ -1,6 +1,7 @@
 import { Database } from '../src/database.ts';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 
 if (process.env.NODE_ENV === 'production') throw new Error('Development fixtures are forbidden in production');
 const db = new Database();
@@ -13,7 +14,8 @@ try {
   for (let i = 0; i < rate * seconds; i++) wav.writeInt16LE(Math.round(Math.sin(i * 2 * Math.PI * 220 / rate) * 600), 44 + i * 2);
   const mediaRoot = resolve(process.env.MEDIA_DIR ?? '.media'); await mkdir(mediaRoot, { recursive: true }); await writeFile(resolve(mediaRoot, id(7, 1)), wav);
   await db.$transaction(async (tx) => {
-    await tx.mediaAsset.upsert({ where: { id: id(7, 1) }, update: {}, create: { id: id(7, 1), storageKey: id(7, 1), name: '播放验证测试音频.wav', mime: 'audio/wav', bytes: wav.length, uploaderId: 'development-seed' } });
+    await tx.user.upsert({where:{id:'development-seed'},update:{},create:{id:'development-seed',nickname:'开发示例导入',status:'FROZEN',roles:['USER']}});
+    await tx.mediaAsset.upsert({ where: { id: id(7, 1) }, update: {}, create: { id: id(7, 1), storageKey: id(7, 1), name: '播放验证测试音频.wav', mime: 'audio/wav', bytes: wav.length, uploaderId: 'development-seed', status:'READY',visibility:'PRIVATE',sha256:createHash('sha256').update(wav).digest('hex') } });
     await tx.teacher.upsert({ where: { id: id(1, 1) }, update: {}, create: {
       id: id(1, 1), name: '书院编辑团队（示例）', title: '开发演示',
       bio: '此档案仅供开发和界面验证。正式授课老师须由运营核实资料及内容授权后发布。',

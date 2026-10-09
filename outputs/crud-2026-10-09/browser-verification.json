@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-09T04:45:44.807Z",
+  "url": "http://127.0.0.1:5173/data",
+  "entity": "tag",
+  "recordId": "13cfecae-d515-41ab-99b5-3976104d9290",
+  "create": true,
+  "update": true,
+  "detail": true,
+  "delete": true,
+  "databaseRecordDeleted": true,
+  "audit": [
+    {
+      "action": "data.create",
+      "reason": "浏览器新增验收"
+    },
+    {
+      "action": "data.update",
+      "reason": "浏览器编辑验收"
+    },
+    {
+      "action": "data.delete",
+      "reason": "浏览器删除验收"
+    }
+  ],
+  "accessSessionRenewal": "编辑时遇到一次401；自动续期重试后写入成功，详情显示版本2。",
+  "screenshots": [
+    "admin-crud-list.png",
+    "admin-crud-detail.png",
+    "admin-crud-form.png",
+    "admin-crud-controlled.png",
+    "admin-crud-final.png"
+  ],
+  "finalBuildAndFormDefaults": {
+    "apiTypeScriptBuild": true,
+    "adminTypeCheckAndProductionBuild": true,
+    "tagActiveDefaultChecked": true,
+    "databaseDefaultMatchesForm": true
+  },
+  "controlledRecordUi": {
+    "entity": "payment_transaction",
+    "workflowNoticeVisible": true,
+    "createButtonAbsent": true,
+    "singleWorkingSearchField": true,
+    "sampleRowsPresent": false,
+    "note": "本机没有真实支付记录；UI验收覆盖只读提示及操作入口，服务端禁止写入已由HTTP测试验证。"
+  },
+  "finalPageReload": {
+    "runtimeErrors": 0,
+    "consoleWarnings": 0,
+    "consoleEvidence": "browser-console.txt"
+  },
+  "visualReview": "受控记录截图已人工查看；官方模板布局、搜索表单与只读提示显示正常。"
+}

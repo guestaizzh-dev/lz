@@ -5,6 +5,7 @@ import {createApp} from '../dist/main.js';
 import {Database} from '../dist/database.js';
 import {OrdersService} from '../dist/orders.js';
 import {passwordHash} from '../dist/auth.js';
+import {clearProducts} from './fixture-cleanup.mjs';
 
 if(process.env.NODE_ENV==='production')throw new Error('Test fixtures forbidden in production');
 test('pending physical orders reserve inventory once and protect snapshots and owners',async t=>{
@@ -74,7 +75,7 @@ test('pending physical orders reserve inventory once and protect snapshots and o
     });
   }finally{
     for(const row of await db.order.findMany({where:{userId:{in:users},status:'PENDING'}}))await app.get(OrdersService).cancel(row.userId,row.id);
-    await db.order.deleteMany({where:{userId:{in:users}}});if(product)await db.product.delete({where:{id:product.id}});if(zone)await db.deliveryZone.deleteMany({where:{province:zone}});
+    await db.order.deleteMany({where:{userId:{in:users}}});if(product){await clearProducts(db,[product.id]);await db.product.delete({where:{id:product.id}});}if(zone)await db.deliveryZone.deleteMany({where:{province:zone}});
     await db.auditLog.deleteMany({where:{actorId:{in:users}}});await db.authSession.deleteMany({where:{userId:{in:users}}});await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{phone:{in:phones}}});
     await db.rateLimit.deleteMany({where:{OR:phones.flatMap(phone=>[{key:'sms-phone-minute:'+phone},{key:'sms-phone-day:'+phone}])}});await app.close();await db.$disconnect();
   }

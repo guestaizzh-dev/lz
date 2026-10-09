@@ -4,6 +4,7 @@ import { randomUUID, randomInt } from 'node:crypto';
 import { createApp } from '../dist/main.js';
 import { Database } from '../dist/database.js';
 import { passwordHash } from '../dist/auth.js';
+import { clearArticles, clearCourses } from './fixture-cleanup.mjs';
 
 if (process.env.NODE_ENV === 'production') throw new Error('Never run fixture tests against production');
 const origin = 'http://127.0.0.1:5173';
@@ -192,7 +193,7 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
       assert.equal((await request('/catalog/courses?teacherId=' + teacher.id + '&format=AUDIO')).body.items[0].id, course.id);
       assert.equal((await request('/catalog/courses?teacherId=' + teacher.id + '&format=VIDEO')).body.items.length, 0);
       assert.equal((await request('/catalog/courses?format=INVALID')).status, 400);
-      const event = await db.event.create({ data: { title: prefix, description: 'QA', category: '雅集', cover: '/static/art/tea.svg', location: 'QA', startsAt: new Date(), endsAt: new Date(Date.now()+3600000), capacity: 1, price: 0, status: 'DRAFT', isDemo: true } }); eventIds.push(event.id);
+      const event = await db.event.create({ data: { title: prefix, description: 'QA', category: '雅集', cover: '/static/art/tea.svg', location: 'QA', startsAt: new Date(), endsAt: new Date(Date.now()+3600000), capacity: 1, price: 0, status: 'DRAFT', isDemo: true, responsibleUserId: admin.id } }); eventIds.push(event.id);
       assert.equal((await request('/catalog/events/' + event.id)).status, 404);
       assert.equal((await request('/catalog/events?q=' + encodeURIComponent(prefix))).body.items.length, 0);
       await db.event.update({ where: { id: event.id }, data: { status: 'PUBLISHED' } });
@@ -220,6 +221,8 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
   } finally {
     await app.close();
     await db.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    await clearArticles(db, articleIds);
+    await clearCourses(db, courseIds);
     await db.article.deleteMany({ where: { id: { in: articleIds } } });
     await db.course.deleteMany({ where: { id: { in: courseIds } } });
     await db.event.deleteMany({ where: { id: { in: eventIds } } });

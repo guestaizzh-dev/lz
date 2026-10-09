@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { createApp } from '../dist/main.js';
 import { Database } from '../dist/database.js';
 import { passwordHash } from '../dist/auth.js';
+import { clearArticles, clearCourses, clearPlans } from './fixture-cleanup.mjs';
 
 if (process.env.NODE_ENV === 'production') throw new Error('Fixtures forbidden in production');
 test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutable versions', async t => {
@@ -61,7 +62,7 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
       assert.equal((await call(`/admin/courses/${course.id}`, operator, 'PATCH', { ...draft([]), expectedVersion: course.version })).status, 409);
     });
     await t.test('membership expiration and independent course access are separate', async () => {
-      const plan = (await call('/admin/memberships/plans', root, 'POST', { title: prefix, tier: 2, days: 17, price: 100, description: '测试套餐', active: true })).body; plans.push(plan.id);
+      const planResult = await call('/admin/memberships/plans', root, 'POST', { title: prefix, tier: 2, days: 30, price: 100, description: '测试套餐', active: true }); assert.equal(planResult.status, 201); const plan = planResult.body; plans.push(plan.id);
       const grant = await call('/admin/memberships/grant', root, 'POST', { userId: b.user.id, planId: plan.id, reason: '测试补偿' }); assert.equal(grant.status, 201);
       assert.equal((await call('/learning/lessons/' + privateLesson.id, b)).status, 200);
       const next = await call('/admin/memberships/grant', root, 'POST', { userId: b.user.id, planId: plan.id, reason: '续期测试' }); assert.equal(next.body.startsAt, grant.body.endsAt);
@@ -81,7 +82,7 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
         assert.equal(await db.auditLog.count({ where: { resourceId: grant.body.id, action: 'membership.revoke' } }), 1);
         assert.equal((await call('/learning/lessons/' + privateLesson.id, b)).status, 403);
         assert.equal((await call('/catalog/articles/' + article.id, b)).body.blocks.length, 0);
-      } finally { await db.article.delete({ where: { id: article.id } }); }
+      } finally { await clearArticles(db, [article.id]); await db.article.delete({ where: { id: article.id } }); }
       assert.equal((await call(`/admin/courses/${course.id}/grant`, operator, 'POST', { userId: a.user.id, reason: '测试' })).status, 403);
       assert.equal((await call(`/admin/courses/${course.id}/grant`, root, 'POST', { userId: a.user.id, reason: '补偿授权测试' })).status, 201);
       assert.equal((await call('/learning/lessons/' + privateLesson.id, a)).status, 200);
@@ -130,13 +131,15 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
     await db.note.deleteMany({ where: { userId: { in: users } } });
     await db.enrollment.deleteMany({ where: { userId: { in: users } } });
     await db.membership.deleteMany({ where: { userId: { in: users } } });
+    await clearCourses(db, courses);
+    await clearPlans(db, plans);
     await db.course.deleteMany({ where: { id: { in: courses } } });
     await db.teacher.deleteMany({ where: { id: { in: teachers } } });
     await db.membershipPlan.deleteMany({ where: { id: { in: plans } } });
     await db.mediaAsset.deleteMany({ where: { id: { in: mediaIds } } });
     await db.authSession.deleteMany({ where: { userId: { in: users } } });
-    await db.user.deleteMany({ where: { id: { in: users } } });
     await db.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    await db.user.deleteMany({ where: { id: { in: users } } });
     await db.otpChallenge.deleteMany({ where: { phone: { in: phones } } });
     await db.rateLimit.deleteMany({ where: { OR: [{ key: { contains: prefix } }, { key: { contains: ip } }, ...phones.map(phone => ({ key: { endsWith: ':' + phone } }))] } });
     await db.$disconnect(); await rm(mediaDir, { recursive: true, force: true });

@@ -4,6 +4,7 @@ import { randomInt, randomUUID } from 'node:crypto';
 import { createApp } from '../dist/main.js';
 import { Database } from '../dist/database.js';
 import { passwordHash } from '../dist/auth.js';
+import { clearProducts } from './fixture-cleanup.mjs';
 
 if(process.env.NODE_ENV==='production')throw new Error('Test fixtures forbidden in production');
 test('shopping HTTP workflows protect ownership, defaults, prices, inventory and audit',async t=>{
@@ -74,6 +75,7 @@ test('shopping HTTP workflows protect ownership, defaults, prices, inventory and
     });
   } finally {
     const skuIds=(await db.productSku.findMany({where:{productId:{in:products}},select:{id:true}})).map(row=>row.id);
+    await clearProducts(db, products);
     await db.product.deleteMany({where:{id:{in:products}}});
     await db.auditLog.deleteMany({where:{OR:[{actorId:{in:users}},{resourceId:{in:[...products,...skuIds]}}]}});
     await db.authSession.deleteMany({where:{userId:{in:users}}});

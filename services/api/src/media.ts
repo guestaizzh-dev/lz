@@ -1,6 +1,6 @@
 import { BadRequestException, Controller, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Post, Query, Req, Res, UnauthorizedException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { mkdir, stat, unlink, writeFile } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { resolve } from 'node:path';
@@ -31,7 +31,7 @@ export class MediaService {
     await writeFile(resolve(this.root, storageKey), file.buffer, { flag: 'wx' });
     try {
       return await this.db.$transaction(async tx => {
-        const asset = await tx.mediaAsset.create({ data: { storageKey, name: file.originalname.slice(0, 200), mime: file.mimetype, bytes: file.size, uploaderId: req.actor.id } });
+        const asset = await tx.mediaAsset.create({ data: { storageKey, name: file.originalname.slice(0, 200), mime: file.mimetype, bytes: file.size, uploaderId: req.actor.id, sha256: createHash('sha256').update(file.buffer).digest('hex'), status: 'READY', visibility: 'PRIVATE' } });
         await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'media.upload', resource: 'media', resourceId: asset.id, changes: { name: asset.name, bytes: asset.bytes } } });
         const { storageKey: _, ...safe } = asset; return safe;
       });

@@ -1,0 +1,42 @@
+import {createRequire} from 'node:module';
+import {mkdirSync,writeFileSync} from 'node:fs';
+import {domains,access,writable,hidden} from '../services/api/dist/domain-policy.js';
+const {Client}=createRequire(new URL('../services/api/package.json',import.meta.url))('pg');
+const url=new URL(process.env.DATABASE_URL??'');
+if(process.env.NODE_ENV==='production'||!['127.0.0.1','localhost'].includes(url.hostname))throw new Error('Schema export only supports this local development database');
+const client=new Client({connectionString:process.env.DATABASE_URL});await client.connect();
+const out=new URL('../outputs/crud-2026-10-09/',import.meta.url);mkdirSync(out,{recursive:true});
+const escape=v=>String(v??'').replaceAll('|','\\|').replaceAll('\n',' ');
+try{
+  const tables=(await client.query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename<>'_prisma_migrations' ORDER BY tablename")).rows.map(x=>x.tablename);
+  const columns=(await client.query(`SELECT c.relname AS table_name,a.attname AS name,format_type(a.atttypid,a.atttypmod) AS type,a.attnotnull AS required,pg_get_expr(d.adbin,d.adrelid) AS default_value FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum WHERE n.nspname='public' AND c.relkind='r' AND c.relname<>'_prisma_migrations' AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum`)).rows;
+  const constraints=(await client.query(`SELECT c.relname AS table_name,k.conname AS name,k.contype AS kind,pg_get_constraintdef(k.oid,true) AS definition FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname<>'_prisma_migrations' ORDER BY CASE WHEN k.contype='f' THEN 1 ELSE 0 END,c.relname,k.conname`)).rows;
+  const indexes=(await client.query(`SELECT t.relname AS table_name,i.relname AS name,pg_get_indexdef(x.indexrelid) AS definition FROM pg_index x JOIN pg_class i ON i.oid=x.indexrelid JOIN pg_class t ON t.oid=x.indrelid JOIN pg_namespace n ON n.oid=t.relnamespace WHERE n.nspname='public' AND t.relname<>'_prisma_migrations' AND NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conindid=x.indexrelid) ORDER BY t.relname,i.relname`)).rows;
+  const enums=(await client.query(`SELECT t.typname AS name,array_agg(e.enumlabel::text ORDER BY e.enumsortorder) AS labels FROM pg_type t JOIN pg_enum e ON e.enumtypid=t.oid JOIN pg_namespace n ON n.oid=t.typnamespace WHERE n.nspname='public' GROUP BY t.typname ORDER BY t.typname`)).rows;
+  const functions=(await client.query(`SELECT pg_get_functiondef(p.oid) AS definition FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e') ORDER BY p.proname`)).rows;
+  const triggers=(await client.query(`SELECT pg_get_triggerdef(t.oid,true) AS definition FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal ORDER BY t.tgname`)).rows;
+  const quote=v=>'"'+v.replaceAll('"','""')+'"',literal=v=>"'"+v.replaceAll("'","''")+"'";
+  const ddl=['-- Actual local PostgreSQL schema; structure only, no accounts or business rows.','CREATE EXTENSION IF NOT EXISTS btree_gist;',...enums.map(e=>`CREATE TYPE ${quote(e.name)} AS ENUM (${e.labels.map(literal).join(',')});`)];
+  for(const table of tables)ddl.push(`CREATE TABLE ${quote(table)} (\n${columns.filter(c=>c.table_name===table).map(c=>'  '+quote(c.name)+' '+c.type+(c.required?' NOT NULL':'')+(c.default_value?' DEFAULT '+c.default_value:'')).join(',\n')}\n);`);
+  ddl.push(...constraints.map(c=>`ALTER TABLE ${quote(c.table_name)} ADD CONSTRAINT ${quote(c.name)} ${c.definition};`),...indexes.map(i=>i.definition+';'),...functions.map(f=>f.definition+';'),...triggers.map(t=>t.definition+';'));
+  writeFileSync(new URL('database-schema.sql',out),ddl.join('\n\n')+'\n');
+  const inventory={database:'daoxue_dev',tableCount:tables.length,columns,constraints,indexes,enumTypes:enums,triggerCount:triggers.length};
+  writeFileSync(new URL('database-inventory.json',out),JSON.stringify(inventory,null,2));
+  const coverage=domains.map(e=>({entity:e.key,table:e.table,module:e.module,phase:e.phase,...access(e,['ADMIN']),fields:e.fields.length,writableFields:e.fields.filter(f=>writable(e,f)).length}));
+  writeFileSync(new URL('crud-coverage.json',out),JSON.stringify(coverage,null,2));
+  const summary={entities:domains.length,physicalTables:tables.length,columns:columns.length,foreignKeys:constraints.filter(x=>x.kind==='f').length,checks:constraints.filter(x=>x.kind==='c').length,fullCrud:coverage.filter(e=>e.create&&e.update&&e.delete).length,profileEdit:coverage.filter(e=>e.update&&!e.create).length,controlled:coverage.filter(e=>e.mode==='workflow').length,triggers:triggers.length};
+  writeFileSync(new URL('delivery-summary.json',out),JSON.stringify(summary,null,2));
+  const lines=['# 数据库结构与 CRUD 实施契约','','日期：2026-10-09。来源：本机 PostgreSQL 实际结构与服务端权限白名单。','','## 1. 本次实施范围','',`144 个目标实体落到 ${tables.length} 张业务表；其中 63 个实体提供完整通用 CRUD，用户资料仅允许编辑，80 个事实/版本/敏感实体提供受控查询及所属流程操作。`, '', '保留的 4 张兼容表为 Order、OrderItem（旧的开发预占订单）、DeliveryZone（旧配送配置）、Favorite（旧文章收藏）。它们由现有专用接口维护，不属于新增的数据工作台。Favorite 与 Reaction 双向同步；CartItem 绑定 SKU 的规范 SaleOffer。旧开发预占订单仍不代表已支付订单。', '', '本轮没有迁移保留旧测试数据；按用户授权重建了本机测试库。SQL 文件记录建表版本，是空库重建依据，不是旧测试数据迁移承诺。','','完整结构 SQL：[database-schema.sql](../outputs/crud-2026-10-09/database-schema.sql)。实际列、约束和索引：[database-inventory.json](../outputs/crud-2026-10-09/database-inventory.json)。','','## 2. 操作与安全契约','','- 后台入口 `/data`，沿用官方 Ant Design Pro 的 PageContainer、ProTable、Drawer、Form。角色菜单与接口权限同时校验。','- GET `/api/v1/admin/data/schema` 返回当前账号可用实体与读写字段。GET `/admin/data/:entity` 支持 page/size/q/filters/sort/direction，最大50条。filters 是 JSON 等值筛选对象，最多8个字段。','- GET `/admin/data/:entity/:id` 获取详情；POST 创建；PATCH 修改；DELETE 删除。写入体为 `{data, reason, expectedRevision}`，创建无需 expectedRevision，删除无需 data。','- reason 必须2—500字；修改/删除使用详情返回的 `_revision`。行锁、写操作和审计在一个事务内；失效版本返回409。','- 所有表与列来自内部白名单，值参数化；枚举、整数、BigInt、JSON、数组、时区和外键校验。引用仍被使用时不能删除；时段重叠由排斥约束拦截。','- 哈希、令牌、密文、推流密钥和原始渠道载荷不出现在查询结果。Cipher 字段仅输入，AES-256-GCM 保存；留空不覆写。生产必须配置 DOMAIN_ENCRYPTION_KEY。','- 私人笔记、日志、地址、个人互动、问答和作业按当前账号归属过滤，不因 ADMIN 而开放他人的私人正文。老师的真实学员访问需要专门课程归属流程。','- 角色使用 POST `/admin/data/roles/grant` 与 POST `/admin/data/roles/:id/revoke`；不允许自改管理角色，撤销保留历史，权限和审计同步。','- 支付交易、退款核验、钱包/积分/财务账本等只能由对应流程写入。当前通用工作台不会伪造支付成功或改余额；未实现的渠道和流程见实施报告。','- 已发布课程/文章/商品/名师的审核状态继续通过原有审核接口变更；通用编辑不能绕过发布流程。会员套餐内容变更自动形成新版本，历史版本保持原内容。','','## 3. 构建与维护','','生成顺序：`python scripts/build-domain-schema.py` → Prisma validate/generate → API build → 测试 → 后台 build。SQL 中的 FK/CHECK/排斥约束和触发器是约束来源；新增模型的 Prisma 标量字段不完整表达这些 SQL 约束。禁止直接用 db push 或未经核查的自动 diff 重写数据库；新结构变更须检查生成 SQL 与实际约束。','','## 4. 逐实体覆盖','','以下读写权限以 ADMIN 为上限；普通角色还受模块限制。只读表示禁止通用写入，不表示对应业务流程已经开发完成。','','|实体|模块|物理表|创建|查询|修改|删除|数据边界|','|---|---|---|---|---|---|---|---|'];
+  for(const e of domains){const a=access(e,['ADMIN']);lines.push(`|${e.key}|${e.module}|${e.table}|${a.create?'已完成':'流程维护'}|已完成|${a.update?'已完成':'流程维护'}|${a.delete?'已完成':'流程维护'}|${a.ownerOnly?'本人记录':a.mode==='workflow'?'事实/版本/敏感记录':'业务配置/资料'}|`);}
+  lines.push('','## 5. 完整物理表结构','',`共 ${tables.length} 表、${columns.length} 列、${summary.foreignKeys} 外键、${summary.checks} CHECK；列名、类型和默认值以真实数据库为准。`);
+  for(const table of tables){
+    const e=domains.find(e=>e.table===table);lines.push('',`### ${table}${e?' / '+e.key:''}`,'',e?.description??'既有专用业务兼容表','','|字段|数据库类型|必填|数据库默认值|关联/权限|','|---|---|---|---|---|');
+    for(const c of columns.filter(c=>c.table_name===table)){
+      const f=e?.fields.find(f=>f.name===c.name);const annotation=[f?.reference?f.reference.entity+'.'+f.reference.field:'',f&&hidden(f)?'查询隐藏':'',f&&writable(e,f)?'通用可写':''].filter(Boolean).join('；');
+      lines.push(`|${c.name}|${escape(c.type)}|${c.required?'是':'否'}|${escape(c.default_value??'—')}|${escape(annotation)}|`);
+    }
+    lines.push('','约束：',...constraints.filter(c=>c.table_name===table).map(c=>'- `'+c.name+'`：`'+c.definition+'`'),'','索引：',...indexes.filter(i=>i.table_name===table).map(i=>'- `'+i.definition+'`'));
+  }
+  writeFileSync(new URL('../docs/07-database-and-crud.md',import.meta.url),lines.join('\n')+'\n');
+  console.log(JSON.stringify(summary));
+}finally{await client.end();}

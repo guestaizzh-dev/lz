@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, symlinkSync, readlinkSync } from 'node:fs';
-import { resolve, dirname, join, relative } from 'node:path';
+import { resolve, dirname, join, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { pg_ctl as nativePgCtl, initdb as nativeInitdb } from '@embedded-postgres/windows-x64';
@@ -15,8 +15,15 @@ const alias = join(process.env.LOCALAPPDATA, 'daoxue-academy-dev', 'workspace');
 mkdirSync(dirname(alias), { recursive: true });
 if (!existsSync(alias)) symlinkSync(root, alias, 'junction');
 if (resolve(readlinkSync(alias)).toLowerCase() !== root.toLowerCase()) throw new Error('Development junction belongs to another workspace.');
-const pg_ctl = join(alias, relative(root, nativePgCtl));
-const initdb = join(alias, relative(root, nativeInitdb));
+function nativeTool(nativePath) {
+  // Windows redirects Documents across volumes; package paths can use another drive.
+  const marker = nativePath.indexOf('\\node_modules\\');
+  const dependencyPath = marker >= 0 ? nativePath.slice(marker + 1) : '';
+  if (!dependencyPath || isAbsolute(dependencyPath) || !existsSync(join(root, dependencyPath))) throw new Error('PostgreSQL dependency path is outside this workspace.');
+  return join(alias, dependencyPath);
+}
+const pg_ctl = nativeTool(nativePgCtl);
+const initdb = nativeTool(nativeInitdb);
 // Data must have a physical ASCII path: native PostgreSQL resolves junctions.
 const runtime = join(dirname(alias), 'postgres');
 const data = join(runtime, 'data');

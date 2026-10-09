@@ -43,6 +43,8 @@ export default defineConfig({
    * @doc https://umijs.org/docs/api/config#hash
    */
   hash: true,
+  // Documents redirects between C: and D: can duplicate React in MFSU's cache.
+  mfsu: false,
   esbuildMinifyIIFE: true,
 
   publicPath: PUBLIC_PATH,

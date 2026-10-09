@@ -128,7 +128,8 @@ export class OrdersService implements OnModuleInit,OnModuleDestroy {
   async expire(){
     if(this.expiring)return {processed:0};this.expiring=true;
     try{const now=new Date(),rows=await this.db.order.findMany({where:{status:'PENDING',expiresAt:{lte:now}},orderBy:{expiresAt:'asc'},take:100});
-      for(const row of rows)await this.db.$transaction(tx=>this.close(tx,row.id,'付款超时（开发预占）','system',undefined,now));
+      const system = await this.db.user.upsert({ where: { id: 'system-order-expiry' }, create: { id: 'system-order-expiry', nickname: '系统关单任务', status: 'FROZEN', roles: ['USER'] }, update: {} });
+      for(const row of rows)await this.db.$transaction(tx=>this.close(tx,row.id,'付款超时（开发预占）',system.id,undefined,now));
       return {processed:rows.length};
     }finally{this.expiring=false;}
   }

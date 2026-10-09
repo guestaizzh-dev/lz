@@ -1,0 +1,3797 @@
+[
+  {
+    "name": "app_user",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "扩展User",
+    "purpose": "游客之外的统一账号，注销保留匿名交易主体",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "phone_cipher text",
+      "phone_hash text UNIQUE",
+      "username text UNIQUE",
+      "password_hash text",
+      "nickname text NOT NULL",
+      "avatar_asset_id text REFERENCES media_asset(id)",
+      "status text NOT NULL DEFAULT 'ACTIVE'",
+      "deleted_at timestamptz",
+      "last_seen_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK (status IN ('ACTIVE','FROZEN','DELETED'))",
+      "CHECK ((status='DELETED')=(deleted_at IS NOT NULL))"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "auth_identity",
+    "domain": "身份",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "微信/Apple身份绑定，手机号继续由app_user管理",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "provider text NOT NULL",
+      "app_scope text NOT NULL",
+      "subject_hash text NOT NULL",
+      "union_subject_hash text",
+      "verified_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(provider,app_scope,subject_hash)"
+    ],
+    "indexes": [
+      "(user_id,provider)"
+    ]
+  },
+  {
+    "name": "auth_session",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "扩展AuthSession",
+    "purpose": "APP/ADMIN短期access及可撤销refresh会话",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "kind text NOT NULL",
+      "access_hash text NOT NULL UNIQUE",
+      "refresh_hash text NOT NULL UNIQUE",
+      "access_expires_at timestamptz NOT NULL",
+      "refresh_expires_at timestamptz NOT NULL",
+      "csrf_hash text",
+      "device_id text",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(kind IN ('APP','ADMIN'))",
+      "CHECK(refresh_expires_at>access_expires_at)"
+    ],
+    "indexes": [
+      "(user_id,revoked_at)"
+    ]
+  },
+  {
+    "name": "consumed_refresh",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "保留ConsumedRefresh",
+    "purpose": "已消费刷新令牌，重放撤销原会话",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "token_hash text NOT NULL UNIQUE",
+      "session_id text NOT NULL REFERENCES auth_session(id)",
+      "expires_at timestamptz NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(expires_at)"
+    ]
+  },
+  {
+    "name": "otp_challenge",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "扩展OtpChallenge",
+    "purpose": "短信挑战，不存明文验证码",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "phone_hash text NOT NULL",
+      "purpose text NOT NULL",
+      "code_hash text NOT NULL",
+      "attempts integer NOT NULL DEFAULT 0",
+      "expires_at timestamptz NOT NULL",
+      "consumed_at timestamptz",
+      "provider_request_id text",
+      "delivery_state text NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(attempts BETWEEN 0 AND 5)"
+    ],
+    "indexes": [
+      "(phone_hash,purpose,created_at)"
+    ]
+  },
+  {
+    "name": "rate_limit",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "保留RateLimit",
+    "purpose": "基础数据库限流，必要时缓存加速",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "limit_key text NOT NULL UNIQUE",
+      "count integer NOT NULL",
+      "expires_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(count>=0)"
+    ],
+    "indexes": [
+      "(expires_at)"
+    ]
+  },
+  {
+    "name": "access_role",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "替代roles枚举配置",
+    "purpose": "角色与权限码，权限码目录由代码版本维护",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "name text NOT NULL",
+      "permission_codes text[] NOT NULL DEFAULT '{}'",
+      "active boolean NOT NULL DEFAULT true"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "user_role",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "多角色授予；老师资源归属仍由teacher_staff/course_staff约束",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "role_id text NOT NULL REFERENCES access_role(id)",
+      "granted_by text NOT NULL REFERENCES app_user(id)",
+      "reason text NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(user_id,role_id) WHERE revoked_at IS NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "tag",
+    "domain": "身份内容",
+    "phase": "R1",
+    "change": "规范化tags",
+    "purpose": "兴趣和资源标签字典",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "name text NOT NULL",
+      "parent_id text REFERENCES tag(id)",
+      "active boolean NOT NULL DEFAULT true"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "user_tag",
+    "domain": "身份内容",
+    "phase": "R1",
+    "change": "替代User.tags",
+    "purpose": "用户自主兴趣",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "tag_id text NOT NULL REFERENCES tag(id)"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,tag_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "consent_record",
+    "domain": "身份",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "政策版本和非必要数据处理同意/撤回",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "policy_code text NOT NULL",
+      "policy_version text NOT NULL",
+      "purpose text NOT NULL",
+      "accepted boolean NOT NULL",
+      "acted_at timestamptz NOT NULL",
+      "source text NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(user_id,purpose,acted_at)"
+    ]
+  },
+  {
+    "name": "media_asset",
+    "domain": "内容",
+    "phase": "R1",
+    "change": "扩展MediaAsset",
+    "purpose": "对象存储元数据、转码和审核；长期URL不出现在用户响应",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "uploader_id text NOT NULL REFERENCES app_user(id)",
+      "storage_key text NOT NULL UNIQUE",
+      "name text NOT NULL",
+      "mime text NOT NULL",
+      "bytes bigint NOT NULL",
+      "sha256 text NOT NULL",
+      "status text NOT NULL",
+      "visibility text NOT NULL",
+      "duration_seconds integer",
+      "provider_asset_id text",
+      "variants jsonb NOT NULL DEFAULT '{}'",
+      "failure_code text"
+    ],
+    "constraints": [
+      "CHECK(bytes>=0)",
+      "CHECK(duration_seconds IS NULL OR duration_seconds>=0)",
+      "CHECK(status IN ('UPLOADING','PROCESSING','REVIEW','READY','REJECTED','DELETED'))"
+    ],
+    "indexes": [
+      "(uploader_id,created_at)",
+      "(status,created_at)"
+    ]
+  },
+  {
+    "name": "resource",
+    "domain": "内容",
+    "phase": "R1",
+    "change": "新增统一资源注册",
+    "purpose": "强FK的公共内容身份；此表是发布状态唯一权威",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "kind text NOT NULL",
+      "title text NOT NULL",
+      "summary text NOT NULL DEFAULT ''",
+      "cover_asset_id text REFERENCES media_asset(id)",
+      "owner_id text REFERENCES app_user(id)",
+      "publish_state text NOT NULL DEFAULT 'DRAFT'",
+      "visibility text NOT NULL DEFAULT 'PUBLIC'",
+      "membership_tier integer",
+      "category_code text NOT NULL",
+      "is_demo boolean NOT NULL DEFAULT false",
+      "featured_rank integer",
+      "published_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(id,kind)",
+      "CHECK(kind IN ('ARTICLE','TEACHER','COURSE','PRODUCT','EVENT','LIVE','THREAD'))",
+      "CHECK(publish_state IN ('DRAFT','REVIEW','PUBLISHED','REJECTED','ARCHIVED'))",
+      "CHECK(visibility IN ('PUBLIC','MEMBER','COURSE','PRIVATE'))",
+      "CHECK(membership_tier IS NULL OR membership_tier BETWEEN 1 AND 3)"
+    ],
+    "indexes": [
+      "(kind,publish_state,published_at,id)",
+      "(kind,category_code,publish_state)"
+    ]
+  },
+  {
+    "name": "resource_tag",
+    "domain": "内容",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "资源标签关系",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "resource_id text NOT NULL REFERENCES resource(id)",
+      "tag_id text NOT NULL REFERENCES tag(id)"
+    ],
+    "constraints": [
+      "UNIQUE(resource_id,tag_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "source_evidence",
+    "domain": "内容治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "经典版本、译注版权、名师背景、文化溯源及资质证据",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "kind text NOT NULL",
+      "title text NOT NULL",
+      "author text",
+      "edition text",
+      "source_url text",
+      "proof_asset_id text REFERENCES media_asset(id)",
+      "rights_holder text",
+      "license_scope text",
+      "valid_from timestamptz",
+      "valid_until timestamptz",
+      "review_state text NOT NULL",
+      "reviewer_id text REFERENCES app_user(id)",
+      "review_note text"
+    ],
+    "constraints": [
+      "CHECK(valid_until IS NULL OR valid_from IS NULL OR valid_until>valid_from)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "resource_evidence",
+    "domain": "内容治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "资源与核验证据关联",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "resource_id text NOT NULL REFERENCES resource(id)",
+      "evidence_id text NOT NULL REFERENCES source_evidence(id)",
+      "purpose text NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(resource_id,evidence_id,purpose)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "content_relation",
+    "domain": "内容",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "文章名师课程直播商品活动的强FK联动",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "from_id text NOT NULL REFERENCES resource(id)",
+      "to_id text NOT NULL REFERENCES resource(id)",
+      "relation_type text NOT NULL",
+      "rank integer NOT NULL DEFAULT 0",
+      "starts_at timestamptz",
+      "ends_at timestamptz",
+      "approved_by text REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "UNIQUE(from_id,to_id,relation_type)",
+      "CHECK(from_id<>to_id)",
+      "CHECK(ends_at IS NULL OR starts_at IS NULL OR ends_at>starts_at)"
+    ],
+    "indexes": [
+      "(from_id,relation_type,rank)"
+    ]
+  },
+  {
+    "name": "article",
+    "domain": "文章",
+    "phase": "R1",
+    "change": "重构Article",
+    "purpose": "文章资源子类型，当前发布版指针与编辑版本",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'ARTICLE' CHECK (resource_kind = 'ARTICLE')",
+      "author_display text NOT NULL",
+      "author_user_id text REFERENCES app_user(id)",
+      "current_release_id text REFERENCES article_release(id)",
+      "draft_blocks jsonb NOT NULL DEFAULT '[]'",
+      "draft_source_snapshot jsonb NOT NULL DEFAULT '{}'",
+      "draft_template_code text"
+    ],
+    "constraints": [
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)",
+      "FOREIGN KEY(current_release_id,id) REFERENCES article_release(id,article_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "article_release",
+    "domain": "文章",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "不变文章正文版本，保留授权与来源快照",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "article_id text NOT NULL REFERENCES article(id)",
+      "release_no integer NOT NULL",
+      "source_snapshot jsonb NOT NULL",
+      "author_snapshot jsonb NOT NULL",
+      "reviewer_id text NOT NULL REFERENCES app_user(id)",
+      "published_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(article_id,release_no)",
+      "UNIQUE(id,article_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "article_block",
+    "domain": "文章",
+    "phase": "R1",
+    "change": "替代blocks JSON",
+    "purpose": "稳定段落键+发布版本正文；图文音视频引用块",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "release_id text NOT NULL REFERENCES article_release(id)",
+      "stable_key text NOT NULL",
+      "position integer NOT NULL",
+      "kind text NOT NULL",
+      "body jsonb NOT NULL",
+      "media_id text REFERENCES media_asset(id)",
+      "citation_evidence_id text REFERENCES source_evidence(id)"
+    ],
+    "constraints": [
+      "UNIQUE(release_id,stable_key)",
+      "UNIQUE(release_id,position)",
+      "CHECK(position>=0)",
+      "CHECK(kind IN ('PARAGRAPH','QUOTE','IMAGE','AUDIO','VIDEO'))"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "reaction",
+    "domain": "内容互动",
+    "phase": "R1",
+    "change": "扩展Favorite",
+    "purpose": "资源统一点赞/收藏，计数由事实重算",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "resource_id text NOT NULL REFERENCES resource(id)",
+      "kind text NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,resource_id,kind)",
+      "CHECK(kind IN ('LIKE','FAVORITE'))"
+    ],
+    "indexes": [
+      "(resource_id,kind)"
+    ]
+  },
+  {
+    "name": "reading_event",
+    "domain": "内容互动",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "阅读历史、去重和行为推荐事实；有限期保留",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text REFERENCES app_user(id)",
+      "anonymous_hash text",
+      "resource_id text NOT NULL REFERENCES resource(id)",
+      "event_key text NOT NULL UNIQUE",
+      "business_day date NOT NULL",
+      "dwell_seconds integer NOT NULL DEFAULT 0",
+      "consent_record_id text REFERENCES consent_record(id)"
+    ],
+    "constraints": [
+      "CHECK(dwell_seconds>=0)"
+    ],
+    "indexes": [
+      "(user_id,created_at)",
+      "(resource_id,business_day)"
+    ]
+  },
+  {
+    "name": "private_note",
+    "domain": "文章",
+    "phase": "R1/R2",
+    "change": "扩展Note",
+    "purpose": "私人摘录；删除资源后原文引用仍保留",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "article_id text REFERENCES article(id)",
+      "release_id text REFERENCES article_release(id)",
+      "block_stable_key text NOT NULL",
+      "range_start integer",
+      "range_end integer",
+      "title_snapshot text NOT NULL",
+      "quote_snapshot text NOT NULL",
+      "note_text text NOT NULL",
+      "deleted_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK((range_start IS NULL AND range_end IS NULL) OR (range_start>=0 AND range_end>range_start))"
+    ],
+    "indexes": [
+      "(user_id,updated_at,id)"
+    ]
+  },
+  {
+    "name": "note_export",
+    "domain": "文章",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "本人笔记导出任务，按筛选及权限生成短期文件",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "request_key text NOT NULL",
+      "filter_snapshot jsonb NOT NULL",
+      "format text NOT NULL",
+      "state text NOT NULL",
+      "asset_id text REFERENCES media_asset(id)",
+      "expires_at timestamptz",
+      "error_code text"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)"
+    ],
+    "indexes": [
+      "(state,created_at)"
+    ]
+  },
+  {
+    "name": "practice_log",
+    "domain": "实践",
+    "phase": "R1",
+    "change": "扩展PracticeLog",
+    "purpose": "私人日记，不直接公开；日期按上海业务时区",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "business_day date NOT NULL",
+      "text text NOT NULL",
+      "deleted_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,business_day)"
+    ],
+    "indexes": [
+      "(user_id,business_day)"
+    ]
+  },
+  {
+    "name": "teacher",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "扩展Teacher",
+    "purpose": "名师审核档案，账号绑定与后台角色分开",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'TEACHER' CHECK (resource_kind = 'TEACHER')",
+      "user_id text UNIQUE REFERENCES app_user(id)",
+      "honor_title text NOT NULL",
+      "bio text NOT NULL",
+      "lineage_summary text",
+      "achievement_summary text",
+      "teaching_direction text NOT NULL",
+      "service_policy text",
+      "portrait_asset_id text REFERENCES media_asset(id)"
+    ],
+    "constraints": [
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "teacher_staff",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "名师助理资源范围委派",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "teacher_id text NOT NULL REFERENCES teacher(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "scope_codes text[] NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(teacher_id,user_id) WHERE revoked_at IS NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "teacher_question",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "私问或申请公开，会员问答额度关联",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "teacher_id text NOT NULL REFERENCES teacher(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "body text NOT NULL",
+      "visibility text NOT NULL",
+      "state text NOT NULL",
+      "benefit_usage_id text REFERENCES benefit_usage(id)",
+      "answered_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(visibility IN ('PRIVATE','PUBLIC'))",
+      "CHECK(state IN ('OPEN','ANSWERED','CLOSED','REJECTED'))"
+    ],
+    "indexes": [
+      "(teacher_id,state,created_at)",
+      "(user_id,created_at)"
+    ]
+  },
+  {
+    "name": "teacher_answer",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "答复版本及审核，精选标记",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "question_id text NOT NULL REFERENCES teacher_question(id)",
+      "author_id text NOT NULL REFERENCES app_user(id)",
+      "body text NOT NULL",
+      "asset_id text REFERENCES media_asset(id)",
+      "review_state text NOT NULL",
+      "featured boolean NOT NULL DEFAULT false",
+      "reviewer_id text REFERENCES app_user(id)"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(question_id,created_at)"
+    ]
+  },
+  {
+    "name": "service_offering",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "一对一与见面服务定义，同商城服务共用",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "teacher_id text NOT NULL REFERENCES teacher(id)",
+      "title text NOT NULL",
+      "mode text NOT NULL",
+      "duration_minutes integer NOT NULL",
+      "lead_minutes integer NOT NULL",
+      "cancel_before_minutes integer NOT NULL",
+      "location_policy text NOT NULL",
+      "delivery_policy text NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(mode IN ('PHONE','EXTERNAL_MEETING','ONSITE','IN_APP_RTC'))",
+      "CHECK(duration_minutes>0 AND lead_minutes>=0 AND cancel_before_minutes>=0)",
+      "UNIQUE(id,teacher_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "appointment_slot",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "唯一服务时段库存，不能在商品另维护库存",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "offering_id text NOT NULL REFERENCES service_offering(id)",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "capacity integer NOT NULL DEFAULT 1",
+      "reserved integer NOT NULL DEFAULT 0",
+      "confirmed integer NOT NULL DEFAULT 0",
+      "state text NOT NULL DEFAULT 'OPEN'",
+      "teacher_id text NOT NULL REFERENCES teacher(id)"
+    ],
+    "constraints": [
+      "UNIQUE(offering_id,starts_at)",
+      "CHECK(ends_at>starts_at)",
+      "CHECK(capacity>0 AND reserved>=0 AND confirmed>=0 AND reserved+confirmed<=capacity)",
+      "CHECK(state IN ('OPEN','CLOSED','CANCELLED'))",
+      "FOREIGN KEY(offering_id,teacher_id) REFERENCES service_offering(id,teacher_id)",
+      "CHECK(capacity=1)"
+    ],
+    "indexes": [
+      "(offering_id,state,starts_at)"
+    ]
+  },
+  {
+    "name": "appointment",
+    "domain": "名师",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "付款/免费权益确认预约及交付，隐私联系信息加密",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "slot_id text NOT NULL REFERENCES appointment_slot(id)",
+      "order_item_id text UNIQUE REFERENCES order_item(id)",
+      "request_key text NOT NULL",
+      "state text NOT NULL",
+      "contact_cipher text NOT NULL",
+      "service_snapshot jsonb NOT NULL",
+      "benefit_usage_id text REFERENCES benefit_usage(id)",
+      "confirmed_at timestamptz",
+      "completed_at timestamptz",
+      "cancel_reason text"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(state IN ('PENDING','CONFIRMED','CANCEL_PENDING','CANCELLED','COMPLETED','NO_SHOW'))"
+    ],
+    "indexes": [
+      "(slot_id,state)",
+      "(user_id,created_at)"
+    ]
+  },
+  {
+    "name": "course",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展Course",
+    "purpose": "四类五形式课程定义，独立已购版本不得覆盖",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'COURSE' CHECK (resource_kind = 'COURSE')",
+      "teacher_id text NOT NULL REFERENCES teacher(id)",
+      "format text NOT NULL",
+      "description text NOT NULL",
+      "current_release_id text REFERENCES course_release(id)",
+      "access_days integer",
+      "refund_policy text NOT NULL",
+      "completion_policy jsonb NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(format IN ('VIDEO','AUDIO','LIVE','COHORT','OFFLINE'))",
+      "CHECK(access_days IS NULL OR access_days>0)",
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)",
+      "FOREIGN KEY(current_release_id,id) REFERENCES course_release(id,course_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "course_chapter",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展CourseChapter",
+    "purpose": "草稿章节稳定ID；编辑不得全部重建键",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "stable_key text NOT NULL",
+      "title text NOT NULL",
+      "position integer NOT NULL",
+      "kind text NOT NULL",
+      "body jsonb NOT NULL",
+      "asset_id text REFERENCES media_asset(id)",
+      "duration_seconds integer NOT NULL DEFAULT 0",
+      "trial boolean NOT NULL DEFAULT false",
+      "required boolean NOT NULL DEFAULT true",
+      "archived_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(course_id,stable_key)",
+      "CHECK(position>=0 AND duration_seconds>=0)"
+    ],
+    "indexes": [
+      "(course_id,position) WHERE archived_at IS NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "course_release",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展CourseRelease",
+    "purpose": "不可变交付快照，作者授权、时效退课规则固定",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "release_no integer NOT NULL",
+      "title text NOT NULL",
+      "description_snapshot text NOT NULL",
+      "teacher_snapshot jsonb NOT NULL",
+      "access_days integer",
+      "refund_policy_snapshot jsonb NOT NULL",
+      "completion_policy_snapshot jsonb NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(course_id,release_no)",
+      "UNIQUE(id,course_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "lesson",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展Lesson",
+    "purpose": "发布章节快照，支持音视频文字直播线下",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "release_id text NOT NULL REFERENCES course_release(id)",
+      "stable_key text NOT NULL",
+      "position integer NOT NULL",
+      "title text NOT NULL",
+      "kind text NOT NULL",
+      "body jsonb NOT NULL",
+      "asset_id text REFERENCES media_asset(id)",
+      "live_session_id text REFERENCES live_session(id)",
+      "event_session_id text REFERENCES event_session(id)",
+      "duration_seconds integer NOT NULL DEFAULT 0",
+      "trial boolean NOT NULL",
+      "required boolean NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(release_id,position)",
+      "UNIQUE(release_id,stable_key)",
+      "CHECK(kind IN ('TEXT','AUDIO','VIDEO','LIVE','OFFLINE'))",
+      "CHECK(duration_seconds>=0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "course_cohort",
+    "domain": "课程",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "开营批次容量时间、固定发布版与助教",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "release_id text NOT NULL REFERENCES course_release(id)",
+      "title text NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "enroll_deadline timestamptz NOT NULL",
+      "capacity integer NOT NULL",
+      "reserved integer NOT NULL DEFAULT 0",
+      "confirmed integer NOT NULL DEFAULT 0",
+      "state text NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(ends_at>starts_at)",
+      "CHECK(capacity>=0 AND reserved>=0 AND confirmed>=0 AND reserved+confirmed<=capacity)",
+      "UNIQUE(id,course_id)",
+      "FOREIGN KEY(release_id,course_id) REFERENCES course_release(id,course_id)"
+    ],
+    "indexes": [
+      "(course_id,starts_at)"
+    ]
+  },
+  {
+    "name": "course_staff",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "老师和助教按课程及可选营期授权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "role text NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(role IN ('TEACHER','ASSISTANT'))",
+      "FOREIGN KEY(cohort_id,course_id) REFERENCES course_cohort(id,course_id)"
+    ],
+    "indexes": [
+      "(course_id,user_id)",
+      "(cohort_id,user_id)"
+    ]
+  },
+  {
+    "name": "enrollment",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "重构Enrollment",
+    "purpose": "每笔独立来源的课程授权，避免退款误撤其他购课权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "release_id text NOT NULL",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "source text NOT NULL",
+      "order_item_id text UNIQUE REFERENCES order_item(id)",
+      "grant_key text NOT NULL UNIQUE",
+      "starts_at timestamptz NOT NULL",
+      "expires_at timestamptz",
+      "revoked_at timestamptz",
+      "grant_actor_id text REFERENCES app_user(id)",
+      "grant_reason text"
+    ],
+    "constraints": [
+      "FOREIGN KEY(release_id,course_id) REFERENCES course_release(id,course_id)",
+      "CHECK(expires_at IS NULL OR expires_at>starts_at)",
+      "FOREIGN KEY(cohort_id,course_id) REFERENCES course_cohort(id,course_id)"
+    ],
+    "indexes": [
+      "(user_id,course_id,revoked_at,expires_at)"
+    ]
+  },
+  {
+    "name": "study_progress",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展StudyProgress",
+    "purpose": "一用户一发布版章节的续播及完成",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "lesson_id text NOT NULL REFERENCES lesson(id)",
+      "position_seconds integer NOT NULL DEFAULT 0",
+      "verified_seconds integer NOT NULL DEFAULT 0",
+      "completed_at timestamptz",
+      "last_event_at timestamptz",
+      "device_id text"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,lesson_id)",
+      "CHECK(position_seconds>=0 AND verified_seconds>=0)"
+    ],
+    "indexes": [
+      "(user_id,updated_at)"
+    ]
+  },
+  {
+    "name": "study_event",
+    "domain": "课程",
+    "phase": "R1",
+    "change": "扩展StudyEvent",
+    "purpose": "客户端持久队列的幂等学习事实",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "lesson_id text NOT NULL REFERENCES lesson(id)",
+      "event_key text NOT NULL",
+      "payload_hash text NOT NULL",
+      "received_at timestamptz NOT NULL",
+      "result jsonb NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,event_key)"
+    ],
+    "indexes": [
+      "(lesson_id,received_at)"
+    ]
+  },
+  {
+    "name": "assignment",
+    "domain": "课程实践",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "必修作业和期限，营期可选",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "lesson_id text REFERENCES lesson(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "title text NOT NULL",
+      "instructions jsonb NOT NULL",
+      "due_at timestamptz",
+      "required boolean NOT NULL",
+      "allowed_kinds text[] NOT NULL",
+      "state text NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(course_id,cohort_id,due_at)"
+    ]
+  },
+  {
+    "name": "submission",
+    "domain": "课程实践",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "学员作业修订版本，附件绑定媒体",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "assignment_id text NOT NULL REFERENCES assignment(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "revision integer NOT NULL",
+      "body text NOT NULL",
+      "state text NOT NULL",
+      "submitted_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(assignment_id,user_id,revision)",
+      "CHECK(revision>0)"
+    ],
+    "indexes": [
+      "(assignment_id,state,submitted_at)"
+    ]
+  },
+  {
+    "name": "teacher_review",
+    "domain": "课程实践",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "作业或实践点评，恰好一个来源",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "submission_id text REFERENCES submission(id)",
+      "checkin_id text REFERENCES practice_checkin(id)",
+      "reviewer_id text NOT NULL REFERENCES app_user(id)",
+      "body text NOT NULL",
+      "score integer",
+      "state text NOT NULL",
+      "reviewed_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(submission_id,checkin_id)=1)",
+      "CHECK(score IS NULL OR score BETWEEN 0 AND 100)"
+    ],
+    "indexes": [
+      "(submission_id)",
+      "(checkin_id)"
+    ]
+  },
+  {
+    "name": "practice_task",
+    "domain": "课程实践",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "课程每日/周期实践定义及打卡要求",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "course_id text NOT NULL REFERENCES course(id)",
+      "lesson_id text REFERENCES lesson(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "title text NOT NULL",
+      "instructions jsonb NOT NULL",
+      "frequency text NOT NULL",
+      "required_days integer NOT NULL",
+      "starts_on date",
+      "ends_on date",
+      "required boolean NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(required_days>0)",
+      "CHECK(ends_on IS NULL OR starts_on IS NULL OR ends_on>=starts_on)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "practice_checkin",
+    "domain": "课程实践",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "任务打卡不同于私人日志；连续天数按日期事实推导",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "task_id text NOT NULL REFERENCES practice_task(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "business_day date NOT NULL",
+      "body text NOT NULL",
+      "private_log_id text REFERENCES practice_log(id)",
+      "state text NOT NULL",
+      "reward_event_key text UNIQUE"
+    ],
+    "constraints": [
+      "UNIQUE(task_id,user_id,business_day)"
+    ],
+    "indexes": [
+      "(user_id,business_day)"
+    ]
+  },
+  {
+    "name": "offline_license",
+    "domain": "课程",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "离线文件设备授权，不存明文永久解密密钥",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "device_id text NOT NULL",
+      "lesson_id text NOT NULL REFERENCES lesson(id)",
+      "asset_id text NOT NULL REFERENCES media_asset(id)",
+      "entitlement_snapshot jsonb NOT NULL",
+      "license_hash text NOT NULL UNIQUE",
+      "expires_at timestamptz NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(user_id,device_id,expires_at)"
+    ]
+  },
+  {
+    "name": "forum_section",
+    "domain": "社群",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "六区及受限课程讨论；共用帖子能力",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "scope text NOT NULL",
+      "course_id text REFERENCES course(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "description text NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(scope IN ('PUBLIC','COURSE'))",
+      "CHECK((scope='COURSE')=(course_id IS NOT NULL))"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "forum_thread",
+    "domain": "社群",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "帖子资源子类型，图文音视频块和引用",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'THREAD' CHECK (resource_kind = 'THREAD')",
+      "section_id text NOT NULL REFERENCES forum_section(id)",
+      "author_id text NOT NULL REFERENCES app_user(id)",
+      "blocks jsonb NOT NULL",
+      "citation_release_id text REFERENCES article_release(id)",
+      "essence boolean NOT NULL DEFAULT false",
+      "pinned_until timestamptz",
+      "pin_scope text",
+      "benefit_usage_id text REFERENCES benefit_usage(id)",
+      "deleted_at timestamptz"
+    ],
+    "constraints": [
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)"
+    ],
+    "indexes": [
+      "(section_id,created_at,id)"
+    ]
+  },
+  {
+    "name": "comment",
+    "domain": "社群内容",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "文章论坛直播评论与引用；所有目标指向资源",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_id text NOT NULL REFERENCES resource(id)",
+      "author_id text NOT NULL REFERENCES app_user(id)",
+      "parent_id text REFERENCES comment(id)",
+      "quote_block_id text REFERENCES article_block(id)",
+      "quote_snapshot text",
+      "body text NOT NULL",
+      "review_state text NOT NULL",
+      "deleted_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(resource_id,created_at,id)",
+      "(parent_id)"
+    ]
+  },
+  {
+    "name": "user_block",
+    "domain": "治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "本人拉黑关系",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "blocked_id text NOT NULL REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,blocked_id)",
+      "CHECK(user_id<>blocked_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "report",
+    "domain": "治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "举报资源或评论，恰好一个目标",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "reporter_id text NOT NULL REFERENCES app_user(id)",
+      "resource_id text REFERENCES resource(id)",
+      "comment_id text REFERENCES comment(id)",
+      "reason_code text NOT NULL",
+      "description text NOT NULL",
+      "state text NOT NULL",
+      "assignee_id text REFERENCES app_user(id)",
+      "resolved_at timestamptz",
+      "resolution text"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(resource_id,comment_id)=1)"
+    ],
+    "indexes": [
+      "(state,created_at)"
+    ]
+  },
+  {
+    "name": "moderation_action",
+    "domain": "治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "审核处置和申诉，保存前后状态可恢复",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "actor_id text NOT NULL REFERENCES app_user(id)",
+      "report_id text REFERENCES report(id)",
+      "resource_id text REFERENCES resource(id)",
+      "comment_id text REFERENCES comment(id)",
+      "target_user_id text REFERENCES app_user(id)",
+      "action text NOT NULL",
+      "reason text NOT NULL",
+      "before_snapshot jsonb NOT NULL",
+      "after_snapshot jsonb NOT NULL",
+      "appeal_of_id text REFERENCES moderation_action(id)"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(resource_id,created_at)",
+      "(target_user_id,created_at)"
+    ]
+  },
+  {
+    "name": "user_restriction",
+    "domain": "治理",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "禁言封禁跨入口统一执行",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "resource_id text REFERENCES resource(id)",
+      "scope text NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz",
+      "action_id text NOT NULL REFERENCES moderation_action(id)",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(ends_at IS NULL OR ends_at>starts_at)"
+    ],
+    "indexes": [
+      "(user_id,scope,ends_at)"
+    ]
+  },
+  {
+    "name": "content_authorization",
+    "domain": "治理",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "自愿公开私人摘录/日志或使用用户内容作课程案例的授权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "thread_id text REFERENCES forum_thread(id)",
+      "note_id text REFERENCES private_note(id)",
+      "log_id text REFERENCES practice_log(id)",
+      "source_snapshot jsonb NOT NULL",
+      "usage_scope text NOT NULL",
+      "agreement_version text NOT NULL",
+      "target_release_id text REFERENCES course_release(id)",
+      "granted_at timestamptz NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(thread_id,note_id,log_id)=1)"
+    ],
+    "indexes": [
+      "(user_id,granted_at)"
+    ]
+  },
+  {
+    "name": "writing_campaign",
+    "domain": "社群",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "主题征文活动及规则奖品",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "title text NOT NULL",
+      "section_id text NOT NULL REFERENCES forum_section(id)",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "rules jsonb NOT NULL",
+      "reward_policy jsonb NOT NULL",
+      "state text NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(ends_at>starts_at)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "campaign_entry",
+    "domain": "社群",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "投稿评选和授权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "campaign_id text NOT NULL REFERENCES writing_campaign(id)",
+      "thread_id text NOT NULL REFERENCES forum_thread(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "authorization_id text REFERENCES content_authorization(id)",
+      "state text NOT NULL",
+      "rank integer",
+      "judge_id text REFERENCES app_user(id)",
+      "judge_note text",
+      "reward_key text UNIQUE"
+    ],
+    "constraints": [
+      "UNIQUE(campaign_id,thread_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "live_room",
+    "domain": "直播",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "长期房间定义，不存裸推流密钥",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'LIVE' CHECK (resource_kind = 'LIVE')",
+      "teacher_id text NOT NULL REFERENCES teacher(id)",
+      "provider text NOT NULL",
+      "provider_room_id text NOT NULL",
+      "category_code text NOT NULL",
+      "access_rule jsonb NOT NULL",
+      "course_id text REFERENCES course(id)"
+    ],
+    "constraints": [
+      "UNIQUE(provider,provider_room_id)",
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "live_session",
+    "domain": "直播",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "单场直播生命周期及媒体服务状态",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "room_id text NOT NULL REFERENCES live_room(id)",
+      "host_user_id text NOT NULL REFERENCES app_user(id)",
+      "title text NOT NULL",
+      "scheduled_at timestamptz NOT NULL",
+      "started_at timestamptz",
+      "ended_at timestamptz",
+      "state text NOT NULL DEFAULT 'SCHEDULED'",
+      "provider_session_id text",
+      "event_session_id text REFERENCES event_session(id)",
+      "access_rule_snapshot jsonb NOT NULL",
+      "push_secret_ref text"
+    ],
+    "constraints": [
+      "UNIQUE(room_id,scheduled_at)",
+      "CHECK(state IN ('SCHEDULED','PREPARING','LIVE','ENDED','REPLAY_READY','CANCELLED'))",
+      "CHECK(ended_at IS NULL OR started_at IS NULL OR ended_at>=started_at)"
+    ],
+    "indexes": [
+      "(state,scheduled_at)"
+    ]
+  },
+  {
+    "name": "live_reservation",
+    "domain": "直播",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "预约开播提醒",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES live_session(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "cancelled_at timestamptz",
+      "reminder_sent_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(session_id,user_id)"
+    ],
+    "indexes": [
+      "(session_id,cancelled_at)"
+    ]
+  },
+  {
+    "name": "live_replay",
+    "domain": "直播",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "审核回放，固定准入规则和关联课",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL UNIQUE REFERENCES live_session(id)",
+      "asset_id text NOT NULL REFERENCES media_asset(id)",
+      "review_state text NOT NULL",
+      "access_rule_snapshot jsonb NOT NULL",
+      "published_at timestamptz",
+      "reviewer_id text REFERENCES app_user(id)"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "live_mic_request",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "连麦申请批准与结束，RTC凭证临时生成",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES live_session(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "priority integer NOT NULL DEFAULT 0",
+      "state text NOT NULL",
+      "approved_by text REFERENCES app_user(id)",
+      "rtc_session_id text",
+      "started_at timestamptz",
+      "ended_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(state IN ('WAITING','APPROVED','REJECTED','CONNECTED','ENDED','CANCELLED'))"
+    ],
+    "indexes": [
+      "(session_id,state,priority,created_at)"
+    ]
+  },
+  {
+    "name": "live_poll",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "直播投票问卷",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES live_session(id)",
+      "question text NOT NULL",
+      "allow_multiple boolean NOT NULL DEFAULT false",
+      "closes_at timestamptz NOT NULL",
+      "result_visibility text NOT NULL",
+      "state text NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "poll_option",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "投票选项",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "poll_id text NOT NULL REFERENCES live_poll(id)",
+      "label text NOT NULL",
+      "position integer NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(poll_id,position)",
+      "UNIQUE(id,poll_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "poll_vote",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "每次投票用户选项去重；单选限制服务事务检查",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "poll_id text NOT NULL REFERENCES live_poll(id)",
+      "option_id text NOT NULL",
+      "user_id text NOT NULL REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "FOREIGN KEY(option_id,poll_id) REFERENCES poll_option(id,poll_id)",
+      "UNIQUE(poll_id,user_id,option_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "virtual_gift",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "古风礼物商品和消费单位，价格由offer决定",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "icon_asset_id text REFERENCES media_asset(id)",
+      "credit_cost bigint NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(credit_cost>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "gift_wallet",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "购买余额独立于免费积分，不设自动过期",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL UNIQUE REFERENCES app_user(id)",
+      "balance bigint NOT NULL DEFAULT 0"
+    ],
+    "constraints": [
+      "CHECK(balance>=0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "gift_ledger",
+    "domain": "直播",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "礼物充值消费退款不可变流水",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "wallet_id text NOT NULL REFERENCES gift_wallet(id)",
+      "event_key text NOT NULL UNIQUE",
+      "delta bigint NOT NULL",
+      "kind text NOT NULL",
+      "order_item_id text REFERENCES order_item(id)",
+      "session_id text REFERENCES live_session(id)",
+      "gift_id text REFERENCES virtual_gift(id)",
+      "quantity integer",
+      "reversal_of_id text UNIQUE REFERENCES gift_ledger(id)",
+      "balance_after bigint NOT NULL",
+      "payment_transaction_id text REFERENCES payment_transaction(id)",
+      "refund_transaction_id text REFERENCES refund_transaction(id)"
+    ],
+    "constraints": [
+      "CHECK(delta<>0 AND balance_after>=0)",
+      "CHECK(quantity IS NULL OR quantity>0)"
+    ],
+    "indexes": [
+      "(wallet_id,created_at)"
+    ]
+  },
+  {
+    "name": "product",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "扩展Product",
+    "purpose": "五类商品描述与溯源，履约类型单独定义",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'PRODUCT' CHECK (resource_kind = 'PRODUCT')",
+      "type text NOT NULL",
+      "description jsonb NOT NULL",
+      "cultural_origin text NOT NULL",
+      "partner_id text REFERENCES partner(id)",
+      "delivery_template_id text REFERENCES delivery_template(id)",
+      "after_sales_policy jsonb NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(type IN ('PHYSICAL','DIGITAL','SERVICE'))",
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "product_sku",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "扩展ProductSku",
+    "purpose": "实物库存聚合，数字/服务不得冒用此库存",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "product_id text NOT NULL REFERENCES product(id)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "specs jsonb NOT NULL",
+      "stock bigint NOT NULL DEFAULT 0",
+      "reserved bigint NOT NULL DEFAULT 0",
+      "active boolean NOT NULL DEFAULT false",
+      "digital_release_id text REFERENCES digital_release(id)",
+      "service_offering_id text REFERENCES service_offering(id)",
+      "signed_copy boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(stock>=reserved AND reserved>=0)",
+      "CHECK(num_nonnulls(digital_release_id,service_offering_id)<=1)"
+    ],
+    "indexes": [
+      "(product_id,active)"
+    ]
+  },
+  {
+    "name": "digital_release",
+    "domain": "商城",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "数字资料不可变版本与使用期限",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "product_id text NOT NULL REFERENCES product(id)",
+      "release_no integer NOT NULL",
+      "description text NOT NULL",
+      "access_days integer",
+      "rights_snapshot jsonb NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(product_id,release_no)",
+      "CHECK(access_days IS NULL OR access_days>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "digital_release_asset",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "数字资料包文件顺序",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "release_id text NOT NULL REFERENCES digital_release(id)",
+      "asset_id text NOT NULL REFERENCES media_asset(id)",
+      "position integer NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(release_id,asset_id)",
+      "UNIQUE(release_id,position)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "sale_offer",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增统一可售单元",
+    "purpose": "唯一计价和渠道映射对象，恰好一种交付源",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "kind text NOT NULL",
+      "course_release_id text REFERENCES course_release(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "sku_id text REFERENCES product_sku(id)",
+      "membership_version_id text REFERENCES membership_plan_version(id)",
+      "service_offering_id text REFERENCES service_offering(id)",
+      "event_ticket_id text REFERENCES event_ticket_type(id)",
+      "gift_id text REFERENCES virtual_gift(id)",
+      "operating_service_id text REFERENCES operating_service(id)",
+      "currency char(3) NOT NULL DEFAULT 'CNY'",
+      "price bigint NOT NULL",
+      "active boolean NOT NULL DEFAULT false",
+      "valid_from timestamptz",
+      "valid_until timestamptz",
+      "quantity_limit integer NOT NULL DEFAULT 99",
+      "policy_snapshot jsonb NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(kind IN ('COURSE','PHYSICAL','DIGITAL','MEMBERSHIP','CONSULTATION','EVENT','GIFT','OPERATING_SERVICE'))",
+      "CHECK(num_nonnulls(course_release_id,sku_id,membership_version_id,service_offering_id,event_ticket_id,gift_id,operating_service_id)=1)",
+      "CHECK(price>=0 AND quantity_limit>0)",
+      "CHECK(valid_until IS NULL OR valid_from IS NULL OR valid_until>valid_from)"
+    ],
+    "indexes": [
+      "(kind,active)"
+    ]
+  },
+  {
+    "name": "channel_product_mapping",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "渠道商品ID、平台价格币种和校验；商店价格与CNY报价分开",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "offer_id text NOT NULL REFERENCES sale_offer(id)",
+      "channel text NOT NULL",
+      "app_scope text NOT NULL",
+      "external_product_id text NOT NULL",
+      "product_type text NOT NULL",
+      "currency char(3) NOT NULL",
+      "price_minor bigint",
+      "minor_exponent integer NOT NULL DEFAULT 2",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "UNIQUE(channel,app_scope,external_product_id)",
+      "CHECK(price_minor IS NULL OR price_minor>=0)",
+      "CHECK(minor_exponent BETWEEN 0 AND 3)"
+    ],
+    "indexes": [
+      "(offer_id,channel,active)"
+    ]
+  },
+  {
+    "name": "cart_item",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "扩展CartItem",
+    "purpose": "实物购物车引用可售单元",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "offer_id text NOT NULL REFERENCES sale_offer(id)",
+      "quantity integer NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,offer_id)",
+      "CHECK(quantity BETWEEN 1 AND 99)"
+    ],
+    "indexes": [
+      "(user_id,updated_at)"
+    ]
+  },
+  {
+    "name": "address",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "扩展Address",
+    "purpose": "私人地址加密，订单另留不可变快照",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "recipient_cipher text NOT NULL",
+      "phone_cipher text NOT NULL",
+      "province_code text NOT NULL",
+      "city_code text NOT NULL",
+      "district_code text NOT NULL",
+      "detail_cipher text NOT NULL",
+      "is_default boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(user_id,is_default)",
+      "(user_id) WHERE is_default=true UNIQUE"
+    ]
+  },
+  {
+    "name": "delivery_template",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "扩展DeliveryZone父级",
+    "purpose": "不同商品配送规则及售前说明",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "name text NOT NULL",
+      "charge_basis text NOT NULL",
+      "priority_supported boolean NOT NULL DEFAULT false",
+      "description text NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(charge_basis IN ('ORDER','QUANTITY','WEIGHT'))"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "delivery_zone",
+    "domain": "商城",
+    "phase": "R1/R2",
+    "change": "扩展DeliveryZone",
+    "purpose": "区域覆盖与基础/附加/续件费及优先配送",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "template_id text NOT NULL REFERENCES delivery_template(id)",
+      "region_code text NOT NULL",
+      "base_fee bigint NOT NULL",
+      "surcharge bigint NOT NULL DEFAULT 0",
+      "increment_fee bigint NOT NULL DEFAULT 0",
+      "free_above bigint",
+      "priority_fee bigint",
+      "enabled boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "UNIQUE(template_id,region_code)",
+      "CHECK(base_fee>=0 AND surcharge>=0 AND increment_fee>=0)",
+      "CHECK(free_above IS NULL OR free_above>=0)",
+      "CHECK(priority_fee IS NULL OR priority_fee>=0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "trade_order",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "替代开发Order",
+    "purpose": "订单商务状态与支付/退款分离；不同履约种类不混单",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_no text NOT NULL UNIQUE",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "kind text NOT NULL",
+      "request_key text NOT NULL",
+      "request_hash text NOT NULL",
+      "state text NOT NULL DEFAULT 'PENDING'",
+      "currency char(3) NOT NULL",
+      "minor_exponent integer NOT NULL DEFAULT 2",
+      "subtotal bigint NOT NULL",
+      "discount_total bigint NOT NULL DEFAULT 0",
+      "shipping_total bigint NOT NULL DEFAULT 0",
+      "payable_total bigint NOT NULL",
+      "paid_total bigint NOT NULL DEFAULT 0",
+      "refunded_total bigint NOT NULL DEFAULT 0",
+      "address_snapshot_cipher text",
+      "pricing_snapshot jsonb NOT NULL",
+      "quote_hash text NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "paid_at timestamptz",
+      "closed_at timestamptz",
+      "completed_at timestamptz",
+      "close_reason text"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(state IN ('PENDING','PAID','FULFILLING','COMPLETED','CLOSED'))",
+      "CHECK(subtotal>=0 AND discount_total>=0 AND shipping_total>=0 AND payable_total=subtotal-discount_total+shipping_total AND payable_total>=0)",
+      "CHECK(paid_total>=0 AND refunded_total>=0 AND refunded_total<=paid_total)",
+      "CHECK(kind IN ('COURSE','PHYSICAL','DIGITAL','MEMBERSHIP','CONSULTATION','EVENT','GIFT','OPERATING_SERVICE'))"
+    ],
+    "indexes": [
+      "(user_id,created_at,id)",
+      "(state,expires_at)"
+    ]
+  },
+  {
+    "name": "order_item",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "扩展OrderItem",
+    "purpose": "逐项价格、权益、合作方、履约及折扣运费快照",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_id text NOT NULL REFERENCES trade_order(id)",
+      "line_no integer NOT NULL",
+      "offer_id text NOT NULL REFERENCES sale_offer(id)",
+      "quantity integer NOT NULL",
+      "unit_price bigint NOT NULL",
+      "subtotal bigint NOT NULL",
+      "discount_allocated bigint NOT NULL DEFAULT 0",
+      "shipping_allocated bigint NOT NULL DEFAULT 0",
+      "payable bigint NOT NULL",
+      "refunded_amount bigint NOT NULL DEFAULT 0",
+      "item_snapshot jsonb NOT NULL",
+      "benefit_snapshot jsonb NOT NULL",
+      "contract_version_id text REFERENCES partner_contract(id)",
+      "referral_snapshot jsonb",
+      "slot_id text REFERENCES appointment_slot(id)",
+      "state text NOT NULL",
+      "digital_release_id text REFERENCES digital_release(id)",
+      "course_release_id text REFERENCES course_release(id)",
+      "membership_version_id text REFERENCES membership_plan_version(id)"
+    ],
+    "constraints": [
+      "UNIQUE(order_id,line_no)",
+      "CHECK(quantity BETWEEN 1 AND 99)",
+      "CHECK(unit_price>=0 AND subtotal=unit_price*quantity)",
+      "CHECK(discount_allocated>=0 AND shipping_allocated>=0 AND payable=subtotal-discount_allocated+shipping_allocated AND payable>=0)",
+      "CHECK(refunded_amount BETWEEN 0 AND payable)"
+    ],
+    "indexes": [
+      "(offer_id)",
+      "(order_id,state)"
+    ]
+  },
+  {
+    "name": "inventory_reservation",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "商品/时段/席位/营期预占的明细，超时任务按事实释放",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_item_id text NOT NULL REFERENCES order_item(id)",
+      "sku_id text REFERENCES product_sku(id)",
+      "slot_id text REFERENCES appointment_slot(id)",
+      "event_ticket_id text REFERENCES event_ticket_type(id)",
+      "cohort_id text REFERENCES course_cohort(id)",
+      "quantity integer NOT NULL",
+      "state text NOT NULL DEFAULT 'HELD'",
+      "expires_at timestamptz NOT NULL",
+      "converted_at timestamptz",
+      "released_at timestamptz",
+      "request_key text NOT NULL UNIQUE",
+      "promotion_offer_id text REFERENCES promotion_offer(id)"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(sku_id,slot_id,event_ticket_id,cohort_id)=1)",
+      "CHECK(quantity>0)",
+      "CHECK(state IN ('HELD','CONVERTED','RELEASED'))"
+    ],
+    "indexes": [
+      "(state,expires_at)",
+      "(order_item_id)"
+    ]
+  },
+  {
+    "name": "inventory_ledger",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "实物库存入库预占释放销售退款回库可追溯",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "sku_id text NOT NULL REFERENCES product_sku(id)",
+      "reservation_id text REFERENCES inventory_reservation(id)",
+      "order_item_id text REFERENCES order_item(id)",
+      "stock_delta bigint NOT NULL",
+      "reserved_delta bigint NOT NULL",
+      "reason text NOT NULL",
+      "event_key text NOT NULL UNIQUE",
+      "actor_id text REFERENCES app_user(id)",
+      "stock_after bigint NOT NULL",
+      "reserved_after bigint NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(stock_after>=reserved_after AND reserved_after>=0)"
+    ],
+    "indexes": [
+      "(sku_id,created_at)"
+    ]
+  },
+  {
+    "name": "payment_attempt",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "一次渠道付款尝试，不把客户端返回当成功",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_id text NOT NULL REFERENCES trade_order(id)",
+      "channel text NOT NULL",
+      "mapping_id text REFERENCES channel_product_mapping(id)",
+      "request_key text NOT NULL UNIQUE",
+      "external_request_id text",
+      "state text NOT NULL",
+      "amount bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "failure_code text",
+      "last_queried_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(amount>=0)",
+      "CHECK(state IN ('CREATED','PENDING','SUCCEEDED','FAILED','CLOSED'))"
+    ],
+    "indexes": [
+      "(order_id,created_at)",
+      "(state,expires_at)"
+    ]
+  },
+  {
+    "name": "payment_transaction",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "保存每次实际渠道收款，包括重复付款异常，事实不得丢弃",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "attempt_id text REFERENCES payment_attempt(id)",
+      "order_id text NOT NULL REFERENCES trade_order(id)",
+      "channel text NOT NULL",
+      "app_scope text NOT NULL",
+      "external_transaction_id text NOT NULL",
+      "original_transaction_id text",
+      "amount bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "channel_fee bigint NOT NULL DEFAULT 0",
+      "verified_at timestamptz NOT NULL",
+      "paid_at timestamptz NOT NULL",
+      "disposition text NOT NULL",
+      "receipt_hash text NOT NULL",
+      "receipt_storage_ref text",
+      "settlement_amount bigint",
+      "settlement_currency char(3)"
+    ],
+    "constraints": [
+      "UNIQUE(channel,app_scope,external_transaction_id)",
+      "CHECK(amount>=0 AND channel_fee>=0)",
+      "CHECK(disposition IN ('ACCEPTED','DUPLICATE','LATE','AMOUNT_MISMATCH','REFUND_REQUIRED'))"
+    ],
+    "indexes": [
+      "(order_id) WHERE disposition='ACCEPTED' UNIQUE"
+    ]
+  },
+  {
+    "name": "provider_callback",
+    "domain": "交易运维",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "支付退款直播转码审核统一回调收件箱",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "provider text NOT NULL",
+      "app_scope text NOT NULL",
+      "external_event_id text NOT NULL",
+      "kind text NOT NULL",
+      "payload_hash text NOT NULL",
+      "payload_storage_ref text NOT NULL",
+      "signature_verified boolean NOT NULL",
+      "state text NOT NULL",
+      "attempts integer NOT NULL DEFAULT 0",
+      "next_retry_at timestamptz",
+      "last_error_code text",
+      "handled_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(provider,app_scope,external_event_id)",
+      "CHECK(attempts>=0)"
+    ],
+    "indexes": [
+      "(state,next_retry_at)"
+    ]
+  },
+  {
+    "name": "refund",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "售后申请与退款请求；换货不伪装现金退款",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_id text NOT NULL REFERENCES trade_order(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "request_key text NOT NULL",
+      "kind text NOT NULL",
+      "state text NOT NULL",
+      "requested_amount bigint NOT NULL",
+      "approved_amount bigint",
+      "reason_code text NOT NULL",
+      "description text NOT NULL",
+      "reviewer_id text REFERENCES app_user(id)",
+      "review_note text",
+      "payment_transaction_id text REFERENCES payment_transaction(id)",
+      "succeeded_at timestamptz",
+      "failure_code text",
+      "channel_request_key text UNIQUE"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(kind IN ('REFUND_ONLY','RETURN_REFUND','EXCHANGE'))",
+      "CHECK(state IN ('REQUESTED','REVIEW','REJECTED','APPROVED','RETURNING','REFUNDING','SUCCEEDED','FAILED','CANCELLED'))",
+      "CHECK(requested_amount>=0 AND (approved_amount IS NULL OR approved_amount BETWEEN 0 AND requested_amount))"
+    ],
+    "indexes": [
+      "(order_id,created_at)",
+      "(state,updated_at)"
+    ]
+  },
+  {
+    "name": "refund_item",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "按订单项部分退款和退货范围，避免整单撤权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "refund_id text NOT NULL REFERENCES refund(id)",
+      "order_item_id text NOT NULL REFERENCES order_item(id)",
+      "quantity integer NOT NULL",
+      "amount bigint NOT NULL",
+      "revoke_quantity integer NOT NULL",
+      "return_stock_quantity integer NOT NULL DEFAULT 0"
+    ],
+    "constraints": [
+      "UNIQUE(refund_id,order_item_id)",
+      "CHECK(quantity>0 AND amount>=0 AND revoke_quantity BETWEEN 0 AND quantity AND return_stock_quantity BETWEEN 0 AND quantity)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "shipment",
+    "domain": "商城",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "真实包裹、承运商单号签收及交换履约",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "order_id text NOT NULL REFERENCES trade_order(id)",
+      "refund_id text REFERENCES refund(id)",
+      "kind text NOT NULL",
+      "carrier_code text NOT NULL",
+      "tracking_no text NOT NULL",
+      "state text NOT NULL",
+      "address_snapshot_cipher text NOT NULL",
+      "shipped_at timestamptz",
+      "delivered_at timestamptz",
+      "tracking_snapshot jsonb",
+      "actor_id text NOT NULL REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "CHECK(kind IN ('OUTBOUND','RETURN','EXCHANGE'))",
+      "UNIQUE(carrier_code,tracking_no)"
+    ],
+    "indexes": [
+      "(order_id,state)"
+    ]
+  },
+  {
+    "name": "shipment_item",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "一单多包裹/退换件逐项数量",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "shipment_id text NOT NULL REFERENCES shipment(id)",
+      "order_item_id text NOT NULL REFERENCES order_item(id)",
+      "quantity integer NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(shipment_id,order_item_id)",
+      "CHECK(quantity>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "digital_delivery",
+    "domain": "商城",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "支付后领取权益，退款逐来源撤销",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "order_item_id text NOT NULL UNIQUE REFERENCES order_item(id)",
+      "release_id text NOT NULL REFERENCES digital_release(id)",
+      "starts_at timestamptz NOT NULL",
+      "expires_at timestamptz",
+      "revoked_at timestamptz",
+      "grant_key text NOT NULL UNIQUE"
+    ],
+    "constraints": [
+      "CHECK(expires_at IS NULL OR expires_at>starts_at)"
+    ],
+    "indexes": [
+      "(user_id,expires_at)"
+    ]
+  },
+  {
+    "name": "membership_plan",
+    "domain": "会员",
+    "phase": "R1",
+    "change": "扩展MembershipPlan",
+    "purpose": "套餐身份；三级与有效天数，价格权益放不变版本",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "tier integer NOT NULL",
+      "days integer NOT NULL",
+      "active boolean NOT NULL DEFAULT false",
+      "current_version_id text REFERENCES membership_plan_version(id)"
+    ],
+    "constraints": [
+      "UNIQUE(tier,days)",
+      "CHECK(tier BETWEEN 1 AND 3 AND days IN (30,90,365))"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "membership_plan_version",
+    "domain": "会员",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "不可变权益与条款版本，成交固定",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "plan_id text NOT NULL REFERENCES membership_plan(id)",
+      "release_no integer NOT NULL",
+      "tier integer NOT NULL",
+      "days integer NOT NULL",
+      "description text NOT NULL",
+      "terms_snapshot jsonb NOT NULL",
+      "published_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(plan_id,release_no)",
+      "CHECK(tier BETWEEN 1 AND 3 AND days>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "benefit_definition",
+    "domain": "会员",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "文章课程准入/折扣运费问答活动签名品权益码",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "name text NOT NULL",
+      "kind text NOT NULL",
+      "parameter_schema jsonb NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "plan_benefit",
+    "domain": "会员",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "每个套餐版本具体权益参数和适用资源",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "plan_version_id text NOT NULL REFERENCES membership_plan_version(id)",
+      "definition_id text NOT NULL REFERENCES benefit_definition(id)",
+      "parameters jsonb NOT NULL",
+      "quota integer",
+      "period_kind text NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(plan_version_id,definition_id)",
+      "CHECK(quota IS NULL OR quota>=0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "membership_period",
+    "domain": "会员",
+    "phase": "R1",
+    "change": "重构Membership",
+    "purpose": "按购买/补偿来源排队的生效区间，时段不可重叠",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "plan_version_id text NOT NULL REFERENCES membership_plan_version(id)",
+      "order_item_id text UNIQUE REFERENCES order_item(id)",
+      "tier integer NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "source text NOT NULL",
+      "grant_key text NOT NULL UNIQUE",
+      "actor_id text REFERENCES app_user(id)",
+      "reason text",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(tier BETWEEN 1 AND 3 AND ends_at>starts_at)"
+    ],
+    "indexes": [
+      "(user_id,starts_at,ends_at)"
+    ]
+  },
+  {
+    "name": "benefit_usage",
+    "domain": "会员",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "权益额度预占消费退还，取消可重试",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "period_id text REFERENCES membership_period(id)",
+      "definition_id text NOT NULL REFERENCES benefit_definition(id)",
+      "window_start date NOT NULL",
+      "window_end date NOT NULL",
+      "quantity integer NOT NULL",
+      "business_key text NOT NULL",
+      "state text NOT NULL",
+      "parameters_snapshot jsonb NOT NULL",
+      "reversal_of_id text UNIQUE REFERENCES benefit_usage(id)",
+      "grant_id text REFERENCES benefit_grant(id)"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,business_key)",
+      "CHECK(quantity>0 AND window_end>=window_start)",
+      "CHECK(state IN ('HELD','CONSUMED','RELEASED','REVERSED'))",
+      "CHECK(num_nonnulls(period_id,grant_id)=1)"
+    ],
+    "indexes": [
+      "(period_id,definition_id,window_start,state)"
+    ]
+  },
+  {
+    "name": "growth_ledger",
+    "domain": "成长",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "成长值不可变事实，不隐式升级付费会员",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "delta integer NOT NULL",
+      "business_day date NOT NULL",
+      "event_key text NOT NULL UNIQUE",
+      "reason text NOT NULL",
+      "source_resource_id text REFERENCES resource(id)",
+      "rule_snapshot jsonb NOT NULL",
+      "reversal_of_id text UNIQUE REFERENCES growth_ledger(id)"
+    ],
+    "constraints": [
+      "CHECK(delta<>0)"
+    ],
+    "indexes": [
+      "(user_id,business_day)"
+    ]
+  },
+  {
+    "name": "points_account",
+    "domain": "积分",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "积分余额聚合，锁账号防并发透支",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL UNIQUE REFERENCES app_user(id)",
+      "balance bigint NOT NULL DEFAULT 0",
+      "reserved bigint NOT NULL DEFAULT 0"
+    ],
+    "constraints": [
+      "CHECK(balance>=reserved AND reserved>=0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "points_ledger",
+    "domain": "积分",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "消费打卡审核奖励兑换及退款冲正",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "account_id text NOT NULL REFERENCES points_account(id)",
+      "event_key text NOT NULL UNIQUE",
+      "delta bigint NOT NULL",
+      "reason text NOT NULL",
+      "order_item_id text REFERENCES order_item(id)",
+      "resource_id text REFERENCES resource(id)",
+      "rule_snapshot jsonb NOT NULL",
+      "business_day date NOT NULL",
+      "reversal_of_id text UNIQUE REFERENCES points_ledger(id)",
+      "balance_after bigint NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(delta<>0 AND balance_after>=0)"
+    ],
+    "indexes": [
+      "(account_id,created_at)"
+    ]
+  },
+  {
+    "name": "points_reservation",
+    "domain": "积分",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "兑换预占，失败释放",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "account_id text NOT NULL REFERENCES points_account(id)",
+      "request_key text NOT NULL UNIQUE",
+      "points bigint NOT NULL",
+      "state text NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "redemption_id text REFERENCES points_redemption(id)"
+    ],
+    "constraints": [
+      "CHECK(points>0)",
+      "CHECK(state IN ('HELD','CONSUMED','RELEASED'))"
+    ],
+    "indexes": [
+      "(state,expires_at)"
+    ]
+  },
+  {
+    "name": "points_reward",
+    "domain": "积分",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "积分兑换奖品券/实物/咨询，券R1其余R2",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "title text NOT NULL",
+      "kind text NOT NULL",
+      "points_cost bigint NOT NULL",
+      "coupon_template_id text REFERENCES coupon_template(id)",
+      "offer_id text REFERENCES sale_offer(id)",
+      "benefit_definition_id text REFERENCES benefit_definition(id)",
+      "stock integer NOT NULL",
+      "reserved integer NOT NULL DEFAULT 0",
+      "per_user_daily integer NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(coupon_template_id,offer_id,benefit_definition_id)=1)",
+      "CHECK(points_cost>0 AND stock>=reserved AND reserved>=0 AND per_user_daily>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "points_redemption",
+    "domain": "积分",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "兑换订单关联实际奖励交付",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "reward_id text NOT NULL REFERENCES points_reward(id)",
+      "request_key text NOT NULL",
+      "points_cost bigint NOT NULL",
+      "reward_snapshot jsonb NOT NULL",
+      "state text NOT NULL",
+      "order_id text REFERENCES trade_order(id)",
+      "user_coupon_id text REFERENCES user_coupon(id)",
+      "benefit_usage_id text REFERENCES benefit_usage(id)",
+      "business_day date NOT NULL",
+      "completed_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(points_cost>0)"
+    ],
+    "indexes": [
+      "(user_id,business_day)",
+      "(state,created_at)"
+    ]
+  },
+  {
+    "name": "event",
+    "domain": "活动",
+    "phase": "R1",
+    "change": "扩展Event",
+    "purpose": "讲座研学见面会线下课，时间席位下放场次",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "resource_kind text NOT NULL DEFAULT 'EVENT' CHECK (resource_kind = 'EVENT')",
+      "description jsonb NOT NULL",
+      "organizer_partner_id text REFERENCES partner(id)",
+      "teacher_id text REFERENCES teacher(id)",
+      "cancel_policy jsonb NOT NULL",
+      "responsible_user_id text NOT NULL REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "FOREIGN KEY (id, resource_kind) REFERENCES resource(id, kind)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "event_session",
+    "domain": "活动",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "单场时间地点、延期取消与核销范围",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "event_id text NOT NULL REFERENCES event(id)",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "location text NOT NULL",
+      "contact_cipher text",
+      "state text NOT NULL",
+      "capacity integer NOT NULL",
+      "cancel_deadline timestamptz NOT NULL",
+      "public_open_at timestamptz NOT NULL",
+      "member_open_at timestamptz",
+      "rescheduled_from_id text REFERENCES event_session(id)"
+    ],
+    "constraints": [
+      "CHECK(ends_at>starts_at AND capacity>0)",
+      "CHECK(member_open_at IS NULL OR member_open_at<=public_open_at)"
+    ],
+    "indexes": [
+      "(event_id,starts_at)"
+    ]
+  },
+  {
+    "name": "event_ticket_type",
+    "domain": "活动",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "票种容量及售价由offer配置，多票种R2",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES event_session(id)",
+      "title text NOT NULL",
+      "capacity integer NOT NULL",
+      "reserved integer NOT NULL DEFAULT 0",
+      "confirmed integer NOT NULL DEFAULT 0",
+      "per_user_limit integer NOT NULL DEFAULT 1",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(capacity>=0 AND reserved>=0 AND confirmed>=0 AND reserved+confirmed<=capacity AND per_user_limit>0)"
+    ],
+    "indexes": [
+      "(session_id,active)"
+    ]
+  },
+  {
+    "name": "event_registration",
+    "domain": "活动",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "免费也需报名，付费与会员额度共用席位",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "ticket_type_id text NOT NULL REFERENCES event_ticket_type(id)",
+      "order_item_id text UNIQUE REFERENCES order_item(id)",
+      "request_key text NOT NULL",
+      "quantity integer NOT NULL",
+      "attendee_snapshot_cipher text NOT NULL",
+      "state text NOT NULL",
+      "checkin_hash text NOT NULL UNIQUE",
+      "benefit_usage_id text REFERENCES benefit_usage(id)",
+      "confirmed_at timestamptz",
+      "cancelled_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(quantity>0)"
+    ],
+    "indexes": [
+      "(user_id,created_at)",
+      "(ticket_type_id,state)"
+    ]
+  },
+  {
+    "name": "event_checkin",
+    "domain": "活动",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "核销幂等，工作者须在场次授权范围",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "registration_id text NOT NULL REFERENCES event_registration(id)",
+      "attendee_no integer NOT NULL",
+      "actor_id text NOT NULL REFERENCES app_user(id)",
+      "request_key text NOT NULL UNIQUE",
+      "checked_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(registration_id,attendee_no)",
+      "CHECK(attendee_no>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "event_staff",
+    "domain": "活动",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "场次工作人员授权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES event_session(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "scope_codes text[] NOT NULL",
+      "revoked_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(session_id,user_id) WHERE revoked_at IS NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "event_waitlist",
+    "domain": "活动",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "候补记录和限时补位邀请",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "session_id text NOT NULL REFERENCES event_session(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "quantity integer NOT NULL",
+      "state text NOT NULL",
+      "invited_until timestamptz",
+      "registration_id text REFERENCES event_registration(id)"
+    ],
+    "constraints": [
+      "UNIQUE(session_id,user_id)",
+      "CHECK(quantity>0)"
+    ],
+    "indexes": [
+      "(session_id,state,created_at)"
+    ]
+  },
+  {
+    "name": "coupon_template",
+    "domain": "营销",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "积分券R1、营销券R2；一单一券择优策略",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "discount_kind text NOT NULL",
+      "discount_value bigint NOT NULL",
+      "threshold bigint NOT NULL",
+      "max_discount bigint",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "valid_days integer",
+      "total_limit integer NOT NULL",
+      "issued_count integer NOT NULL DEFAULT 0",
+      "per_user_limit integer NOT NULL",
+      "allowed_channels text[] NOT NULL",
+      "scope jsonb NOT NULL",
+      "stacking_policy text NOT NULL",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [
+      "CHECK(discount_value>0 AND threshold>=0 AND total_limit>=issued_count AND issued_count>=0 AND per_user_limit>0)",
+      "CHECK(ends_at>starts_at)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "user_coupon",
+    "domain": "营销",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "券领取锁定核销退回",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "template_id text NOT NULL REFERENCES coupon_template(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "claim_key text NOT NULL UNIQUE",
+      "state text NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "locked_order_id text REFERENCES trade_order(id)",
+      "used_order_id text REFERENCES trade_order(id)",
+      "terms_snapshot jsonb NOT NULL",
+      "redeem_key text UNIQUE"
+    ],
+    "constraints": [
+      "CHECK(state IN ('AVAILABLE','LOCKED','USED','EXPIRED','REVOKED'))"
+    ],
+    "indexes": [
+      "(user_id,state,expires_at)",
+      "(used_order_id) WHERE used_order_id IS NOT NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "promotion",
+    "domain": "营销",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "秒杀/满减活动服务端时间价格与独立库存",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "title text NOT NULL",
+      "kind text NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "rules jsonb NOT NULL",
+      "allowed_channels text[] NOT NULL",
+      "state text NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(ends_at>starts_at)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "promotion_offer",
+    "domain": "营销",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "活动指定可售单元与限量",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "promotion_id text NOT NULL REFERENCES promotion(id)",
+      "offer_id text NOT NULL REFERENCES sale_offer(id)",
+      "price bigint",
+      "capacity integer",
+      "reserved integer NOT NULL DEFAULT 0",
+      "sold integer NOT NULL DEFAULT 0",
+      "per_user_limit integer NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(promotion_id,offer_id)",
+      "CHECK(price IS NULL OR price>=0)",
+      "CHECK(reserved>=0 AND sold>=0 AND (capacity IS NULL OR capacity>=reserved+sold))",
+      "CHECK(per_user_limit>0)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "group_buy",
+    "domain": "营销",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "课程拼团规则/团价售卖映射，团成才发课权",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "offer_id text NOT NULL REFERENCES sale_offer(id)",
+      "leader_id text NOT NULL REFERENCES app_user(id)",
+      "required_members integer NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "state text NOT NULL",
+      "rule_snapshot jsonb NOT NULL",
+      "completed_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(required_members>=2)"
+    ],
+    "indexes": [
+      "(state,expires_at)"
+    ]
+  },
+  {
+    "name": "group_buy_member",
+    "domain": "营销",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "拼团支付成员去重；失败逐单退款",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "group_id text NOT NULL REFERENCES group_buy(id)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "order_item_id text NOT NULL UNIQUE REFERENCES order_item(id)",
+      "state text NOT NULL",
+      "joined_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(group_id,user_id)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "referral",
+    "domain": "营销",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "一级推广批准与7天首次有效归因",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "promoter_id text NOT NULL REFERENCES app_user(id)",
+      "buyer_id text NOT NULL REFERENCES app_user(id)",
+      "code text NOT NULL",
+      "first_valid_at timestamptz NOT NULL",
+      "expires_at timestamptz NOT NULL",
+      "approval_snapshot jsonb NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(promoter_id<>buyer_id AND expires_at>first_valid_at)"
+    ],
+    "indexes": [
+      "(buyer_id,first_valid_at)"
+    ]
+  },
+  {
+    "name": "commission_ledger",
+    "domain": "营销财务",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "佣金净实收及退款回冲，原始费率固定",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "promoter_id text NOT NULL REFERENCES app_user(id)",
+      "order_item_id text NOT NULL REFERENCES order_item(id)",
+      "referral_id text NOT NULL REFERENCES referral(id)",
+      "event_key text NOT NULL UNIQUE",
+      "delta bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "basis_snapshot jsonb NOT NULL",
+      "rate_basis_points integer NOT NULL",
+      "available_at timestamptz NOT NULL",
+      "reversal_of_id text UNIQUE REFERENCES commission_ledger(id)"
+    ],
+    "constraints": [
+      "CHECK(delta<>0 AND rate_basis_points BETWEEN 0 AND 10000)"
+    ],
+    "indexes": [
+      "(promoter_id,available_at)"
+    ]
+  },
+  {
+    "name": "withdrawal_request",
+    "domain": "营销财务",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "提现审批不等于付款；记录实际付款及防重复请求",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "request_key text NOT NULL",
+      "amount bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "state text NOT NULL",
+      "recipient_cipher text NOT NULL",
+      "reviewer_id text REFERENCES app_user(id)",
+      "paid_at timestamptz",
+      "external_transfer_id text UNIQUE",
+      "proof_asset_id text REFERENCES media_asset(id)",
+      "failure_code text",
+      "settlement_id text REFERENCES settlement(id)"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,request_key)",
+      "CHECK(amount>0)"
+    ],
+    "indexes": [
+      "(state,created_at)"
+    ]
+  },
+  {
+    "name": "partner",
+    "domain": "合作财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "名师机构文创品牌合作方，不等于开放商家入驻",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "name text NOT NULL",
+      "kind text NOT NULL",
+      "status text NOT NULL",
+      "contact_cipher text",
+      "payee_cipher text",
+      "qualification_evidence_id text REFERENCES source_evidence(id)",
+      "reviewer_id text REFERENCES app_user(id)",
+      "reviewed_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "partner_contract",
+    "domain": "合作财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "不变协议版本，公益特殊费率及收款分账",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "partner_id text NOT NULL REFERENCES partner(id)",
+      "contract_no text NOT NULL",
+      "revision integer NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz",
+      "rate_basis_points integer NOT NULL",
+      "fee_policy jsonb NOT NULL",
+      "settlement_cycle text NOT NULL",
+      "proof_asset_id text NOT NULL REFERENCES media_asset(id)",
+      "scope_snapshot jsonb NOT NULL",
+      "approved_by text NOT NULL REFERENCES app_user(id)"
+    ],
+    "constraints": [
+      "UNIQUE(contract_no,revision)",
+      "CHECK(rate_basis_points BETWEEN 0 AND 10000)",
+      "CHECK(ends_at IS NULL OR ends_at>starts_at)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "settlement",
+    "domain": "合作财务",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "合作方月度或推广提现结算单，人工复核和实际打款",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "partner_id text REFERENCES partner(id)",
+      "promoter_id text REFERENCES app_user(id)",
+      "period_start date NOT NULL",
+      "period_end date NOT NULL",
+      "currency char(3) NOT NULL",
+      "gross_amount bigint NOT NULL",
+      "fee_amount bigint NOT NULL",
+      "refund_amount bigint NOT NULL",
+      "net_amount bigint NOT NULL",
+      "state text NOT NULL",
+      "reviewer_id text REFERENCES app_user(id)",
+      "paid_at timestamptz",
+      "transfer_id text UNIQUE",
+      "proof_asset_id text REFERENCES media_asset(id)"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(partner_id,promoter_id)=1)",
+      "CHECK(period_end>=period_start)",
+      "CHECK(gross_amount>=0 AND fee_amount>=0 AND refund_amount>=0)",
+      "CHECK(net_amount=gross_amount-fee_amount-refund_amount)"
+    ],
+    "indexes": [
+      "(partner_id,period_start)",
+      "(promoter_id,period_start)"
+    ]
+  },
+  {
+    "name": "settlement_item",
+    "domain": "合作财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "每个收款/退款来源结算一次，差额结算用新事件",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "settlement_id text NOT NULL REFERENCES settlement(id)",
+      "order_item_id text NOT NULL REFERENCES order_item(id)",
+      "event_key text NOT NULL UNIQUE",
+      "contract_id text REFERENCES partner_contract(id)",
+      "delta bigint NOT NULL",
+      "basis_snapshot jsonb NOT NULL",
+      "currency char(3) NOT NULL",
+      "commission_id text UNIQUE REFERENCES commission_ledger(id)",
+      "gift_allocation_id text UNIQUE REFERENCES gift_credit_allocation(id)"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(settlement_id)"
+    ]
+  },
+  {
+    "name": "finance_journal",
+    "domain": "财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "支付退款费用合作应付总账事件，保存异常事实",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "event_key text NOT NULL UNIQUE",
+      "kind text NOT NULL",
+      "order_id text REFERENCES trade_order(id)",
+      "transaction_id text REFERENCES payment_transaction(id)",
+      "refund_id text REFERENCES refund(id)",
+      "currency char(3) NOT NULL",
+      "posted_at timestamptz NOT NULL",
+      "reversal_of_id text UNIQUE REFERENCES finance_journal(id)",
+      "description text NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "finance_entry",
+    "domain": "财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "双式分录；每journal同币种借贷总和为0",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "journal_id text NOT NULL REFERENCES finance_journal(id)",
+      "account_code text NOT NULL",
+      "partner_id text REFERENCES partner(id)",
+      "user_id text REFERENCES app_user(id)",
+      "debit bigint NOT NULL DEFAULT 0",
+      "credit bigint NOT NULL DEFAULT 0"
+    ],
+    "constraints": [
+      "CHECK((debit>0 AND credit=0) OR (credit>0 AND debit=0))",
+      "FOREIGN KEY(account_code) REFERENCES finance_account(code)"
+    ],
+    "indexes": [
+      "(journal_id)",
+      "(account_code,created_at)"
+    ]
+  },
+  {
+    "name": "reconciliation",
+    "domain": "财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "渠道每日对账任务与差异列表，不用示例营业额",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "channel text NOT NULL",
+      "app_scope text NOT NULL",
+      "business_day date NOT NULL",
+      "state text NOT NULL",
+      "bill_storage_ref text",
+      "bill_hash text",
+      "summary jsonb NOT NULL",
+      "differences jsonb NOT NULL",
+      "reviewer_id text REFERENCES app_user(id)",
+      "resolved_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(channel,app_scope,business_day)"
+    ],
+    "indexes": []
+  },
+  {
+    "name": "operating_service",
+    "domain": "运营",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "名师推广策划服务合同报价交付，后台创建订单",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "partner_id text NOT NULL REFERENCES partner(id)",
+      "contract_id text NOT NULL REFERENCES partner_contract(id)",
+      "title text NOT NULL",
+      "delivery_spec jsonb NOT NULL",
+      "due_at timestamptz",
+      "state text NOT NULL"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(partner_id,state)"
+    ]
+  },
+  {
+    "name": "ad_placement",
+    "domain": "运营",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "有标识广告推荐位，不伪装权威内容",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "surface text NOT NULL",
+      "format text NOT NULL",
+      "label text NOT NULL DEFAULT '推广'",
+      "active boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "ad_campaign",
+    "domain": "运营",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "广告排期与实际曝光点击汇总、合同交付",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "placement_id text NOT NULL REFERENCES ad_placement(id)",
+      "operating_service_id text REFERENCES operating_service(id)",
+      "target_resource_id text NOT NULL REFERENCES resource(id)",
+      "creative_asset_id text REFERENCES media_asset(id)",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "state text NOT NULL",
+      "metrics jsonb NOT NULL DEFAULT '{}'"
+    ],
+    "constraints": [
+      "CHECK(ends_at>starts_at)"
+    ],
+    "indexes": [
+      "(placement_id,state,starts_at,ends_at)"
+    ]
+  },
+  {
+    "name": "notification",
+    "domain": "消息",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "站内消息，业务事实提交后投递",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "event_key text NOT NULL",
+      "kind text NOT NULL",
+      "title text NOT NULL",
+      "body text NOT NULL",
+      "resource_id text REFERENCES resource(id)",
+      "order_id text REFERENCES trade_order(id)",
+      "appointment_id text REFERENCES appointment(id)",
+      "registration_id text REFERENCES event_registration(id)",
+      "read_at timestamptz",
+      "expires_at timestamptz"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,event_key)"
+    ],
+    "indexes": [
+      "(user_id,created_at,id)"
+    ]
+  },
+  {
+    "name": "device_token",
+    "domain": "消息",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "原生推送设备绑定与退出失效",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "platform text NOT NULL",
+      "provider text NOT NULL",
+      "token_cipher text NOT NULL",
+      "token_hash text NOT NULL UNIQUE",
+      "device_id text NOT NULL",
+      "enabled boolean NOT NULL DEFAULT false",
+      "revoked_at timestamptz",
+      "last_confirmed_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(user_id,enabled,revoked_at)"
+    ]
+  },
+  {
+    "name": "notification_delivery",
+    "domain": "消息",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "推送重试不重复创建站内消息",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "notification_id text NOT NULL REFERENCES notification(id)",
+      "device_token_id text REFERENCES device_token(id)",
+      "channel text NOT NULL",
+      "delivery_key text NOT NULL UNIQUE",
+      "state text NOT NULL",
+      "attempts integer NOT NULL DEFAULT 0",
+      "next_retry_at timestamptz",
+      "provider_message_id text",
+      "failure_code text"
+    ],
+    "constraints": [
+      "CHECK(attempts>=0)"
+    ],
+    "indexes": [
+      "(state,next_retry_at)"
+    ]
+  },
+  {
+    "name": "feedback",
+    "domain": "客服",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "意见/售后咨询/电话回访工单",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "order_id text REFERENCES trade_order(id)",
+      "kind text NOT NULL",
+      "body text NOT NULL",
+      "contact_cipher text",
+      "state text NOT NULL",
+      "assignee_id text REFERENCES app_user(id)",
+      "closed_at timestamptz"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(state,created_at)",
+      "(user_id,created_at)"
+    ]
+  },
+  {
+    "name": "feedback_reply",
+    "domain": "客服",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "工单双向答复，内部备注不发用户",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "feedback_id text NOT NULL REFERENCES feedback(id)",
+      "author_id text NOT NULL REFERENCES app_user(id)",
+      "body text NOT NULL",
+      "internal boolean NOT NULL DEFAULT false"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(feedback_id,created_at)"
+    ]
+  },
+  {
+    "name": "audit_log",
+    "domain": "运维治理",
+    "phase": "R1",
+    "change": "扩展AuditLog",
+    "purpose": "重要后台变更不可变审计，敏感内容脱敏",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "actor_id text REFERENCES app_user(id)",
+      "action text NOT NULL",
+      "resource_type text NOT NULL",
+      "resource_key text NOT NULL",
+      "request_id text NOT NULL",
+      "reason text",
+      "before_snapshot jsonb NOT NULL",
+      "after_snapshot jsonb NOT NULL",
+      "ip_hash text"
+    ],
+    "constraints": [],
+    "indexes": [
+      "(resource_type,resource_key,created_at)",
+      "(actor_id,created_at)"
+    ]
+  },
+  {
+    "name": "outbox_job",
+    "domain": "运维",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "与业务事务一同提交的持久可靠任务，worker租约重试",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "event_key text NOT NULL UNIQUE",
+      "kind text NOT NULL",
+      "aggregate_type text NOT NULL",
+      "aggregate_id text NOT NULL",
+      "payload jsonb NOT NULL",
+      "state text NOT NULL DEFAULT 'READY'",
+      "attempts integer NOT NULL DEFAULT 0",
+      "available_at timestamptz NOT NULL",
+      "locked_until timestamptz",
+      "worker_id text",
+      "last_error_code text",
+      "completed_at timestamptz"
+    ],
+    "constraints": [
+      "CHECK(attempts>=0)",
+      "CHECK(state IN ('READY','RUNNING','DONE','DEAD'))"
+    ],
+    "indexes": [
+      "(state,available_at)"
+    ]
+  },
+  {
+    "name": "idempotency_record",
+    "domain": "运维",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "跨创建退款兑换报名操作幂等缓存，业务唯一约束仍兜底",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "operation text NOT NULL",
+      "request_key text NOT NULL",
+      "payload_hash text NOT NULL",
+      "state text NOT NULL",
+      "response_code integer",
+      "response jsonb",
+      "expires_at timestamptz NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(user_id,operation,request_key)"
+    ],
+    "indexes": [
+      "(expires_at)"
+    ]
+  },
+  {
+    "name": "feature_config",
+    "domain": "运维运营",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "带版本的业务规则与开关、实际客服联系方式、消息偏好默认",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "config_key text NOT NULL",
+      "revision integer NOT NULL",
+      "value jsonb NOT NULL",
+      "effective_at timestamptz NOT NULL",
+      "approved_by text NOT NULL REFERENCES app_user(id)",
+      "reason text NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(config_key,revision)",
+      "CHECK(revision>0)"
+    ],
+    "indexes": [
+      "(config_key,effective_at)"
+    ]
+  },
+  {
+    "name": "attachment_binding",
+    "domain": "媒体",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "统一附件关系，数组只是响应投影；关系表是外键权威",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "asset_id text NOT NULL REFERENCES media_asset(id)",
+      "note_id text REFERENCES private_note(id)",
+      "log_id text REFERENCES practice_log(id)",
+      "submission_id text REFERENCES submission(id)",
+      "checkin_id text REFERENCES practice_checkin(id)",
+      "thread_id text REFERENCES forum_thread(id)",
+      "report_id text REFERENCES report(id)",
+      "feedback_id text REFERENCES feedback(id)",
+      "refund_id text REFERENCES refund(id)",
+      "operating_service_id text REFERENCES operating_service(id)",
+      "position integer NOT NULL DEFAULT 0",
+      "caption text",
+      "resource_id text REFERENCES resource(id)",
+      "purpose text NOT NULL DEFAULT 'ATTACHMENT'",
+      "feedback_reply_id text REFERENCES feedback_reply(id)"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(resource_id,note_id,log_id,submission_id,checkin_id,thread_id,report_id,feedback_id,feedback_reply_id,refund_id,operating_service_id)=1)",
+      "CHECK(position>=0)"
+    ],
+    "indexes": [
+      "(asset_id)"
+    ]
+  },
+  {
+    "name": "benefit_scope",
+    "domain": "会员",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "权益强FK范围，指定资源/可售单元/分类恰好一种",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "plan_benefit_id text NOT NULL REFERENCES plan_benefit(id)",
+      "resource_id text REFERENCES resource(id)",
+      "offer_id text REFERENCES sale_offer(id)",
+      "category_code text"
+    ],
+    "constraints": [
+      "CHECK(num_nonnulls(resource_id,offer_id,category_code)=1)"
+    ],
+    "indexes": [
+      "(plan_benefit_id,resource_id) WHERE resource_id IS NOT NULL UNIQUE",
+      "(plan_benefit_id,offer_id) WHERE offer_id IS NOT NULL UNIQUE",
+      "(plan_benefit_id,category_code) WHERE category_code IS NOT NULL UNIQUE"
+    ]
+  },
+  {
+    "name": "refund_transaction",
+    "domain": "交易",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "每笔已核验渠道退款事实，退重复异常收款不错误冲减正常订单",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "refund_id text NOT NULL REFERENCES refund(id)",
+      "payment_transaction_id text NOT NULL REFERENCES payment_transaction(id)",
+      "channel text NOT NULL",
+      "app_scope text NOT NULL",
+      "external_refund_id text NOT NULL",
+      "amount bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "verified_at timestamptz NOT NULL",
+      "succeeded_at timestamptz NOT NULL",
+      "receipt_hash text NOT NULL",
+      "receipt_storage_ref text"
+    ],
+    "constraints": [
+      "UNIQUE(channel,app_scope,external_refund_id)",
+      "CHECK(amount>0)"
+    ],
+    "indexes": [
+      "(payment_transaction_id)",
+      "(refund_id)"
+    ]
+  },
+  {
+    "name": "withdrawal_allocation",
+    "domain": "营销财务",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "提现占用佣金明细，失败释放，防同一余额同时申请",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "withdrawal_id text NOT NULL REFERENCES withdrawal_request(id)",
+      "commission_id text NOT NULL REFERENCES commission_ledger(id)",
+      "amount bigint NOT NULL",
+      "state text NOT NULL"
+    ],
+    "constraints": [
+      "UNIQUE(withdrawal_id,commission_id)",
+      "CHECK(amount>0)",
+      "CHECK(state IN ('HELD','PAID','RELEASED'))"
+    ],
+    "indexes": [
+      "(commission_id,state)"
+    ]
+  },
+  {
+    "name": "finance_account",
+    "domain": "财务",
+    "phase": "R1",
+    "change": "新增",
+    "purpose": "财务科目目录，平台收入、渠道费、合作应付、退款等",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "code text NOT NULL UNIQUE",
+      "title text NOT NULL",
+      "kind text NOT NULL",
+      "active boolean NOT NULL DEFAULT true"
+    ],
+    "constraints": [],
+    "indexes": []
+  },
+  {
+    "name": "benefit_grant",
+    "domain": "会员成长",
+    "phase": "R1/R2",
+    "change": "新增",
+    "purpose": "成长/积分或人工赠权益的独立来源，不伪装付费会员",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "updated_at timestamptz NOT NULL DEFAULT now()",
+      "version integer NOT NULL DEFAULT 1 CHECK (version > 0)",
+      "user_id text NOT NULL REFERENCES app_user(id)",
+      "definition_id text NOT NULL REFERENCES benefit_definition(id)",
+      "growth_ledger_id text REFERENCES growth_ledger(id)",
+      "redemption_id text REFERENCES points_redemption(id)",
+      "resource_id text REFERENCES resource(id)",
+      "offer_id text REFERENCES sale_offer(id)",
+      "source text NOT NULL",
+      "quota integer NOT NULL",
+      "parameters_snapshot jsonb NOT NULL",
+      "starts_at timestamptz NOT NULL",
+      "ends_at timestamptz NOT NULL",
+      "revoked_at timestamptz",
+      "grant_key text NOT NULL UNIQUE",
+      "actor_id text REFERENCES app_user(id)",
+      "reason text NOT NULL"
+    ],
+    "constraints": [
+      "CHECK(quota>0 AND ends_at>starts_at)",
+      "CHECK(num_nonnulls(growth_ledger_id,redemption_id)<=1)"
+    ],
+    "indexes": [
+      "(user_id,ends_at)"
+    ]
+  },
+  {
+    "name": "gift_credit_allocation",
+    "domain": "直播财务",
+    "phase": "R2",
+    "change": "新增",
+    "purpose": "礼物消费按购买来源分摊，付费余额池消费与老师收入可对账",
+    "columns": [
+      "id text PRIMARY KEY",
+      "created_at timestamptz NOT NULL DEFAULT now()",
+      "debit_ledger_id text NOT NULL REFERENCES gift_ledger(id)",
+      "credit_ledger_id text NOT NULL REFERENCES gift_ledger(id)",
+      "credits bigint NOT NULL",
+      "allocated_paid_minor bigint NOT NULL",
+      "allocated_fee_minor bigint NOT NULL",
+      "currency char(3) NOT NULL",
+      "contract_id text REFERENCES partner_contract(id)",
+      "reversal_of_id text UNIQUE REFERENCES gift_credit_allocation(id)"
+    ],
+    "constraints": [
+      "UNIQUE(debit_ledger_id,credit_ledger_id)",
+      "CHECK(credits>0 AND allocated_paid_minor>=0 AND allocated_fee_minor>=0)"
+    ],
+    "indexes": [
+      "(credit_ledger_id)"
+    ]
+  }
+]

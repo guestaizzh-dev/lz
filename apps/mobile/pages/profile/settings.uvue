@@ -1,0 +1,49 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<view class="back-row" @click="back">
+<AppIcon name="arrow-left" :size="22"/>
+<text class="back-title">隐私与设置</text>
+</view>
+<view class="menu-group">
+<view v-if="currentUser" class="menu-row" @click="addresses()"><AppIcon name="package" :size="22"/><text class="menu-label">收货地址</text><AppIcon name="arrow-right" :size="16"/></view>
+<view class="menu-row" @click="privacy">
+<AppIcon name="shield-check" :size="22"/>
+<text class="menu-label">服务与隐私说明</text>
+<AppIcon name="arrow-right" :size="16"/>
+</view>
+</view>
+<view v-if="currentUser" class="section">
+<text class="section-heading">我的研习方向</text>
+<text class="intro">选择感兴趣的内容，可随时修改。</text>
+<view class="interest-grid">
+<view v-for="item in choices" :key="item" :class="['interest-chip',tags.includes(item)?'chip-active':'']" @click="toggle(item)">
+<text :class="['chip-text',tags.includes(item)?'chip-text-active':'']">{{item}}</text>
+</view>
+</view>
+<button class="primary-button" :disabled="busy" @click="saveTags">保存研习方向</button>
+<button class="retry" :disabled="busy" @click="signOut">退出当前账号</button>
+<button class="close-account" :disabled="busy" @click="closeAccount">申请注销账号</button>
+</view>
+<text v-if="error" class="footer-note">{{error}}</text>
+<text class="demo-note">老子道学书院 · {{appVersion}}</text>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {currentUser,clearSession} from '../../lib/session';
+const choices=['经典研习','实践修行','生活应用','少儿启蒙','名师解读','文创','养生交流','线下活动'],tags=ref<string[]>([]),busy=ref(false),error=ref('');
+const back=()=>uni.navigateBack(),privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
+const appVersion=uni.getAppBaseInfo().appVersion;
+const addresses=()=>uni.navigateTo({url:'/pages/shop/addresses'});
+function toggle(value:string){tags.value=tags.value.includes(value)?tags.value.filter(item=>item!==value):[...tags.value,value];}
+async function saveTags(){busy.value=true;error.value='';try{await request('/me/tags',{method:'PATCH',data:{tags:tags.value}});if(currentUser.value)currentUser.value={...currentUser.value,tags:tags.value};uni.showToast({title:'已保存',icon:'none'});}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
+async function signOut(){busy.value=true;try{await request('/auth/logout',{method:'POST'});clearSession();back();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
+function closeAccount(){uni.showModal({title:'注销书院账号',content:'将删除私人笔记、收藏、日志、学习进度、购物车和收货地址，撤销课程与会员权限，清除个人资料并退出全部登录。此操作无法恢复。',confirmText:'确认注销',success:async(result)=>{if(!result.confirm)return;busy.value=true;try{await request('/me/close-account',{method:'POST',data:{confirmation:'确认注销'}});clearSession();back();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}});}
+onLoad(()=>{tags.value=[...(currentUser.value?.tags??[])];});
+</script>
+<style>@import '../../styles/app.css';.interest-grid{flex-direction:row;flex-wrap:wrap;margin-top:18px;}.interest-chip{padding:13px 17px;border-radius:4px;margin-right:8px;margin-bottom:10px;background-color:#E8E3D9;}.close-account{border-style:solid;border-width:0;color:#A64D37;background-color:transparent;font-size:13px;border-width:0;margin-top:24px;min-height:44px;line-height:19px;}</style>

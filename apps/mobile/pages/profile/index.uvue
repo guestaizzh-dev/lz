@@ -1,0 +1,52 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<view class="row between brand-row">
+<text class="page-title">我的</text>
+<view class="icon-button icon-control"><AppIcon name="gear" :size="22"/><button class="icon-hit-target" aria-label="设置" @click="openPage('profile/settings')"></button></view>
+</view>
+<view class="profile-head row" @click="profile">
+<view class="profile-avatar">
+<image v-if="currentUser?.avatar" :src="currentUser?.avatar" class="profile-photo" mode="aspectFill"/>
+<AppIcon v-else name="user" :size="30"/>
+</view>
+<view class="grow">
+<text class="item-title">{{currentUser?.nickname??'点击登录'}}</text>
+<text class="meta">{{currentUser?'研习经典 · 知行合一':'开启你的研习之旅'}}</text>
+</view>
+<AppIcon name="arrow-right" :size="15"/>
+</view>
+<view class="member-strip row" @click="openPage('membership/index')">
+<view class="member-mark">
+<AppIcon name="crown" :size="25" :active="true"/>
+</view>
+<view class="grow">
+<text class="member-strip-title">会员中心</text>
+<text class="member-strip-copy">开通会员 · 探索研习权益</text>
+</view>
+<view class="member-open">
+<text class="member-open-label">了解会员</text>
+</view>
+</view>
+<view class="menu-group">
+<view v-for="item in menus" :key="item.label" class="menu-row" @click="open(item.path,item.auth)">
+<AppIcon :name="item.icon" :size="20"/>
+<text class="menu-label">{{item.label}}</text>
+<text class="menu-value">{{item.caption}}</text>
+<AppIcon name="arrow-right" :size="13"/>
+</view>
+</view>
+<text class="demo-note">道不远人，在日用常行中。</text>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';import {currentUser,needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';
+const menus=[{label:'学习档案',icon:'book-open',caption:'我的课程',path:'course/library',auth:true},{label:'研习笔记',icon:'note-pencil',caption:'私人记录',path:'profile/library?kind=notes',auth:true},{label:'修行日志',icon:'leaf',caption:'记录日常',path:'profile/library?kind=practice',auth:true},{label:'收藏',icon:'star',caption:'',path:'profile/library?kind=favorites',auth:true},{label:'我的订单',icon:'package',caption:'查看全部',path:'profile/service?kind=orders',auth:true},{label:'积分',icon:'medal',caption:'',path:'profile/service?kind=points',auth:true},{label:'预约',icon:'calendar-blank',caption:'我的预约',path:'event/index',auth:false},{label:'消息',icon:'chat-circle',caption:'',path:'profile/service?kind=messages',auth:true},{label:'客服',icon:'headphones',caption:'服务与反馈',path:'profile/service?kind=support',auth:false},{label:'设置',icon:'gear',caption:'账号与安全',path:'profile/settings',auth:false}];
+function profile(){if(!currentUser.value)openPage('auth/login');else openPage('profile/settings');}function open(path:string,auth:boolean){if(auth&&needLogin())return;openPage(path);}
+</script>
+<style>@import '../../styles/app.css';.profile-head{padding:17px 0 20px;}.profile-photo{width:54px;height:54px;border-radius:27px;}.member-strip{background-color:#E4D1B5;border-radius:4px;padding:11px 10px;}.member-mark{width:42px;height:40px;background-color:#17292D;border-radius:3px;margin-right:11px;align-items:center;justify-content:center;}.member-strip-title{font-family:AcademySerif;color:#17292D;font-size:14px;line-height:21px;}.member-strip-copy{font-size:10px;color:#655B4D;margin-top:4px;line-height:15px;}.member-open{background-color:#245564;border-radius:20px;padding:7px 12px;}.member-open-label{font-size:11px;color:#F4F0E7;line-height:16px;}.menu-group{margin-top:12px;}</style>

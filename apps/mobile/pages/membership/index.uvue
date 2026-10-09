@@ -1,0 +1,38 @@
+<template>
+<view class="page">
+<PageHead title="会员中心"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<view class="membership-card">
+<AppIcon name="crown" :size="34" :active="true"/>
+<text class="membership-title">书院会员</text>
+<text class="membership-copy">让研习成为日常</text>
+<text class="membership-status">{{member?member!.plan.title+' · 到期 '+member!.endsAt.slice(0,10):currentUser?'暂未开通会员':'登录后查看会员状态'}}</text>
+</view>
+<view class="detail-tabs">
+<view v-for="item in ['入门会员','进阶会员','至尊会员']" :key="item" :class="['detail-tab',tier===item?'detail-tab-active':'']" @click="tier=item">
+<text :class="['detail-tab-text',tier===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<view class="section">
+<text class="section-heading">{{tier}} · 会员套餐</text>
+<view class="rights-grid">
+<view v-for="item in rights" :key="item.label" class="rights-item">
+<AppIcon :name="item.icon" :size="25"/>
+<text class="rights-label">{{item.label}}</text>
+</view>
+</view>
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
+<view v-for="plan in visiblePlans" :key="plan.id" class="plan-row"><text class="item-title">{{plan.title}} · {{plan.days}}天</text><text class="price">¥{{money(plan.price)}}</text><text class="body-copy">{{plan.description}}</text></view>
+<text v-if="!loading&&!error&&!visiblePlans.length" class="footer-note">此层级套餐尚未发布。</text><text v-if="member" class="footer-note">{{member!.plan.description}}</text>
+</view>
+</view>
+</scroll-view>
+<view class="bottom-bar">
+<button class="bar-primary" @click="activate">{{currentUser?'暂未开放开通':'登录查看会员'}}</button>
+</view>
+</view>
+</template>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Membership,MembershipPlan} from '../../lib/learning';import {currentUser,needLogin} from '../../lib/session';import {showUnavailable} from '../../lib/presentation';const tier=ref('入门会员'),plans=ref<MembershipPlan[]>([]),member=ref<Membership|null>(null),loading=ref(false),error=ref('');const visiblePlans=computed(()=>plans.value.filter(plan=>plan.tier===['入门会员','进阶会员','至尊会员'].indexOf(tier.value)+1));const rights=[{label:'经典研习',icon:'book-open'},{label:'会员内容',icon:'crown'}];async function load(){loading.value=true;error.value='';try{plans.value=await request<MembershipPlan[]>('/learning/plans');member.value=currentUser.value?await request<Membership|null>('/learning/membership'):null;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}function activate(){if(needLogin())return;showUnavailable('暂未开放开通','会员购买支付尚未接入，当前不收取费用。');}onShow(()=>load());</script>
+<style>@import '../../styles/app.css';.membership-card{background-color:#17292D;border-radius:5px;align-items:center;padding:28px 18px;}.membership-title{font-family:AcademySerif;color:#E6D6BD;font-size:28px;margin-top:12px;letter-spacing:3px;line-height:41px;}.membership-copy{font-family:AcademySerif;color:#E6D6BD;font-size:12px;margin-top:8px;letter-spacing:2px;line-height:18px;}.membership-status{font-size:11px;color:#D8D4CA;margin-top:23px;line-height:16px;}.rights-grid{flex-direction:row;flex-wrap:wrap;margin-top:18px;}.rights-item{width:50%;align-items:center;padding:20px 0;}.rights-label{font-family:AcademySerif;font-size:13px;color:#245564;margin-top:9px;line-height:19px;}.plan-row{padding:18px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D8D4CA;}</style>
+

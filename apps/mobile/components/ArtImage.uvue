@@ -1,0 +1,30 @@
+<template>
+  <view class="art-window" :style="{ width: frameWidth + 'px', height: height + 'px', borderRadius: radius + 'px', transform: mirror ? 'scaleX(-1)' : 'scaleX(1)' }">
+    <image v-if="src && !isReference" class="art-original" :src="src" mode="aspectFill" />
+    <image v-else class="art-sheet" src="/static/editorial/design-reference.png" mode="scaleToFill" :style="sheetStyle" />
+  </view>
+</template>
+<script setup lang="ts">
+const props = withDefaults(defineProps<{ kind?: string; src?: string; width?: number; height?: number; radius?: number; mirror?: boolean }>(), { kind: 'landscape', src: '', width: 0, height: 160, radius: 4, mirror: false });
+// Use the user's original art as an atlas; native views clip only the artwork.
+// Uploaded production images take precedence over this development fallback.
+const regions: Record<string, number[]> = {
+  landscape: [957, 87, 293, 135], hero: [432, 112, 144, 121],
+  book: [289, 845, 137, 85], tea: [439, 845, 132, 85],
+  tools: [289, 996, 137, 85], room: [438, 996, 134, 85],
+  study: [438, 845, 133, 86], boat: [959, 1117, 286, 60],
+  portrait: [631, 736, 41, 41],
+};
+const frameWidth = computed(() => props.width || Math.max(280, uni.getWindowInfo().windowWidth - 32));
+const isReference = computed(() => !props.src || props.src.startsWith('/static/art/'));
+const sheetStyle = computed(() => {
+  const r = regions[props.kind] ?? regions.landscape;
+  const scale = Math.max(frameWidth.value / r[2], props.height / r[3]);
+  return { width: 1312 * scale + 'px', height: 1199 * scale + 'px', left: (-r[0] * scale - (r[2] * scale - frameWidth.value) / 2) + 'px', top: (-r[1] * scale - (r[3] * scale - props.height) / 2) + 'px' };
+});
+</script>
+<style>
+.art-window { position: relative; overflow: hidden; flex-shrink: 0; background-color: #E8E3D9; }
+.art-sheet { position: absolute; }
+.art-original { width: 100%; height: 100%; }
+</style>

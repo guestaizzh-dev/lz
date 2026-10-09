@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "reportValidation": "passed",
+  "requirements": {
+    "total": 164,
+    "done": 27,
+    "undone": 137,
+    "rate": 16.5,
+    "originalSoftwareTotal": 129,
+    "originalSoftwareDone": 18,
+    "originalSoftwareRate": 14.0
+  },
+  "targetTables": 144,
+  "targetColumns": 1650,
+  "targetForeignKeys": 377,
+  "currentModels": 29,
+  "currentMigrations": 8,
+  "appPages": 25,
+  "sourceUnchanged": true,
+  "businessSourceHashesMatch": true,
+  "allEvidenceAndLocalLinksExist": true,
+  "targetSqlExecuted": false,
+  "targetSqlPostgresParsed": false,
+  "currentDatabaseVerified": false,
+  "notes": [
+    "Structural report validation only; no business fixture tests or migration run."
+  ]
+}

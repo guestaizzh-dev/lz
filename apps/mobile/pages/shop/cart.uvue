@@ -1,0 +1,22 @@
+<template>
+<view class="page"><PageHead title="购物车"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
+<view v-for="item in cart?.items??[]" :key="item.id" class="cart-row">
+<view class="row" @click="goProduct(item.product.id)"><ArtImage :src="item.product.cover" :kind="artwork(item.product.cover)" :width="76" :height="86"/><view class="cart-copy grow"><text class="item-title">{{item.product.title}}</text><text class="meta">{{item.sku.title}}</text><text class="price">¥{{money(item.sku.price)}}</text><text v-if="!item.available" class="unavailable">{{item.unavailableReason}}</text></view></view>
+<view class="row between cart-actions"><button class="text-action" :disabled="busy" @click="remove(item)">移除</button><view class="row"><button class="quantity-button" :disabled="busy||item.quantity<=1" @click="change(item,-1)">−</button><text class="quantity">{{item.quantity}}</text><button class="quantity-button" :disabled="busy||item.quantity>=99||item.quantity>=item.sku.available" @click="change(item,1)">＋</button></view></view>
+</view>
+<ContentState v-if="!loading&&!error&&!cart?.items.length" title="把喜欢的好物留下" description="选择商品规格后，可以加入购物车。"/>
+<button class="retry" @click="openPage('shop/addresses')">管理收货地址</button>
+<text class="footer-note">购物车不锁定库存。价格和库存以提交订单时为准。</text>
+<text class="footer-note">订单及支付尚未开放，当前不会收取费用。</text>
+</view></scroll-view><view v-if="cart?.items.length" class="bottom-bar"><text class="cart-total">可售合计 ¥{{money(cart!.total)}}</text><button class="bar-primary" disabled>结算待开放</button></view></view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money,goProduct} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {artwork,openPage} from '../../lib/presentation';import type {Cart,CartItem} from '../../lib/shopping';
+const cart=ref<Cart|null>(null),loading=ref(false),busy=ref(false),error=ref('');let version=0,alive=true;
+async function load(){const owner=currentUser.value?.id;cart.value=null;if(needLogin())return;const turn=++version;loading.value=true;error.value='';try{const data=await request<Cart>('/shopping/cart');if(alive&&turn===version&&currentUser.value?.id===owner)cart.value=data;}catch(e){error.value=(e as Error).message;}finally{if(turn===version)loading.value=false;}}
+async function change(item:CartItem,delta:number){if(busy.value||needLogin())return;busy.value=true;try{await request('/shopping/cart/'+item.skuId,{method:'PUT',data:{quantity:item.quantity+delta}});await load();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
+function remove(item:CartItem){if(busy.value)return;uni.showModal({title:'移除好物',content:'将此规格从购物车移除？',confirmText:'移除',success:async result=>{if(!result.confirm||busy.value||needLogin())return;busy.value=true;try{await request('/shopping/cart/'+item.id,{method:'DELETE'});await load();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}});}
+onShow(()=>load());onUnload(()=>{alive=false;version++;});
+</script>
+<style>@import '../../styles/app.css';.cart-row{padding:18px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;}.cart-copy{padding-left:13px;}.cart-actions{margin-top:12px;}.quantity-button{background-color:transparent;color:#245564;margin:0;min-width:40px;min-height:44px;padding:10px;font-size:16px;line-height:24px;border-width:0;border-style:solid;}.quantity{color:#17292D;font-size:14px;padding:0 10px;line-height:21px;}.text-action{color:#788084;background-color:transparent;margin:0;padding:10px 0;font-size:12px;line-height:24px;border-width:0;border-style:solid;}.unavailable{color:#B95543;font-size:11px;line-height:18px;margin-top:5px;}.cart-total{font-family:AcademySerif;color:#17292D;font-size:14px;line-height:21px;margin-right:14px;}</style>

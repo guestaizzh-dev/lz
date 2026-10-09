@@ -1,0 +1,22 @@
+<template>
+  <view class="content-state">
+    <view class="state-mark">
+<AppIcon :name="error ? 'cloud-slash' : loading ? 'hourglass' : 'book-open'" :size="29" />
+</view>
+    <text class="state-title">{{ error ? '暂时无法打开' : loading ? '正在整理内容' : title }}</text>
+    <text class="state-copy">{{ error || (loading ? '请稍候，书院内容即将呈现。' : description) }}</text>
+    <button v-if="error" class="state-retry" @click="emit('retry')">重新加载</button>
+  </view>
+</template>
+<script setup lang="ts">
+import AppIcon from './AppIcon.uvue';
+withDefaults(defineProps<{ loading?: boolean; error?: string; title?: string; description?: string }>(), { loading: false, error: '', title: '静待下一次相遇', description: '新的内容发布后，会在这里与你相见。' });
+const emit = defineEmits<{ retry: [] }>();
+</script>
+<style>
+.content-state { padding: 40px 22px; align-items: center; }
+.state-mark { width: 60px; height: 60px; border-radius: 30px; background-color: #EAE5DC; align-items: center; justify-content: center; margin-bottom: 16px; }
+.state-title { font-family: AcademySerif; color: #17292D; font-size: 18px; ;line-height:27px;}
+.state-copy { margin-top: 10px; color: #7C8689; font-size: 13px; line-height: 23px; text-align: center; }
+.state-retry {border-style:solid;border-width:0; background-color: #245564; color: #F4F0E7; border-radius: 22px; font-size: 13px; padding: 8px 22px; margin-top: 20px; border-width: 0; ;line-height:19px;}
+</style>

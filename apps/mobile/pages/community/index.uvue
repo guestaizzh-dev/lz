@@ -1,0 +1,22 @@
+<template>
+<view class="page">
+<PageHead title="社区"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<view class="detail-tabs">
+<view v-for="item in ['热门','最新','关注']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<view class="community-topics">
+<view v-for="item in topics" :key="item" :class="['topic',topic===item?'topic-active':'']" @click="topic=item">
+<text class="topic-label">{{item}}</text>
+</view>
+</view>
+<ContentState title="社区即将开放" description="经典探讨、实践分享与生活心得，将在这里相遇。内容审核和发布服务接入后开放。"/>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';const tab=ref('热门'),topic=ref('经典探讨'),topics=['经典探讨','实践分享','养生交流','生活应用','名师问答','活动召集'];</script>
+<style>@import '../../styles/app.css';.community-topics{flex-direction:row;flex-wrap:wrap;margin-top:16px;}.topic{border-style:solid;border-width:0;width:31%;margin-right:2%;padding:9px 0;margin-bottom:8px;border-width:1px;border-color:#D8D4CA;border-radius:4px;align-items:center;}.topic-active{background-color:#E3E1D6;}.topic-label{font-family:AcademySerif;font-size:12px;color:#245564;line-height:18px;}</style>

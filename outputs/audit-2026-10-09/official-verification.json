@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-09",
+  "method": "read-only HTTPS official pages; web search gateway unavailable",
+  "sources": [
+    {
+      "url": "https://developer.apple.com/app-store/review/guidelines/",
+      "httpStatus": 200,
+      "sections": [
+        "3.1.1",
+        "3.1.3(d)",
+        "3.1.3(e)"
+      ],
+      "finding": "Digital unlocks use IAP under the selected initial distribution strategy; real-time person-to-person and physical/off-app services have distinct treatment. Purchased credits must not expire."
+    },
+    {
+      "url": "https://doc.dcloud.net.cn/uni-app-x/api/request-payment.html",
+      "httpStatus": 200,
+      "finding": "requestPayment provider section currently lists alipay and wxpay; Apple IAP compatibility must be independently verified."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+      "httpStatus": 200,
+      "finding": "Cross-row constraints are not ordinary CHECK constraints; partial unique indexes and exclusion constraints address suitable invariants."
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+<template>
+<view class="page">
+<PageHead title="文章阅读" action="share" @action="share"/>
+<scroll-view :scroll-into-view="scrollTarget" :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<ContentState v-if="!article" :loading="!error" :error="error" @retry="load"/>
+<view v-else>
+<ArtImage :src="article!.cover" kind="landscape" :width="width" :height="174"/>
+<text class="detail-title">{{article!.title}}</text>
+<view class="article-byline">
+<view class="row">
+<AppIcon name="user" :size="13"/>
+<text class="meta article-author">{{article!.author}}</text>
+</view>
+<text class="meta">来源：{{article!.source||'书院内容'}}</text>
+</view>
+<view class="divider article-divider"/>
+<view v-if="article!.access==='MEMBERSHIP_REQUIRED'">
+<view class="member-panel">
+<text class="member-title">会员专享</text>
+<text class="member-description">{{article!.summary}}</text>
+<text class="member-link" @click="openPage('membership/index')">了解会员权益 ›</text>
+</view>
+</view>
+<view v-else>
+<view v-for="block in article!.blocks" :key="block.id" :class="block.type==='quote'?'quote-block':''" @longpress="writeNote(block.id,block.text)">
+<text :class="block.type==='quote'?'quote-block-text':'body-copy'" :style="{fontSize:fontSize+'px',lineHeight:(fontSize*1.95)+'px'}">{{block.text}}</text>
+<button v-if="showNotes" class="note-action" @click="writeNote(block.id,block.text)">为这一段写笔记</button>
+</view>
+</view>
+<view v-if="noteBlock" id="private-note" class="note-editor">
+<view class="row between">
+<text class="tag">我的笔记 · 仅自己可见</text>
+<text class="tag" @click="noteBlock=''">收起</text>
+</view>
+<text class="article-summary">{{noteQuote}}</text>
+<textarea class="note-input" maxlength="10000" placeholder="记录你的思考…" v-model="noteText"/>
+<button class="primary-button" :disabled="saving" @click="saveNote">{{saving?'正在保存…':'保存笔记'}}</button>
+</view>
+<text v-if="feedback" class="footer-note">{{feedback}}</text>
+<text class="footer-note">{{showNotes?'点击段落下方的按钮可更换引用段落。':'长按段落可记录私人研习笔记。'}}</text>
+</view>
+</view>
+</scroll-view>
+<view v-if="article" class="bottom-bar">
+<view class="toolbar-item" @click="favorite">
+<AppIcon name="star" :size="21" :active="favorited"/>
+<text class="toolbar-label">{{favorited?'已收藏':'收藏'}}</text>
+</view>
+<view class="toolbar-item" @click="comment">
+<AppIcon name="chat-circle" :size="21"/>
+<text class="toolbar-label">评论</text>
+</view>
+<view class="toolbar-item" @click="share">
+<AppIcon name="share-network" :size="21"/>
+<text class="toolbar-label">分享</text>
+</view>
+<view class="toolbar-item" @click="font">
+<AppIcon name="text-aa" :size="21"/>
+<text class="toolbar-label">字号</text>
+</view>
+<view v-if="article!.access!=='MEMBERSHIP_REQUIRED'" class="toolbar-item" @click="beginNote">
+<AppIcon name="note-pencil" :size="21"/>
+<text class="toolbar-label">笔记</text>
+</view>
+</view>
+</view>
+</template>
+<script setup lang="ts">
+import {nextTick} from 'vue';
+const scrollTarget=ref('');
+import AppIcon from '../../components/AppIcon.uvue';import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {viewWidth,openPage,shareContent,showUnavailable} from '../../lib/presentation';
+const width=viewWidth(),fontSize=ref(16),showNotes=ref(false);
+function font(){fontSize.value=fontSize.value>=20?14:fontSize.value+2;}function share(){if(article.value)shareContent('文章',id,article.value.title);}function comment(){showUnavailable('文章评论','评论功能尚未开放。你可以先记录私人笔记。');}
+function beginNote(){if(!article.value?.blocks?.length)return;const first=article.value.blocks.find(b=>b.type!=='quote')??article.value.blocks[0];writeNote(first.id,first.text);showNotes.value=true;}
+import { request } from '../../lib/api'; import type { Article } from '../../lib/api';
+const article=ref<Article|null>(null); const error=ref(''); let id='';
+import { currentUser, needLogin } from '../../lib/session';
+const noteBlock=ref(''),noteQuote=ref(''),noteText=ref(''),saving=ref(false),favorited=ref(false),savingFavorite=ref(false),feedback=ref('');
+const back=()=>uni.navigateBack();
+async function load() { error.value=''; try { article.value=await request<Article>('/catalog/articles/'+encodeURIComponent(id)); } catch(e) { error.value=(e as Error).message; } }
+onLoad((options)=>{id=options?.id??'';load();});
+onShow(async()=>{if(currentUser.value&&id){try{favorited.value=(await request<{favorited:boolean}>('/me/favorite-state/'+id)).favorited;}catch(e){feedback.value=(e as Error).message;}}});
+function writeNote(blockId:string,quote:string){if(needLogin())return;noteBlock.value=blockId;noteQuote.value=quote;noteText.value='';feedback.value='';scrollTarget.value='';nextTick(()=>{scrollTarget.value='private-note';});}
+async function saveNote(){if(saving.value)return;if(!noteText.value.trim()){feedback.value='写下你的思考再保存吧';return;}saving.value=true;try{await request('/me/notes',{method:'POST',data:{articleId:id,blockId:noteBlock.value,text:noteText.value}});noteBlock.value='';noteText.value='';feedback.value='笔记已保存，可在“我的 · 研习笔记”回看。';}catch(e){feedback.value=(e as Error).message;}finally{saving.value=false;}}
+async function favorite(){if(needLogin()||savingFavorite.value)return;savingFavorite.value=true;try{await request('/me/favorites/'+id,{method:favorited.value?'DELETE':'PUT'});favorited.value=!favorited.value;feedback.value=favorited.value?'已加入你的收藏。':'已取消收藏。';}catch(e){feedback.value=(e as Error).message;}finally{savingFavorite.value=false;}}
+</script>
+<style>@import '../../styles/app.css';.article-byline{margin:14px 0 16px;}.article-author{flex:1;margin-left:5px;}.article-divider{margin-bottom:8px;}.note-action{border-style:solid;border-width:0;color:#245564;font-size:11px;background-color:transparent;border-width:0;padding:6px 0;margin:6px 0 0;min-height:35px;align-self:flex-start;line-height:16px;}.note-editor{border-style:solid;border-width:0;padding:15px;background-color:#FAF8F2;border-width:1px;border-color:#D8D4CA;border-radius:4px;margin-top:24px;}.note-input{width:100%;height:120px;font-family:AcademySerif;font-size:15px;color:#17292D;line-height:26px;margin-top:12px;}</style>

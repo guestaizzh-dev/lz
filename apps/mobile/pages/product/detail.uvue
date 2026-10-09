@@ -1,0 +1,49 @@
+<template>
+<view class="page">
+<PageHead title="书院好物" action="share" @action="share"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<ContentState v-if="!product" :loading="!error" :error="error" @retry="load"/>
+<view v-else>
+<ArtImage :src="product!.cover" :kind="artwork(product!.cover,product!.category)" :width="width" :height="260"/>
+<text class="detail-title">{{product!.title}}</text>
+<text class="intro">{{product!.subtitle}}</text>
+<view class="row between product-price">
+<text class="price">¥{{money(selected?.price??product!.price)}}</text>
+<text class="tag">{{product!.category}}</text>
+</view>
+<view class="menu-row">
+<text class="menu-label product-label">规格</text>
+<text class="menu-value">{{selected?.title??'尚未配置可售规格'}}</text>
+</view>
+<view v-if="product!.skus?.length" class="sku-options"><button v-for="item in product!.skus" :key="item.id" :class="['sku-button',skuId===item.id?'sku-selected':'']" @click="choose(item.id)">{{item.title}}</button></view>
+<text v-if="selected" class="meta">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
+<view class="menu-row">
+<text class="menu-label product-label">数量</text>
+<view class="quantity-action icon-control"><AppIcon name="minus" :size="15"/><button class="icon-hit-target" aria-label="减少数量" @click="quantity=Math.max(1,quantity-1)"></button></view>
+<text class="quantity">{{quantity}}</text>
+<view class="quantity-action icon-control"><AppIcon name="plus" :size="15"/><button class="icon-hit-target" aria-label="增加数量" @click="quantity=Math.min(99,quantity+1)"></button></view>
+</view>
+<view class="detail-tabs">
+<view v-for="item in ['商品详情','文化溯源','售后说明']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<text v-if="tab==='商品详情'" class="body-copy">{{product!.description}}</text>
+<text v-else-if="tab==='文化溯源'" class="body-copy">{{product!.culturalOrigin}}</text>
+<text v-else class="body-copy">商品暂未开放购买。正式开放时将展示配送、退换货范围与服务说明，请在下单前仔细阅读。</text>
+<text v-if="product!.isDemo" class="demo-note">开发示例 · 不提供真实交易</text>
+</view>
+</view>
+</scroll-view>
+<view v-if="product" class="bottom-bar">
+<button class="bar-secondary" :disabled="busy||!selected||selected!.available<quantity||product!.type!=='PHYSICAL'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
+<button class="bar-primary" @click="buy()">立即购买</button>
+</view>
+</view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Product} from '../../lib/api';import {viewWidth,artwork,openPage,shareContent,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';
+const width=viewWidth(),product=ref<Product|null>(null),error=ref(''),quantity=ref(1),tab=ref('商品详情'),skuId=ref(''),busy=ref(false);const selected=computed(()=>product.value?.skus?.find(item=>item.id===skuId.value)??null);let id='';async function load(){error.value='';try{product.value=await request<Product>('/catalog/products/'+encodeURIComponent(id));if(!product.value.skus?.some(item=>item.id===skuId.value))skuId.value=product.value.skus?.[0]?.id??'';}catch(e){product.value=null;error.value=(e as Error).message;}}function choose(value:string){skuId.value=value;quantity.value=1;}function share(){if(product.value)shareContent('好物',id,product.value.title);}async function cart(){if(busy.value||needLogin()||!selected.value)return;busy.value=true;try{await request('/shopping/cart/'+selected.value.id,{method:'PUT',data:{quantity:quantity.value}});uni.showModal({title:'已加入购物车',content:'该规格的购物车数量已更新为 '+quantity.value+' 件。',confirmText:'查看购物车',cancelText:'继续浏览',success:result=>{if(result.confirm)openPage('shop/cart');}});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
+</script>
+<style>@import '../../styles/app.css';.product-price{margin:16px 0 10px;}.product-label{margin-left:0;}.quantity-action{border-style:solid;border-width:0;width:36px;height:40px;align-items:center;justify-content:center;padding:0;margin:0;background-color:transparent;border-width:0;}.quantity{font-size:14px;color:#17292D;padding:0 12px;line-height:21px;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:12px;}.sku-button{font-size:12px;line-height:22px;color:#637276;background-color:#FAF8F2;min-height:44px;border-radius:3px;border-style:solid;border-width:1px;border-color:#D8D4CA;padding:10px 14px;margin:0 8px 8px 0;}.sku-selected{color:#245564;background-color:#E5ECE9;border-color:#245564;}</style>

@@ -1,0 +1,24 @@
+<template>
+<view class="page">
+<PageHead :title="info.title"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<view v-if="kind==='orders'||kind==='learning'" class="detail-tabs">
+<view v-for="item in info.tabs" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<ContentState :title="info.empty" :description="info.description"/>
+<button v-if="kind==='learning'||kind==='cart'" class="primary-button" @click="browse">{{kind==='learning'?'去学堂看看':'去看看好物'}}</button>
+<view v-if="kind==='support'" class="menu-group">
+<view class="menu-row" @click="openPage('profile/privacy')">
+<text class="menu-label">服务与隐私说明</text>
+<AppIcon name="arrow-right" :size="16"/>
+</view>
+</view>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ContentState from '../../components/ContentState.uvue';import {openPage} from '../../lib/presentation';const kind=ref('learning'),tab=ref('全部');const services:Record<string,{title:string;empty:string;description:string;tabs:string[]}>= {learning:{title:'学习档案',empty:'开启一段新的研习',description:'学习记录服务尚未接入，当前无法显示已购与学习进度。你可以先浏览课程介绍。',tabs:['全部','最近学习','已完成']},orders:{title:'我的订单',empty:'订单服务尚未开放',description:'当前不提供交易，订单与支付服务接入后可在这里查看。',tabs:['全部','待付款','待发货','已完成']},points:{title:'我的积分',empty:'积分服务尚未开放',description:'积分获取、使用与明细，将在服务接入后展示。',tabs:[]},messages:{title:'消息',empty:'消息服务尚未开放',description:'课程、预约和书院通知，将在消息服务接入后展示。',tabs:[]},cart:{title:'购物车',empty:'购物车尚未开放',description:'商品规格和库存服务尚未接入，你可以先浏览书院好物。',tabs:[]},support:{title:'客服与反馈',empty:'客服渠道待配置',description:'书院尚未发布正式联系方式，服务开放后将展示可用渠道。',tabs:[]}};const info=computed(()=>services[kind.value]??services.learning);function browse(){uni.switchTab({url:kind.value==='cart'?'/pages/shop/index':'/pages/academy/index'});}onLoad(options=>{kind.value=options?.kind??'learning';});</script>
+<style>@import '../../styles/app.css';</style>

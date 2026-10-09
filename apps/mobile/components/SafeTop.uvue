@@ -1,0 +1,4 @@
+<template>
+<view :style="{height:height+'px'}" />
+</template>
+<script setup lang="ts">const height=Math.max(16,uni.getWindowInfo().statusBarHeight||0);</script>

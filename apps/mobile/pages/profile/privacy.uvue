@@ -1,0 +1,26 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<view class="back-row" @click="back">
+<AppIcon name="arrow-left" :size="22"/>
+<text class="back-title">服务与隐私说明</text>
+</view>
+<text class="detail-title">安心研习，尊重隐私。</text>
+<text class="footer-note">开发环境说明 · 生效日期：2026 年 10 月 6 日。正式服务的经营主体、联系渠道、完整协议及 SDK 清单将在上线前核实并公示。</text>
+<view v-for="section in sections" :key="section.title" class="section">
+<text class="section-heading">{{section.title}}</text>
+<text class="body-copy">{{section.text}}</text>
+</view>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';
+const back=()=>uni.navigateBack();
+const sections=[{title:'账号与服务',text:'浏览公开文章无需登录。登录使用手机号和验证码，账号用于保存个人学习、收藏、笔记与修行记录。请勿冒用他人手机号。当前开发环境中的示例课程和商品不提供真实交易。'},{title:'私人记录',text:'研习笔记和修行日志默认仅本人可见，不会自动用于公开帖子、课程案例或宣传。收藏记录用于个人回看；兴趣标签用于内容分类和后续推荐。'},{title:'信息与权限',text:'本阶段使用手机号、登录会话、你主动保存的笔记、日志和兴趣标签。服务器处理必要的访问与安全记录。相册、摄像头和麦克风将在对应功能使用时单独说明并征求授权。拒绝非必要权限不影响公开浏览。'},{title:'修改、删除与注销',text:'你可取消收藏，修改或删除笔记、日志，退出当前会话，并申请注销。当前注销会删除私人记录、清除手机号与个人资料并撤销全部会话。未来交易记录须根据实际履约和适用保留要求处理，正式开放交易前将更新说明。'},{title:'内容与使用约定',text:'经典阅读、文化研习与实践交流不替代医疗或其他专业服务。转载与使用现代译注、音视频或用户内容须取得适用授权。公开交流将适用社区审核和举报规则。'}];
+</script>
+<style>@import '../../styles/app.css';</style>

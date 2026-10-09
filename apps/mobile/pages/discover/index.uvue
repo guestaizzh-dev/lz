@@ -1,0 +1,39 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<text class="page-title">发现</text>
+<view class="detail-tabs discover-tabs">
+<view v-for="item in sections" :key="item.label" class="detail-tab" :class="item.label==='文章'?'detail-tab-active':''" @click="openSection(item.path)">
+<text class="detail-tab-text" :class="item.label==='文章'?'detail-tab-selected':''">{{item.label}}</text>
+</view>
+</view>
+<view class="search">
+<AppIcon name="magnifying-glass" :size="16"/>
+<input class="search-input" placeholder="搜索经典和文章" v-model="query" @confirm="load()"/>
+</view>
+<scroll-view class="chip-scroll" direction="horizontal">
+<view class="chips">
+<view v-for="item in categories" :key="item" :class="['chip',category===item?'chip-active':'']" @click="category=item">
+<text :class="['chip-text',category===item?'chip-text-active':'']">{{item}}</text>
+</view>
+</view>
+</scroll-view>
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
+<view v-else>
+<ArticleRow v-for="article in articles" :key="article.id" :article="article"/>
+<ContentState v-if="!articles.length" title="没有找到相关内容" description="换个关键词，或看看其他分类。"/>
+<button v-if="nextCursor" class="retry" :disabled="loadingMore" @click="load(true)">更多文章</button>
+</view>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';import ArticleRow from '../../components/ArticleRow.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import {openPage} from '../../lib/presentation';import type {Article} from '../../lib/api';
+const sections=[{label:'文章',path:''},{label:'名师',path:'teacher/index'},{label:'直播',path:'live/index'},{label:'社区',path:'community/index'},{label:'活动',path:'event/index'}],categories=['全部','经典原文','名师解读','实践心得','道学常识'],category=ref('全部'),query=ref('');function openSection(path:string){if(path)openPage(path);}
+const {items:articles,loading,loadingMore,error,nextCursor,load}=useCatalog<Article>('articles',()=>({category:category.value,q:query.value}));watch(category,()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());onShow(()=>{const value=uni.getStorageSync('searchQuery');if(typeof value==='string'&&value){query.value=value;uni.removeStorageSync('searchQuery');}});
+</script>
+<style>@import '../../styles/app.css';.discover-tabs{margin-top:0;margin-bottom:10px;}</style>

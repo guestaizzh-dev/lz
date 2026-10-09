@@ -1,0 +1,17 @@
+packages:
+  - apps/admin
+  - services/api
+allowBuilds:
+  '@embedded-postgres/windows-x64': true
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  esbuild: true
+  prisma: true
+  core-js: false
+  core-js-pure: false
+  es5-ext: false
+overrides:
+  '@umijs/max>antd': 6.6.0
+  '@umijs/plugins>@ant-design/pro-components': 3.1.14-2
+  '@umijs/plugins>@tanstack/react-query': 5.101.2
+  '@types/react': 19.2.17

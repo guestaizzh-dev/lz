@@ -1,0 +1,302 @@
+{
+  "auditDate": "2026-10-09",
+  "originalParagraphs": 98,
+  "originalHash": "d5e69014a2fe611466b9eb526c7cfdfc12d345970cd9144b324ceccb979b6468",
+  "models": [
+    "User",
+    "AuthSession",
+    "OtpChallenge",
+    "Note",
+    "Favorite",
+    "PracticeLog",
+    "ConsumedRefresh",
+    "AuditLog",
+    "RateLimit",
+    "Teacher",
+    "Article",
+    "Course",
+    "CourseChapter",
+    "CourseRelease",
+    "Lesson",
+    "Enrollment",
+    "MembershipPlan",
+    "Membership",
+    "StudyProgress",
+    "StudyEvent",
+    "MediaAsset",
+    "Product",
+    "ProductSku",
+    "DeliveryZone",
+    "Order",
+    "OrderItem",
+    "CartItem",
+    "Address",
+    "Event"
+  ],
+  "enums": {
+    "Role": [
+      "USER",
+      "TEACHER",
+      "OPERATOR",
+      "MODERATOR",
+      "SUPPORT",
+      "FINANCE",
+      "ADMIN"
+    ],
+    "AccountStatus": [
+      "ACTIVE",
+      "FROZEN",
+      "DELETED"
+    ],
+    "PublishStatus": [
+      "DRAFT",
+      "REVIEW",
+      "PUBLISHED",
+      "REJECTED",
+      "ARCHIVED"
+    ],
+    "Visibility": [
+      "PUBLIC",
+      "MEMBER"
+    ],
+    "CourseFormat": [
+      "VIDEO",
+      "AUDIO",
+      "LIVE",
+      "COHORT",
+      "OFFLINE"
+    ],
+    "ProductType": [
+      "PHYSICAL",
+      "DIGITAL",
+      "SERVICE"
+    ],
+    "LessonFormat": [
+      "TEXT",
+      "VIDEO",
+      "AUDIO"
+    ],
+    "OrderStatus": [
+      "PENDING",
+      "CLOSED"
+    ]
+  },
+  "modelCount": 29,
+  "pageCount": 25,
+  "migrations": [
+    "20261006035656_catalog_foundation",
+    "20261006040323_admin_identity_audit",
+    "20261006041548_app_identity_private_data",
+    "20261006041655_note_source_version",
+    "20261006075056_learning_membership_media",
+    "20261006080308_teacher_version",
+    "20261006102000_shopping_cart_addresses",
+    "20261006111500_pending_orders"
+  ],
+  "files": [
+    {
+      "path": "services/api/prisma/schema.prisma",
+      "sha256": "f5e73c70e95babbb11b0b6698284b3cef36937163bf46e673b5cb29e970413ee"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006035656_catalog_foundation/migration.sql",
+      "sha256": "4eef97de82a1b668719cd4231f909a859be7076bf0b94dfe5917ac11a60dd237"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006040323_admin_identity_audit/migration.sql",
+      "sha256": "e8ebd310a12856540484363cddd82d7f7a5d31ee43b1069c21f0919965e87b5a"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006041548_app_identity_private_data/migration.sql",
+      "sha256": "4c95ae10b48454d4029da5a5fb03aede97cb5479b37a334698787714fb308f5c"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006041655_note_source_version/migration.sql",
+      "sha256": "755c63b458ccd34121be69e22878723eb439469ec7b5f2b798be5906c67c2f8d"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006075056_learning_membership_media/migration.sql",
+      "sha256": "d59763aeea4852193fbb7e63ea50926045656428d461e8e64d62bb3e0ead1067"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006080308_teacher_version/migration.sql",
+      "sha256": "d85a3b012a95d3f1dd0d2ac6483a5c4e685f4840cdc85a9fb62d11a76a4a2fc7"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006102000_shopping_cart_addresses/migration.sql",
+      "sha256": "83747e9fa97367582e5a227f120fa082a3f8d95f85b7ae5d9468d705aacd71a1"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261006111500_pending_orders/migration.sql",
+      "sha256": "5e8c3951372e6e210a8469aceb640737ae726b239a8ae37af2c1a4ac126120a1"
+    },
+    {
+      "path": "services/api/src/admin.ts",
+      "sha256": "c4905c63d614b13c2e94a954d17ea8f2f44bc3805ac26f5879ecbfb285407182"
+    },
+    {
+      "path": "services/api/src/auth.ts",
+      "sha256": "478ddd85f349080b597bf45b0ca801a4b947df4b4638e963eadf851b83dac8c7"
+    },
+    {
+      "path": "services/api/src/catalog.ts",
+      "sha256": "02532422778a22dda37ed02d1067d8848daac407ad45e6ea9e5c6744cf13dc95"
+    },
+    {
+      "path": "services/api/src/curriculum-admin.ts",
+      "sha256": "f23bfb84f1c7a73c74615f6cb66a991398ae6064055693f4c8d740e3d170bc43"
+    },
+    {
+      "path": "services/api/src/database.ts",
+      "sha256": "d4071cce844942c6a2818a554f364614f6288ff01a3b20539edf2d29f23b818b"
+    },
+    {
+      "path": "services/api/src/identity.ts",
+      "sha256": "0a303863938ad4ff55587e73f2adfe7e2df1313e8205029d839a571e629111a3"
+    },
+    {
+      "path": "services/api/src/learning.ts",
+      "sha256": "6ada5dba02c045a4e95fefd06e24f822b4a0927f90f4f5ac0206158e3ab37fc0"
+    },
+    {
+      "path": "services/api/src/main.ts",
+      "sha256": "ca2fa55bcab90e0776ea623ca131d81978bbc36bd031f236f946e4e7726292a9"
+    },
+    {
+      "path": "services/api/src/media.ts",
+      "sha256": "111350b730ed4a2f4f88fc53cc25236aa3da08706bd2f9e5a0d9bcb4fb4a6233"
+    },
+    {
+      "path": "services/api/src/orders.ts",
+      "sha256": "0b501b042b58ad0a623ba4acd275b4ba63882440f468469dcc66b827e26c0e2c"
+    },
+    {
+      "path": "services/api/src/personal.ts",
+      "sha256": "c8a9db438b515368c46b88e781be87adcaae88514a7af3881f87ebb9ad24ffa7"
+    },
+    {
+      "path": "services/api/src/shopping.ts",
+      "sha256": "b47dba8f2ad64bd9cf491a5348c911780baca86746c54097bfcbafcc1b6128bd"
+    },
+    {
+      "path": "services/api/src/sms.ts",
+      "sha256": "441a7f288c93b3b3ad13cc7f9f5c24c3acc39429195ea3d1abac5a2011f5f916"
+    },
+    {
+      "path": "apps/mobile/pages/academy/index.uvue",
+      "sha256": "f82370ea24656b9be08bf3f3be824d0170366bebf2c2595eeb007ff517e6c678"
+    },
+    {
+      "path": "apps/mobile/pages/article/detail.uvue",
+      "sha256": "17bfa2d93c99e80dd3292b828dac95975037e6b263aa91f3cfcbbe8b0f40e4a2"
+    },
+    {
+      "path": "apps/mobile/pages/auth/login.uvue",
+      "sha256": "fb367bda4912b711abf9b2992b1d570809fff51780ca45b4277d146fb607df0e"
+    },
+    {
+      "path": "apps/mobile/pages/community/index.uvue",
+      "sha256": "bcea6b362623cff1df37728b4ffce0f29adf1114e1ae1187befad0bbe8a53d95"
+    },
+    {
+      "path": "apps/mobile/pages/course/detail.uvue",
+      "sha256": "5a124099ae468ca5a7c69049cdf1106ad79e29d7289ea52371bf55cf1b4f34d8"
+    },
+    {
+      "path": "apps/mobile/pages/course/library.uvue",
+      "sha256": "c97d181a20b30dff28b90b6578eac7ddf05940f8ad6d196790302deb83a79ad7"
+    },
+    {
+      "path": "apps/mobile/pages/course/player.uvue",
+      "sha256": "ad2ce5cd95377d53bb4486ea9f0ea012e3b3a277223b82798e0dc69cf9e067c7"
+    },
+    {
+      "path": "apps/mobile/pages/discover/index.uvue",
+      "sha256": "7edadca966320be23a1f1588da66c9ee308d0d0f6cf50dfaf3b340bcd11686d5"
+    },
+    {
+      "path": "apps/mobile/pages/event/detail.uvue",
+      "sha256": "309ae5d4995b852010e66ec8e748bf9325895f9ce5f19c2baabf8fe2838007b5"
+    },
+    {
+      "path": "apps/mobile/pages/event/index.uvue",
+      "sha256": "18b0255ba137923749d90080e54f7d25450743930fe8ba5cf6c54255f3cb4a00"
+    },
+    {
+      "path": "apps/mobile/pages/index/index.uvue",
+      "sha256": "5e75c543cf2af55030d0f378d7a8f118f0b72b796588f70e6138483187405c47"
+    },
+    {
+      "path": "apps/mobile/pages/live/index.uvue",
+      "sha256": "5f1e82a448ef5deed72f89c2b6c927d2b53bee32cf163130ecb5bcf3952a4e9b"
+    },
+    {
+      "path": "apps/mobile/pages/membership/index.uvue",
+      "sha256": "b10f9f94ef3166ae9e9d29867cbb3afbe89d12938d88bab719b4bc233501cbc8"
+    },
+    {
+      "path": "apps/mobile/pages/order/confirm.uvue",
+      "sha256": "fa3a845e701c540ffd771b897985f45dd60db507b13dcc3509db2e5481b9036f"
+    },
+    {
+      "path": "apps/mobile/pages/product/detail.uvue",
+      "sha256": "75cc19599d5905bcd28e58b10d6f29f8e3d2530ab90eef218bc421991dcf69bc"
+    },
+    {
+      "path": "apps/mobile/pages/profile/index.uvue",
+      "sha256": "5f28a739e13da2b23c984a03010e47394ecd05dbe47d68c326ef269eeb39e975"
+    },
+    {
+      "path": "apps/mobile/pages/profile/library.uvue",
+      "sha256": "ab632ef495f5450b73d24662f09cc321872ba9f3a1b08d24f11ecba379233295"
+    },
+    {
+      "path": "apps/mobile/pages/profile/privacy.uvue",
+      "sha256": "1cfee30a0aec9dfe32b8f9fe1019a439c8d07f03f02ae972d50e244a3cc84af5"
+    },
+    {
+      "path": "apps/mobile/pages/profile/service.uvue",
+      "sha256": "71964f9d53de8e0796d2e8642d90a99aac77caf14afb07cac6307294c76c1f73"
+    },
+    {
+      "path": "apps/mobile/pages/profile/settings.uvue",
+      "sha256": "b7ec9e0fcb8a73f9c0142963323e36b01d872ef7c5b59a0642442c27de82483e"
+    },
+    {
+      "path": "apps/mobile/pages/shop/addresses.uvue",
+      "sha256": "0f6cabd7c86ce553cf2c0387e02e868079a91269d71c6e644ad9356ffc0973d3"
+    },
+    {
+      "path": "apps/mobile/pages/shop/cart.uvue",
+      "sha256": "2b63df37b3dbc25c603f39a201c6177b768eba340c356f16159cd51a6e34e08a"
+    },
+    {
+      "path": "apps/mobile/pages/shop/index.uvue",
+      "sha256": "68cf89388f30d1f059621b97da864c14195ecb8ea98de9a7c54e13220dc1e816"
+    },
+    {
+      "path": "apps/mobile/pages/teacher/detail.uvue",
+      "sha256": "fa4ef75967d5761a325902f5e343ec5546595fd37eabb01c0dd9dd2f3dbadb0c"
+    },
+    {
+      "path": "apps/mobile/pages/teacher/index.uvue",
+      "sha256": "3a988b5365a9b5350da682427ab2d71dec65b90bcc91ceb588d9b1f991bfb462"
+    },
+    {
+      "path": "services/api/test/foundation.test.mjs",
+      "sha256": "57217002c167d60f681dec4b2ad756026ca9ef477d39ed7697946a938e8a2438"
+    },
+    {
+      "path": "services/api/test/learning.test.mjs",
+      "sha256": "2372347add353f4f7c2ef0f6d6cf13d2e4fa5d1724fa4c1e0d3029aff90f4569"
+    },
+    {
+      "path": "services/api/test/orders.test.mjs",
+      "sha256": "fac5b80e05ec1cb6331106f0e89d4a925c63d30af86ce7e3c11a827f80d9de4a"
+    },
+    {
+      "path": "services/api/test/shopping.test.mjs",
+      "sha256": "af7c93684c6b3c1ae8799be902a9c75a345b1d65d27319bdefa37843e5acd3bd"
+    }
+  ]
+}

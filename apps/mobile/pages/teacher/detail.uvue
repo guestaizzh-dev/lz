@@ -1,0 +1,43 @@
+<template>
+<view class="page">
+<PageHead :title="teacher?.name??'名师详情'"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<ContentState v-if="!teacher" :loading="!error" :error="error" @retry="load"/>
+<view v-else>
+<view class="teacher-profile row">
+<TeacherAvatar :portrait="teacher!.portrait" :demo="teacher!.isDemo" :size="82"/>
+<view class="teacher-copy">
+<text class="detail-title">{{teacher!.name}}</text>
+<text class="meta">{{teacher!.title}}</text>
+<text class="tag">{{teacher!.expertise.join(' · ')}}</text>
+</view>
+</view>
+<view class="detail-tabs">
+<view v-for="item in ['老师介绍','研习课程','问答']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<view v-if="tab==='老师介绍'" class="section">
+<text class="section-heading">研习与传承</text>
+<text class="body-copy">{{teacher!.bio}}</text>
+<text v-if="teacher!.isDemo" class="demo-note">开发示例档案</text>
+</view>
+<view v-else-if="tab==='研习课程'">
+<CourseRow v-for="course in courses" :key="course.id" :course="course"/>
+<ContentState v-if="!courses.length" title="暂无已发布课程"/>
+<button v-if="nextCursor" class="retry" @click="loadCourses(true)">更多课程</button>
+</view>
+<ContentState v-else title="问答尚未开放" description="老师的公开研习答复将展示在这里。"/>
+</view>
+</view>
+</scroll-view>
+<view v-if="teacher" class="bottom-bar">
+<button class="bar-primary" @click="consult">咨询与预约</button>
+</view>
+</view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import type {Teacher,Course} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';const teacher=ref<Teacher|null>(null),error=ref(''),tab=ref('老师介绍');let id='';const {items:courses,nextCursor,load:loadCourses}=useCatalog<Course>('courses',()=>({category:'全部',teacherId:id}));async function load(){error.value='';try{teacher.value=await request<Teacher>('/catalog/teachers/'+encodeURIComponent(id));await loadCourses();}catch(e){error.value=(e as Error).message;}}function consult(){if(needLogin())return;showUnavailable('暂无可预约时段','老师尚未配置咨询服务及可售时段，开放后可在这里预约。');}onLoad(options=>{id=options?.id??'';load();});
+</script>
+<style>@import '../../styles/app.css';.teacher-profile{padding:18px 0;}.teacher-copy{flex:1;padding-left:16px;}.detail-title{font-size:21px;margin-top:0;line-height:31px;}</style>

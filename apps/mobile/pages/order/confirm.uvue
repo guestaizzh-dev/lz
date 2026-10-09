@@ -1,0 +1,44 @@
+<template>
+<view class="page">
+<PageHead title="确认订单"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<ContentState v-if="!item" :loading="!error" :error="error" @retry="load"/>
+<view v-else>
+<view v-if="type==='product'" class="address-preview" @click="openPage('shop/addresses')"><text class="item-title">{{address?address!.recipient+'　'+address!.phone:'添加收货地址'}}</text><text class="meta">{{address?addressText(address!):'请选择用于商品配送的地址'}}</text></view>
+<view class="order-item row">
+<ArtImage :src="item!.cover" :kind="artwork(item!.cover)" :width="83" :height="88"/>
+<view class="order-copy grow">
+<text class="item-title">{{item!.title}}</text>
+<text class="meta">{{type==='product'?(sku?.title??'规格已停用或未配置'):'课程订单'}}</text>
+<text class="price">¥{{money(unitPrice)}}</text>
+</view>
+</view>
+<view class="menu-row">
+<text class="menu-label">数量</text>
+<text class="menu-value">{{quantity}}</text>
+</view>
+<view class="menu-row">
+<text class="menu-label">商品金额</text>
+<text class="menu-value">¥{{money(unitPrice*quantity)}}</text>
+</view>
+<view v-if="type==='product'" class="menu-row">
+<text class="menu-label">配送与运费</text>
+<text class="menu-value">暂未开放</text>
+</view>
+<view class="notice-strip">
+<text class="order-notice">交易暂未开放</text>
+<text class="footer-note">{{type==='product'?'配送计费、订单与支付正在接入。':'课程支付尚未接入。'}}当前无法创建订单或收取费用。</text>
+<text v-if="type==='product'&&sku&&sku!.available<quantity" class="footer-note">该规格当前库存不足，请返回调整数量。</text>
+</view>
+</view>
+</view>
+</scroll-view>
+<view v-if="item" class="bottom-bar">
+<text class="total">金额参考：¥{{money(unitPrice*quantity)}}</text>
+<button class="bar-primary" disabled>暂未开放下单</button>
+</view>
+</view>
+</template>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {artwork,openPage} from '../../lib/presentation';import {currentUser} from '../../lib/session';import {addressText} from '../../lib/shopping';import type {ProductSku,Address} from '../../lib/shopping';const type=ref('course'),quantity=ref(1),item=ref<{title:string;cover:string;price:number;skus?:ProductSku[]}|null>(null),address=ref<Address|null>(null),error=ref('');let id='',skuId='';const sku=computed(()=>item.value?.skus?.find(row=>row.id===skuId)??null),unitPrice=computed(()=>sku.value?.price??item.value?.price??0);async function load(){error.value='';address.value=null;try{item.value=await request('/catalog/'+(type.value==='product'?'products':'courses')+'/'+encodeURIComponent(id));if(type.value==='product'&&currentUser.value){const addresses=await request<Address[]>('/shopping/addresses');address.value=addresses.find(row=>row.isDefault)??addresses[0]??null;}}catch(e){item.value=null;error.value=(e as Error).message;}}onLoad(options=>{id=options?.id??'';skuId=options?.skuId??'';type.value=options?.type==='product'?'product':'course';quantity.value=type.value==='product'?Math.min(99,Math.max(1,parseInt(options?.quantity??'1')||1)):1;});onShow(()=>{if(id)load();});</script>
+<style>@import '../../styles/app.css';.address-preview{padding:16px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.order-item{border-style:solid;border-width:0;padding:16px 0;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.order-copy{padding-left:14px;}.price{margin-top:10px;}.order-notice{font-family:AcademySerif;color:#17292D;font-size:16px;line-height:24px;}.total{color:#B95543;font-size:13px;margin-right:12px;line-height:19px;}.bar-primary{opacity:0.6;}</style>

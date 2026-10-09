@@ -1,0 +1,1 @@
+Phosphor icons / MIT. Source: @iconify-json/ph 1.2.2; https://github.com/phosphor-icons/core

@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-09",
+  "mode": "read-only",
+  "liveDatabaseVerified": false,
+  "errorCode": "ECONNREFUSED",
+  "note": "Current database metadata could not be verified. Source schema and migration files remain authoritative for this static audit."
+}

@@ -1,0 +1,73 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<view class="back-row" @click="back">
+<AppIcon name="arrow-left" :size="22"/>
+<text class="back-title">{{title}}</text>
+</view>
+  <view v-if="kind==='practice'&&!loading" class="private-editor">
+<text class="tag">{{today}} · 仅自己可见</text>
+<textarea class="private-input" placeholder="今天的研习、练习与感受…" maxlength="10000" v-model="journal"/>
+<button class="primary-button" :disabled="saving" @click="saveJournal">{{saving?'正在保存…':'记录今天'}}</button>
+</view>
+  <view v-if="error" class="empty">
+<text class="empty-description">{{error}}</text>
+<button class="retry" @click="load()">重试</button>
+</view>
+<view v-if="loading" class="empty">
+<text class="empty-description">正在打开你的记录…</text>
+</view>
+  <view v-for="item in items" :key="item.id" class="private-card">
+<template v-if="kind==='favorites'">
+<text class="item-title" @click="open(item)">{{item.article?.title??'内容已下架'}}</text>
+<text class="article-summary">{{item.article?.summary??'收藏记录仍在，可以取消收藏。'}}</text>
+</template>
+<template v-else-if="kind==='notes'">
+<text class="tag">{{item.articleTitle}}</text>
+<text class="private-quote">{{item.quote}}</text>
+<text class="body-copy">{{item.text}}</text>
+</template>
+<template v-else>
+<text class="tag">{{item.day}} · 修行日志</text>
+<text class="body-copy">{{item.text}}</text>
+</template>
+<view class="row between private-actions">
+<text class="meta">仅自己可见</text>
+<button class="text-action" @click="remove(item)">{{kind==='favorites'?'取消收藏':'删除记录'}}</button>
+</view>
+</view>
+  <view v-if="!loading&&!error&&items.length===0" class="empty">
+<AppIcon name="leaf" :size="32"/>
+<text class="empty-title">这里，等你写下第一笔。</text>
+<text class="empty-description">{{kind==='notes'?'在文章的段落下记录你的思考。':kind==='favorites'?'读到喜欢的文章，收藏后可在这里回看。':'不必写得完美，简单记录就好。'}}</text>
+</view>
+<button v-if="nextCursor" class="retry" :disabled="loading" @click="load(true)">更多记录</button>
+  </view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';
+import { request, goArticle } from '../../lib/api';
+import type { ContentPage } from '../../lib/api';
+import { needLogin } from '../../lib/session';
+type FavoriteArticle={title:string;summary:string};
+type PrivateItem={id:string;articleId?:string;articleTitle?:string;quote?:string;text?:string;day?:string;article?:FavoriteArticle|null};
+const kind=ref('notes'),title=computed(()=>kind.value==='favorites'?'我的收藏':kind.value==='practice'?'修行日志':'研习笔记'),items=ref<PrivateItem[]>([]),loading=ref(false),error=ref(''),nextCursor=ref<string|null>(null),journal=ref(''),saving=ref(false);
+const today=new Date(Date.now()+8*3600000).toISOString().slice(0,10);
+const back=()=>uni.navigateBack();
+async function load(append=false){if(needLogin())return;loading.value=true;error.value='';try{const data=await request<ContentPage<PrivateItem>>('/me/'+kind.value+'?size=20'+(append&&nextCursor.value?'&cursor='+nextCursor.value:''));items.value=append?[...items.value,...data.items]:data.items;nextCursor.value=data.nextCursor;if(kind.value==='practice'&&!append)journal.value=items.value.find(item=>item.day===today)?.text??'';}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
+function open(item:PrivateItem){if(item.article&&item.articleId)goArticle(item.articleId);}
+function remove(item:PrivateItem){uni.showModal({title:kind.value==='favorites'?'取消收藏':'删除私人记录',content:'确认后将从你的记录中移除。',confirmText:'确认移除',success:async(result)=>{if(!result.confirm)return;try{await request('/me/'+kind.value+'/'+(kind.value==='favorites'?item.articleId:item.id),{method:'DELETE'});await load();}catch(e){error.value=(e as Error).message;}}});}
+async function saveJournal(){if(saving.value)return;if(!journal.value.trim()){error.value='写一点今天的感受吧';return;}saving.value=true;try{await request('/me/practice',{method:'PUT',data:{day:today,text:journal.value}});await load();uni.showToast({title:'日志已保存',icon:'none'});}catch(e){error.value=(e as Error).message;}finally{saving.value=false;}}
+onLoad((options)=>{const value=options?.kind??'notes';kind.value=['notes','practice','favorites'].includes(value)?value:'notes';load();});
+</script>
+<style>@import '../../styles/app.css';
+.private-card,.private-editor{background-color:#FAF8F2;border-radius:4px;padding:16px;margin-top:12px;border-style:solid;border-width:1px;border-color:#D8D4CA;}
+.private-input{width:100%;height:145px;font-family:AcademySerif;font-size:16px;color:#17292D;line-height:26px;margin-top:12px;}
+.private-quote{font-family:AcademySerif;font-size:13px;line-height:24px;color:#637276;padding:13px;background-color:#EEE9DF;border-radius:2px;margin-top:10px;}
+.private-actions{margin-top:14px;}.text-action{color:#B95543;font-size:12px;background-color:transparent;margin:0;padding:5px 0;border-width:0;min-height:44px;line-height:18px;}
+</style>

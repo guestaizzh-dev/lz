@@ -1,0 +1,62 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<SafeTop/>
+<view class="row between shop-heading">
+<text class="page-title">好物</text>
+<view class="search shop-search">
+<AppIcon name="magnifying-glass" :size="15"/>
+<input class="search-input" placeholder="搜索商品" v-model="query" @confirm="load()"/>
+</view>
+<view class="icon-button icon-control"><AppIcon name="shopping-cart" :size="20"/><button class="icon-hit-target" aria-label="购物车" @click="openPage('shop/cart')"></button></view>
+</view>
+<view class="category-grid">
+<view v-for="item in categories" :key="item.label" class="category-item" @click="category=category===item.label?'全部':item.label">
+<view class="category-circle">
+<AppIcon :name="item.icon" :size="23" :active="category===item.label"/>
+</view>
+<text class="category-label">{{item.label}}</text>
+</view>
+</view>
+<view class="chips shop-filters">
+<view :class="['chip',category==='全部'?'chip-active':'']" @click="category='全部'">
+<text class="chip-text" :class="category==='全部'?'chip-text-active':''">推荐</text>
+</view>
+<view class="chip">
+<text class="chip-text">{{category==='全部'?'精选好物':category}}</text>
+</view>
+<view class="grow"/>
+<view class="chip" @click="priceAscending=!priceAscending">
+<text class="chip-text">价格 {{priceAscending?'↑':'↓'}}</text>
+</view>
+</view>
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
+<view v-else>
+<view class="product-grid">
+<view v-for="product in sorted" :key="product.id" class="product-card" @click="goProduct(product.id)">
+<ArtImage :src="product.cover" :kind="artwork(product.cover,product.category)" :width="cardWidth" :height="132"/>
+<view class="product-copy">
+<text class="product-title">{{product.title}}</text>
+<text class="product-caption">{{product.subtitle}}</text>
+<view class="row between">
+<text class="price">¥{{money(product.price)}}</text>
+<view class="product-cart icon-control"><AppIcon name="shopping-cart" :size="19"/><button class="icon-hit-target" aria-label="查看商品规格" @click.stop="goProduct(product.id)"></button></view>
+</view>
+</view>
+</view>
+</view>
+<ContentState v-if="!products.length" title="这一类好物正在筹备"/>
+<button v-if="nextCursor" class="retry" :disabled="loadingMore" @click="load(true)">更多好物</button>
+</view>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {money,goProduct} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {artwork,viewWidth,openPage} from '../../lib/presentation';import type {Product} from '../../lib/api';
+const cardWidth=viewWidth()*0.485-2,categories=[{label:'经典典籍',icon:'book-open'},{label:'文创',icon:'bag'},{label:'养生用品',icon:'flower-lotus'},{label:'修行工具',icon:'leaf'},{label:'线下服务',icon:'calendar-blank'}],category=ref('全部'),query=ref(''),priceAscending=ref(false);
+const {items:products,loading,loadingMore,error,nextCursor,load}=useCatalog<Product>('products',()=>({category:category.value,q:query.value}));const sorted=computed(()=>priceAscending.value?[...products.value].sort((a,b)=>a.price-b.price):products.value);watch(category,()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());
+</script>
+<style>@import '../../styles/app.css';.shop-search{flex:1;margin:0 0 0 14px;height:32px;}.shop-heading{margin-bottom:14px;}.shop-filters{border-style:solid;border-width:0;margin-bottom:12px;border-bottom-width:1px;border-bottom-color:#DFD9CF;}.product-caption{font-size:10px;color:#788084;line-height:18px;margin-top:2px;height:36px;overflow:hidden;}.product-cart{border-style:solid;border-width:0;background-color:transparent;border-width:0;width:31px;height:32px;padding:0;margin:0;align-items:center;justify-content:center;}</style>

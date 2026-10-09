@@ -1,0 +1,20 @@
+<template>
+  <view class="page-head" :style="{ paddingTop: safeTop + 'px' }">
+    <view class="head-action icon-control"><AppIcon name="arrow-left" :size="21" /><button class="icon-hit-target" aria-label="返回" @click="back()"></button></view>
+    <text class="head-title">{{ title }}</text>
+    <view class="head-action icon-control"><template v-if="action"><AppIcon :name="action === 'share' ? 'share-network' : 'gear'" :size="20" /><button class="icon-hit-target" :aria-label="action === 'share' ? '分享' : '设置'" @click="emit('action')"></button></template></view>
+  </view>
+</template>
+<script setup lang="ts">
+import AppIcon from './AppIcon.uvue';
+defineProps<{ title: string; action?: string }>();
+const emit = defineEmits<{ action: [] }>();
+const safeTop = Math.max(10, uni.getWindowInfo().statusBarHeight || 0);
+function back() { if (getCurrentPages().length > 1) uni.navigateBack(); else uni.switchTab({ url: '/pages/index/index' }); }
+</script>
+<style>
+.page-head { flex-direction: row; align-items: center; justify-content: space-between; padding-left: 8px; padding-right: 8px; padding-bottom: 8px; background-color: #F4F0E7; flex-shrink: 0; }
+.head-action {border-style:solid;border-width:0; width: 42px; height: 42px; background-color: transparent; padding: 0; margin: 0; border-width: 0; align-items: center; justify-content: center; }
+.head-title { font-family: AcademySerif; font-size: 18px; color: #17292D; font-weight: 600; ;line-height:27px;}
+.icon-control{position:relative;}.icon-hit-target{position:absolute;left:0;top:0;width:100%;height:100%;margin:0;padding:0;border-width:0;border-style:solid;background-color:transparent;}
+</style>

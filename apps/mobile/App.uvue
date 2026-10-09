@@ -1,0 +1,61 @@
+<script setup lang="uts">
+	// #ifdef APP-ANDROID || APP-HARMONY
+	let firstBackTime = 0
+	// #endif
+
+	onLaunch(() => {
+		console.log('App Launch')
+        // #ifdef APP
+        uni.loadFontFace({ global: true, family: 'AcademySerif', source: "url('/static/fonts/AcademySerif.ttf')" })
+        uni.loadFontFace({ global: true, family: 'AcademyCalligraphy', source: "url('/static/fonts/AcademyCalligraphy.ttf')" })
+        // #endif
+	})
+
+	onAppShow(() => {
+		console.log('App Show')
+	})
+
+	onAppHide(() => {
+		console.log('App Hide')
+	})
+
+	// #ifdef APP-ANDROID || APP-HARMONY
+	onLastPageBackPress(() => {
+		console.log('App LastPageBackPress')
+		if (firstBackTime == 0) {
+			uni.showToast({
+				title: '再按一次退出应用',
+				position: 'bottom',
+			})
+			firstBackTime = Date.now()
+			setTimeout(() => {
+				firstBackTime = 0
+			}, 2000)
+		} else if (Date.now() - firstBackTime < 2000) {
+			firstBackTime = Date.now()
+			uni.exit()
+		}
+	})
+
+	onExit(() => {
+		console.log('App Exit')
+	})
+	// #endif
+</script>
+
+<style>
+	/* #ifdef WEB */
+	@font-face { font-family: AcademyCalligraphy; src: url('/static/fonts/AcademyCalligraphy.ttf'); font-display: swap; }
+	@font-face { font-family: AcademySerif; src: url('/static/fonts/AcademySerif.ttf'); font-weight: 100 900; font-display: swap; }
+	page { background-color:#F4F0E7; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+	uni-button::after { border: none; }
+	/* #endif */
+	/*每个页面公共css */
+	.uni-row {
+		flex-direction: row;
+	}
+
+	.uni-column {
+		flex-direction: column;
+	}
+</style>

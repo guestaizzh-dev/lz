@@ -1,0 +1,494 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+  moduleFormat = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  TEACHER
+  OPERATOR
+  MODERATOR
+  SUPPORT
+  FINANCE
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  FROZEN
+  DELETED
+}
+
+model User {
+  id String @id @default(uuid())
+  phone String? @unique
+  username String? @unique
+  passwordHash String?
+  nickname String
+  avatar String?
+  tags String[]
+  roles Role[] @default([USER])
+  status AccountStatus @default(ACTIVE)
+  sessions AuthSession[]
+  notes Note[]
+  favorites Favorite[]
+  practiceLogs PracticeLog[]
+  enrollments Enrollment[]
+  memberships Membership[]
+  studyProgress StudyProgress[]
+  studyEvents StudyEvent[]
+  addresses Address[]
+  cartItems CartItem[]
+  orders Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuthSession {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  accessHash String @unique
+  accessExpiresAt DateTime
+  refreshHash String @unique
+  csrfToken String
+  expiresAt DateTime
+  revokedAt DateTime?
+  consumedTokens ConsumedRefresh[]
+  createdAt DateTime @default(now())
+  kind String @default("ADMIN")
+  @@index([userId, revokedAt])
+}
+
+model OtpChallenge {
+  id String @id @default(uuid())
+  phone String
+  codeHash String
+  attempts Int @default(0)
+  consumedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([phone, createdAt])
+}
+
+model Note {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  articleId String
+  articleTitle String
+  articleVersion Int
+  blockId String
+  quote String
+  text String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, updatedAt])
+}
+
+model Favorite {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  articleId String
+  createdAt DateTime @default(now())
+  @@unique([userId, articleId])
+}
+
+model PracticeLog {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  day String
+  text String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, day])
+}
+
+model ConsumedRefresh {
+  hash String @id
+  sessionId String
+  session AuthSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  actorId String
+  action String
+  resource String
+  resourceId String?
+  changes Json
+  createdAt DateTime @default(now())
+  @@index([resource, resourceId, createdAt])
+}
+
+model RateLimit {
+  key String @id
+  count Int
+  expiresAt DateTime
+}
+
+enum PublishStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  REJECTED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  MEMBER
+}
+
+enum CourseFormat {
+  VIDEO
+  AUDIO
+  LIVE
+  COHORT
+  OFFLINE
+}
+
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  SERVICE
+}
+
+model Teacher {
+  id String @id @default(uuid())
+  version Int @default(1)
+  name String
+  title String
+  bio String
+  portrait String?
+  expertise String[]
+  status PublishStatus @default(DRAFT)
+  isDemo Boolean @default(false)
+  courses Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id String @id @default(uuid())
+  version Int @default(1)
+  title String
+  summary String
+  category String
+  author String
+  source String
+  cover String
+  blocks Json
+  tags String[]
+  visibility Visibility @default(PUBLIC)
+  membershipTier Int @default(1)
+  status PublishStatus @default(DRAFT)
+  isDemo Boolean @default(false)
+  featured Boolean @default(false)
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, publishedAt])
+}
+
+model Course {
+  id String @id @default(uuid())
+  version Int @default(1)
+  publishedReleaseId String?
+  membershipTier Int?
+  accessDays Int?
+  refundPolicy String @default("未开始学习可申请退款，具体以订单售前规则为准")
+  title String
+  subtitle String
+  description String
+  category String
+  format CourseFormat @default(VIDEO)
+  cover String
+  price Int
+  chaptersCount Int @default(0)
+  durationMinutes Int @default(0)
+  tags String[]
+  teacherId String
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  chapters CourseChapter[]
+  releases CourseRelease[]
+  enrollments Enrollment[]
+  status PublishStatus @default(DRAFT)
+  featured Boolean @default(false)
+  isDemo Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, category])
+}
+
+enum LessonFormat {
+  TEXT
+  VIDEO
+  AUDIO
+}
+
+model CourseChapter {
+  id String @id @default(uuid())
+  courseId String
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title String
+  position Int
+  format LessonFormat
+  body String @default("")
+  mediaId String?
+  durationSeconds Int @default(0)
+  trial Boolean @default(false)
+  required Boolean @default(true)
+  @@unique([courseId, position])
+}
+
+model CourseRelease {
+  id String @id @default(uuid())
+  courseId String
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  version Int
+  title String
+  lessons Lesson[]
+  enrollments Enrollment[]
+  createdAt DateTime @default(now())
+  @@unique([courseId, version])
+}
+
+model Lesson {
+  id String @id @default(uuid())
+  releaseId String
+  release CourseRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  sourceId String
+  title String
+  position Int
+  format LessonFormat
+  body String
+  mediaId String?
+  durationSeconds Int
+  trial Boolean
+  required Boolean
+  progress StudyProgress[]
+  events StudyEvent[]
+  @@unique([releaseId, position])
+}
+
+model Enrollment {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  releaseId String
+  release CourseRelease @relation(fields: [releaseId], references: [id])
+  source String
+  expiresAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([userId, courseId])
+}
+
+model MembershipPlan {
+  id String @id @default(uuid())
+  title String
+  tier Int
+  days Int
+  price Int
+  description String
+  active Boolean @default(false)
+  memberships Membership[]
+  @@unique([tier, days])
+}
+
+model Membership {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId String
+  plan MembershipPlan @relation(fields: [planId], references: [id])
+  tier Int
+  startsAt DateTime
+  endsAt DateTime
+  source String
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, startsAt, endsAt])
+}
+
+model StudyProgress {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  positionSeconds Int @default(0)
+  watchedSeconds Int @default(0)
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@unique([userId, lessonId])
+}
+
+model StudyEvent {
+  id String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  payloadHash String
+  result Json
+  createdAt DateTime @default(now())
+}
+
+model MediaAsset {
+  id String @id @default(uuid())
+  storageKey String @unique
+  name String
+  mime String
+  bytes Int
+  uploaderId String
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id String @id @default(uuid())
+  version Int @default(1)
+  title String
+  subtitle String
+  description String
+  category String
+  type ProductType @default(PHYSICAL)
+  cover String
+  price Int
+  culturalOrigin String
+  status PublishStatus @default(DRAFT)
+  featured Boolean @default(false)
+  isDemo Boolean @default(false)
+  skus ProductSku[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, category])
+}
+
+model ProductSku {
+  id String @id @default(uuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title String
+  price Int
+  stock Int @default(0)
+  reserved Int @default(0)
+  active Boolean @default(false)
+  version Int @default(1)
+  cartItems CartItem[]
+  orderItems OrderItem[]
+  @@index([productId, active])
+}
+
+// Pending reservations only. No endpoint can mark an order as paid until
+// verified channel transactions and fulfilment are installed.
+enum OrderStatus {
+  PENDING
+  CLOSED
+}
+
+model DeliveryZone {
+  province String @id
+  fee Int
+  surcharge Int @default(0)
+  freeAbove Int?
+  enabled Boolean @default(false)
+  version Int @default(1)
+}
+
+model Order {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  requestId String
+  requestHash String
+  status OrderStatus @default(PENDING)
+  address Json
+  subtotal Int
+  shipping Int
+  total Int
+  quoteId String
+  expiresAt DateTime
+  closedAt DateTime?
+  closeReason String?
+  createdAt DateTime @default(now())
+  items OrderItem[]
+  @@unique([userId, requestId])
+  @@index([status, expiresAt])
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+  orderId String
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  skuId String
+  sku ProductSku @relation(fields: [skuId], references: [id])
+  productId String
+  title String
+  skuTitle String
+  cover String
+  unitPrice Int
+  quantity Int
+  subtotal Int
+  @@unique([orderId, skuId])
+}
+
+model CartItem {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skuId String
+  sku ProductSku @relation(fields: [skuId], references: [id], onDelete: Cascade)
+  quantity Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, skuId])
+}
+
+model Address {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipient String
+  phone String
+  province String
+  city String
+  district String
+  detail String
+  isDefault Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, isDefault])
+}
+
+model Event {
+  id String @id @default(uuid())
+  title String
+  description String
+  category String
+  cover String
+  location String
+  startsAt DateTime
+  endsAt DateTime
+  capacity Int
+  price Int
+  status PublishStatus @default(DRAFT)
+  isDemo Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, startsAt])
+}

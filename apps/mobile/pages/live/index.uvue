@@ -1,0 +1,24 @@
+<template>
+<view class="page">
+<PageHead title="书院直播"/>
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="content">
+<view class="live-banner">
+<ArtImage kind="landscape" :width="width" :height="178"/>
+<view class="live-shade">
+<text class="live-title">道学，在相遇中传承</text>
+<text class="live-subtitle">经典讲解 · 研习答疑 · 生活实践</text>
+</view>
+</view>
+<view class="detail-tabs">
+<view v-for="item in ['直播预告','精彩回放']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
+</view>
+</view>
+<ContentState :title="tab==='直播预告'?'暂无直播安排':'暂无已发布回放'" description="书院开播后，这里会展示老师、主题、时间及观看入口。"/>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {viewWidth} from '../../lib/presentation';const width=viewWidth(),tab=ref('直播预告');</script>
+<style>@import '../../styles/app.css';.live-banner{position:relative;border-radius:4px;overflow:hidden;}.live-shade{position:absolute;left:0;top:0;right:0;bottom:0;background-color:rgba(23,41,45,0.32);padding:42px 18px;}.live-title{font-family:AcademySerif;font-size:25px;color:#F4F0E7;line-height:37px;}.live-subtitle{font-family:AcademySerif;font-size:12px;color:#F4F0E7;margin-top:17px;line-height:18px;}</style>

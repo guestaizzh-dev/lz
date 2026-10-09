@@ -1,0 +1,34 @@
+{
+  "name": "@daoxue/admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env PORT=5173 HOST=127.0.0.1 max dev",
+    "setup": "max setup",
+    "typecheck": "max setup && tsc --noEmit",
+    "build": "max setup && tsc --noEmit && max build",
+    "preview": "max preview --port 5173"
+  },
+  "dependencies": {
+    "@ant-design/icons": "6.3.2",
+    "@ant-design/plots": "2.6.8",
+    "@ant-design/pro-components": "3.1.14-2",
+    "@tanstack/react-query": "5.101.2",
+    "antd": "6.6.0",
+    "antd-style": "4.1.0",
+    "clsx": "2.1.1",
+    "dayjs": "1.11.21",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@umijs/max": "4.7.22",
+    "cross-env": "10.1.0",
+    "typescript": "5.9.3"
+  },
+  "repository": "https://github.com/ant-design/ant-design-pro"
+}

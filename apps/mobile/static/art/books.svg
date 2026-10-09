@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 560">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#EDECE1"/><stop offset="1" stop-color="#D8D8C9"/></linearGradient></defs>
+<path fill="url(#bg)" d="M0 0h600v560H0z"/>
+<ellipse cx="309" cy="459" rx="159" ry="22" fill="#586351" opacity=".12"/>
+<path d="M150 127l246-31 66 322-251 32z" fill="#244D3B"/>
+<path d="M170 142l225-28 62 299-231 31z" fill="#456552"/>
+<path d="M226 444l231-31-9 24-225 28z" fill="#F2EEE0"/>
+<path d="M250 159l84-10 16 161-87 10z" fill="#F5F1E2"/>
+<text x="291" y="193" font-family="SimSun,serif" font-size="29" fill="#2D4234" transform="rotate(-6 291 193)">道</text>
+<text x="295" y="233" font-family="SimSun,serif" font-size="29" fill="#2D4234" transform="rotate(-6 295 233)">德</text>
+<text x="299" y="273" font-family="SimSun,serif" font-size="29" fill="#2D4234" transform="rotate(-6 299 273)">经</text>
+<path d="M171 170l-10 3m18 39-10 2m18 40-10 2m18 40-10 2m19 42-10 2m18 39-10 2" stroke="#DDD7C5" stroke-width="3"/>
+<rect x="337" y="365" width="29" height="29" rx="2" fill="#985940" transform="rotate(-7 350 380)"/>
+</svg>

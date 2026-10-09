@@ -1,0 +1,23 @@
+{
+  "name": "daoxue-academy",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.22.0",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev:db": "node scripts/dev-db.mjs start",
+    "stop:db": "node scripts/dev-db.mjs stop",
+    "dev:api": "pnpm --filter @daoxue/api dev",
+    "dev:admin": "pnpm --filter @daoxue/admin dev",
+    "build": "pnpm --filter @daoxue/api build && pnpm --filter @daoxue/admin build",
+    "test": "pnpm --filter @daoxue/api test",
+    "db:generate": "pnpm --filter @daoxue/api db:generate",
+    "db:migrate": "pnpm --filter @daoxue/api db:migrate",
+    "db:seed": "pnpm --filter @daoxue/api db:seed"
+  },
+  "devDependencies": {
+    "@embedded-postgres/windows-x64": "17.10.0-beta.17",
+    "@iconify-json/ph": "1.2.2"
+  }
+}

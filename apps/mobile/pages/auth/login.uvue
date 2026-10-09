@@ -1,0 +1,78 @@
+<template>
+<view class="page">
+<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+<view class="login-content">
+<SafeTop/>
+<view class="icon-button icon-control"><AppIcon name="arrow-left" :size="21"/><button class="icon-hit-target" aria-label="返回" @click="back()"></button></view>
+<view class="login-brand">
+<view class="row">
+<text class="login-logo">老子道学书院</text>
+<view class="login-stamp">
+<text class="login-stamp-text">书院</text>
+</view>
+</view>
+<text class="login-motto">传承经典 · 研习道学 · 知行合一</text>
+</view>
+<view class="login-tabs">
+<text class="login-tab-active">手机号登录</text>
+<text class="login-tab">验证码登录</text>
+</view>
+<view class="form-input-row">
+<AppIcon name="user" :size="18"/>
+<input class="form-input" type="number" maxlength="11" placeholder="请输入手机号" v-model="phone"/>
+</view>
+<view class="code-row">
+<view class="form-input-row code-field">
+<AppIcon name="shield-check" :size="18"/>
+<input class="form-input" type="number" maxlength="6" placeholder="请输入验证码" v-model="code"/>
+</view>
+<button class="send-code" :disabled="sending||countdown>0" @click="send()">{{countdown>0?countdown+'秒后重发':sending?'发送中':'获取验证码'}}</button>
+</view>
+<text v-if="error" class="form-error">{{error}}</text>
+<button class="primary-button login-submit" :disabled="submitting" @click="signIn()">{{submitting?'正在登录…':'登录'}}</button>
+<view class="consent-row">
+<view class="consent-touch" @click="accepted=!accepted">
+<view :class="['consent-check',accepted?'consent-checked':'']">
+<text v-if="accepted" class="consent-tick">✓</text>
+</view>
+</view>
+<text class="consent-copy" @click="privacy()">我已阅读并同意《用户协议》和《隐私说明》</text>
+</view>
+<text v-if="development" class="demo-note">测试环境 · 不发送真实短信</text>
+<text class="login-footnote">未注册手机号将自动创建账号</text>
+</view>
+<view class="login-landscape">
+<ArtImage kind="boat" :width="artWidth" :height="130" :radius="0"/>
+</view>
+</scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import SafeTop from '../../components/SafeTop.uvue';
+import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';
+const artWidth=Math.max(280,uni.getWindowInfo().windowWidth);
+import { request } from '../../lib/api';
+import { saveSession } from '../../lib/session';
+import type { LoginResult } from '../../lib/session';
+const phone=ref(''), code=ref(''), accepted=ref(false), error=ref(''), sending=ref(false), submitting=ref(false), countdown=ref(0), development=ref(false);
+let challengeId='', timer: ReturnType<typeof setInterval>|null=null;
+const back=()=>uni.navigateBack();
+const privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
+async function send() {
+  if(sending.value||countdown.value>0) return;
+  if(!/^1[3-9]\d{9}$/.test(phone.value)) {error.value='请填写有效的 11 位手机号';return;}
+  sending.value=true; error.value='';
+  try { const result=await request<{challengeId:string;retryAfter:number;channel:string}>('/auth/sms',{method:'POST',data:{phone:phone.value}});challengeId=result.challengeId;development.value=result.channel==='DEVELOPMENT';countdown.value=result.retryAfter; if(timer!==null) clearInterval(timer);timer=setInterval(()=>{countdown.value=Math.max(0,countdown.value-1);if(countdown.value===0&&timer!==null){clearInterval(timer);timer=null;}},1000); }
+  catch(e){error.value=(e as Error).message;} finally{sending.value=false;}
+}
+watch(phone,()=>{challengeId='';development.value=false;});
+async function signIn(){
+  if(submitting.value)return;
+  if(!accepted.value){error.value='请先阅读并同意服务与隐私说明';return;}
+  if(!challengeId||!/^\d{6}$/.test(code.value)){error.value='请先获取并填写 6 位验证码';return;}
+  submitting.value=true;error.value='';
+  try{const result=await request<LoginResult>('/auth/login',{method:'POST',data:{phone:phone.value,code:code.value,challengeId}});saveSession(result);uni.navigateBack();}catch(e){error.value=(e as Error).message;}finally{submitting.value=false;}
+}
+onUnload(()=>{if(timer!==null)clearInterval(timer);});
+</script>
+<style>@import '../../styles/app.css';.login-content{padding:0 30px;}.login-brand{align-items:center;margin-top:58px;margin-bottom:44px;}.login-logo{font-family:AcademyCalligraphy;font-size:34px;font-weight:400;letter-spacing:2px;color:#17292D;line-height:50px;}.login-stamp{border-style:solid;border-width:0;width:14px;height:24px;border-width:1px;border-color:#B95543;border-radius:2px;margin-left:7px;align-items:center;justify-content:center;}.login-stamp-text{font-family:AcademySerif;font-size:9px;color:#B95543;line-height:14px;}.login-motto{font-family:AcademySerif;font-size:11px;letter-spacing:2px;color:#637276;margin-top:19px;line-height:16px;}.login-tabs{flex-direction:row;justify-content:space-around;margin-bottom:22px;}.login-tab-active{border-style:solid;border-width:0;font-family:AcademySerif;font-size:14px;color:#17292D;padding:10px 0;border-bottom-width:2px;border-bottom-color:#245564;line-height:21px;}.login-tab{font-family:AcademySerif;font-size:14px;color:#788084;padding:10px 0;line-height:21px;}.form-input-row{border-style:solid;border-width:0;flex-direction:row;align-items:center;height:43px;padding:0 12px;border-radius:8px;border-width:1px;border-color:#D8D4CA;background-color:#F7F3EC;}.form-input{flex:1;font-size:13px;color:#17292D;margin-left:10px;height:41px;line-height:19px;}.code-row{flex-direction:row;margin-top:16px;}.code-field{flex:1;}.send-code{border-style:solid;border-width:0;font-size:11px;color:#245564;padding:11px 9px;margin:0 0 0 9px;border-radius:8px;background-color:transparent;border-width:1px;border-color:#D8D4CA;line-height:16px;}.form-error{color:#B95543;font-size:12px;line-height:21px;margin-top:12px;}.login-submit{margin-top:25px;}.consent-row{flex-direction:row;align-items:center;min-height:44px;margin-top:7px;}.consent-touch{width:30px;height:44px;align-items:center;justify-content:center;}.consent-check{border-style:solid;border-width:0;width:13px;height:13px;border-radius:3px;border-width:1px;border-color:#9CA6A5;align-items:center;justify-content:center;}.consent-checked{background-color:#245564;border-color:#245564;}.consent-tick{color:#FFFFFF;font-size:10px;line-height:15px;}.consent-copy{flex:1;color:#788084;font-size:10px;line-height:19px;}.consent-link{color:#245564;font-size:10px;line-height:15px;}.login-footnote{font-size:10px;color:#929490;text-align:center;margin-top:27px;line-height:15px;}.login-landscape{margin-top:16px;}</style>

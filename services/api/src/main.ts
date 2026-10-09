@@ -16,6 +16,7 @@ import { PersonalController } from './personal.js';
 import { AdminController, AdminService } from './admin.js';
 import { pathToFileURL } from 'node:url';
 import { DomainController, DomainService } from './domain.js';
+import { TeachingAdminController, TeachingController, TeachingService } from './teaching.js';
 
 @Controller('health')
 class HealthController {
@@ -26,7 +27,7 @@ class HealthController {
   }
 }
 
-@Module({ controllers: [HealthController, CatalogController, AdminAuthController, AdminController, IdentityController, PersonalController, LearningController, CurriculumAdminController, MediaController, ShoppingController, ShoppingAdminController, OrdersController, OrdersAdminController, DomainController], providers: [Database, CatalogService, AuthService, AdminGuard, UserGuard, OptionalUserGuard, AdminService, IdentityService, LearningService, CurriculumAdminService, MediaService, ShoppingService, OrdersService, DomainService] })
+@Module({ controllers: [HealthController, CatalogController, AdminAuthController, AdminController, IdentityController, PersonalController, LearningController, CurriculumAdminController, MediaController, ShoppingController, ShoppingAdminController, OrdersController, OrdersAdminController, DomainController, TeachingAdminController, TeachingController], providers: [Database, CatalogService, AuthService, AdminGuard, UserGuard, OptionalUserGuard, AdminService, IdentityService, LearningService, CurriculumAdminService, MediaService, ShoppingService, OrdersService, DomainService, TeachingService] })
 class AppModule {}
 
 export async function createApp(logger: false | undefined = undefined) {

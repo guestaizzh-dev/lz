@@ -19,6 +19,7 @@ export default [
   { path: '/delivery', name: 'delivery', icon: 'car', access: 'canEdit', component: './delivery' },
   { path: '/orders', name: 'orders', icon: 'profile', access: 'canViewOrders', component: './orders' },
   { path: '/data', name: 'data', icon: 'database', access: 'canData', component: './data-workbench' },
+  { path: '/teaching', name: 'teaching', icon: 'solution', access: 'canTeaching', component: './teaching' },
   { path: '/exception/403', component: './exception/403', hideInMenu: true },
   { path: '/exception/500', component: './exception/500', hideInMenu: true },
   { path: '/', redirect: '/dashboard/analysis' },

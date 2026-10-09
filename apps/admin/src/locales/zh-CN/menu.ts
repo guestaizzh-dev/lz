@@ -1,4 +1,5 @@
 export default {
+  'menu.teaching': '教学与作业',
   'menu.data': '业务数据管理',
   'menu.delivery': '配送计费',
   'menu.orders': '实物订单',

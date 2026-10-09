@@ -96,6 +96,11 @@ export class PersonalController {
       await tx.note.deleteMany({ where: { userId: req.actor.id } });
       await tx.favorite.deleteMany({ where: { userId: req.actor.id } });
       await tx.practiceLog.deleteMany({ where: { userId: req.actor.id } });
+      const homework = await tx.submission.findMany({ where: { userId: req.actor.id }, select: { id: true } });
+      await tx.attachmentBinding.deleteMany({ where: { submissionId: { in: homework.map(row => row.id) } } });
+      await tx.submission.updateMany({ where: { userId: req.actor.id }, data: { body: '已注销用户的作业正文已清除', updatedAt: new Date() } });
+      await tx.notification.deleteMany({ where: { userId: req.actor.id } });
+      await tx.idempotencyRecord.deleteMany({ where: { userId: req.actor.id, operation: { startsWith: 'assignment.submit:' } } });
       await tx.cartItem.deleteMany({ where: { userId: req.actor.id } });
       await tx.address.deleteMany({ where: { userId: req.actor.id } });
       await tx.authSession.updateMany({ where: { userId: req.actor.id }, data: { revokedAt: new Date() } });

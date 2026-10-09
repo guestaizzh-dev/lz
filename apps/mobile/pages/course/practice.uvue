@@ -1,0 +1,41 @@
+<template>
+<view class="page"><PageHead title="研习作业"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
+<view v-if="result">
+<text class="page-title">知行相照</text><text class="body-copy practice-intro">把研习所得写下来，让老师与你一起推敲。</text>
+<text class="meta">已提交 {{result!.summary.submitted}} / {{result!.summary.total}}　已完成 {{result!.summary.reviewed}}　必修完成 {{result!.summary.requiredReviewed}} / {{result!.summary.required}}</text>
+<ContentState v-if="!result!.items.length" title="尚未布置研习作业" description="老师发布后，作业要求会在这里展示。"/>
+<view v-for="item in result!.items" :key="item.id" class="assignment-row" @click="select(item)"><view class="row between"><text class="item-title grow">{{item.title}}</text><text class="tag">{{item.required?'必修':'选修'}}</text></view><text class="meta">{{item.submission?teachingState(item.submission.state):teachingState(item.state)}}{{item.dueAt?' · 截止 '+date(item.dueAt):''}}</text></view>
+<view v-if="selected" class="practice-editor">
+<text class="section-heading">{{selected!.title}}</text><text class="body-copy">{{selected!.instructions.text}}</text>
+<text v-if="detail" class="meta">第 {{detail!.revision}} 次提交 · {{teachingState(detail!.state)}}</text><text v-if="detail" class="body-copy">{{detail!.body}}</text>
+<view class="image-strip"><image v-for="src in attachedImages" :key="src" :src="src" mode="aspectFill" class="homework-image" @click="preview(src,attachedImages)"/></view>
+<view v-for="review in detail?.reviews??[]" :key="review.id" class="review-note"><text class="tag">老师点评 · {{teachingState(review.state)}}{{review.score==null?'':' · '+review.score+'分'}}</text><text class="body-copy">{{review.body}}</text><text class="meta">{{date(review.reviewedAt)}}</text></view>
+<view v-if="selected!.state==='PUBLISHED'&&(!selected!.submission||selected!.submission!.state==='RETURNED')">
+<textarea class="homework-input" aria-label="研习作业内容" v-model="body" :disabled="saving||pending!==null" maxlength="10000" placeholder="写下你的理解、体会与实践…"/>
+<view class="image-strip"><view v-for="(image,index) in images" :key="image.id"><image :src="image.path" mode="aspectFill" class="homework-image" @click="preview(image.path,images.map(i=>i.path))"/><text v-if="!pending&&!saving" class="image-remove" @click="images.splice(index,1)">移除</text></view></view>
+<button class="secondary-button" :disabled="uploading||saving||pending!==null||images.length>=6" @click="chooseImages">{{uploading?'图片上传中…':'添加研习图片（最多6张）'}}</button>
+<button class="primary-button" :disabled="saving||uploading" @click="submit">{{saving?'正在提交…':pending?'重试本次提交':selected!.submission?'补充后重新提交':'提交研习作业'}}</button>
+<text v-if="pending&&!saving" class="footer-note">本次内容已保留，重试会核实同一次提交。确认结果后可继续编辑。</text>
+</view>
+<text v-else class="footer-note">{{selected!.state==='CLOSED'?'作业已关闭，可继续回看提交与点评。':'老师点评后，如需补充可再次提交。'}}</text>
+<text v-if="feedback" class="feedback-note">{{feedback}}</text>
+</view>
+</view></view></scroll-view></view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';
+import {request,apiBase} from '../../lib/api';import {needLogin} from '../../lib/session';import {studyEventId} from '../../lib/learning';
+import {uploadHomeworkImage,teachingState} from '../../lib/teaching';import type {Assignment,AssignmentList,Submission} from '../../lib/teaching';
+const loading=ref(false),error=ref(''),result=ref<AssignmentList|null>(null),selected=ref<Assignment|null>(null),detail=ref<Submission|null>(null),body=ref(''),saving=ref(false),uploading=ref(false),feedback=ref('');
+const images=ref<{id:string;path:string}[]>([]),attachedImages=ref<string[]>([]),pending=ref<{assignmentId:string;requestKey:string;expectedRevision:number;body:string;assetIds:string[]}|null>(null);
+let courseId='',selection=0;
+const date=(v:string)=>new Date(v).toLocaleString('zh-CN');
+async function load(){if(!courseId||needLogin())return;loading.value=true;error.value='';try{result.value=await request<AssignmentList>('/learning/courses/'+courseId+'/assignments');if(selected.value){const item=result.value.items.find(r=>r.id===selected.value?.id);if(item)await select(item,true);else selected.value=null;}}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
+async function select(item:Assignment,refresh=false){if((saving.value||uploading.value||pending.value)&&!refresh)return;const generation=++selection;selected.value=item;detail.value=null;attachedImages.value=[];if(!refresh){body.value='';images.value=[];feedback.value='';}if(item.submission){try{const row=await request<Submission>('/learning/submissions/'+item.submission.id);if(generation!==selection)return;detail.value=row;const urls=await Promise.all(row.attachments.map(async a=>apiBase+(await request<{path:string}>('/learning/submissions/'+row.id+'/images/'+a.assetId,{method:'POST'})).path));if(generation===selection)attachedImages.value=urls;}catch(e){if(generation===selection)feedback.value=(e as Error).message;}}}
+function preview(src:string,urls:string[]){uni.previewImage({current:src,urls});}
+function chooseImages(){if(uploading.value||saving.value||pending.value)return;uni.chooseImage({count:6-images.value.length,sizeType:['compressed'],success:async result=>{uploading.value=true;feedback.value='';try{for(const path of result.tempFilePaths){const asset=await uploadHomeworkImage(path);images.value.push({id:asset.id,path});}}catch(e){feedback.value=(e as Error).message;}finally{uploading.value=false;}}});}
+async function submit(){if(saving.value||uploading.value||!selected.value)return;if(!pending.value&&!body.value.trim()){feedback.value='写下研习所得再提交吧';return;}pending.value??={assignmentId:selected.value.id,requestKey:studyEventId(),expectedRevision:selected.value.submission?.revision??0,body:body.value.trim(),assetIds:images.value.map(r=>r.id)};const snapshot=pending.value;saving.value=true;feedback.value='';try{const {assignmentId,...data}=snapshot;await request('/learning/assignments/'+assignmentId+'/submissions',{method:'POST',data});pending.value=null;body.value='';images.value=[];feedback.value='作业已提交，等待老师点评。';await load();}catch(e){feedback.value=(e as Error).message;const status=(e as Error&{status?:number}).status;if(status&&status>=400&&status<500){pending.value=null;if(status===409)await load();}}finally{saving.value=false;}}
+onLoad(options=>{courseId=options?.id??'';});onShow(()=>{if(!uploading.value&&!saving.value&&!pending.value)load();});
+</script>
+<style>@import '../../styles/app.css';.practice-intro{margin:14px 0;}.assignment-row{padding:20px 0;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.practice-editor{margin-top:28px;padding-bottom:28px;}.homework-input{width:100%;height:190px;margin-top:18px;background-color:#FAF8F2;padding:12px;font-family:AcademySerif;font-size:16px;line-height:28px;color:#17292D;}.image-strip{flex-direction:row;flex-wrap:wrap;margin-top:12px;}.homework-image{width:92px;height:92px;border-radius:4px;margin-right:10px;margin-bottom:8px;}.image-remove{font-size:12px;line-height:24px;color:#637276;}.review-note{padding:18px;background-color:#EEE9DF;margin-top:20px;border-left-width:2px;border-left-color:#245564;}.feedback-note{color:#B95543;font-size:13px;line-height:22px;margin-top:12px;}</style>

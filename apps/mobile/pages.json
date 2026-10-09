@@ -148,7 +148,9 @@
     {
       "path": "pages/shop/addresses",
       "style": { "navigationStyle": "custom", "disableScroll": true }
-    }
+    },
+    {"path":"pages/course/practice","style":{"navigationStyle":"custom","disableScroll":true}},
+    {"path":"pages/profile/messages","style":{"navigationStyle":"custom","disableScroll":true}}
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

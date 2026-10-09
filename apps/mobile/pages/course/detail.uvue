@@ -51,6 +51,7 @@
 <view v-else-if="tab==='目录'"><LessonRow v-for="item in curriculum?.lessons??[]" :key="item.id" :lesson="item" @select="playLesson($event)"/><ContentState v-if="!curriculum?.lessons.length" title="课程目录尚未发布" description="章节上传后，将在这里展示试听和完整课程目录。"/></view>
 <ContentState v-else title="暂无学员评价" description="真实学员的研习反馈将在这里展示。"/>
 <text class="footer-note">{{curriculum?.course.accessDays?'课程有效期：'+curriculum!.course.accessDays+'天':'获得课程权限后，长期访问所交付版本'}} · {{curriculum?.course.refundPolicy??''}}</text>
+<button v-if="curriculum&&curriculum!.access!=='TRIAL'" class="secondary-button" @click="openPage('course/practice?id='+id)">研习作业 · 查看要求与老师点评</button>
 <text v-if="course!.isDemo" class="demo-note">开发示例 · 正式授课与交易尚未开放</text>
 </view>
 </view>

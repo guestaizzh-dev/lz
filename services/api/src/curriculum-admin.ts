@@ -126,7 +126,7 @@ export class CurriculumAdminService {
       if (!course?.publishedReleaseId || course.status !== 'PUBLISHED') throw new BadRequestException('只能授权已发布课程');
       const previous = await tx.enrollment.findUnique({ where: { userId_courseId: { userId: dto.userId, courseId: id } } });
       if (previous && !previous.revokedAt && (!previous.expiresAt || previous.expiresAt > new Date())) throw new ConflictException('用户已有有效课程权限');
-      const data = { releaseId: course.publishedReleaseId, source: 'ADMIN_COMPENSATION', revokedAt: null, expiresAt: course.accessDays ? new Date(Date.now() + course.accessDays * 86400000) : null };
+      const data = { releaseId: course.publishedReleaseId, source: 'ADMIN_COMPENSATION', revokedAt: null, startsAt: new Date(), grantActorId: req.actor.id, grantReason: dto.reason, expiresAt: course.accessDays ? new Date(Date.now() + course.accessDays * 86400000) : null };
       const result = await tx.enrollment.upsert({ where: { userId_courseId: { userId: dto.userId, courseId: id } }, create: { userId: dto.userId, courseId: id, ...data }, update: data });
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'course.grant', resource: 'course', resourceId: id, changes: { userId: dto.userId, reason: dto.reason, releaseId: result.releaseId } } });
       return result;

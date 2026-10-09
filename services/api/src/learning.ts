@@ -25,7 +25,7 @@ export class LearningService {
     const course = await store.course.findUnique({ where: { id: courseId }, include: { teacher: true } });
     if (!course || (process.env.NODE_ENV === 'production' && (course.isDemo || course.teacher.isDemo))) throw new NotFoundException('课程不存在');
     const now = new Date();
-    const enrollment = userId ? await store.enrollment.findFirst({ where: { courseId, userId, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } }) : null;
+    const enrollment = userId ? await store.enrollment.findFirst({ where: { courseId, userId, startsAt: { lte: now }, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } }) : null;
     const publicCourse = course.status === 'PUBLISHED' && course.teacher.status === 'PUBLISHED';
     if (!publicCourse && !enrollment) throw new NotFoundException('课程不存在或已下架');
     const member = publicCourse && course.membershipTier ? await this.membership(userId, store) : null;
@@ -61,7 +61,7 @@ export class LearningService {
   }
   async library(userId: string) {
     const member = await this.membership(userId);
-    const enrolled = await this.db.enrollment.findMany({ where: { userId, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }, include: { course: { include: { teacher: true } } }, orderBy: { createdAt: 'desc' }, take: 100 });
+    const enrolled = await this.db.enrollment.findMany({ where: { userId, startsAt: { lte: new Date() }, revokedAt: null, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }, include: { course: { include: { teacher: true } } }, orderBy: { createdAt: 'desc' }, take: 100 });
     const memberCourses = member ? await this.db.course.findMany({ where: { status: 'PUBLISHED', teacher: { status: 'PUBLISHED', ...(process.env.NODE_ENV === 'production' ? { isDemo: false } : {}) }, membershipTier: { lte: member.tier }, ...(process.env.NODE_ENV === 'production' ? { isDemo: false } : {}) }, include: { teacher: true }, take: 100 }) : [];
     const courses = [...enrolled.map(row => row.course), ...memberCourses.filter(row => !enrolled.some(e => e.courseId === row.id))];
     return { items: await Promise.all(courses.filter(row => process.env.NODE_ENV !== 'production' || (!row.isDemo && !row.teacher.isDemo)).map(async course => ({ ...(await this.curriculum(course.id, userId)), catalog: course }))) };

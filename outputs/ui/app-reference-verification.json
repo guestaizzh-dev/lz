@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-06",
+  "appPages": 22,
+  "viewportWidths": [
+    375,
+    390,
+    430
+  ],
+  "screens": [
+    "home",
+    "course",
+    "article",
+    "shop",
+    "profile",
+    "login",
+    "academy",
+    "discover",
+    "teacher",
+    "membership"
+  ],
+  "screenshotCount": 30,
+  "webBuild": "passed",
+  "androidVaporBytecodeBuild": "passed",
+  "databaseChecks": {
+    "pass": 15,
+    "fail": 0
+  },
+  "browserFlowsPassed": [
+    "OTP login returns to original page",
+    "favorite persisted and visible in personal library",
+    "paragraph note persisted and visible in personal notes",
+    "current-day practice persisted and visible in personal library",
+    "interest tags saved",
+    "logout returns profile to guest"
+  ],
+  "nativeDevice": {
+    "model": "HONOR JDY-AN00",
+    "android": "14",
+    "screen": "720x1612",
+    "adb": "authorized",
+    "installation": "final APK installed successfully",
+    "api": "catalog loaded through USB reverse tcp:3000",
+    "visualPages": [
+      "home",
+      "academy",
+      "discover",
+      "shop",
+      "profile",
+      "login",
+      "article",
+      "course",
+      "product"
+    ],
+    "nativeFlowsPassed": [
+      "catalog requests",
+      "tab navigation",
+      "public article detail",
+      "course and product detail",
+      "back and icon actions",
+      "OTP challenge and resend countdown"
+    ],
+    "remainingChecks": [
+      "complete native OTP login",
+      "private favorite/note/journal flows on native",
+      "iOS",
+      "native secure session storage"
+    ]
+  },
+  "unimplementedServices": [
+    "course chapters and media",
+    "commerce, inventory and payment",
+    "membership",
+    "live streaming",
+    "community",
+    "messages and points"
+  ],
+  "artwork": "Native atlas of user supplied board; uploaded real cover images preferred",
+  "fontLicenses": [
+    "Noto Serif SC OFL",
+    "Ma Shan Zheng OFL"
+  ],
+  "finalScreenshotConsoleErrors": 0,
+  "androidApk": {
+    "path": "outputs/android/daoxue-academy-0.1.0.apk",
+    "bytes": 26639452,
+    "sha256": "d7397d1cfef1a6004be617f5cf043c5f8a8edc1fe803824d56bf4b70e8757318",
+    "cloudBuild": "success",
+    "ticket": "b2b348e0-c156-11f1-bed1-1761d76168e1",
+    "packageId": "cn.daoxue.academy",
+    "deviceInstallation": "Success",
+    "previewRequires": "USB reverse and local API; release API not configured"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "apiTests": 64,
+  "apiFailed": 0,
+  "browserChecks": 15,
+  "browserErrors": 0,
+  "businessResponsesMocked": false,
+  "isolatedDatabase": true,
+  "databaseMigrationsAdded": 0,
+  "apiBuild": "passed",
+  "adminBuild": "passed",
+  "androidVaporResources": "passed",
+  "webBuild": "passed",
+  "staticReaderResourcesRefreshed": true,
+  "knownWarning": "Existing ComposeSheet onResize type declaration",
+  "productionChanged": false,
+  "apkGenerated": false,
+  "commercialBaseline": "38/131"
+}

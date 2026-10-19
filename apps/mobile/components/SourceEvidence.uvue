@@ -1,0 +1,22 @@
+<template>
+<view v-if="items.length" class="evidence-panel">
+<text class="section-heading">{{title??'来源与授权'}}</text>
+<view v-for="item in items" :key="item.id" class="evidence-item">
+<text class="item-title">{{item.title}}</text>
+<text v-if="item.isDemo" class="evidence-demo">演示来源 · 不作为真实资质证明</text>
+<text class="meta">{{[item.author,item.edition].filter(Boolean).join(' · ')}}</text>
+<text class="article-summary" :user-select="true">{{item.rightsHolder?'权利人：'+item.rightsHolder+'\n':''}}{{item.licenseScope??''}}</text>
+<text v-if="item.validUntil" class="meta">有效至 {{formatChinaDate(item.validUntil)}}</text>
+<button v-if="item.sourceUrl" class="text-button evidence-link" @click="copy(item.sourceUrl)">复制公开来源链接</button>
+</view>
+</view>
+</template>
+<script setup lang="ts">
+import {formatChinaDate} from '../lib/date-time';
+import type {PublicEvidence} from '../lib/api';
+defineProps<{items:PublicEvidence[];title?:string}>();
+function copy(url:string){uni.setClipboardData({data:url});}
+</script>
+<style>
+.evidence-panel{margin-top:24px;padding-top:20px;border-top-style:solid;border-top-width:1px;border-top-color:#DFD9CF;}.evidence-item{padding:16px 0;}.evidence-demo{font-size:12px;line-height:20px;color:#8A6A41;margin:6px 0;}.evidence-link{align-self:flex-start;margin-top:8px;min-height:44px;}
+</style>

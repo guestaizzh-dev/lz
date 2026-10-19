@@ -1,0 +1,228 @@
+{
+  "appInteractions": {
+    "results": [
+      {
+        "test": "选文复制",
+        "status": "passed",
+        "copied": "水善利万物而不争，处"
+      },
+      {
+        "test": "选文笔记弹窗与保存",
+        "status": "passed",
+        "noteId": "7b6cd7d1-b11c-4369-bd19-5696d345b1dc"
+      },
+      {
+        "test": "划线与高亮渲染",
+        "status": "passed"
+      },
+      {
+        "test": "引用选文评论与审核状态",
+        "status": "passed"
+      },
+      {
+        "test": "笔记修改与Markdown导出",
+        "status": "passed",
+        "filename": "daoxue-notes-2026-10-10.md"
+      },
+      {
+        "test": "研习日志新增与返回",
+        "status": "passed"
+      },
+      {
+        "test": "图文章节完成与进度同步",
+        "status": "passed"
+      },
+      {
+        "test": "音频播放、暂停与倍速",
+        "status": "passed"
+      },
+      {
+        "test": "视频解码、播放、暂停",
+        "status": "passed",
+        "duration": 20,
+        "currentTime": 2.065471,
+        "width": 960
+      },
+      {
+        "test": "作业空内容校验、草稿保留与提交",
+        "status": "passed"
+      },
+      {
+        "test": "反馈弱网保留输入与重试",
+        "status": "passed",
+        "feedbackId": "7c8c95fa-5073-4656-8b18-59e194ce5475"
+      },
+      {
+        "test": "购物车数量修改",
+        "status": "passed"
+      },
+      {
+        "test": "收货地址编辑与手机号校验",
+        "status": "passed"
+      },
+      {
+        "test": "综合搜索、类型筛选、排序",
+        "status": "passed"
+      }
+    ]
+  },
+  "appLinkage": {
+    "results": [
+      {
+        "test": "学员回看老师点评",
+        "status": "passed"
+      },
+      {
+        "test": "学员查看客服回复",
+        "status": "passed"
+      },
+      {
+        "test": "审核评论回显",
+        "status": "passed"
+      },
+      {
+        "test": "购课订单全部与状态筛选回归",
+        "status": "passed"
+      },
+      {
+        "test": "混合课程购买说明回归",
+        "status": "passed"
+      }
+    ]
+  },
+  "adminProduct": {
+    "results": [
+      {
+        "test": "商品新增、价格修改、规格与库存、审核发布、操作审计闭环",
+        "status": "passed"
+      },
+      {
+        "test": "未配置可售规格禁止提交审核",
+        "status": "passed"
+      }
+    ]
+  },
+  "adminTeaching": {
+    "results": [
+      {
+        "test": "学员作业后台点评闭环",
+        "status": "passed"
+      }
+    ]
+  },
+  "adminComment": {
+    "results": [
+      {
+        "test": "引用评论后台审核通过",
+        "status": "passed"
+      }
+    ]
+  },
+  "adminFeedback": {
+    "results": [
+      {
+        "test": "后台客服回复学员反馈",
+        "status": "passed"
+      }
+    ]
+  },
+  "adminConfig": {
+    "results": [
+      {
+        "test": "系统配置保存与版本历史",
+        "status": "passed"
+      }
+    ]
+  },
+  "configLinkage": {
+    "results": [
+      {
+        "test": "系统配置即时影响首页文章数",
+        "status": "passed",
+        "articles": 3
+      }
+    ]
+  },
+  "adminTime": {
+    "results": [
+      {
+        "test": "北京时间作业保存与编辑回显",
+        "status": "passed",
+        "utc": "2030-10-11T01:30:00.000Z",
+        "display": "2030-10-11 09:30:00"
+      }
+    ]
+  },
+  "readerIsolation": {
+    "tests": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "appRoutes": {
+    "count": 41,
+    "scriptErrors": [],
+    "failedRequests": [
+      {
+        "url": "http://127.0.0.1:3000/api/v1/share/links/invalid-test-code/resolve",
+        "status": 404
+      }
+    ],
+    "routeErrors": [],
+    "overflow": [],
+    "brokenImages": []
+  },
+  "adminRoutes": {
+    "count": 26,
+    "scriptErrors": [],
+    "failedRequests": [],
+    "routeErrors": []
+  },
+  "exportTime": {
+    "results": [
+      {
+        "test": "Markdown导出北京时间回归",
+        "status": "passed"
+      }
+    ]
+  },
+  "apiTests": {
+    "tests": 158,
+    "passed": 158,
+    "failed": 0,
+    "skipped": 0
+  },
+  "cleanup": {
+    "isolatedDatabaseDropped": true,
+    "remainingTemporaryDatabases": [],
+    "manualDatabaseCounts": [
+      {
+        "name": "user",
+        "count": 15
+      },
+      {
+        "name": "article",
+        "count": 10
+      },
+      {
+        "name": "course",
+        "count": 8
+      },
+      {
+        "name": "product",
+        "count": 8
+      },
+      {
+        "name": "note",
+        "count": 3
+      },
+      {
+        "name": "practiceLog",
+        "count": 3
+      },
+      {
+        "name": "paymentTransaction",
+        "count": 0
+      }
+    ]
+  }
+}

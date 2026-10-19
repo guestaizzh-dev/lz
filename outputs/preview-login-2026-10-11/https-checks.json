@@ -1,0 +1,48 @@
+{
+  "checks": [
+    {
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "path": "/auth/sms",
+      "status": 503
+    },
+    {
+      "path": "/auth/sms",
+      "status": 201
+    },
+    {
+      "path": "/auth/login",
+      "status": 200
+    },
+    {
+      "path": "/auth/me",
+      "status": 200
+    },
+    {
+      "path": "/admin/articles",
+      "status": 403
+    },
+    {
+      "path": "/auth/refresh",
+      "status": 200
+    },
+    {
+      "path": "/auth/logout",
+      "status": 200
+    },
+    {
+      "path": "/auth/me",
+      "status": 401
+    }
+  ],
+  "passed": 9,
+  "phone": "19900001002",
+  "nickname": "研习·在读学员",
+  "roles": [
+    "USER"
+  ],
+  "productionUserCountBefore": 15,
+  "apkRebuildRequired": false
+}

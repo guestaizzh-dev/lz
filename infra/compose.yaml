@@ -1,0 +1,139 @@
+x-logging: &logging
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+services:
+  database:
+    logging: *logging
+    image: postgres:17.10-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: academy_owner
+      POSTGRES_DB: ${DATABASE_NAME:-academy}
+      POSTGRES_PASSWORD: ${DATABASE_OWNER_PASSWORD:?Set database owner password}
+      DATABASE_APP_PASSWORD: ${DATABASE_APP_PASSWORD:?Set a separate API database password}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U academy_owner -d ${DATABASE_NAME:-academy}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks: [backend]
+  migrate:
+    logging: *logging
+    image: daoxue-api:${API_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    command: [pnpm, exec, prisma, migrate, deploy]
+    environment:
+      DATABASE_URL: postgresql://academy_owner:${DATABASE_OWNER_PASSWORD:?Required}@database:5432/${DATABASE_NAME:-academy}
+    depends_on:
+      database: {condition: service_healthy}
+    networks: [backend]
+    restart: "no"
+  api:
+    logging: *logging
+    image: daoxue-api:${API_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://academy_app:${DATABASE_APP_PASSWORD:?Required}@database:5432/${DATABASE_NAME:-academy}
+      CORS_ORIGINS: https://${ADMIN_HOST:?Set admin domain},https://${APP_HOST:?Set public App web domain}
+      PUBLIC_API_URL: https://${APP_HOST}/api/v1
+      PUSH_ENABLED: ${PUSH_ENABLED:-false}
+      PUSH_GATEWAY_URL: ${PUSH_GATEWAY_URL:-}
+      PUSH_GATEWAY_SECRET: ${PUSH_GATEWAY_SECRET:-}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
+      PUBLIC_ANDROID_DOWNLOAD_URL: ${PUBLIC_ANDROID_DOWNLOAD_URL:-}
+      PUBLIC_IOS_DOWNLOAD_URL: ${PUBLIC_IOS_DOWNLOAD_URL:-}
+      TRUST_PROXY: 172.30.89.254/32
+      OTP_HASH_SECRET: ${OTP_HASH_SECRET:?Required}
+      DOMAIN_ENCRYPTION_KEY: ${DOMAIN_ENCRYPTION_KEY:?Required}
+      MEDIA_TOKEN_SECRET: ${MEDIA_TOKEN_SECRET:?Required}
+      SMS_ENABLED: ${SMS_ENABLED:-true}
+      PREVIEW_LOGIN_ENABLED: ${PREVIEW_LOGIN_ENABLED:-false}
+      PREVIEW_LOGIN_USER_ID: ${PREVIEW_LOGIN_USER_ID:-}
+      PREVIEW_LOGIN_CODE: ${PREVIEW_LOGIN_CODE:-}
+      PREVIEW_LOGIN_EXPIRES_AT: ${PREVIEW_LOGIN_EXPIRES_AT:-}
+      SMS_SECRET_ID: ${SMS_SECRET_ID:-}
+      SMS_SECRET_KEY: ${SMS_SECRET_KEY:-}
+      SMS_SDK_APP_ID: ${SMS_SDK_APP_ID:-}
+      SMS_TEMPLATE_ID: ${SMS_TEMPLATE_ID:-}
+      SMS_SIGN_NAME: ${SMS_SIGN_NAME:-}
+      SMS_REGION: ${SMS_REGION:-ap-guangzhou}
+      PRODUCT_SALES_ENABLED: ${PRODUCT_SALES_ENABLED:-false}
+      BOOKING_SALES_ENABLED: ${BOOKING_SALES_ENABLED:-false}
+      COHORT_SALES_ENABLED: ${COHORT_SALES_ENABLED:-false}
+      ZEGO_RTC_ENABLED: ${ZEGO_RTC_ENABLED:-false}
+      ZEGO_APP_ID: ${ZEGO_APP_ID:-}
+      ZEGO_RTC_SERVER: ${ZEGO_RTC_SERVER:-}
+      ZEGO_SERVER_SECRET: ${ZEGO_SERVER_SECRET:-}
+      ZEGO_CALLBACK_SECRET: ${ZEGO_CALLBACK_SECRET:-}
+      ZEGO_ROOM_TOKEN_AUTH_ENABLED: ${ZEGO_ROOM_TOKEN_AUTH_ENABLED:-false}
+      ZEGO_ALLOW_UNVERIFIED_TOKEN_AUTH: ${ZEGO_ALLOW_UNVERIFIED_TOKEN_AUTH:-false}
+      COURSE_WECHAT_ENABLED: ${COURSE_WECHAT_ENABLED:-false}
+      COURSE_ALIPAY_ENABLED: ${COURSE_ALIPAY_ENABLED:-false}
+      ALIPAY_APP_ID: ${ALIPAY_APP_ID:-}
+      ALIPAY_SELLER_ID: ${ALIPAY_SELLER_ID:-}
+      ALIPAY_PRIVATE_KEY_FILE: /run/payment-keys/alipay-merchant.pem
+      ALIPAY_PUBLIC_KEYS_FILE: /run/payment-keys/alipay-public-keys.json
+      APPLE_IAP_ENABLED: ${APPLE_IAP_ENABLED:-false}
+      APPLE_NATIVE_PURCHASE_READY: ${APPLE_NATIVE_PURCHASE_READY:-false}
+      APPLE_MEMBERSHIP_SALES_ENABLED: ${APPLE_MEMBERSHIP_SALES_ENABLED:-false}
+      APPLE_BUNDLE_ID: ${APPLE_BUNDLE_ID:-}
+      APPLE_KEY_ID: ${APPLE_KEY_ID:-}
+      APPLE_ISSUER_ID: ${APPLE_ISSUER_ID:-}
+      APPLE_APP_ID: ${APPLE_APP_ID:-}
+      APPLE_ENVIRONMENT: ${APPLE_ENVIRONMENT:-Production}
+      APPLE_PRIVATE_KEY_FILE: /run/payment-keys/apple-signing.p8
+      APPLE_ROOT_CA_FILE: /workspace/infra/apple-root-cas/AppleRootCA-G3.cer
+      COURSE_PAYMENT_WORKER_ENABLED: "true"
+      MEMBERSHIP_SALES_ENABLED: ${MEMBERSHIP_SALES_ENABLED:-false}
+      MEMBERSHIP_PAYMENT_WORKER_ENABLED: "true"
+      WECHAT_PAY_APP_ID: ${WECHAT_PAY_APP_ID:-}
+      WECHAT_PAY_MCH_ID: ${WECHAT_PAY_MCH_ID:-}
+      WECHAT_PAY_SERIAL: ${WECHAT_PAY_SERIAL:-}
+      WECHAT_PAY_API_V3_KEY: ${WECHAT_PAY_API_V3_KEY:-}
+      WECHAT_PAY_PRIVATE_KEY_FILE: /run/payment-keys/merchant.pem
+      WECHAT_PAY_PUBLIC_KEYS_FILE: /run/payment-keys/public-keys.json
+    volumes:
+      - media:/data/media
+      - ${PAYMENT_KEYS_DIRECTORY:-./payment-keys}:/run/payment-keys:ro
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [backend]
+  edge:
+    logging: *logging
+    image: nginx:1.28-bookworm
+    restart: unless-stopped
+    environment:
+      ADMIN_HOST: ${ADMIN_HOST:?Required}
+      APP_HOST: ${APP_HOST:?Required}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./api-proxy.conf:/etc/nginx/snippets/api-proxy.conf:ro
+      - ${TLS_DIRECTORY:?Directory containing fullchain.pem and privkey.pem}:/etc/nginx/tls:ro
+      - ../apps/admin/dist:/srv/admin:ro
+      - ../apps/mobile/unpackage/dist/build/web:/srv/app:ro
+    depends_on:
+      api: {condition: service_healthy}
+    networks:
+      backend: {ipv4_address: 172.30.89.254}
+volumes:
+  database:
+  media:
+networks:
+  backend:
+    ipam:
+      config: [{subnet: 172.30.89.0/24}]

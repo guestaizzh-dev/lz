@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-10-14T05:49:41.979Z",
+  "release": "20261014-live-r1-01",
+  "checks": [
+    "公网HTTPS数据库健康",
+    "双层代理允许受控iframe且保留播放器CSP",
+    "正式ZEGO SDK与最新静音播放器发布",
+    "公网回调路由及验签拒绝无签名请求（不等于服务商回调验收）",
+    "公网两层WebSocket升级通过",
+    "讨论Socket拒绝无效观看凭据",
+    "admin现有密码实际后台登录",
+    "线上RTC已按用户决定启用，管理响应不含密钥",
+    "实际Pro页面 我的开播安排",
+    "实际Pro页面 场次管理",
+    "实际Pro页面 课程与研习"
+  ],
+  "providerPublicCallbackAcceptance": false,
+  "nativeAcceptance": false,
+  "productionBusinessFixturesCreated": false
+}

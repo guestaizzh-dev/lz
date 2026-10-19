@@ -1,0 +1,27 @@
+{
+  "release": "20261011-membership-01",
+  "backend": {
+    "passed": 196,
+    "failed": 0
+  },
+  "adminTypecheck": true,
+  "adminBuild": true,
+  "mobileWebBuild": true,
+  "mobileWebWarnings": 0,
+  "onlineHttpsChecks": 29,
+  "membershipPlans": {
+    "configured": 9,
+    "active": 8,
+    "added": 5,
+    "existingPreserved": 4
+  },
+  "commercial": {
+    "completed": 38,
+    "total": 131,
+    "percentage": 29.0
+  },
+  "formalAppleTransaction": false,
+  "nativeBuild": false,
+  "phoneAcceptance": false,
+  "browserChecks": "membership channel modal opened and screenshot visually inspected; additional entry checks pending"
+}

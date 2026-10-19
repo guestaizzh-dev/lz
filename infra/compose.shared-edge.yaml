@@ -1,0 +1,26 @@
+services:
+  api:
+    environment:
+      CORS_ORIGINS: https://${ADMIN_HOST}
+      PUSH_ENABLED: ${PUSH_ENABLED:-false}
+      PUSH_GATEWAY_URL: ${PUSH_GATEWAY_URL:-}
+      PUSH_GATEWAY_SECRET: ${PUSH_GATEWAY_SECRET:-}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
+      PUBLIC_ANDROID_DOWNLOAD_URL: ${PUBLIC_ANDROID_DOWNLOAD_URL:-}
+      PUBLIC_IOS_DOWNLOAD_URL: ${PUBLIC_IOS_DOWNLOAD_URL:-}
+  edge:
+    environment:
+      ADMIN_HOST: ${ADMIN_HOST}
+    ports: !override ["127.0.0.1:18081:80"]
+    volumes: !override
+      - ./nginx.shared-edge.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./api-proxy.conf:/etc/nginx/snippets/api-proxy.conf:ro
+      - ../apps/admin/dist:/srv/admin:ro
+      - ../apps/mobile/static/art:/srv/app/static/art:ro
+    networks:
+      backend: {ipv4_address: 172.30.89.254}
+      ingress: {aliases: [daoxue-edge]}
+networks:
+  ingress:
+    external: true
+    name: platform_default

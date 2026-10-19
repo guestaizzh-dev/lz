@@ -1,0 +1,38 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+function edit(path,changes){let text=readFileSync(path,'utf8');for(const [before,after] of changes){if(!text.includes(before))throw Error('Missing match in '+path+': '+before.slice(0,90));text=text.replace(before,after);}writeFileSync(path,text);}
+edit('services/api/src/cohorts.ts',[
+  ['    const schedulePending=!!mine', '    const latestChange=await this.db.cohortScheduleChange.findUnique({where:{cohortId_scheduleVersion:{cohortId:id,scheduleVersion:row.scheduleVersion}}});\n    const schedulePending=!!mine'],
+  ['return {...row,price:', 'return {...row,scheduleAction:latestChange?.action??null,price:'],
+]);
+edit('apps/admin/src/pages/cohorts/index.tsx',[
+  ["access.canCoursesEdit&&!r.paid&&r.state!=='CANCELLED'&&new Date(r.startsAt)>new Date()", "access.canCoursesEdit&&r.state!=='CANCELLED'&&new Date(r.endsAt)>new Date()"],
+  ['}}>延期</Button>', "}}>{new Date(r.startsAt)>new Date()?'延期':'延长结营'}</Button>"],
+  ['未开营且无交付的免费营期可整体延期或取消，学员确认新版时间后才能继续参与。付费整期延期取消、已开营补偿和实际交付结算继续完善，当前该变更入口仅处理未开营的免费营期。', '未开营可整体延期；已开营只能延长结营期限，原教学日期保留。学员确认新版安排或全额退出。整期取消免费释放、付费自动原路全额退款；开营后服务争议须财务提出金额与依据、本人同意后执行。实际交付与结算仍另行核查。'],
+]);
+edit('apps/mobile/lib/cohorts.ts',[["export type Cohort={", "export type Cohort={scheduleAction?:string|null;"]]);
+edit('apps/mobile/pages/cohort/detail.uvue',[
+  ['不便参加可取消本期报名，席位会立即释放。', "{{cohort!.paid?'不便参加可从原订单全额退出，渠道退款成功后释放席位。':'不便参加可取消本期报名，席位会立即释放。'}}"],
+  ['v-if="cohort!.schedulePending" class="footer-note"', 'v-if="cohort!.schedulePending&&!cohort!.suspended" class="footer-note"'],
+  ['v-else-if="cohort!.schedulePending" class="footer-note"', 'v-else-if="cohort!.schedulePending&&!cohort!.suspended" class="footer-note"'],
+  ['确认后才能进入学习与讨论；', "{{cohort!.scheduleAction==='EXTEND'?'本次只延长结营期限，原章节、作业与打卡日期保留。':''}}确认后才能进入学习与讨论；"],
+  ["+'（北京时间）。章节、作业与打卡整体顺延。'", "+'（北京时间）。'+(cohort.value!.scheduleAction==='EXTEND'?'只延长结营期限，原章节、作业与打卡日期不变。':'章节、作业与打卡整体顺延。')"],
+]);
+edit('apps/mobile/pages/cohort/purchase.uvue',[
+  ['<text class="section-heading">本期安排</text>', '<text class="section-heading">{{order?\'购买时原安排\':\'本期安排\'}}</text>'],
+  ['<view class="row between section">', '<view v-if="order&&order!.currentSchedule.scheduleVersion!==order!.cohort.scheduleVersion" class="policy"><text class="section-heading">{{order!.currentSchedule.cancelled?\'本期已取消\':\'最新营期安排\'}}</text><text class="body-copy">{{formatChinaTime(order!.currentSchedule.startsAt)}} 至 {{formatChinaTime(order!.currentSchedule.endsAt)}}（北京）</text><text class="meta" :user-select="true">{{order!.currentSchedule.changeReason}}</text><text v-if="order!.currentSchedule.action===\'EXTEND\'" class="meta">仅延长结营期限，原章节、作业和打卡日期保持。</text><text v-if="order!.currentSchedule.schedulePending&&!order!.registration?.suspendedAt" class="meta">请确认最新安排后继续参与；不便参加可全额退出。</text><button v-if="order!.currentSchedule.canAcceptSchedule" class="secondary-button" :disabled="busy" @click="acceptSchedule">确认最新营期安排</button><text v-if="order!.currentSchedule.cancelled" class="meta">书院自动全额原路退款，渠道成功后释放席位，请查询处理结果。</text></view><view class="row between section">'],
+  ['<text class="meta">{{formatChinaTime(r.createdAt)}}</text></view>', '<view v-if="r.assessmentSnapshot" class="proposal"><text class="meta">已打开 {{r.assessmentSnapshot!.openedLessons}} 讲 · 完成 {{r.assessmentSnapshot!.completedLessons}} 讲 · 提交 {{r.assessmentSnapshot!.submittedAssignments}} 次作业 · 打卡 {{r.assessmentSnapshot!.checkinDays}} 次</text><text class="meta">学习数量不直接折算扣费，以核查的交付依据和本人确认金额为准。</text><text v-if="r.assessmentSnapshot!.deductionAmount" class="body-copy">拟退款 ¥{{money(Number(r.approvedAmount))}} · 保留款 ¥{{money(Number(r.assessmentSnapshot!.deductionAmount))}}</text><text class="meta" :user-select="true">{{r.assessmentSnapshot!.withdrawalScope}}</text><text v-if="r.acceptedAt" class="meta">本人已于 {{formatChinaTime(r.acceptedAt!)}} 确认方案</text><view v-if="r.state===\'APPROVED\'&&r.reasonCode===\'COHORT_DISPUTE\'&&!order!.currentSchedule.cancelled" class="section"><button class="secondary-button" :disabled="busy" @click="decideRefund(r,\'ACCEPT\')">同意方案并退出本期</button><button class="text-button" :disabled="busy" @click="decideRefund(r,\'DECLINE\')">不同意，保留原营期</button></view></view><text class="meta">{{formatChinaTime(r.createdAt)}}</text></view>'],
+  ['@click="showRefund=true">申请退出并原路退款', '@click="openRefund(false)">{{order!.refundReason===\'COHORT_SCHEDULE_RETURN\'?\'不接受新安排，申请全额退出\':\'申请退出并原路退款\'}}'],
+  ['<button v-if="order!.state===\'PAID\'&&!order!.canRefund&&!order!.registration?.suspendedAt"', '<button v-if="order!.canDispute&&!order!.canRefund" class="secondary-button" :disabled="busy" @click="openRefund(true)">申请服务核查与协商退款</button><button v-if="order!.state===\'PAID\'&&!order!.canRefund&&!order!.canDispute&&!order!.registration?.suspendedAt"'],
+  ['title="申请退出本期训练营" subtitle="开营前可申请全额退款；申请期间暂停本期交付，支付渠道确认成功后释放席位。其他营期及独立购课不受影响。"', ':title="dispute?\'服务核查与协商退款\':\'申请退出本期训练营\'" :subtitle="dispute?\'说明实际问题。核查期间暂停本期交付，财务提出金额与依据，由你确认后才退款；不同意可保留原营期。\':\'开营前或安排变更可全额退出；申请期间暂停本期交付，渠道退款成功后释放席位。其他营期及独立购课独立。\'"'],
+  ['submit-label="提交退出申请"', ':submit-label="dispute?\'提交服务核查\':\'提交退出申请\'"'],
+  ['import type {CohortOrder,CohortQuote}', 'import type {CohortOrder,CohortQuote,CohortRefund}'],
+  ["showRefund=ref(false),refundReason", "showRefund=ref(false),dispute=ref(false),refundReason"],
+  ["showRefund.value=false;pendingBody=null;", "showRefund.value=false;dispute.value=false;pendingBody=null;"],
+  ["+order.value.id+'/refund',{method:'POST'", "+order.value.id+(dispute.value?'/dispute':'/refund'),{method:'POST'"],
+  ['function copyNo()', `function openRefund(service:boolean){if(busy.value)return;if(dispute.value!==service){refundReason.value='';refundKey=studyEventId();}dispute.value=service;refundError.value='';showRefund.value=true;}
+function acceptSchedule(){const row=order.value;if(!row?.currentSchedule.canAcceptSchedule||busy.value)return;uni.showModal({title:'确认最新营期安排',content:formatChinaTime(row.currentSchedule.startsAt)+' 至 '+formatChinaTime(row.currentSchedule.endsAt)+'（北京）。'+(row.currentSchedule.action==='EXTEND'?'只延长结营期限，原教学日期保留。':'章节与教学日期随开营整体顺延。'),confirmText:'确认新安排',success:async result=>{if(!result.confirm||busy.value)return;busy.value=true;try{await request('/me/cohorts/'+row.cohort.cohortId+'/accept-schedule',{method:'POST',data:{expectedScheduleVersion:row.currentSchedule.scheduleVersion}});order.value=await request<CohortOrder>('/commerce/cohort-orders/'+row.id);clockFrom(order.value);}catch(e){notice.value=(e as Error).message;}finally{busy.value=false;}}});}
+function decideRefund(refund:CohortRefund,action:string){const row=order.value;if(!row||busy.value)return;uni.showModal({title:action==='ACCEPT'?'确认退款并退出本期？':'不同意方案，保留原营期？',content:action==='ACCEPT'?'退款 ¥'+money(Number(refund.approvedAmount))+'，保留款 ¥'+money(Number(refund.assessmentSnapshot?.deductionAmount??0))+'。'+(refund.reviewNote??'')+'；渠道成功后终止本期剩余交付，既有记录保留。':'恢复原期限与安排确认状态，时间不会延长。仍有异议可以重新提交核查。',confirmText:action==='ACCEPT'?'同意并退出':'保留原营期',success:async result=>{if(!result.confirm||busy.value)return;busy.value=true;notice.value='';try{order.value=await request<CohortOrder>('/commerce/cohort-orders/'+row.id+'/refunds/'+refund.id+'/decision',{method:'POST',data:{expectedVersion:refund.version,action}});clockFrom(order.value);}catch(e){notice.value=(e as Error).message;}finally{busy.value=false;}}});}
+function copyNo()`],
+  ['.refund-record{', '.proposal{padding:12px;background-color:#F3F0E8;margin-top:12px;}.refund-record{'],
+]);
+edit('services/api/test/cohort-changes.test.mjs',[["call(path+'/cancel',admin,'POST',{expectedVersion:row.version,reason:'取消'})", "call(path+'/postpone',admin,'POST',{expectedVersion:row.version,days:1,reason:'已开营不能整体顺延'})"]]);

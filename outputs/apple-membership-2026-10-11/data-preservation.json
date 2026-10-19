@@ -1,0 +1,10 @@
+{
+  "countsEqual": true,
+  "allPlanFactsEqual": true,
+  "allMembershipFactsEqual": true,
+  "tablesBefore": 155,
+  "tablesAfter": 155,
+  "migrationsBefore": 24,
+  "migrationsAfter": 25,
+  "noSyntheticFinancialData": true
+}

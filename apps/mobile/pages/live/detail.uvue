@@ -1,0 +1,37 @@
+<template><view class="page"><PageHead title="直播研习"/><scroll-view class="page-scroll" direction="vertical"><view class="content">
+  <ContentState v-if="!room" :loading="loading" :error="error" @retry="load"/>
+  <view v-else><view v-if="error" class="refresh-warning"><text>安排暂未更新，请重试。</text><button class="text-button" :disabled="loading" @click="load">刷新安排</button></view><text class="tag">{{categories[room!.categoryCode]??'书院直播'}} · {{accessLabel}}</text><text class="detail-title">{{room!.title}}</text><text class="article-summary">{{room!.summary}}</text><view class="teacher-line"><text class="teacher-label">主讲</text><text class="teacher-name">{{room!.teacher.name}}</text></view>
+    <text class="section-heading live-heading">研习安排</text>
+    <view v-for="s in room!.sessions" :key="s.id" class="session">
+      <view class="session-head"><text class="session-state" :class="s.state==='LIVE'?'on-air':s.replayReady?'has-replay':''">{{s.disconnected?'断流重连中':states[s.state]??s.state}}</text><text v-if="s.reserved" class="tag">已预约</text></view><text class="item-title">{{s.title}}</text><view class="session-time"><text class="meta">{{formatChinaTime(s.scheduledAt)}}</text><text class="time-zone">北京时间</text></view>
+      <text v-if="s.accessReason" class="session-hint">{{s.accessReason}}</text>
+      <view class="session-actions"><button v-if="s.state==='LIVE'" class="primary-button" :disabled="busy" @click="watch(s,false)">进入直播</button><button v-if="s.replayReady" class="primary-button" :disabled="busy" @click="watch(s,true)">观看回放</button>
+      <button v-if="['SCHEDULED','PREPARING'].includes(s.state)" :class="s.reserved?'secondary-button':'primary-button'" :disabled="busy" @click="reserve(s)">{{s.reserved?'取消预约':'预约本场'}}</button></view>
+      <text v-if="s.state==='ENDED'&&!s.replayReady" class="session-hint">本场已结束，回放审核发布后可在此观看。</text><text v-if="s.state==='CANCELLED'" class="session-hint">本场已取消，可关注书院其他研习安排。</text>
+    </view>
+    <ContentState v-if="!room!.sessions.length" title="暂无开播安排" description="新的研习安排将在这里公布。"/>
+    <text class="footer-note">预约后，开播提醒将发送至「我的 · 消息」。</text>
+    <button v-if="room!.courseId" class="secondary-button" @click="goCourse(room!.courseId!)">查看相关课程</button><button v-if="room!.accessRule.mode==='MEMBER'" class="secondary-button" @click="openPage('membership/index')">查看会员权益</button><RelatedContent ref="relatedRef" :resourceId="id"/>
+  </view>
+</view></scroll-view></view></template>
+<script setup lang="ts">
+import RelatedContent from '../../components/RelatedContent.uvue';import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';
+import {formatChinaTime} from '../../lib/date-time';import {request,goCourse} from '../../lib/api';import {needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';
+type LiveSession={id:string;title:string;scheduledAt:string;state:string;reserved:boolean;disconnected:boolean;accessReason:string;replayReady:boolean};
+type LiveTeacher={name:string};type AccessRule={mode:string;tier?:number};
+type Live={title:string;summary:string;categoryCode:string;teacher:LiveTeacher;courseId:string|null;accessRule:AccessRule;rtcReady:boolean;sessions:LiveSession[]};
+const room=ref<Live|null>(null),error=ref(''),loading=ref(false),busy=ref(false),relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);let id='',timer:ReturnType<typeof setInterval>|null=null;
+const states:Record<string,string>={SCHEDULED:'直播预告',PREPARING:'准备开播',LIVE:'直播中',ENDED:'已结束',REPLAY_READY:'回放就绪',CANCELLED:'已取消'},categories:Record<string,string>={CULTURE:'文化讲解',QA:'研习答疑',PRACTICE:'实践教学',MEMBER:'会员专属',EVENT:'活动同步'};
+const accessLabel=computed(()=>room.value?.accessRule.mode==='MEMBER'?'会员研习':room.value?.accessRule.mode==='COURSE'?'课程学员专享':'公开研习');
+async function load(){if(!id||loading.value)return;loading.value=true;error.value='';try{room.value=await request('/live/rooms/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;if(!room.value)uni.showToast({title:error.value,icon:'none'});}finally{loading.value=false;}}
+async function watch(s:LiveSession,replay:boolean){if(busy.value||needLogin('live/detail?id='+id))return;busy.value=true;
+  try{const latest=await request<Live>('/live/rooms/'+encodeURIComponent(id));room.value=latest;const current=latest.sessions.find(row=>row.id===s.id);
+    if(!current)throw new Error('本场安排已更新，请重新选择');if(current.accessReason)throw new Error(current.accessReason);
+    if(replay&&!current.replayReady)throw new Error('本场回放尚未审核发布');if(!replay&&current.state!=='LIVE')throw new Error('本场当前未开播，请查看最新安排');
+    if(!replay&&!latest.rtcReady)throw new Error('直播观看尚未开通，请稍后再试');openPage('live/watch?id='+s.id+'&roomId='+id+(replay?'&mode=replay':''));
+  }catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
+async function reserve(s:LiveSession){if(needLogin('live/detail?id='+id)||busy.value)return;busy.value=true;try{await request('/live/sessions/'+s.id+'/reservation',{method:'POST',data:{action:s.reserved?'CANCEL':'RESERVE'}});uni.showToast({title:s.reserved?'已取消预约':'预约成功，开播前会提醒你',icon:'none'});await load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
+onLoad(o=>{id=o?.id??'';load();});onShow(()=>{if(id)load();relatedRef.value?.refresh();if(!timer)timer=setInterval(()=>{if(room.value?.sessions.some(s=>['PREPARING','LIVE'].includes(s.state)))load();},15000);});
+function stop(){if(timer)clearInterval(timer);timer=null;}onHide(stop);onUnload(stop);
+</script>
+<style>@import '../../styles/app.css';.live-heading{margin-top:26px;}.session{padding:18px;background-color:#F8F5EF;border-width:1px;border-style:solid;border-color:#E5DFD4;border-radius:10px;margin-top:14px;}.session-head{flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:8px;}.session-state{font-size:12px;color:#726958;background-color:#EEE9DF;border-radius:4px;padding:4px 8px;}.on-air{color:#245564;background-color:#E5EEEA;}.has-replay{color:#816633;background-color:#EFE8DB;}.session-hint{font-size:13px;line-height:22px;color:#7A7366;margin-top:8px;}.session-actions{margin-top:14px;}.session-time{flex-direction:row;align-items:center;flex-wrap:wrap;margin-top:8px;}.time-zone{margin-left:8px;font-size:12px;color:#8B8374;}.teacher-line{flex-direction:row;align-items:center;margin-top:16px;}.teacher-label{font-size:12px;color:#807663;border-right-width:1px;border-right-style:solid;border-right-color:#D8CEBA;padding-right:10px;}.teacher-name{margin-left:10px;font-size:14px;color:#245564;}.refresh-warning{padding:12px;background-color:#EEE9DF;border-radius:6px;margin-bottom:16px;font-size:13px;color:#7A7366;}</style>

@@ -1,16 +1,64 @@
+2026-10-18结构增量：第70迁移新增ServiceDelivery，完整字段与约束以[迁移SQL](../services/api/prisma/migrations/20261018120000_paid_service_delivery/migration.sql)及Prisma模型为准；业务流程与验证见[79](79-paid-service-delivery-and-recognition.md)。原183张业务表原字段摘要保持，新增表仅由订单履约流程维护，不开放通用编辑。
+
+2026-10-15 M06第46迁移：新增NotificationPreference（userId文本主键并外键User、version正整数默认1、updatedAt timestamptz、pushEnabled默认false、transactions/learning/community布尔默认true）；DeviceToken新增sessionId可空外键AuthSession与索引、boundAt timestamptz默认now；NotificationDelivery新增deviceVersion整数默认1。Notification插入触发器同事务写原OutboxJob、eventKey唯一去重，不新建平行消息队列。所有偏好/设备/投递由鉴权专用流程处理。已应用本地迁移，15类原业务数量保持；正式库未变更，见[65](65-m06-sharing-and-teacher-profiles.md)与[迁移](../services/api/prisma/migrations/20261015140000_notification_delivery/migration.sql)。
+
+2026-10-14第43迁移（57）：CourseChapter/Lesson新增subtitleText（text，默认空，200000字符），LiveReplay新增subtitleText及notes（50000字符），Lesson字幕触发器禁止修改。均由课程/回放专用审核流程生成，不开放通用CRUD；既有161业务模型/162表保持。迁移本地已应用，12类原业务数量与摘要一致，未上线。完整字段及验证见[57](57-media-and-live-delivery-hardening.md)与[迁移](../services/api/prisma/migrations/20261014100000_media_subtitle_delivery/migration.sql)。
+
+2026-10-14当前直播交付续办（55）：用户明确暂缓云录制；采用ZEGO RTC实际开播观看与人工上传审核回放。直播课程固定版本场次、老师本人开播台、观看时长、实际回放时长与取消停止交付补偿已实现。79关联回归、12实际页面流程及4条真实RTC链路通过，API/官方Pro/App Web构建通过；第42本地迁移已应用，原数据摘要保持。backend/admin已部署20261014-live-r1-01，11公网检查通过，19类原核心业务数据计数及摘要一致；原生、公网服务商回调及正式交易未验收，商用38/131保持。详见[55](55-live-course-r1-delivery.md)。
+
+2026-10-13历史直播记录（54）：按用户决定改用ZEGO RTC；五类场次/短期准入、预约改期提醒、评论引用治理、人工审核回放及关联交易卡已实现。本地38项关联回归、9条实际页面流程及API/Pro/App Web构建通过，第41迁移已应用、161业务模型/162表且原规范数据摘要保持。实际RTC推流解码成功，但跨房间与观众推流仍未拒绝，权限门禁保持关闭；云录制/VOD、直播课程绑定、原生及完整L06未验收。下一L04与实际服务商权限/回调联调，未部署/更新APK，商用38/131不变，见[54](54-zego-rtc-live.md)。
+
+2026-10-13历史记录续办（53）：付费营期整体延期/取消、已开营延长结营期限及本人同意协商退款已实现并本地验证；原安排/教学日期/学习成果保留，取消补退余额且一次释放。180关联回归、9实际页面及API/Pro/App Web通过；第40本地迁移已应用，161表/160模型和规范数据保持。下一A05付费实际履约、预收收入/结算积分，再iOS营期及A01/M07差异票价优惠和A07/A08联动验收。完整M04/CO05及商用38/131保持未验收，未部署/更新APK，见[53](53-cohort-schedule-and-compensation.md)。
+
+2026-10-13历史记录续办（52）：独立付费营期报价/占位、可信收款报名、异常款补偿及开营前全额退出已实现并本地验证；退款暂停本期正文媒体/教学讨论，拒绝恢复、成功一次释放。126关联、3生产门禁专项及8实际页面通过，API/Pro/App Web构建通过；第39本地迁移已应用，161表/160模型和规范数据保持。下一A03付费整期延期取消与已开营退出/补偿，再A05实际交付结算；完整M04/CO05及商用38/131未验收，未部署/更新APK，见[52](52-paid-cohort-orders.md)。
+
+2026-10-13历史记录续办（51）：个人预约拒绝与服务争议协商退款已实现并本地验证；负责老师单次拒约全额补偿，财务提出金额/依据、本人确认后退款，拒绝恢复原参加状态，整场取消补齐余额且一次释放。104关联及54末次同意约束专项（重叠）、15实际页面和API/Pro/App Web通过；第38本地迁移已应用，161表/160模型与规范数据保持。完整A04/A06仍进行中，下一A03付费营期/已开营退出延期补偿，再A05付费实际履约结算；商用38/131保持，未部署/更新APK，见[51](51-booking-disputes-and-refusals.md)。
+
+2026-10-13历史记录当前续办：A02/A04/A06原价付费预约与活动订单子流程已本地验证；统一库存/15分钟占位、可信收款确认、超时查单/晚付补偿、截止前整单退款与预收账本、App售后及Pro工作台接通。95关联、22末次专项（重叠）、8实际页面与三端构建通过，37迁移本地应用、161表/160模型，规范数据保持。下一付费延期取消/拒绝与争议补偿，再付费营期和履约结算；商用38/131保持，未部署/更新APK，见[49](49-paid-booking-orders.md)。
+
+2026-10-13历史记录当前续办：A01/A02会员优先报名子流程已本地验证，冻结会员版本/活动范围、退款暂停/独立补偿、同库存及登录回跳/刷新接通；65关联、7真实页面与API/Pro/App Web通过。第36迁移本地应用，161表/160模型，规范数据保持。下一A04付费预约活动订单与A02超时晚付补偿，完整M07/A阶段及商用38/131仍未验收；未部署或更新APK，见[48](48-event-priority-booking.md)。
+
+2026-10-12历史记录当前续办：A05免费活动实际履约与更正已完成本地验证，独立于签到保存完整/部分/未交付/未到场结果；内部依据不泄露，旧事实保留，免费不生成消费奖励。43关联/9实际页面及API/Pro/App Web通过，第35迁移本地应用，161表含元数据/160模型，规范数据保持。下一A01/A02会员优先开放与M07前置；付费结算/现场/原生及完整A05仍未完成，商用38/131保持，未部署/更新APK，见[47](47-event-fulfilment-records.md)。
+
+2026-10-12历史记录当前续办：A05工作人员按场次委派、15分钟临时二维码、逐人幂等核销和误签到撤销已完成本地验证；88关联/7末次专项（重叠）及6真实页面通过，API/Pro/App Web通过。第34迁移本地应用，160表含元数据/159模型，原规范数据保持。下一活动结束后的实际履约记录；完整A05/付费结算及商用38/131仍未完成，未部署/更新APK，见[46](46-event-checkin-operations.md)。
+
+2026-10-12历史记录最新营期续办：未开营免费营期整体延期、学员确认/退出、整期取消及结营通知已实现并本地验证；发布教学要求和原报名保留，教学日期按开营锚点顺延。146关联、18末次迁移边界专项（重叠）/7真实页面、API/Pro/App Web通过。本地33迁移、160表含元数据/159模型，规范数据保持；下一A05委派核销，付费及已开营补偿未齐，商用38/131不变，未上线/更新APK，见[45](45-cohort-schedule-changes.md)。
+
+2026-10-12历史记录最新教学续办：营期专属老师/助教、固定版本作业、每日打卡、私人图片和点评、原营期消息回跳及结营只读已本地验证；124/124关联回归、8/8实际页面、API/Pro/App Web构建通过。第32迁移已在本地应用，159表含元数据/158模型，原规范数据保持。下一延期确认与取消通知，再A05；完整A03/CO05未商用验收，38/131不变，未上线或更新APK，见[44](44-cohort-teaching.md)。
+
+2026-10-12最新章节排程：新增CohortLessonSchedule（id/cohortId/courseId/releaseId/lessonId/opensOnDay）和CourseCohort.scheduleFrozenAt；复合外键、唯一约束、开放时间边界、初始化和冻结保护见[第31迁移](../services/api/prisma/migrations/20261012140000_cohort_lesson_schedule/migration.sql)。本地159表含元数据、158模型、31迁移，原规范数据/普通授权摘要保持；排程不进入通用CRUD。字段与真实验证见[43](43-cohort-chapter-schedule.md)，线上未应用本批。
+
+2026-10-12当前营期增量：新增CohortRegistration/CohortStudyProgress/CohortCertificate，StudyEvent记录营期归属，Enrollment保留普通授权唯一约束并禁止新营期写入。复合外键和身份保护见[第30迁移](../services/api/prisma/migrations/20261012120000_cohort_learning_context/migration.sql)，字段说明见[42](42-cohort-registration-and-learning-context.md)。本机已应用第29/30迁移、实测158表含元数据及157业务模型；规范数据和普通授权摘要保持。下方155表/29迁移/仅隔离应用是前一阶段历史。线上仍未应用本批迁移。
+
+2026-10-12取消延期增量：155表不变，29迁移；AppointmentSlot/EventSession新增scheduleVersion与changeReason，Appointment/EventRegistration新增acceptedScheduleVersion与终态scheduleSnapshot，新增两个流程/通知索引。原快照与历史保留，不提供通用事实编辑。迁移仅在隔离测试库验证，未应用手测或线上数据库，详见[39](39-booking-schedule-changes.md)。
+
 # 数据库结构与 CRUD 实施契约
+
+2026-10-12当前入口：预约、活动、营期及六类内容联动复用既有表；取消延期新增一项字段与索引迁移，仓库共29迁移、155表，已在本轮隔离空库完整应用，未应用手测或线上数据库。144实体当前33类完整通用CRUD、111类受控流程；服务、时段、活动场次/票种、营期采用专用工作流，不允许通用数据维护直接改席位和权限事实。营期讨论区禁止经通用CRUD创建归属、改范围或删除，普通公共讨论区保留原CRUD。当前增量见[39](39-booking-schedule-changes.md)，此前38阶段的28迁移和下方结构统计是历史证据。
+
+2026-10-11会员退款/商城优惠增量：28迁移、155表，无新增业务表；Refund新增assessmentSnapshot（JSON核查依据）与acceptedAt（学员确认时间），Product新增memberDiscountEligible（Boolean，默认false）。PlanBenefit/BenefitScope冻结商品折扣与免邮规则，BenefitUsage记录对应期间、预占/消费/释放/退回及原优惠金额；原TradeOrder/Item保存实付分摊。两项手写迁移分别为20261011110000_membership_partial_refunds与20261011113000_member_shop_pricing；专用流程维护，不开放事实通用改写。部署及验证见36/37。
+
+2026-10-11商城增量：26迁移/155表；Refund新增returnAddressCipher，商品收入/异常退款负债科目、库存/包裹索引及实物购买快照/地址防改写触发器。库存、交易、发货、退换货继续走专用流程，不允许通用CRUD修改收退款或库存事实。未重建/迁移规范示例数据，详见34。
+
+2026-10-11最新会员续办：member-sales-02已部署，219项后端全量、42HTTPS及6项实际浏览器检查通过，API/Pro/App Web构建通过。Android会员购买/续期/排队、未来整段退款及退款期间内容/配额暂停、订单/注销/看板联动和表格宽度修复已实现；原规范数据和会员日期/版本保留。iOS、部分消费退款/奖励及退款取消后的交付恢复仍未完成，商用保持38/131（29.0%），50%未达到。见[31会员交易续办报告](31-membership-purchase-and-refund.md)。
+
+2026-10-10 Apple与会员基础续办：长期课程Apple映射、持久归属、已验证恢复/全额撤销和会员九组合管理已实现并部署20261011-membership-01；196项后端、后台/App Web构建及29项实际HTTPS通过。九个配置中8个启用，保留旧停用套餐及会员历史；真实Apple/原生及会员购买仍未验收。C07退款撤回续办中，商用仍38/131（29.0%）。见[29续办报告](29-apple-and-membership-foundation.md)。
+
+2026-10-10录播增量：线上152表（含元数据），新增CourseVersionChoice及CourseRelease交付状态，支付宝应收科目；CourseVersionChoice由专用流程创建，不开放通用CRUD。原购课快照/历史保留，选择绑定当前grantKey，不跨授权继承；结构/约束/迁移与实际数量证据见[28](28-course-commerce-hardening.md)。下方表清单保留原基础阶段统计，新事实定义以schema.prisma及两个增量迁移为准。
 
 日期：2026-10-09。来源：本机 PostgreSQL 实际结构与服务端权限白名单。
 
+2026-10-09后台升级：app_user、event、sale_offer进一步收归账号/活动/课程专用流程；通用编辑不得绕过账号冻结、发布审核和报价。角色策略初始化及既有角色授权基线通过20261009190000/20261009200000两项手写迁移完成，无新增业务表。见[20后台升级报告](20-admin-upgrade.md)。
+
 ## 1. 本次实施范围
 
-144 个目标实体落到 148 张业务表；其中 63 个实体提供完整通用 CRUD，用户资料仅允许编辑，80 个事实/版本/敏感实体提供受控查询及所属流程操作。
+原144目标实体继续提供查询；当前物理库150表（新增CourseCertificate、CourseReview各通过专用流程维护）。当前41类完整通用CRUD、0类用户受限编辑、103类受控流程；不得用建表或CRUD数量代表全部业务完成。
 
 保留的 4 张兼容表为 Order、OrderItem（旧的开发预占订单）、DeliveryZone（旧配送配置）、Favorite（旧文章收藏）。它们由现有专用接口维护，不属于新增的数据工作台。Favorite 与 Reaction 双向同步；CartItem 绑定 SKU 的规范 SaleOffer。旧开发预占订单仍不代表已支付订单。
 
-本轮没有迁移保留旧测试数据；按用户授权重建了本机测试库。SQL 文件记录建表版本，是空库重建依据，不是旧测试数据迁移承诺。
+历史数据库阶段按用户授权重建测试库；续办阶段通过增量迁移新增完成记录与课程评价，保留现有数据。SQL为当前结构快照，只适用于独立空库；不是直接覆盖生产库的脚本。
 
-完整结构 SQL：[database-schema.sql](../outputs/crud-2026-10-09/database-schema.sql)。实际列、约束和索引：[database-inventory.json](../outputs/crud-2026-10-09/database-inventory.json)。
+完整结构 SQL：[database-schema.sql](../outputs/course-sales-2026-10-09/database-schema.sql)。实际列、约束和索引：[database-inventory.json](../outputs/course-sales-2026-10-09/database-inventory.json)。
 
 ## 2. 操作与安全契约
 
@@ -20,14 +68,14 @@
 - reason 必须2—500字；修改/删除使用详情返回的 `_revision`。行锁、写操作和审计在一个事务内；失效版本返回409。
 - 所有表与列来自内部白名单，值参数化；枚举、整数、BigInt、JSON、数组、时区和外键校验。引用仍被使用时不能删除；时段重叠由排斥约束拦截。
 - 哈希、令牌、密文、推流密钥和原始渠道载荷不出现在查询结果。Cipher 字段仅输入，AES-256-GCM 保存；留空不覆写。生产必须配置 DOMAIN_ENCRYPTION_KEY。
-- 私人笔记、日志、地址、个人互动、问答和作业按当前账号归属过滤，不因 ADMIN 而开放他人的私人正文。老师的真实学员访问需要专门课程归属流程。
+- 私人笔记、日志、地址、个人互动、问答、作业与教师点评按当前账号归属过滤，不因 ADMIN 而开放他人的私人正文。老师的真实学员访问需要专门课程归属流程。
 - 角色使用 POST `/admin/data/roles/grant` 与 POST `/admin/data/roles/:id/revoke`；不允许自改管理角色，撤销保留历史，权限和审计同步。
 - 支付交易、退款核验、钱包/积分/财务账本等只能由对应流程写入。当前通用工作台不会伪造支付成功或改余额；未实现的渠道和流程见实施报告。
 - 已发布课程/文章/商品/名师的审核状态继续通过原有审核接口变更；通用编辑不能绕过发布流程。会员套餐内容变更自动形成新版本，历史版本保持原内容。
 
 ## 3. 构建与维护
 
-生成顺序：`python scripts/build-domain-schema.py` → Prisma validate/generate → API build → 测试 → 后台 build。SQL 中的 FK/CHECK/排斥约束和触发器是约束来源；新增模型的 Prisma 标量字段不完整表达这些 SQL 约束。禁止直接用 db push 或未经核查的自动 diff 重写数据库；新结构变更须检查生成 SQL 与实际约束。
+既有生成器仅用于原基础域，禁止重新生成以覆盖后续专用模块。新增结构使用审查后的手写迁移 → Prisma generate → API build → 针对性测试 → 前后台构建。SQL 中的 FK/CHECK/排斥约束和触发器是约束来源；新增模型的 Prisma 标量字段不完整表达这些 SQL 约束。禁止直接用 db push 或未经核查的自动 diff 重写数据库；新结构变更须检查生成 SQL 与实际约束。
 
 ## 4. 逐实体覆盖
 
@@ -49,21 +97,21 @@
 |media_asset|内容|MediaAsset|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |resource|内容|Resource|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |resource_tag|内容|ResourceTag|已完成|已完成|已完成|已完成|业务配置/资料|
-|source_evidence|内容治理|SourceEvidence|已完成|已完成|已完成|已完成|业务配置/资料|
-|resource_evidence|内容治理|ResourceEvidence|已完成|已完成|已完成|已完成|业务配置/资料|
-|content_relation|内容|ContentRelation|已完成|已完成|已完成|已完成|业务配置/资料|
+|source_evidence|内容治理|SourceEvidence|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|resource_evidence|内容治理|ResourceEvidence|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|content_relation|内容|ContentRelation|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |article|文章|Article|已完成|已完成|已完成|已完成|业务配置/资料|
 |article_release|文章|ArticleRelease|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |article_block|文章|ArticleBlock|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
-|reaction|内容互动|Reaction|已完成|已完成|已完成|已完成|本人记录|
+|reaction|内容互动|Reaction|流程维护|已完成|流程维护|流程维护|本人记录|
 |reading_event|内容互动|ReadingEvent|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
-|private_note|文章|Note|已完成|已完成|已完成|已完成|本人记录|
+|private_note|文章|Note|流程维护|已完成|流程维护|流程维护|本人记录|
 |note_export|文章|NoteExport|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |practice_log|实践|PracticeLog|已完成|已完成|已完成|已完成|本人记录|
 |teacher|名师|Teacher|已完成|已完成|已完成|已完成|业务配置/资料|
 |teacher_staff|名师|TeacherStaff|已完成|已完成|已完成|已完成|业务配置/资料|
-|teacher_question|名师|TeacherQuestion|已完成|已完成|已完成|已完成|本人记录|
-|teacher_answer|名师|TeacherAnswer|已完成|已完成|已完成|已完成|业务配置/资料|
+|teacher_question|名师|TeacherQuestion|流程维护|已完成|流程维护|流程维护|本人记录|
+|teacher_answer|名师|TeacherAnswer|流程维护|已完成|流程维护|流程维护|本人记录|
 |service_offering|名师|ServiceOffering|已完成|已完成|已完成|已完成|业务配置/资料|
 |appointment_slot|名师|AppointmentSlot|已完成|已完成|已完成|已完成|业务配置/资料|
 |appointment|名师|Appointment|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
@@ -72,21 +120,21 @@
 |course_release|课程|CourseRelease|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |lesson|课程|Lesson|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |course_cohort|课程|CourseCohort|已完成|已完成|已完成|已完成|业务配置/资料|
-|course_staff|课程|CourseStaff|已完成|已完成|已完成|已完成|业务配置/资料|
+|course_staff|课程|CourseStaff|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |enrollment|课程|Enrollment|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |study_progress|课程|StudyProgress|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |study_event|课程|StudyEvent|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
-|assignment|课程实践|Assignment|已完成|已完成|已完成|已完成|业务配置/资料|
-|submission|课程实践|Submission|已完成|已完成|已完成|已完成|本人记录|
-|teacher_review|课程实践|TeacherReview|已完成|已完成|已完成|已完成|业务配置/资料|
-|practice_task|课程实践|PracticeTask|已完成|已完成|已完成|已完成|业务配置/资料|
-|practice_checkin|课程实践|PracticeCheckin|已完成|已完成|已完成|已完成|本人记录|
+|assignment|课程实践|Assignment|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|submission|课程实践|Submission|流程维护|已完成|流程维护|流程维护|本人记录|
+|teacher_review|课程实践|TeacherReview|流程维护|已完成|流程维护|流程维护|本人记录|
+|practice_task|课程实践|PracticeTask|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|practice_checkin|课程实践|PracticeCheckin|流程维护|已完成|流程维护|流程维护|本人记录|
 |offline_license|课程|OfflineLicense|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |forum_section|社群|ForumSection|已完成|已完成|已完成|已完成|业务配置/资料|
-|forum_thread|社群|ForumThread|已完成|已完成|已完成|已完成|业务配置/资料|
-|comment|社群内容|Comment|已完成|已完成|已完成|已完成|业务配置/资料|
-|user_block|治理|UserBlock|已完成|已完成|已完成|已完成|本人记录|
-|report|治理|Report|已完成|已完成|已完成|已完成|业务配置/资料|
+|forum_thread|社群|ForumThread|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|comment|社群内容|Comment|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|user_block|治理|UserBlock|流程维护|已完成|流程维护|流程维护|本人记录|
+|report|治理|Report|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |moderation_action|治理|ModerationAction|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |user_restriction|治理|UserRestriction|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |content_authorization|治理|ContentAuthorization|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
@@ -166,13 +214,13 @@
 |notification|消息|Notification|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |device_token|消息|DeviceToken|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |notification_delivery|消息|NotificationDelivery|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
-|feedback|客服|Feedback|已完成|已完成|已完成|已完成|业务配置/资料|
-|feedback_reply|客服|FeedbackReply|已完成|已完成|已完成|已完成|业务配置/资料|
+|feedback|客服|Feedback|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
+|feedback_reply|客服|FeedbackReply|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |audit_log|运维治理|AuditLog|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |outbox_job|运维|OutboxJob|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |idempotency_record|运维|IdempotencyRecord|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |feature_config|运维运营|FeatureConfig|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
-|attachment_binding|媒体|AttachmentBinding|已完成|已完成|已完成|已完成|业务配置/资料|
+|attachment_binding|媒体|AttachmentBinding|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |benefit_scope|会员|BenefitScope|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |refund_transaction|交易|RefundTransaction|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
 |withdrawal_allocation|营销财务|WithdrawalAllocation|流程维护|已完成|流程维护|流程维护|事实/版本/敏感记录|
@@ -182,7 +230,7 @@
 
 ## 5. 完整物理表结构
 
-共 148 表、1752 列、402 外键、272 CHECK；列名、类型和默认值以真实数据库为准。
+共 150 表、1775 列、409 外键、277 CHECK；列名、类型和默认值以真实数据库为准。
 
 ### AccessRole / access_role
 
@@ -319,6 +367,8 @@
 |confirmedAt|timestamp with time zone|否|—|通用可写|
 |completedAt|timestamp with time zone|否|—|通用可写|
 |cancelReason|text|否|—|通用可写|
+|acceptedScheduleVersion|integer|是|1且大于0|学员确认专用流程维护|
+|scheduleSnapshot|jsonb|否|—|终态实际安排，不覆盖原快照|
 
 约束：
 - `Appointment_orderItemId_key`：`UNIQUE ("orderItemId")`
@@ -353,6 +403,8 @@
 |confirmed|integer|是|0||
 |state|text|是|'OPEN'::text|通用可写|
 |teacherId|text|是|—|teacher.id；通用可写|
+|scheduleVersion|integer|是|1且大于0|安排专用流程维护|
+|changeReason|text|否|—|最新延期/运营取消原因|
 
 约束：
 - `AppointmentSlot_pkey`：`PRIMARY KEY (id)`
@@ -1109,6 +1161,31 @@ APP/ADMIN短期access及可撤销refresh会话
 索引：
 - `CREATE INDEX "Course_status_category_idx" ON public."Course" USING btree (status, category)`
 
+### CourseCertificate
+
+本人研习完成记录；按发布版本生成一次，禁止通用CRUD
+
+|字段|数据库类型|必填|数据库默认值|关联/权限|
+|---|---|---|---|---|
+|id|text|是|(gen_random_uuid())::text||
+|userId|text|是|—||
+|courseId|text|是|—||
+|releaseId|text|是|—||
+|courseTitle|text|是|—||
+|lessonCount|integer|是|—||
+|completedAt|timestamp with time zone|是|—||
+|createdAt|timestamp with time zone|是|now()||
+
+约束：
+- `CourseCertificate_lessonCount_check`：`CHECK ("lessonCount" > 0)`
+- `CourseCertificate_pkey`：`PRIMARY KEY (id)`
+- `CourseCertificate_userId_releaseId_key`：`UNIQUE ("userId", "releaseId")`
+- `CourseCertificate_courseId_fkey`：`FOREIGN KEY ("courseId") REFERENCES "Course"(id)`
+- `CourseCertificate_releaseId_fkey`：`FOREIGN KEY ("releaseId") REFERENCES "CourseRelease"(id)`
+- `CourseCertificate_userId_fkey`：`FOREIGN KEY ("userId") REFERENCES "User"(id)`
+
+索引：
+
 ### CourseChapter / course_chapter
 
 草稿章节稳定ID；编辑不得全部重建键
@@ -1204,6 +1281,41 @@ APP/ADMIN短期access及可撤销refresh会话
 
 索引：
 - `CREATE UNIQUE INDEX "CourseRelease_courseId_version_key" ON public."CourseRelease" USING btree ("courseId", version)`
+
+### CourseReview
+
+真实学员课程评价；先审后发，版本校验，禁止通用CRUD
+
+|字段|数据库类型|必填|数据库默认值|关联/权限|
+|---|---|---|---|---|
+|id|text|是|(gen_random_uuid())::text||
+|userId|text|是|—||
+|courseId|text|是|—||
+|releaseId|text|是|—||
+|rating|integer|是|—||
+|body|text|是|—||
+|reviewState|text|是|'PENDING'::text||
+|version|integer|是|1||
+|reviewerId|text|否|—||
+|reviewedAt|timestamp with time zone|否|—||
+|deletedAt|timestamp with time zone|否|—||
+|createdAt|timestamp with time zone|是|now()||
+|updatedAt|timestamp with time zone|是|now()||
+
+约束：
+- `CourseReview_body_check`：`CHECK (char_length(body) >= 1 AND char_length(body) <= 5000)`
+- `CourseReview_pkey`：`PRIMARY KEY (id)`
+- `CourseReview_rating_check`：`CHECK (rating >= 1 AND rating <= 5)`
+- `CourseReview_reviewState_check`：`CHECK ("reviewState" = ANY (ARRAY['PENDING'::text, 'APPROVED'::text, 'REJECTED'::text, 'REMOVED'::text]))`
+- `CourseReview_userId_courseId_key`：`UNIQUE ("userId", "courseId")`
+- `CourseReview_version_check`：`CHECK (version > 0)`
+- `CourseReview_courseId_fkey`：`FOREIGN KEY ("courseId") REFERENCES "Course"(id)`
+- `CourseReview_releaseId_fkey`：`FOREIGN KEY ("releaseId") REFERENCES "CourseRelease"(id)`
+- `CourseReview_reviewerId_fkey`：`FOREIGN KEY ("reviewerId") REFERENCES "User"(id)`
+- `CourseReview_userId_fkey`：`FOREIGN KEY ("userId") REFERENCES "User"(id)`
+
+索引：
+- `CREATE INDEX "CourseReview_courseId_reviewState_createdAt_idx" ON public."CourseReview" USING btree ("courseId", "reviewState", "createdAt")`
 
 ### CourseStaff / course_staff
 
@@ -1403,6 +1515,7 @@ APP/ADMIN短期access及可撤销refresh会话
 |startsAt|timestamp with time zone|是|now()|通用可写|
 |grantActorId|text|否|—|app_user.id|
 |grantReason|text|否|—|通用可写|
+|startedAt|timestamp with time zone|否|—||
 
 约束：
 - `Enrollment_grantKey_key`：`UNIQUE ("grantKey")`
@@ -1509,6 +1622,8 @@ APP/ADMIN短期access及可撤销refresh会话
 |benefitUsageId|text|否|—|benefit_usage.id；通用可写|
 |confirmedAt|timestamp with time zone|否|—|通用可写|
 |cancelledAt|timestamp with time zone|否|—|通用可写|
+|acceptedScheduleVersion|integer|是|1且大于0|学员确认专用流程维护|
+|scheduleSnapshot|jsonb|否|—|终态实际安排，不覆盖原快照|
 
 约束：
 - `EventRegistration_checkinHash_key`：`UNIQUE ("checkinHash")`
@@ -1547,6 +1662,8 @@ APP/ADMIN短期access及可撤销refresh会话
 |publicOpenAt|timestamp with time zone|是|—|通用可写|
 |memberOpenAt|timestamp with time zone|否|—|通用可写|
 |rescheduledFromId|text|否|—|event_session.id；通用可写|
+|scheduleVersion|integer|是|1且大于0|安排专用流程维护|
+|changeReason|text|否|—|最新延期/运营取消原因|
 
 约束：
 - `EventSession_pkey`：`PRIMARY KEY (id)`
@@ -1872,6 +1989,7 @@ APP/ADMIN短期access及可撤销refresh会话
 
 索引：
 - `CREATE INDEX "domain_ForumThread_idx_0" ON public."ForumThread" USING btree ("sectionId", "createdAt", id)`
+- `CREATE INDEX forum_section_recent ON public."ForumThread" USING btree ("sectionId", "createdAt" DESC, id DESC) WHERE ("deletedAt" IS NULL)`
 
 ### GiftCreditAllocation / gift_credit_allocation
 
@@ -2537,6 +2655,7 @@ APP/ADMIN短期access及可撤销refresh会话
 |rangeStart|integer|否|—|通用可写|
 |rangeEnd|integer|否|—|通用可写|
 |deletedAt|timestamp with time zone|否|—||
+|ranges|jsonb|否|—||
 
 约束：
 - `Note_pkey`：`PRIMARY KEY (id)`
@@ -3590,6 +3709,7 @@ APP/ADMIN短期access及可撤销refresh会话
 - `domain_Refund_userId_fk`：`FOREIGN KEY ("userId") REFERENCES "User"(id)`
 
 索引：
+- `CREATE INDEX course_sales_refund_order_state ON public."Refund" USING btree ("orderId", state)`
 - `CREATE INDEX "domain_Refund_idx_0" ON public."Refund" USING btree ("orderId", "createdAt")`
 - `CREATE INDEX "domain_Refund_idx_1" ON public."Refund" USING btree (state, "updatedAt")`
 
@@ -4381,6 +4501,7 @@ APP/ADMIN短期access及可撤销refresh会话
 - `domain_TradeOrderItem_slotId_fk`：`FOREIGN KEY ("slotId") REFERENCES "AppointmentSlot"(id)`
 
 索引：
+- `CREATE INDEX course_sales_order_release ON public."TradeOrderItem" USING btree ("courseReleaseId", "orderId")`
 - `CREATE INDEX "domain_TradeOrderItem_idx_0" ON public."TradeOrderItem" USING btree ("offerId")`
 - `CREATE INDEX "domain_TradeOrderItem_idx_1" ON public."TradeOrderItem" USING btree ("orderId", state)`
 
@@ -4663,3 +4784,11 @@ APP/ADMIN短期access及可撤销refresh会话
 - `domain_WritingCampaign_sectionId_fk`：`FOREIGN KEY ("sectionId") REFERENCES "ForumSection"(id)`
 
 索引：
+
+2026-10-11 Apple会员确认约束增补：20261011083000_apple_membership_consents复用TradeOrder/TradeOrderItem/PaymentAttempt/ChannelProductMapping；新增1索引及3个不可变约束触发器，保护Apple会员购买确认与已映射SaleOffer身份/价格。155表（含元数据）不变、25迁移；无生产数据插入或重建。专用流程与实际发布验证见32。
+
+
+2026-10-13协商退款约束（51）：复用原预约/报名、Refund/RefundItem和预收账本；第38迁移扩展acceptedAt约束，添加BOOKING_DISPUTE同意状态检查与已确认方案不可变触发器、暂停预约索引。金额整数分，沿原用户/订单/资源锁序、幂等请求、持久任务/渠道确认及审计通知。无新表/模型，161表含元数据/160模型保持；38迁移本地应用、规范数据摘要一致。部分退款保留额不自动确认收入；付费履约依A05。
+
+
+2026-10-13第39迁移（52）：复用TradeOrder/SaleOffer/InventoryReservation/PaymentTransaction/Refund和账本，新增COHORT类型及CohortRegistration.orderItemId唯一外键/suspendedAt；购买身份/原安排与订单项快照不可变，报名需匹配可信收款。新增营期预收及异常待退/收入科目、有效售卖项唯一和订单索引；无新模型/表。39迁移本地应用，161表/160模型，规范数据和普通课程/教学摘要不变。COHORT_SALES_ENABLED默认false，worker持久恢复；正式渠道/iOS/原生和实际履约仍待验收。

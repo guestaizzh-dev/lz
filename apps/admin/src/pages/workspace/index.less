@@ -1,0 +1,31 @@
+.module {
+  height: 100%;
+  :global(.ant-list-item) { padding: 14px 0; }
+}
+.description {
+  margin-top: 5px;
+  color: #667085;
+  line-height: 1.65;
+}
+.workflow {
+  display: block;
+  height: 100%;
+  padding: 16px;
+  border: 1px solid #e6eaf0;
+  border-radius: 8px;
+  transition: background 160ms, border-color 160ms;
+  &:hover, &:focus-visible { background: #f5f9ff; border-color: #91caff; }
+  &:focus-visible { outline: 2px solid #1677ff; outline-offset: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { .workflow { transition: none; } }
+.activeGuide { font-weight: 600; }
+.guideSteps {
+  padding-left: 26px;
+  li { padding-left: 8px; margin-bottom: 24px; line-height: 1.8; }
+  li::marker { color: #1677ff; font-weight: 600; }
+}
+.cautions {
+  padding-left: 20px;
+  color: #667085;
+  li { margin-bottom: 10px; line-height: 1.8; }
+}

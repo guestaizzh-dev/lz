@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-17",
+  "files": [
+    {
+      "path": "apps/mobile/pages/course/player.uvue",
+      "sha256": "b815a303f935a0de6b947acc853a3fe5c3c0457725600b1bee5c566fcd6bb0b4"
+    },
+    {
+      "path": "apps/mobile/pages/course/detail.uvue",
+      "sha256": "40e98c6ba57971e8c6195329e898cc83d28bfe72af7582732c4b8466c7fcf8ac"
+    },
+    {
+      "path": "scripts/browser/course-recovery.cjs",
+      "sha256": "3ee47c6139d32fcec51bd6ad52b197fba104af2866bf396174c3d7bf42e4c920"
+    }
+  ],
+  "buildLog": "outputs/course-recovery/app-build.log"
+}

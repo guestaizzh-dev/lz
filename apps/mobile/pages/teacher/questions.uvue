@@ -1,0 +1,6 @@
+<template><view class="page"><PageHead title="我的问答"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><text class="meta">查看已提交的问题与老师答复；老师档案暂不展示时，原问答记录仍会保留。</text><TeacherQuestions :teacherId="teacherId" :mineOnly="true"/></view></scroll-view></view></template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';import TeacherQuestions from '../../components/TeacherQuestions.uvue';
+const teacherId=ref('');onLoad(options=>{teacherId.value=options?.teacherId??'';});
+</script>
+<style>@import '../../styles/app.css';</style>

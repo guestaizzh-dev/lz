@@ -1,0 +1,48 @@
+{
+  "passed": 10,
+  "checks": [
+    {
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "path": "/catalog/home",
+      "status": 200
+    },
+    {
+      "path": "/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/auth/refresh",
+      "status": 401
+    },
+    {
+      "path": "/auth/refresh",
+      "status": 400
+    },
+    {
+      "path": "/admin/auth/login",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/session",
+      "status": 200
+    },
+    {
+      "path": "/admin/overview",
+      "status": 200
+    },
+    {
+      "path": "/admin/data/schema",
+      "status": 200
+    },
+    {
+      "path": "/admin/articles?size=1",
+      "status": 200
+    }
+  ],
+  "businessFixturesWritten": false,
+  "adminSessionCreated": true,
+  "refreshSecretsExposed": false
+}

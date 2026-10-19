@@ -1,0 +1,152 @@
+{
+  "migrations": 50,
+  "before": {
+    "User": {
+      "count": 15,
+      "digest": "c98b0fb9b41760ebafa6f8100521cab5"
+    },
+    "Article": {
+      "count": 10,
+      "digest": "99c6d727cf21aec8cf0ecffb66ecfa04"
+    },
+    "ArticleRelease": {
+      "count": 7,
+      "digest": "0fdfb99623f17e04cd6ddc0725143352"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "c4d928c9e0e8879fca76b83f7145a0ec"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "08ec41caf00478feabd6ec7fe873f019"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "3791c1cc465a13fd0a122365c5f9414d"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "07fdd5a2fa1f3ecce4fd31daa033de11"
+    },
+    "LivePoll": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Note": {
+      "count": 3,
+      "digest": "7b5cebcb52f189fec2c6da8f861446c0"
+    },
+    "Resource": {
+      "count": 45,
+      "digest": "e78e84a801b8c2a3cd14f85c74a41da6"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "ee3932c95e669d90b6b1cb4559174b6c"
+    },
+    "PollVote": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "MediaUpload": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AuthIdentity": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "7f7b72c0928556f31ec2d91245d0a0e4"
+    },
+    "Refund": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "after": {
+    "User": {
+      "count": 15,
+      "digest": "c98b0fb9b41760ebafa6f8100521cab5"
+    },
+    "Article": {
+      "count": 10,
+      "digest": "99c6d727cf21aec8cf0ecffb66ecfa04"
+    },
+    "ArticleRelease": {
+      "count": 7,
+      "digest": "0fdfb99623f17e04cd6ddc0725143352"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "c4d928c9e0e8879fca76b83f7145a0ec"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "08ec41caf00478feabd6ec7fe873f019"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "3791c1cc465a13fd0a122365c5f9414d"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "07fdd5a2fa1f3ecce4fd31daa033de11"
+    },
+    "LivePoll": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Note": {
+      "count": 3,
+      "digest": "7b5cebcb52f189fec2c6da8f861446c0"
+    },
+    "Resource": {
+      "count": 45,
+      "digest": "e78e84a801b8c2a3cd14f85c74a41da6"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "ee3932c95e669d90b6b1cb4559174b6c"
+    },
+    "PollVote": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "MediaUpload": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AuthIdentity": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "7f7b72c0928556f31ec2d91245d0a0e4"
+    },
+    "Refund": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "unchanged": true
+}

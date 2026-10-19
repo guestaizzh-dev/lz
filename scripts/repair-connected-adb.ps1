@@ -7,7 +7,8 @@ $deviceInstance = $DeviceInstanceId
 $parameterKey = 'HKLM:\SYSTEM\CurrentControlSet\Enum\' + $deviceInstance + '\Device Parameters'
 $adbInterfaceGuid = '{F72FE0D4-CBCB-407D-8814-9ED673D0DD6B}'
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
-$backupFile = Join-Path $workspaceRoot 'outputs/ui/connected-adb-registry-backup.json'
+$backupSuffix = $deviceInstance -replace '[^A-Za-z0-9_-]', '_'
+$backupFile = Join-Path $workspaceRoot ('outputs/ui/connected-adb-registry-backup-' + $backupSuffix + '.json')
 $resultFile = Join-Path $workspaceRoot 'outputs/ui/connected-adb-driver-repair.log'
 try {
     $device = Get-PnpDevice -InstanceId $deviceInstance

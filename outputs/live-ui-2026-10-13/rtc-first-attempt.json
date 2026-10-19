@@ -1,0 +1,36 @@
+{
+  "status": "failed",
+  "checkedAt": "2026-10-14T06:21:57.814Z",
+  "checks": [
+    "项目受控开播台通过正式ZEGO Web SDK实际推流（摄像头使用浏览器测试设备）",
+    "后端通过ZEGO真实DescribeRTCStreamState确认活跃流并切换直播状态"
+  ],
+  "error": "TimeoutError: frame.waitForFunction: Timeout 35000ms exceeded.",
+  "errors": [],
+  "diagnostics": [],
+  "appText": "书院直播\n不争之道 · 实际推流\n与书院相遇，共同研习经典\n线上共研 · 直播\n重新连接\n同窗共研\n稍候自动更新\n还没有发言，写下你的研习所得。\n写下研习心得\n本场延伸研习\n查看书院会员权益\n网络中断时会自动重连，长时间没有画面可点击「重新连接」。",
+  "videos": [
+    [
+      {
+        "width": 0,
+        "height": 0,
+        "ready": 0,
+        "paused": false,
+        "muted": true,
+        "tracks": [
+          {
+            "kind": "video",
+            "state": "live",
+            "enabled": true,
+            "muted": true
+          }
+        ]
+      }
+    ]
+  ],
+  "playerText": [
+    "开启声音\n全屏\n\n正在直播 · 点击开启声音聆听主讲"
+  ],
+  "csp": [],
+  "providerAdapterSimulated": false
+}

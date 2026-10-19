@@ -1,0 +1,115 @@
+[
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/health",
+    "checked_at_utc": "2026-10-10T10:47:53.639795+00:00",
+    "status": 200,
+    "response_sha256": "ded13f99c4476e90da018b9ad96573d24601f89357a1f4b015d7effc9c3db4cb",
+    "result": {
+      "status": "ok",
+      "service": "daoxue-api"
+    },
+    "elapsed_ms": 793
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/configuration",
+    "checked_at_utc": "2026-10-10T10:47:54.432805+00:00",
+    "status": 200,
+    "response_sha256": "59ea94b25126dfae636695fe3cefee10dfdaeab71a730cace1d9d7d307123b4e",
+    "keys": [
+      "academyName",
+      "description",
+      "supportPhone",
+      "supportEmail",
+      "supportHours"
+    ],
+    "elapsed_ms": 264
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/home",
+    "checked_at_utc": "2026-10-10T10:47:54.696698+00:00",
+    "status": 200,
+    "response_sha256": "e651039b3b7ad21d80c939b909d4637873f19be3fb2a8e687490e1c2b5e54542",
+    "keys": [
+      "articles",
+      "courses",
+      "products",
+      "events",
+      "development"
+    ],
+    "counts": {
+      "articles": 0,
+      "courses": 0,
+      "products": 0,
+      "events": 0
+    },
+    "elapsed_ms": 272
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/articles",
+    "checked_at_utc": "2026-10-10T10:47:54.968438+00:00",
+    "status": 200,
+    "response_sha256": "d47160c01f441269d023ff1a0e5126668c511828d22da948a5f6f4ed033367a5",
+    "keys": [
+      "items",
+      "nextCursor"
+    ],
+    "item_count": 0,
+    "elapsed_ms": 251
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/courses",
+    "checked_at_utc": "2026-10-10T10:47:55.219822+00:00",
+    "status": 200,
+    "response_sha256": "d47160c01f441269d023ff1a0e5126668c511828d22da948a5f6f4ed033367a5",
+    "keys": [
+      "items",
+      "nextCursor"
+    ],
+    "item_count": 0,
+    "elapsed_ms": 272
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/products",
+    "checked_at_utc": "2026-10-10T10:47:55.492187+00:00",
+    "status": 200,
+    "response_sha256": "d47160c01f441269d023ff1a0e5126668c511828d22da948a5f6f4ed033367a5",
+    "keys": [
+      "items",
+      "nextCursor"
+    ],
+    "item_count": 0,
+    "elapsed_ms": 244
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/discovery/search?type=COURSE",
+    "checked_at_utc": "2026-10-10T10:47:55.735701+00:00",
+    "status": 200,
+    "response_sha256": "64a0eaf6bb40d458affe35ad28bbb48a9e093005986c80abe2e6d017545f1501",
+    "keys": [
+      "items",
+      "total",
+      "page",
+      "size",
+      "hasMore"
+    ],
+    "item_count": 0,
+    "total": 0,
+    "elapsed_ms": 252
+  },
+  {
+    "method": "GET",
+    "url": "https://academy.43-160-229-173.sslip.io/api/v1/learning/plans",
+    "checked_at_utc": "2026-10-10T10:47:55.988045+00:00",
+    "status": 200,
+    "response_sha256": "0a850c80afe2c43c71e7d72c3b61c28b95f6e8fb0707158ab10a868e90811fd2",
+    "item_count": 3,
+    "elapsed_ms": 249
+  }
+]

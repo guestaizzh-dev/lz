@@ -1,0 +1,13 @@
+{
+  "stage": "M08 E04 license service only",
+  "testFiles": 5,
+  "tests": 61,
+  "passed": 61,
+  "failed": 0,
+  "evidence": ".runtime/m08-offline-tests.log",
+  "migration": 51,
+  "unchangedBusinessTables": 19,
+  "nativeDownloadReady": false,
+  "deployed": false,
+  "apkGenerated": false
+}

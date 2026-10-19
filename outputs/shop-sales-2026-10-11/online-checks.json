@@ -1,0 +1,312 @@
+{
+  "checkedAt": "2026-10-11T09:02:31.637Z",
+  "origin": "https://academy.43-160-229-173.sslip.io",
+  "passed": 60,
+  "publicArticles": 6,
+  "publicCourses": 4,
+  "demoReadonly": true,
+  "memberBodyProtected": true,
+  "smsDisabled": true,
+  "checks": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/login",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/admin/config",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/config/presentation/history",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/home",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/articles?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/courses?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/discovery/search?type=COURSE&size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/articles/089278cc-1e45-4577-8cfd-b1fbb81692e0",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/commerce/courses/e45ec267-d345-4eb0-a8fe-a973326a43ef/quote?platform=ANDROID",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/me/notes",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/learning/library",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/auth/sms",
+      "method": "POST",
+      "status": 503
+    },
+    {
+      "path": "/admin/courses?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/course-versions/e45ec267-d345-4eb0-a8fe-a973326a43ef",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/course-versions/50032859-2807-4484-a140-e56606b64649",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/course-versions/e45ec267-d345-4eb0-a8fe-a973326a43ef",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/entitlements/users?size=50&q=19900001002",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/users?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/orders",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/audit?action=config.update",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/learning/plans",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/memberships/plans",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/memberships/plans/11d50bbf-2783-48b3-a094-d7c63f1ba330/channel-check",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/apple-products/courses/e45ec267-d345-4eb0-a8fe-a973326a43ef",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/apple-transactions?state=REVIEW",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/apple-transactions",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/payments/apple/notify",
+      "method": "POST",
+      "status": 503
+    },
+    {
+      "path": "/admin/membership-benefits/plans/11d50bbf-2783-48b3-a094-d7c63f1ba330",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/learning/benefits",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/membership-benefits/plans/11d50bbf-2783-48b3-a094-d7c63f1ba330",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/entitlements?kind=membership&size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/membership-benefits/users/98bfbd42-d4ce-455c-8de5-9c681310968d",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/overview",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/membership-orders",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/membership-orders",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/commerce/membership-orders",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/commerce/memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330/quote?platform=WEB",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/commerce/memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330/quote?platform=ANDROID",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/commerce/memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330/quote?platform=IOS",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/commerce/membership-orders",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/admin/apple-memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/apple-memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/commerce/apple/memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330/quote",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/product-orders",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/product-orders",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/commerce/product-orders",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/auth/session",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/products?sort=popular&size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/products/a82ad172-4b8e-4a85-80c6-9928be6ce79c",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/products/a82ad172-4b8e-4a85-80c6-9928be6ce79c/editorial",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/products/e6eac98d-a545-4e82-8e78-17e2a44ec098",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/products/e6eac98d-a545-4e82-8e78-17e2a44ec098/editorial",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/products/7455f790-734a-4f45-adfe-c442a95707f0",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/products/7455f790-734a-4f45-adfe-c442a95707f0/editorial",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/products/9fcbed6a-8bcc-4e50-b87c-7dcbb6593928",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/products/9fcbed6a-8bcc-4e50-b87c-7dcbb6593928/editorial",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/products/service-offerings",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/courses/e45ec267-d345-4eb0-a8fe-a973326a43ef/tools",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/logout",
+      "method": "POST",
+      "status": 200
+    }
+  ]
+}

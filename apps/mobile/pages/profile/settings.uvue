@@ -1,13 +1,11 @@
 <template>
 <view class="page">
+<PageHead title="隐私与设置"/>
 <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
 <view class="content">
-<SafeTop/>
-<view class="back-row" @click="back">
-<AppIcon name="arrow-left" :size="22"/>
-<text class="back-title">隐私与设置</text>
-</view>
-<view class="menu-group">
+
+<view class="menu-group"><view v-if="currentUser" class="menu-row" @click="uni.navigateTo({url:'/pages/profile/edit'})"><AppIcon name="user" :size="22"/><text class="menu-label">个人资料</text><AppIcon name="arrow-right" :size="16"/></view>
+<view v-if="currentUser" class="menu-row" @click="uni.navigateTo({url:'/pages/profile/accounts'})"><AppIcon name="shield-check" :size="22"/><text class="menu-label">账号与登录</text><AppIcon name="arrow-right" :size="16"/></view>
 <view v-if="currentUser" class="menu-row" @click="addresses()"><AppIcon name="package" :size="22"/><text class="menu-label">收货地址</text><AppIcon name="arrow-right" :size="16"/></view>
 <view class="menu-row" @click="privacy">
 <AppIcon name="shield-check" :size="22"/>
@@ -15,6 +13,8 @@
 <AppIcon name="arrow-right" :size="16"/>
 </view>
 </view>
+<view v-if="currentUser" class="section notification-section"><text class="section-heading">消息与通知</text><text class="intro">站内消息始终保留。系统通知可按自己的节奏开启。</text><ContentState v-if="preferencesLoading||preferencesError" :loading="preferencesLoading" :error="preferencesError" @retry="loadPreferences"/><template v-if="preferences"><view class="preference-row"><text class="body-copy grow">接收系统通知</text><switch :checked="preferences!.pushEnabled" :disabled="preferenceSaving" color="#245564" aria-label="接收系统通知" @change="setPreference('pushEnabled',$event.detail.value)"/></view><template v-if="preferences!.pushEnabled"><view v-for="item in preferenceChoices" :key="item.key" class="preference-row"><text class="body-copy grow">{{item.title}}</text><switch :checked="preferences![item.key]" :disabled="preferenceSaving" color="#245564" :aria-label="item.title" @change="setPreference(item.key,$event.detail.value)"/></view><text class="meta">{{permission}}</text><text v-if="!preferences!.gatewayReady" class="meta">系统推送暂未开通，所有通知仍可在书院消息中查看。</text><button class="setting-action" @click="openNotificationPermission">打开系统通知设置</button><text v-if="pushError" class="footer-note">{{pushError}}</text></template></template><button class="setting-action" @click="uni.navigateTo({url:'/pages/profile/messages'})">查看书院消息 ›</button></view>
+<view class="section"><text class="section-heading">本机显示</text><text class="intro">恢复阅读字号与筛选设置。账号、未同步的研习记录与私人内容会保留。</text><button class="setting-action" @click="resetDisplay">恢复显示设置</button></view>
 <view v-if="currentUser" class="section">
 <text class="section-heading">我的研习方向</text>
 <text class="intro">选择感兴趣的内容，可随时修改。</text>
@@ -34,16 +34,42 @@
 </view>
 </template>
 <script setup lang="ts">
-import SafeTop from '../../components/SafeTop.uvue';
-import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {currentUser,clearSession} from '../../lib/session';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';import {notificationPermission,openNotificationPermission,refreshPush} from '../../lib/notifications';import type {NotificationPreferences} from '../../lib/notifications';
+import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {removeStudyUser} from '../../lib/study-queue';import {currentUser,clearSession,sessionGeneration} from '../../lib/session';
 const choices=['经典研习','实践修行','生活应用','少儿启蒙','名师解读','文创','养生交流','线下活动'],tags=ref<string[]>([]),busy=ref(false),error=ref('');
 const back=()=>uni.navigateBack(),privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
 const appVersion=uni.getAppBaseInfo().appVersion;
 const addresses=()=>uni.navigateTo({url:'/pages/shop/addresses'});
-function toggle(value:string){tags.value=tags.value.includes(value)?tags.value.filter(item=>item!==value):[...tags.value,value];}
-async function saveTags(){busy.value=true;error.value='';try{await request('/me/tags',{method:'PATCH',data:{tags:tags.value}});if(currentUser.value)currentUser.value={...currentUser.value,tags:tags.value};uni.showToast({title:'已保存',icon:'none'});}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
-async function signOut(){busy.value=true;try{await request('/auth/logout',{method:'POST'});clearSession();back();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
-function closeAccount(){uni.showModal({title:'注销书院账号',content:'将删除私人笔记、收藏、日志、学习进度、购物车和收货地址，撤销课程与会员权限，清除个人资料并退出全部登录。此操作无法恢复。',confirmText:'确认注销',success:async(result)=>{if(!result.confirm)return;busy.value=true;try{await request('/me/close-account',{method:'POST',data:{confirmation:'确认注销'}});clearSession();back();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}});}
+function toggle(value:string){if(busy.value)return;tags.value=tags.value.includes(value)?tags.value.filter(item=>item!==value):[...tags.value,value];}
+async function saveTags(){if(busy.value)return;busy.value=true;error.value='';try{await request('/me/tags',{method:'PATCH',data:{tags:tags.value}});if(currentUser.value)currentUser.value={...currentUser.value,tags:tags.value};uni.showToast({title:'已保存',icon:'none'});}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
+async function signOut(){busy.value=true;try{try{await request('/me/push-device',{method:'DELETE'});await request('/auth/logout',{method:'POST'});}catch{}clearSession();back();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}
+type ClosureStatus={pendingBookings:number;pendingOrders:number;pendingRefunds:number;unresolvedPaidOrders:number;paidCourses:number;paidMemberships:number;receiptReference:string};
+async function closeAccount(){
+  if(busy.value)return;
+  busy.value=true;error.value='';
+  try{
+    const status=await request<ClosureStatus>('/me/close-account/status');
+    if(status.pendingBookings){uni.showModal({title:'先处理书院之约',content:'仍有有效预约、活动报名或训练营，请先取消或完成服务后再注销。',showCancel:false});return;}
+    if(status.pendingOrders||status.pendingRefunds||status.unresolvedPaidOrders){
+      uni.showModal({title:'请先处理订单与售后',content:'还有待付款、退款或履约中的交易。处理完成后可注销，当前账号和学习权限会保留。',confirmText:'查看订单',success:result=>{if(result.confirm)uni.showActionSheet({itemList:['购课订单','会员订单','商品订单'],success:r=>uni.navigateTo({url:r.tapIndex===1?'/pages/membership/orders':r.tapIndex===2?'/pages/shop/orders':'/pages/course/orders'})});}});return;
+    }
+    uni.showModal({title:(status.paidCourses||status.paidMemberships)?'确认放弃已购学习与会员权限？':'注销书院账号',content:((status.paidCourses||status.paidMemberships)?'你还有 '+status.paidCourses+' 门已购课程、'+status.paidMemberships+' 段已购会员。注销将放弃剩余学习与会员权限，不会自动退款。需要退款请先返回订单申请。\n\n':'')+'私人笔记、日志、学习进度、地址及个人资料将清除，所有登录与会员权限将失效，无法恢复。交易记录按售后要求保留。请先保存订单编号；注销后可凭编号联系书院客服。',confirmText:(status.paidCourses||status.paidMemberships)?'放弃并注销':'确认注销',success:async result=>{
+      if(!result.confirm)return;busy.value=true;error.value='';
+      try{
+        const receipt=await request<{receiptReference:string}>('/me/close-account',{method:'POST',data:{confirmation:'确认注销',forfeitPaidAccess:status.paidCourses>0||status.paidMemberships>0}});
+        const closedUser=currentUser.value?.id??'';try{if(closedUser)removeStudyUser(closedUser);}finally{clearSession();}uni.showModal({title:'账号已注销',content:'售后追溯编号：'+receipt.receiptReference+'\n可保存此编号及订单付款凭证，联系书院客服核查历史交易。',confirmText:'复制编号',cancelText:'完成',success:r=>{if(r.confirm)uni.setClipboardData({data:receipt.receiptReference});back();}});
+      }catch(e){error.value=(e as Error).message;}finally{busy.value=false;}
+    }});
+  }catch(e){error.value=(e as Error).message;}finally{busy.value=false;}
+}
+const preferences=ref<NotificationPreferences|null>(null),preferencesLoading=ref(false),preferencesError=ref(''),preferenceSaving=ref(false),pushError=ref(''),permission=ref('');
+const preferenceChoices=[{key:'transactions',title:'订单、预约与客服'},{key:'learning',title:'课程、训练营与直播'},{key:'community',title:'交流审核与老师答复'}] as {key:'transactions'|'learning'|'community';title:string}[];
+async function loadPreferences(){if(!currentUser.value)return;const generation=sessionGeneration();preferencesLoading.value=true;preferencesError.value='';try{const row=await request<NotificationPreferences>('/me/notification-preferences');if(generation===sessionGeneration())preferences.value=row;}catch(e){if(generation===sessionGeneration())preferencesError.value=(e as Error).message;}finally{if(generation===sessionGeneration())preferencesLoading.value=false;}}
+async function setPreference(key:'pushEnabled'|'transactions'|'learning'|'community',value:boolean){if(!preferences.value||preferenceSaving.value)return;preferenceSaving.value=true;preferencesError.value='';pushError.value='';const generation=sessionGeneration(),next={...preferences.value,[key]:value};try{const row=await request<NotificationPreferences>('/me/notification-preferences',{method:'PATCH',data:{expectedVersion:next.version,pushEnabled:next.pushEnabled,transactions:next.transactions,learning:next.learning,community:next.community}});if(generation!==sessionGeneration())return;preferences.value=row;try{await refreshPush();}catch{pushError.value='系统通知暂不可用，请检查系统权限；站内消息不受影响。';}}catch(e){if(generation===sessionGeneration()){preferencesError.value=(e as Error).message;await loadPreferences();}}finally{if(generation===sessionGeneration())preferenceSaving.value=false;}}
+function resetDisplay(){uni.showModal({title:'恢复显示设置',content:'阅读字号与临时筛选将恢复默认，不清除私人记录或未同步研习。',confirmText:'恢复默认',success:r=>{if(r.confirm){for(const key of ['readerFontSize','academyFormat','searchQuery'])uni.removeStorageSync(key);uni.showToast({title:'已恢复显示设置',icon:'none'});}}});}
+watch(()=>currentUser.value?.id,()=>{preferences.value=null;preferencesError.value='';preferencesLoading.value=false;preferenceSaving.value=false;tags.value=[...(currentUser.value?.tags??[])];});
+onShow(()=>{permission.value=notificationPermission();void loadPreferences();void refreshPush().catch(()=>{});});
 onLoad(()=>{tags.value=[...(currentUser.value?.tags??[])];});
 </script>
-<style>@import '../../styles/app.css';.interest-grid{flex-direction:row;flex-wrap:wrap;margin-top:18px;}.interest-chip{padding:13px 17px;border-radius:4px;margin-right:8px;margin-bottom:10px;background-color:#E8E3D9;}.close-account{border-style:solid;border-width:0;color:#A64D37;background-color:transparent;font-size:13px;border-width:0;margin-top:24px;min-height:44px;line-height:19px;}</style>
+<style>@import '../../styles/app.css';.preference-row{flex-direction:row;align-items:center;min-height:56px;padding:8px 0;}.setting-action{align-self:flex-start;min-height:44px;padding:10px 0;margin:4px 0;border-width:0;background-color:transparent;color:#245564;font-size:14px;line-height:24px;}.interest-grid{flex-direction:row;flex-wrap:wrap;margin-top:18px;}.interest-chip{padding:13px 17px;border-radius:4px;margin-right:8px;margin-bottom:10px;background-color:#E8E3D9;}.close-account{border-style:solid;border-width:0;color:#A64D37;background-color:transparent;font-size:13px;border-width:0;margin-top:24px;min-height:44px;line-height:19px;}</style>

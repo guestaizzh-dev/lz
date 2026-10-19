@@ -1,0 +1,42 @@
+$ pnpm --filter @daoxue/api db:migrate
+$ prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "daoxue_dev", schema "public" at "127.0.0.1:55432"
+
+26 migrations found in prisma/migrations
+
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+
+All migrations have been successfully applied.

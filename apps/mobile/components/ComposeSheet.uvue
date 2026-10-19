@@ -1,0 +1,34 @@
+<template>
+<view v-if="visible" class="compose-mask" :style="{bottom:keyboardBottom+'px'}" @click="close">
+<view class="compose-sheet" :style="{paddingBottom:Math.max(16,safeBottom)+'px',maxHeight:Math.max(0,windowHeight-keyboardBottom)+'px'}" @click.stop="">
+<view class="compose-head"><view class="compose-heading"><text class="compose-title">{{title}}</text><text v-if="subtitle" class="compose-subtitle">{{subtitle}}</text></view><button class="compose-close" aria-label="关闭编辑器" :disabled="saving" @click="close"><AppIcon name="x" :size="20"/></button></view>
+<scroll-view direction="vertical" class="compose-body" :style="{maxHeight:Math.max(72,windowHeight-keyboardBottom-180)+'px'}"><slot/>
+<scroll-view v-if="quote" direction="vertical" class="compose-quote"><text class="compose-quote-text" :user-select="true">{{quote}}</text></scroll-view>
+<textarea :class="['compose-input',inputFocused?'compose-input-focused':'']" :value="modelValue" :maxlength="maxlength??10000" :placeholder="placeholder??'写下你的想法…'" :focus="focused" :adjust-position="false" :disabled="saving" @focus="inputFocused=true" @blur="inputFocused=false" @input="emit('update:modelValue',$event.detail.value)"/>
+</scroll-view>
+<text v-if="error" class="compose-error">{{error}}</text>
+<view class="compose-footer"><text class="compose-count">{{modelValue.length}} / {{maxlength??10000}}</text><button :class="['compose-submit',saving||disabled?'compose-submit-disabled':'']" :disabled="saving||disabled" @click="emit('submit')">{{saving?'保存中…':submitLabel??'保存'}}</button></view>
+</view></view>
+</template>
+<script setup lang="ts">
+import {ref,watch,nextTick,onUnmounted} from 'vue';import AppIcon from './AppIcon.uvue';
+const props=defineProps<{visible:boolean;title:string;subtitle?:string;quote?:string;modelValue:string;placeholder?:string;maxlength?:number;saving?:boolean;error?:string;disabled?:boolean;submitLabel?:string}>();
+const emit=defineEmits<{'update:modelValue':[value:string];close:[];submit:[]}>();
+const safeBottom=uni.getWindowInfo().safeAreaInsets?.bottom??0;
+const windowHeight=ref(uni.getWindowInfo().windowHeight);onResize(options=>{windowHeight.value=options.size.windowHeight;});
+const focused=ref(false),inputFocused=ref(false),keyboardBottom=ref(0);let initialHeight=uni.getWindowInfo().windowHeight;
+watch(()=>props.visible,visible=>{focused.value=false;if(visible){initialHeight=uni.getWindowInfo().windowHeight;windowHeight.value=initialHeight;nextTick(()=>focused.value=true);}else keyboardBottom.value=0;},{immediate:true});
+function close(){if(!props.saving)emit('close');}
+// #ifdef APP
+function keyboard(event:{height:number}){windowHeight.value=uni.getWindowInfo().windowHeight;keyboardBottom.value=Math.max(0,event.height-Math.max(0,initialHeight-uni.getWindowInfo().windowHeight));}
+const keyboardListener=uni.onKeyboardHeightChange(keyboard);onUnmounted(()=>uni.offKeyboardHeightChange(keyboardListener));
+// #endif
+</script>
+<style>
+.compose-mask{position:fixed;left:0;right:0;top:0;bottom:0;background-color:rgba(23,41,45,0.35);justify-content:flex-end;z-index:1000;}.compose-sheet{background-color:#FAF8F2;border-top-left-radius:16px;border-top-right-radius:16px;padding:16px 20px 24px;}.compose-body{min-height:0;flex-shrink:1;}.compose-head{flex-shrink:0;flex-direction:row;align-items:center;margin-bottom:12px;}.compose-heading{flex:1;}.compose-title{font-family:AcademySerif;font-size:18px;line-height:28px;color:#17292D;}.compose-subtitle{font-family:AcademySans;font-size:12px;line-height:20px;color:#637276;margin-top:2px;}.compose-close{width:44px;height:44px;margin:0;padding:0;align-items:center;justify-content:center;background-color:transparent;border-width:0;}.compose-quote{max-height:96px;margin-bottom:12px;background-color:#EEE9DF;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;padding:10px 12px;}.compose-quote-text{font-family:AcademySans;font-size:13px;line-height:22px;color:#637276;}.compose-input{width:100%;height:156px;min-height:72px;flex-shrink:1;background-color:#F4F0E7;border-radius:8px;padding:12px;font-family:AcademySans;font-size:16px;line-height:27px;color:#17292D;}.compose-footer{flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;margin-top:12px;}.compose-count{font-size:12px;color:#788084;}.compose-submit{margin:0;min-width:100px;min-height:44px;line-height:22px;padding:11px 20px;background-color:#245564;color:#FAF8F2;border-width:0;border-radius:22px;font-size:14px;}.compose-error{font-size:13px;line-height:22px;color:#B95543;margin-top:10px;}
+/* #ifdef WEB */
+.compose-mask{height:auto;}.compose-input{box-sizing:border-box;}.compose-sheet{max-height:100%!important;min-height:0;padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(23,41,45,0.08);}.compose-submit:disabled{opacity:0.5;}
+@media (min-width:600px){.compose-sheet{width:100%;max-width:640px;align-self:center;box-sizing:border-box;}}
+/* #endif */
+.compose-heading{min-width:0;}.compose-input{border-width:1px;border-style:solid;border-color:#D8D4CA;}.compose-input-focused{border-color:#245564;background-color:#FAF8F2;}.compose-count{font-family:AcademySans;line-height:20px;color:#637276;margin-right:12px;}.compose-submit{font-family:AcademySans;flex-shrink:0;white-space:normal;}.compose-submit-disabled{opacity:0.5;}.compose-error{font-family:AcademySans;color:#914A3E;padding:8px 12px;border-radius:8px;background-color:#F4E8E2;}
+</style>

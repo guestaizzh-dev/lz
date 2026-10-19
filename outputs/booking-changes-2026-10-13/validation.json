@@ -1,0 +1,22 @@
+{
+  "stage": "A04/A06 paid booking schedule changes",
+  "apiBuild": "passed",
+  "adminTypecheck": "passed",
+  "adminBuild": "passed",
+  "appWebBuild": "passed",
+  "appCompiler": "HBuilderX 5.26 VDOM web target",
+  "relatedTests": 79,
+  "finalBookingTests": 30,
+  "testBatchesOverlap": true,
+  "browserChecks": 15,
+  "browserErrors": [],
+  "businessResponsesMocked": false,
+  "paymentAdapterSimulated": true,
+  "localDataMatchesPreviousSnapshot": true,
+  "newMigrations": 0,
+  "deployed": false,
+  "newApk": false,
+  "deviceAcceptance": false,
+  "commercialAcceptance": false,
+  "fullM04Complete": false
+}

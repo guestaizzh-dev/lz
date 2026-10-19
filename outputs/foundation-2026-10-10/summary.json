@@ -1,0 +1,18 @@
+{
+  "release": "20261011-foundation-04",
+  "completedTasks": [
+    "F01",
+    "F05",
+    "F06",
+    "F08",
+    "C01"
+  ],
+  "pendingAcceptance": [
+    "F02"
+  ],
+  "backendTests": 171,
+  "onlineChecks": 19,
+  "dataPreserved": true,
+  "commercialBaselinePercent": 29.0,
+  "next": "C06; missing formal identities are recorded, then independent C10"
+}

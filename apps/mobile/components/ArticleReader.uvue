@@ -1,0 +1,82 @@
+<template><view>
+<!-- #ifdef WEB -->
+<view :id="elementId" class="academy-reader-host"/>
+<!-- #endif -->
+<!-- #ifdef APP -->
+<web-view :id="elementId" src="/static/reader/index.html" :fullscreen="false" :style="{height:height+'px',width:'100%'}" :bounces="false" :horizontal-scroll-bar-access="false" :vertical-scroll-bar-access="false" associative-container="nested-scroll-view" @load="ready" @message="message" @contentheightchange="height=$event.detail.height" @error="failed=true"/>
+<text v-if="failed" class="reader-failure" @click="ready">阅读器加载失败，点击重试</text>
+<!-- #endif -->
+</view></template>
+<script setup lang="ts">
+import {ref,onMounted,onUnmounted,watch} from 'vue';
+// #ifdef WEB
+import '../static/reader/reader-engine.js';
+import '../static/reader/reader.css';
+// #endif
+import {request,apiBase} from '../lib/api';
+import {readerAction} from '../lib/reader';
+import type {ReaderSelection,ReaderAction} from '../lib/reader';
+const props=defineProps<{articleId:string;blocks:{id:string;type:string;text:string;url?:string;caption?:string;mediaId?:string}[];fontSize:number;annotations:unknown[];templateCode?:string}>();
+const emit=defineEmits<{action:[event:ReaderAction]}>();
+const elementId='reader-'+Math.random().toString(36).slice(2),height=ref(320),failed=ref(false);let loaded=false;
+let webReader:{render:(data:unknown)=>void;destroy:()=>void;clearSelection:()=>void;mediaResult:(data:unknown)=>void;pauseMedia:()=>void}|null=null;
+function payload(){
+let selectionMode='native';
+// #ifdef APP
+selectionMode='touch';
+// #endif
+return{blocks:props.blocks,fontSize:props.fontSize,annotations:props.annotations,selectionMode,templateCode:props.templateCode??'PLAIN'};}
+function render(){
+// #ifdef WEB
+webReader?.render(payload());
+// #endif
+// #ifdef APP
+if(loaded)uni.createWebViewContext(elementId)?.evalJS('renderAcademyReader('+JSON.stringify(encodeURIComponent(JSON.stringify(payload())))+')');
+// #endif
+}
+function ready(){loaded=true;failed.value=false;render();}
+function clearSelection(){
+// #ifdef WEB
+webReader?.clearSelection();
+// #endif
+// #ifdef APP
+if(loaded)uni.createWebViewContext(elementId)?.evalJS('clearAcademySelection()');
+// #endif
+}
+function pauseMedia(){
+// #ifdef WEB
+webReader?.pauseMedia();
+// #endif
+// #ifdef APP
+if(loaded)uni.createWebViewContext(elementId)?.evalJS('pauseAcademyMedia()');
+// #endif
+}
+async function action(data:ReaderAction){
+ const validated=readerAction(data,props.blocks);if(!validated)return;data=validated;
+ if(data.action!=='media'){emit('action',data);return;}
+ if(!data.blockId||!props.blocks.some(b=>b.id===data.blockId&&['audio','video'].includes(b.type)))return;
+ const articleId=props.articleId,mediaId=props.blocks.find(b=>b.id===data.blockId)?.mediaId;
+ let result:Record<string,unknown>={blockId:data.blockId,requestId:data.requestId};
+ try{const ticket=await request<{path:string;expiresAt:string}>('/articles/'+props.articleId+'/blocks/'+encodeURIComponent(data.blockId)+'/media',{method:'POST'});result={...result,url:apiBase+ticket.path,expiresAt:ticket.expiresAt};}
+ catch(e){result={...result,error:(e as Error).message};}
+ if(articleId!==props.articleId||mediaId!==props.blocks.find(b=>b.id===data.blockId)?.mediaId)return;
+// #ifdef WEB
+webReader?.mediaResult(result);
+// #endif
+// #ifdef APP
+if(loaded)uni.createWebViewContext(elementId)?.evalJS('academyMediaResult('+JSON.stringify(encodeURIComponent(JSON.stringify(result)))+')');
+// #endif
+}
+defineExpose({clearSelection,pauseMedia});
+function message(event:{detail:{data:unknown}}){if(Array.isArray(event.detail.data)&&event.detail.data.length<=100)for(const data of event.detail.data)void action(data as ReaderAction);}
+onMounted(()=>{
+// #ifdef WEB
+const engine=(globalThis as unknown as {AcademyReader:{create:(root:Element,send:(data:ReaderAction)=>void)=>typeof webReader}}).AcademyReader;
+const root=document.getElementById(elementId);if(root){root.classList.add('academy-reader');webReader=engine.create(root,data=>{void action(data);});render();}
+// #endif
+});
+watch(()=>[props.blocks,props.fontSize,props.annotations,props.templateCode],render,{deep:true});onUnmounted(()=>{clearSelection();pauseMedia();webReader?.destroy();loaded=false;});
+</script>
+<style>
+.reader-failure{font-size:14px;color:#B95543;padding:20px;}
+</style>

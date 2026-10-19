@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-14T08:02:21.974Z",
+  "origin": "https://academy.43-160-229-173.sslip.io",
+  "passed": 16,
+  "checks": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/live/player",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/live/player/client.js",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/live/player/client.css",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/live/player/sdk.js",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/login",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/session",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/live",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/live/options",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/live-host",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/courses?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/catalog/courses?size=50",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/live",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/learning/library",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/admin/auth/logout",
+      "method": "POST",
+      "status": 200
+    }
+  ]
+}

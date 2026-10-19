@@ -1,0 +1,73 @@
+<template><view class="live-discussion">
+  <view class="discussion-head"><text class="section-heading">同窗共研</text><text class="meta">{{connected?'实时共研':'稍候自动更新'}}</text></view>
+  <ContentState v-if="error" :error="error" @retry="load"/>
+  <view v-if="!items.length&&!error" class="discussion-empty"><text>{{loading?'正在载入研习心得…':'还没有发言，写下你的研习所得。'}}</text></view>
+  <button v-if="cursor" class="secondary-button" :disabled="loading" @click="older">查看更早发言</button>
+  <view v-for="item in items" :key="item.id" class="discussion-message">
+    <view class="discussion-meta"><text>{{item.author?.nickname??'同窗'}}{{item.mine?' · 我':''}}</text><text>{{formatChinaTime(item.createdAt)}}</text></view>
+    <text v-if="item.quoteSnapshot" class="discussion-quote" :user-select="true">{{item.quoteSnapshot}}</text>
+    <text class="discussion-body" :user-select="true">{{item.body}}</text>
+    <view class="discussion-tail"><text v-if="item.reviewState!=='APPROVED'" class="meta">{{item.reviewState==='PENDING'?'待审核 · 仅你可见':'审核未通过 · 仅你可见'}}</text><button v-if="item.reviewState==='APPROVED'&&!item.mine" class="discussion-report" @click="report(item)">举报</button></view>
+  </view>
+  <text v-if="reason" class="footer-note">{{reason}}</text>
+  <button class="secondary-button" :disabled="!canPost" @click="visible=true">写下研习心得</button>
+  <ComposeSheet :visible="visible" title="直播共研" subtitle="发言经审核后向同窗公开" v-model="body" :quote="quote?.text" :maxlength="1000" :saving="saving" :error="editorError" :disabled="!body.trim()||!canPost" submitLabel="提交发言" @close="visible=false" @submit="submit">
+    <view class="quote-tools"><button class="discussion-report" @click="chooseQuote">{{quote?'更换引用':'引用经典'}}</button><button v-if="quote" class="discussion-report" @click="quote=null">取消引用</button></view>
+    <view v-if="choosing" class="quote-picker"><input v-model="query" placeholder="搜索经典篇名" maxlength="100" class="quote-search" @confirm="findQuotes"/><button class="discussion-report" @click="findQuotes">{{quoteLoading?'搜索中…':'搜索'}}</button><scroll-view direction="vertical" class="quote-results">
+      <view v-for="article in articles" :key="article.id"><text class="quote-article">{{article.title}}</text><button v-for="block in article.blocks" :key="block.key" class="quote-option" @click="selectQuote(article,block)">{{block.text}}</button></view>
+      <text v-if="!articles.length" class="meta">{{quoteLoading?'正在查找公开原文…':'未找到公开原文，试试其他篇名。'}}</text>
+    </scroll-view></view>
+  </ComposeSheet>
+</view></template>
+<script setup lang="ts">
+import {ref,watch,onUnmounted} from 'vue';
+import ContentState from './ContentState.uvue';import ComposeSheet from './ComposeSheet.uvue';
+import {request,apiBase} from '../lib/api';import {formatChinaTime} from '../lib/date-time';import {studyEventId} from '../lib/learning';import {currentUser} from '../lib/session';
+type Author={id:string;nickname:string};type Message={id:string;body:string;quoteSnapshot:string|null;reviewState:string;createdAt:string;mine:boolean;author:Author|null};
+type MessagePage={items:Message[];nextCursor:string|null;canPost:boolean;reason:string};type QuoteBlock={key:string;text:string};type QuoteArticle={id:string;title:string;blocks:QuoteBlock[]};type Quote={articleId:string;blockKey:string;text:string};
+const props=defineProps<{sessionId:string;leaseKey:string}>();
+const items=ref<Message[]>([]),cursor=ref<string|null>(null),loading=ref(false),error=ref(''),canPost=ref(false),reason=ref(''),visible=ref(false),body=ref(''),saving=ref(false),editorError=ref(''),quote=ref<Quote|null>(null),choosing=ref(false),query=ref(''),articles=ref<QuoteArticle[]>([]),connected=ref(false);
+const quoteLoading=ref(false);
+let socket:ReturnType<typeof uni.connectSocket>|null=null,refreshTimer:ReturnType<typeof setInterval>|null=null,retry:ReturnType<typeof setTimeout>|null=null,alive=true,serial=0,requestKey='',sentPayload='',lastRefresh=0,pages=1,quoteRequest=0,identity='';
+async function load(append=false){if(loading.value||!alive||!props.sessionId)return;loading.value=true;error.value='';const version=serial,owner=currentUser.value?.id;
+  try{let next=append?cursor.value:null,result:MessagePage|null=null,rows:Message[]=[],count=0;const boundary=items.value[0];let reached=!boundary;
+    // Refresh every expanded page so removed or blocked messages cannot remain in the visible history.
+    for(let page=0;page<(append?1:pages)||(!append&&!reached);page++){
+      result=await request<MessagePage>('/live/sessions/'+props.sessionId+'/messages'+(next?'?cursor='+next:''));
+      if(!alive||version!==serial||owner!==currentUser.value?.id)return;
+      rows=[...result.items,...rows];next=result.nextCursor;count++;
+      const oldest=result.items[0];if(oldest&&boundary){const delta=new Date(oldest.createdAt).getTime()-new Date(boundary.createdAt).getTime();reached=delta<0||(delta===0&&oldest.id<=boundary.id);}
+      if(!next)break;
+    }
+    if(!result)return;items.value=append?[...rows.filter(m=>!items.value.some(old=>old.id===m.id)),...items.value]:rows;
+    pages=append?pages+count:count;cursor.value=next;canPost.value=result.canPost;reason.value=result.reason;
+  }catch(e){if(alive&&version===serial){error.value=(e as Error).message;canPost.value=false;}}finally{if(version===serial)loading.value=false;}}
+function older(){load(true);}
+function resetSocket(){const old=socket;socket=null;old?.close({code:1000,reason:'离开直播'});connected.value=false;if(retry)clearTimeout(retry);retry=null;}
+function disconnect(){resetSocket();if(refreshTimer)clearInterval(refreshTimer);refreshTimer=null;}
+function connect(){resetSocket();if(!props.leaseKey||!alive)return;
+  const version=serial,active=uni.connectSocket({url:apiBase.replace(/^http/,'ws')+'/live/socket',success:()=>{}});socket=active;
+  active.onOpen(()=>{if(alive&&serial===version)active.send({data:JSON.stringify({type:'auth',key:props.leaseKey})});});
+  active.onMessage(e=>{if(!alive||serial!==version)return;try{const data=JSON.parse(String(e.data)) as {type:string};if(data.type==='ready')connected.value=true;if(['ready','refresh'].includes(data.type)&&Date.now()-lastRefresh>250){lastRefresh=Date.now();void load();}}catch{}});
+  active.onError(()=>{if(serial===version)connected.value=false;});
+  active.onClose(e=>{if(!alive||serial!==version||socket!==active)return;connected.value=false;socket=null;if(e.code===4401||e.code===4403){canPost.value=false;reason.value='直播连接已失效，请重新进入';return;}retry=setTimeout(connect,3000);});
+}
+async function chooseQuote(){choosing.value=!choosing.value;if(choosing.value)await findQuotes();}
+async function findQuotes(){const version=++quoteRequest,session=serial;quoteLoading.value=true;editorError.value='';try{const result=await request<{items:QuoteArticle[]}>('/live/sessions/'+props.sessionId+'/quote-articles?q='+encodeURIComponent(query.value));if(alive&&version===quoteRequest&&session===serial)articles.value=result.items;}catch(e){if(alive&&version===quoteRequest&&session===serial)editorError.value=(e as Error).message;}finally{if(version===quoteRequest)quoteLoading.value=false;}}
+function selectQuote(article:QuoteArticle,block:QuoteBlock){quote.value={articleId:article.id,blockKey:block.key,text:block.text};choosing.value=false;}
+async function submit(){if(saving.value||!body.value.trim()||!canPost.value)return;saving.value=true;editorError.value='';const payload={body:body.value.trim(),...(quote.value?{articleId:quote.value.articleId,blockKey:quote.value.blockKey}:{})},encoded=JSON.stringify(payload);
+  const owner=currentUser.value?.id,session=props.sessionId;
+  if(!requestKey||sentPayload!==encoded){requestKey=studyEventId();sentPayload=encoded;}
+  try{await request('/live/sessions/'+session+'/messages',{method:'POST',data:{...payload,requestKey}});if(!alive||owner!==currentUser.value?.id||session!==props.sessionId)return;body.value='';quote.value=null;visible.value=false;choosing.value=false;requestKey='';await load();uni.showToast({title:'发言已提交审核',icon:'none'});}catch(e){if(alive&&owner===currentUser.value?.id&&session===props.sessionId)editorError.value=(e as Error).message;}finally{if(owner===currentUser.value?.id&&session===props.sessionId)saving.value=false;}}
+function report(item:Message){const reasons=['SPAM','INAPPROPRIATE','MISLEADING','COPYRIGHT','OTHER'];uni.showActionSheet({itemList:['广告骚扰','不当内容','误导信息','版权问题','其他问题'],success:async r=>{try{await request('/live/sessions/'+props.sessionId+'/messages/'+item.id+'/reports',{method:'POST',data:{reason:reasons[r.tapIndex],description:''}});uni.showToast({title:'已提交书院核查',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}});}
+watch(()=>props.sessionId+'|'+props.leaseKey+'|'+(currentUser.value?.id??''),()=>{
+  const next=props.sessionId+'|'+(currentUser.value?.id??'');serial++;quoteRequest++;loading.value=false;quoteLoading.value=false;disconnect();
+  if(next!==identity){identity=next;items.value=[];cursor.value=null;pages=1;canPost.value=false;reason.value='';visible.value=false;body.value='';quote.value=null;articles.value=[];choosing.value=false;requestKey='';sentPayload='';saving.value=false;editorError.value='';}
+  void load();refreshTimer=setInterval(()=>{if(alive)load();},10000);connect();
+},{immediate:true});
+onUnmounted(()=>{alive=false;serial++;quoteRequest++;disconnect();});
+</script>
+<style>
+@import '../styles/app.css';
+.live-discussion{margin-top:24px;}.discussion-head,.discussion-meta,.discussion-tail,.quote-tools{flex-direction:row;align-items:center;justify-content:space-between;}.discussion-head{margin-bottom:10px;}.discussion-empty{padding:18px 14px;background-color:#EEE9DF;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:23px;color:#7A7366;}.discussion-message{padding:15px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.discussion-meta{font-size:12px;color:#7A7366;margin-bottom:8px;}.discussion-body{font-size:15px;line-height:26px;color:#17292D;}.discussion-quote{padding:10px 12px;background-color:#EEE9DF;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;font-size:13px;line-height:23px;color:#637276;margin-bottom:10px;}.discussion-report{background-color:transparent;color:#637276;font-size:12px;padding:8px 0;margin:0;min-height:44px;border-width:0;}.quote-picker{margin-bottom:12px;}.quote-search{height:40px;background-color:#EEE9DF;padding:0 10px;border-radius:6px;}.quote-results{height:200px;}.quote-article{font-family:AcademySerif;color:#245564;font-size:15px;margin:10px 0;}.quote-option{font-size:13px;line-height:23px;text-align:left;color:#637276;padding:10px;background-color:#F4F0E7;margin:0 0 8px;border-radius:6px;border-width:0;}
+</style>

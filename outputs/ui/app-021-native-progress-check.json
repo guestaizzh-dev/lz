@@ -1,0 +1,96 @@
+{
+  "before": {
+    "observedAt": "2026-10-06T10:15:34.960Z",
+    "lessons": [
+      {
+        "lesson": {
+          "id": "f885899e-3050-4210-87df-3ba20d2de974",
+          "title": "先读原文（图文试听）",
+          "format": "TEXT"
+        },
+        "progress": {
+          "positionSeconds": 0,
+          "watchedSeconds": 0,
+          "completedAt": "2026-10-06T09:24:14.472Z",
+          "updatedAt": "2026-10-06T10:12:15.914Z"
+        },
+        "eventCount": 3
+      },
+      {
+        "lesson": {
+          "id": "87fae4e4-0fe2-495f-bb44-2e9958d3a111",
+          "title": "记录你的思考",
+          "format": "TEXT"
+        },
+        "progress": {
+          "positionSeconds": 0,
+          "watchedSeconds": 0,
+          "completedAt": "2026-10-06T08:28:29.575Z",
+          "updatedAt": "2026-10-06T08:30:25.951Z"
+        },
+        "eventCount": 2
+      },
+      {
+        "lesson": {
+          "id": "83609647-f0dc-4c45-83e4-da7653825022",
+          "title": "播放验证 · 测试音频（非授课）",
+          "format": "AUDIO"
+        },
+        "progress": {
+          "positionSeconds": 3,
+          "watchedSeconds": 3,
+          "completedAt": "2026-10-06T10:13:20.000Z",
+          "updatedAt": "2026-10-06T10:14:51.641Z"
+        },
+        "eventCount": 7
+      }
+    ]
+  },
+  "after": {
+    "observedAt": "2026-10-06T10:16:09.116Z",
+    "lessons": [
+      {
+        "lesson": {
+          "id": "f885899e-3050-4210-87df-3ba20d2de974",
+          "title": "先读原文（图文试听）",
+          "format": "TEXT"
+        },
+        "progress": {
+          "positionSeconds": 0,
+          "watchedSeconds": 0,
+          "completedAt": "2026-10-06T09:24:14.472Z",
+          "updatedAt": "2026-10-06T10:12:15.914Z"
+        },
+        "eventCount": 3
+      },
+      {
+        "lesson": {
+          "id": "87fae4e4-0fe2-495f-bb44-2e9958d3a111",
+          "title": "记录你的思考",
+          "format": "TEXT"
+        },
+        "progress": {
+          "positionSeconds": 0,
+          "watchedSeconds": 0,
+          "completedAt": "2026-10-06T08:28:29.575Z",
+          "updatedAt": "2026-10-06T08:30:25.951Z"
+        },
+        "eventCount": 2
+      },
+      {
+        "lesson": {
+          "id": "83609647-f0dc-4c45-83e4-da7653825022",
+          "title": "播放验证 · 测试音频（非授课）",
+          "format": "AUDIO"
+        },
+        "progress": {
+          "positionSeconds": 3,
+          "watchedSeconds": 3,
+          "completedAt": "2026-10-06T10:13:20.000Z",
+          "updatedAt": "2026-10-06T10:15:38.404Z"
+        },
+        "eventCount": 9
+      }
+    ]
+  }
+}

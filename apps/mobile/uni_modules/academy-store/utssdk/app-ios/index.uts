@@ -1,0 +1,1 @@
+export function storeCommand(action: string, payload: string): string { return AcademyStore.command(action, payload) }

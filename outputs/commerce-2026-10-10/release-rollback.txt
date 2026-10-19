@@ -1,0 +1,4 @@
+active
+previous=/opt/daoxue-academy/releases/20261011-foundation-04
+image=daoxue-api:20261011-commerce-01
+backup=/opt/daoxue-academy/backups/academy-20261011T043542Z-KxU1aa.dump

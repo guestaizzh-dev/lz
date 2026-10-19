@@ -1,10 +1,11 @@
 <template>
 <view class="page">
-<PageHead :title="teacher?.name??'名师详情'"/>
+<PageHead :title="teacher?.name??'名师详情'" action="share" @action="share"/>
 <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
 <view class="content">
 <ContentState v-if="!teacher" :loading="!error" :error="error" @retry="load"/>
 <view v-else>
+<view v-if="error" class="refresh-warning"><text>资料暂未更新：{{error}}</text><button class="text-button" @click="load">重试</button></view>
 <view class="teacher-profile row">
 <TeacherAvatar :portrait="teacher!.portrait" :demo="teacher!.isDemo" :size="82"/>
 <view class="teacher-copy">
@@ -14,30 +15,75 @@
 </view>
 </view>
 <view class="detail-tabs">
-<view v-for="item in ['老师介绍','研习课程','问答']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
+<view v-for="item in ['老师介绍','研习课程','研习安排','问答']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
 <text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
 </view>
 </view>
 <view v-if="tab==='老师介绍'" class="section">
 <text class="section-heading">研习与传承</text>
-<text class="body-copy">{{teacher!.bio}}</text>
+<text class="body-copy" :user-select="true">{{teacher!.bio}}</text>
+<view v-if="teacher!.teachingDirection" class="profile-section"><text class="section-heading">授课方向</text><text class="body-copy" :user-select="true">{{teacher!.teachingDirection}}</text></view>
+<view v-if="teacher!.lineageSummary" class="profile-section"><text class="section-heading">传承背景</text><text class="body-copy" :user-select="true">{{teacher!.lineageSummary}}</text></view>
+<view v-if="teacher!.achievementSummary" class="profile-section"><text class="section-heading">教学成果</text><text class="body-copy" :user-select="true">{{teacher!.achievementSummary}}</text></view>
+<view v-if="teacher!.introductions?.length" class="profile-section"><text class="section-heading">听老师讲 · 看老师说</text><view v-for="item in teacher!.introductions" :key="item.id" class="profile-card"><text class="item-title">{{item.title}}</text><text class="intro">{{item.summary}}</text><button class="secondary-button" @click="openPage('article/detail?id='+item.id)">观看 / 收听介绍</button></view></view>
+<view v-if="teacher!.interpretations?.length" class="profile-section"><text class="section-heading">会员专属解读</text><view v-for="item in teacher!.interpretations" :key="item.id" class="profile-card"><text class="tag">{{['','入门','进阶','尊享'][item.membershipTier]??'会员'}}权益内容</text><text class="item-title">{{item.title}}</text><text class="intro">{{item.summary}}</text><button class="secondary-button" @click="openPage('article/detail?id='+item.id)">查看解读与权益要求</button></view></view>
 <text v-if="teacher!.isDemo" class="demo-note">开发示例档案</text>
+<SourceEvidence :items="teacher!.evidence??[]" title="师资与传承来源"/>
 </view>
 <view v-else-if="tab==='研习课程'">
-<CourseRow v-for="course in courses" :key="course.id" :course="course"/>
-<ContentState v-if="!courses.length" title="暂无已发布课程"/>
-<button v-if="nextCursor" class="retry" @click="loadCourses(true)">更多课程</button>
+<view v-if="teacher!.representativeCourses?.length" class="section"><text class="section-heading">代表课程</text><CourseRow v-for="course in teacher!.representativeCourses" :key="course.id" :course="course"/></view>
+<text v-if="teacher!.representativeCourses?.length&&otherCourses.length" class="section-heading">更多研习</text><CourseRow v-for="course in otherCourses" :key="course.id" :course="course"/>
+<ContentState v-if="courseLoading||courseError" :loading="courseLoading" :error="courseError" @retry="retryCourses"/><ContentState v-if="!courseLoading&&!courseError&&!courses.length" title="暂无已发布课程"/>
+<button v-if="nextCursor" class="retry" :disabled="courseLoading||courseLoadingMore" @click="loadCourses(true)">{{courseLoadingMore?'加载中…':'更多课程'}}</button>
 </view>
-<ContentState v-else title="问答尚未开放" description="老师的公开研习答复将展示在这里。"/>
+<view v-else-if="tab==='研习安排'" class="section"><text class="intro">直播、活动与咨询安排实时汇总，时间均为北京时间。</text><view v-for="item in teacher!.schedule??[]" :key="item.id" class="profile-card"><text class="tag">{{item.state==='LIVE'?'正在直播':scheduleKinds[item.kind]??'研习安排'}}</text><text class="item-title">{{item.title}}</text><text class="meta">{{formatChinaTime(item.startsAt)}}{{item.endsAt?' — '+formatChinaTime(item.endsAt):''}}</text><text class="meta">{{item.location}}</text><button class="secondary-button" @click="openSchedule(item)">{{item.kind==='LIVE'?'查看直播':item.kind==='EVENT'?'查看活动与报名':'查看咨询时段'}}</button></view><ContentState v-if="!teacher!.schedule?.length" title="暂无近期安排" description="新的直播、活动与咨询时段开放后会在这里公布。"/><text v-if="teacher!.scheduleHasMore" class="footer-note">此处展示最近30项安排，更多时段可进入相应直播、活动或咨询页面查看。</text></view>
+<TeacherQuestions v-else :teacherId="id"/>
+<RelatedContent ref="relatedRef" v-if="teacher" :resourceId="id" :excludeIds="curatedIds"/>
 </view>
-</view>
-</scroll-view>
-<view v-if="teacher" class="bottom-bar">
-<button class="bar-primary" @click="consult">咨询与预约</button>
-</view>
+</view></scroll-view>
+<BottomBar v-if="teacher">
+<button class="bar-primary" @click="consult">查看咨询与见面时段</button>
+</BottomBar>
 </view>
 </template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import type {Teacher,Course} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';const teacher=ref<Teacher|null>(null),error=ref(''),tab=ref('老师介绍');let id='';const {items:courses,nextCursor,load:loadCourses}=useCatalog<Course>('courses',()=>({category:'全部',teacherId:id}));async function load(){error.value='';try{teacher.value=await request<Teacher>('/catalog/teachers/'+encodeURIComponent(id));await loadCourses();}catch(e){error.value=(e as Error).message;}}function consult(){if(needLogin())return;showUnavailable('暂无可预约时段','老师尚未配置咨询服务及可售时段，开放后可在这里预约。');}onLoad(options=>{id=options?.id??'';load();});
+import SourceEvidence from '../../components/SourceEvidence.uvue';
+import RelatedContent from '../../components/RelatedContent.uvue';
+import TeacherQuestions from '../../components/TeacherQuestions.uvue';
+import BottomBar from '../../components/BottomBar.uvue';
+import {formatChinaTime} from '../../lib/date-time';
+import type {TeacherSchedule} from '../../lib/api';
+const scheduleKinds:Record<string,string>={LIVE:'在线直播',EVENT:'活动 / 见面',CONSULTATION:'咨询时段'};
+function openSchedule(item:TeacherSchedule){openPage(item.kind==='LIVE'?'live/detail?id='+item.resourceId:item.kind==='EVENT'?'event/detail?id='+item.resourceId:'booking/confirm?teacherId='+id);}
+import PageHead from '../../components/PageHead.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import type {Teacher,Course} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {openPage} from '../../lib/presentation';import {needLogin} from '../../lib/session';const teacher=ref<Teacher|null>(null),error=ref(''),tab=ref('老师介绍');let id='';const {items:courses,nextCursor,loading:courseLoading,loadingMore:courseLoadingMore,error:courseError,retry:retryCourses,load:loadCourses}=useCatalog<Course>('courses',()=>({category:'全部',teacherId:id}));async function load(){error.value='';try{teacher.value=await request<Teacher>('/catalog/teachers/'+encodeURIComponent(id));await loadCourses();}catch(e){error.value=(e as Error).message;}}function consult(){openPage('booking/confirm?teacherId='+id);}
+async function share(){
+  if(!teacher.value)return;
+  try{
+    const result=await request<{url:string,shortUrl:string}>('/share/links',{
+      method:'POST',
+      data:{
+        resourceType:'TEACHER',
+        resourceId:id,
+        title:teacher.value.name,
+        description:teacher.value.title,
+        coverUrl:teacher.value.portrait
+      }
+    });
+    uni.setClipboardData({
+      data:result.shortUrl,
+      success:()=>{
+        uni.showToast({title:'分享链接已复制',icon:'success'});
+      }
+    });
+  }catch(e){
+    uni.showToast({title:'生成分享链接失败',icon:'none'});
+  }
+}
+onLoad(options=>{id=options?.id??'';if(options?.tab==='questions')tab.value='问答';load();});
+
+const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
+const curatedIds=computed(()=>[...(teacher.value?.representativeCourses??[]),...(teacher.value?.introductions??[]),...(teacher.value?.interpretations??[])].map(item=>item.id));
+const otherCourses=computed(()=>courses.value.filter(course=>!teacher.value?.representativeCourses?.some(c=>c.id===course.id)));
+onShow(()=>{relatedRef.value?.refresh();if(id&&teacher.value)load();});
 </script>
-<style>@import '../../styles/app.css';.teacher-profile{padding:18px 0;}.teacher-copy{flex:1;padding-left:16px;}.detail-title{font-size:21px;margin-top:0;line-height:31px;}</style>
+<style>@import '../../styles/app.css';.profile-section{margin-top:24px;}.profile-card{padding:18px 0;border-bottom-width:1px;border-bottom-color:#DED9CD;}.teacher-profile{padding:18px 0;}.teacher-copy{min-width:0;flex:1;padding-left:16px;}.detail-title{font-size:21px;margin-top:0;line-height:31px;}</style>

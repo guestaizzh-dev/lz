@@ -1,3 +1,4 @@
+import {formatChinaTime} from '@/utils/date-time';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Alert, Drawer, Table, Typography } from 'antd';
@@ -8,7 +9,7 @@ type Order={id:string;status:string;total:number;shipping:number;createdAt:strin
 const money=(value:number)=>'¥'+(value/100).toFixed(2);
 export default function Orders(){
   const [error,setError]=useState(''),[selected,setSelected]=useState<Order>();
-  const columns:ProColumns<Order>[]=[{title:'订单编号',dataIndex:'id',search:false,copyable:true},{title:'状态',dataIndex:'status',valueEnum:{PENDING:{text:'待付款（开发预占）',status:'Processing'},CLOSED:{text:'已关闭',status:'Default'}}},{title:'应收',dataIndex:'total',search:false,render:(_,row)=>money(row.total)},{title:'运费',dataIndex:'shipping',search:false,render:(_,row)=>money(row.shipping)},{title:'创建时间',dataIndex:'createdAt',valueType:'dateTime',search:false},{title:'到期时间',dataIndex:'expiresAt',valueType:'dateTime',search:false},{title:'关闭原因',dataIndex:'closeReason',search:false},{title:'操作',valueType:'option',render:(_,row)=><a onClick={()=>setSelected(row)}>明细快照</a>}];
+  const columns:ProColumns<Order>[]=[{title:'订单编号',dataIndex:'id',search:false,copyable:true},{title:'状态',dataIndex:'status',valueEnum:{PENDING:{text:'待付款（开发预占）',status:'Processing'},CLOSED:{text:'已关闭',status:'Default'}}},{title:'应收',dataIndex:'total',search:false,render:(_,row)=>money(row.total)},{title:'运费',dataIndex:'shipping',search:false,render:(_,row)=>money(row.shipping)},{title:'创建时间',dataIndex:'createdAt',valueType:'dateTime', render: (_,row)=>formatChinaTime(row.createdAt),search:false},{title:'到期时间',dataIndex:'expiresAt',valueType:'dateTime', render: (_,row)=>formatChinaTime(row.expiresAt),search:false},{title:'关闭原因',dataIndex:'closeReason',search:false},{title:'操作',valueType:'option',render:(_,row)=><a onClick={()=>setSelected(row)}>明细快照</a>}];
   return <PageContainer title="实物订单" subTitle="库存预占与关闭记录">
     <Alert type="info" showIcon title="支付尚未接入。当前仅能查看开发验证产生的预占订单，没有确认收款、发货或退款操作。" style={{marginBottom:16}}/>
     {error&&<Alert title={error} type="error" showIcon style={{marginBottom:16}}/>}

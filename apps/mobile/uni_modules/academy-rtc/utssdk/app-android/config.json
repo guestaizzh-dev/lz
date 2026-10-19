@@ -1,0 +1,7 @@
+{
+  "minSdkVersion": 23,
+  "dependencies": ["im.zego:express-video:3.25.0"],
+  "project": {
+    "repositories": ["maven { url 'https://maven.zego.im' }"]
+  }
+}

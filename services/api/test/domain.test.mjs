@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,randomInt} from 'node:crypto';
 import {Pool} from 'pg';
 import {createApp} from '../dist/main.js';
 import {Database} from '../dist/database.js';
@@ -14,6 +14,8 @@ const q=name=>'"'+name+'"';
 test('all domain tables and every editable entity use real database CRUD',async t=>{
   process.env.CORS_ORIGINS='http://127.0.0.1:5173';
   const db=new Database(),pool=new Pool({connectionString:process.env.DATABASE_URL,options:'-c timezone=UTC'}),app=await createApp(false);
+  app.getHttpAdapter().getInstance().set('trust proxy','loopback');
+  const testIp='2001:db8:'+randomInt(1,65535).toString(16)+'::1';
   await app.listen(0,'127.0.0.1');const base=await app.getUrl();
   const tag='qa-domain-'+randomUUID(),password=randomUUID()+'!A',rows=[],cache=new Map();
   let clock=0;
@@ -22,12 +24,11 @@ test('all domain tables and every editable entity use real database CRUD',async 
   const other=await db.user.create({data:{nickname:tag+'-other',roles:['USER']}});
   rows.push(['app_user',root.id],['app_user',other.id]);cache.set('app_user',{id:root.id});
   async function call(path,method='GET',body,session=auth,headers={}){
-    const result=await fetch(base+'/api/v1'+path,{method,headers:{'Content-Type':'application/json',Origin:process.env.CORS_ORIGINS,...(session?{Cookie:session.cookie,'X-CSRF-Token':session.csrfToken}:{}),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});
+    const result=await fetch(base+'/api/v1'+path,{method,headers:{'Content-Type':'application/json',Origin:process.env.CORS_ORIGINS,'X-Forwarded-For':testIp,...(session?{Cookie:session.cookie,'X-CSRF-Token':session.csrfToken}:{}),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});
     return{status:result.status,body:await result.json(),cookies:result.headers.getSetCookie()};
   }
   let auth;
-  const login=await call('/admin/auth/login','POST',{username:root.username,password},null);
-  assert.equal(login.status,200);auth={cookie:login.cookies.map(x=>x.split(';')[0]).join('; '),csrfToken:login.body.csrfToken};
+
 
   async function sample(f){
     if(f.reference)return(await fixture(f.reference.entity)).id;
@@ -82,7 +83,7 @@ test('all domain tables and every editable entity use real database CRUD',async 
     const row=result.rows[0];rows.push([key,id]);cache.set(key,row);return row;
   }
   async function removeFixtures(){
-    await db.auditLog.deleteMany({where:{actorId:root.id}});
+    await db.auditLog.deleteMany({where:{actorId:{in:rows.filter(([key])=>key==='app_user').map(([,id])=>id)}}});
     await db.authSession.deleteMany({where:{userId:root.id}});
     let pending=[...rows].reverse();
     for(let round=0;pending.length&&round<rows.length+1;round++){
@@ -91,6 +92,7 @@ test('all domain tables and every editable entity use real database CRUD',async 
         const e=domains.find(e=>e.key===key),client=await pool.connect();
         try{
           await client.query('BEGIN');
+          if(key==='app_user')await client.query('DELETE FROM "AuthSession" WHERE "userId"=$1',[id]);
           if(key==='membership_plan'){await client.query('UPDATE "MembershipPlan" SET "currentVersionId"=NULL WHERE id=$1',[id]);await client.query('DELETE FROM "MembershipPlanVersion" WHERE "planId"=$1',[id]);}
           if(key==='product_sku')await client.query('DELETE FROM "SaleOffer" WHERE id=$1',['sku-offer-'+id]);
           if(key==='course')await client.query('UPDATE "Course" SET "publishedReleaseId"=NULL WHERE id=$1',[id]);
@@ -100,15 +102,18 @@ test('all domain tables and every editable entity use real database CRUD',async 
       if(next.length===pending.length)throw new Error('Fixture cleanup cannot resolve references: '+next.map(x=>x[0]).join(','));
       pending=next;
     }
-    await db.rateLimit.deleteMany({where:{key:{contains:tag}}});
+    await db.rateLimit.deleteMany({where:{OR:[{key:{contains:tag}},{key:{contains:testIp}}]}});
   }
   try{
-    await t.test('metadata and all 144 list endpoints match actual tables; secrets are absent',async()=>{
-      const schema=await call('/admin/data/schema');assert.equal(schema.status,200);assert.equal(schema.body.length,144);
+  const login=await call('/admin/auth/login','POST',{username:root.username,password},null);
+  assert.equal(login.status,200);auth={cookie:login.cookies.map(x=>x.split(';')[0]).join('; '),csrfToken:login.body.csrfToken};
+    await t.test('registered tables match actual columns; private vote facts are excluded and readable lists hide secrets',async()=>{
+      const schema=await call('/admin/data/schema');assert.equal(schema.status,200);assert.equal(domains.length,144);assert.equal(schema.body.length,domains.filter(e=>access(e,['ADMIN']).read).length);
+      assert.ok(!schema.body.some(e=>e.key==='poll_vote'));
       for(const e of domains){
         const columns=(await pool.query('SELECT column_name FROM information_schema.columns WHERE table_schema=\'public\' AND table_name=$1',[e.table])).rows.map(r=>r.column_name);
         assert.ok(e.fields.every(f=>columns.includes(f.name)),e.key+' metadata must match DB columns');
-        const result=await call('/admin/data/'+e.key);assert.equal(result.status,200,e.key);
+        const result=await call('/admin/data/'+e.key);if(!access(e,['ADMIN']).read){assert.equal(result.status,403,e.key);continue;}assert.equal(result.status,200,e.key);
         for(const row of result.body.items){assert.equal(Object.keys(row).some(k=>/Cipher$|Hash$|Secret|Token|StorageRef$/.test(k)),false,e.key);}
       }
       assert.equal((await call('/admin/data/tag','GET',undefined,null)).status,401);
@@ -166,19 +171,24 @@ test('all domain tables and every editable entity use real database CRUD',async 
       assert.equal((await call('/admin/data/tag','POST',{data:{code:randomUUID(),name:'bad',roles:['ADMIN']},reason:'字段白名单'})).status,400);
       assert.equal((await call('/admin/data/tag','POST',{data:{code:randomUUID(),name:'bad'},reason:'CSRF 检查'},auth,{'X-CSRF-Token':''})).status,403);
       assert.equal((await call('/admin/data/resource_tag','POST',{data:{resourceId:randomUUID(),tagId:(await fixture('tag')).id},reason:'无效外键'})).status,409);
-      assert.equal((await call('/admin/data/service_offering','POST',{data:{...await payload(domains.find(e=>e.key==='service_offering')),durationMinutes:0},reason:'约束校验'})).status,400);
+      assert.equal((await call('/admin/data/service_offering','POST',{data:{...await payload(domains.find(e=>e.key==='service_offering')),durationMinutes:0},reason:'禁止通用编辑绕过服务工作流'})).status,403);
       const privateLog=await db.practiceLog.create({data:{userId:other.id,day:'2027-02-02',text:'PRIVATE_SENTINEL'}});rows.push(['practice_log',privateLog.id]);
       assert.equal((await call('/admin/data/practice_log/'+privateLog.id)).status,404);
       assert.equal(JSON.stringify((await call('/admin/data/practice_log')).body).includes('PRIVATE_SENTINEL'),false);
-      const snapshots=await db.membershipPlan.create({data:{title:tag,tier:2,days:90,price:100,description:'旧权益'}});rows.push(['membership_plan',snapshots.id]);
-      const firstVersion=await db.membershipPlanVersion.findFirst({where:{planId:snapshots.id}});
+      const snapshots=await db.membershipPlan.findUniqueOrThrow({where:{tier_days:{tier:2,days:90}}});
+      const firstVersion=await db.membershipPlanVersion.findUniqueOrThrow({where:{id:snapshots.currentVersionId}}),versionCount=await db.membershipPlanVersion.count({where:{planId:snapshots.id}});
       await db.membershipPlan.update({where:{id:snapshots.id},data:{price:200,description:'新权益'}});
-      assert.equal((await db.membershipPlanVersion.findUnique({where:{id:firstVersion.id}})).description,'旧权益');
-      assert.equal(await db.membershipPlanVersion.count({where:{planId:snapshots.id}}),2);
-      assert.equal((await call('/admin/data/feedback','POST',{data:{userId:root.id,kind:'TEST',body:'反馈',state:'OPEN',contactCipher:'PRIVATE_CIPHER_SENTINEL'},reason:'加密测试'})).status,201);
-      const feedback=(await db.feedback.findFirst({where:{contactCipher:{startsWith:'v1:'},userId:root.id}}));rows.push(['feedback',feedback.id]);
-      assert.equal(feedback.contactCipher.includes('PRIVATE_CIPHER_SENTINEL'),false);
-      assert.equal(JSON.stringify((await call('/admin/data/feedback/'+feedback.id)).body).includes('PRIVATE_CIPHER_SENTINEL'),false);
+      assert.equal((await db.membershipPlanVersion.findUnique({where:{id:firstVersion.id}})).description,snapshots.description);
+      assert.equal(await db.membershipPlanVersion.count({where:{planId:snapshots.id}}),versionCount+1);
+      await db.membershipPlan.update({where:{id:snapshots.id},data:{price:snapshots.price,description:snapshots.description}});
+      assert.equal((await call('/admin/data/feedback','POST',{data:{},reason:'反馈已收归客服流程'})).status,403);
+      const partnerData=await payload(domains.find(e=>e.key==='partner'));
+      const encrypted=await call('/admin/data/partner','POST',{data:{...partnerData,contactCipher:'PRIVATE_CIPHER_SENTINEL'},reason:'加密测试'});
+      assert.equal(encrypted.status,201,JSON.stringify(encrypted.body));rows.push(['partner',encrypted.body.id]);
+      const partner=await db.partner.findUniqueOrThrow({where:{id:encrypted.body.id}});
+      assert.equal(partner.contactCipher.includes('PRIVATE_CIPHER_SENTINEL'),false);
+      assert.equal(partner.contactCipher.startsWith('v1:'),true);
+      assert.equal(JSON.stringify((await call('/admin/data/partner/'+partner.id)).body).includes('PRIVATE_CIPHER_SENTINEL'),false);
       await db.authSession.deleteMany({where:{userId:operator.id}});
     });
     await t.test('role grant/revoke uses the same authorization and audit transaction',async()=>{

@@ -1,0 +1,34 @@
+{
+  "isolatedDatabaseDropped": true,
+  "remainingTemporaryDatabases": [],
+  "manualDatabaseCounts": [
+    {
+      "name": "user",
+      "count": 15
+    },
+    {
+      "name": "article",
+      "count": 10
+    },
+    {
+      "name": "course",
+      "count": 8
+    },
+    {
+      "name": "product",
+      "count": 8
+    },
+    {
+      "name": "note",
+      "count": 3
+    },
+    {
+      "name": "practiceLog",
+      "count": 3
+    },
+    {
+      "name": "paymentTransaction",
+      "count": 0
+    }
+  ]
+}

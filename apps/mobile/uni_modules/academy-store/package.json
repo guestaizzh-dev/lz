@@ -1,0 +1,1 @@
+{"id":"academy-store","displayName":"书院Apple内购","version":"1.0.0","description":"StoreKit 2购买、未完成交易恢复与服务端确认后结束交易","uni_modules":{"dependencies":[],"encrypt":[],"platforms":{"client":{"App":{"app-ios":"y","app-android":"n"}}}}}

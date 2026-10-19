@@ -1,0 +1,14 @@
+<template><view v-if="items.length||membership||error" class="live-offers">
+  <text class="section-heading">本场延伸研习</text>
+  <button v-for="item in items" :key="item.id" class="live-offer" @click="openContent(item)"><view class="offer-line"><text class="tag">{{typeNames[item.type]}}</text><text class="offer-price">{{item.price===0?'免费':'¥ '+money(item.price)+(item.type==='COURSE'?'':' 起')}}</text></view><text class="offer-title">{{item.title}}</text><text v-if="item.promotion" class="offer-promotion">{{item.promotion!.title}} · 截止 {{formatChinaTime(item.promotion!.endsAt)}}（北京），实际以结算确认为准</text><view class="offer-line"><text class="offer-summary">{{item.summary}}</text><text class="offer-action">{{item.action}} ›</text></view></button>
+  <button v-if="membership" class="secondary-button" @click="openPage('membership/index')">查看书院会员权益</button>
+  <button v-if="error" class="text-button" @click="load">研习推荐暂未加载，点击重试</button>
+</view></template>
+<script setup lang="ts">
+import {formatChinaTime} from '../lib/date-time';import {ref,watch,onUnmounted} from 'vue';import {request,money} from '../lib/api';import {openContent,typeNames} from '../lib/discovery';import type {DiscoveryItem} from '../lib/discovery';import {openPage} from '../lib/presentation';
+type OfferPromotion={title:string;endsAt:string;serverTime:string};type Offer=DiscoveryItem&{price:number;action:string;promotion?:OfferPromotion|null};type Offers={items:Offer[];membershipAvailable:boolean};
+const props=defineProps<{sessionId:string}>(),items=ref<Offer[]>([]),membership=ref(false),error=ref('');let alive=true,serial=0;
+async function load(){const version=++serial;if(!props.sessionId)return;try{const data=await request<Offers>('/live/sessions/'+props.sessionId+'/offers');if(alive&&version===serial){items.value=data.items;membership.value=data.membershipAvailable;error.value='';}}catch(e){if(alive&&version===serial){error.value=(e as Error).message;}}}
+watch(()=>props.sessionId,()=>{items.value=[];membership.value=false;error.value='';void load();},{immediate:true});onUnmounted(()=>{alive=false;serial++;});
+</script>
+<style>@import '../styles/app.css';.live-offers{margin-top:26px;padding-top:20px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}.live-offer{white-space:normal;text-align:left;background-color:#F4F0E7;margin:14px 0;padding:16px;border-radius:8px;border-width:0;}.offer-line{flex-direction:row;align-items:center;justify-content:space-between;}.offer-title{font-family:AcademySerif;font-size:18px;line-height:28px;color:#17292D;margin:10px 0;}.offer-price{font-size:13px;color:#8A6B38;}.offer-summary{font-size:13px;line-height:23px;color:#637276;flex:1;margin-right:14px;}.offer-action{font-size:12px;color:#245564;}.offer-promotion{font-size:12px;line-height:20px;color:#805D2F;margin-bottom:10px;}</style>

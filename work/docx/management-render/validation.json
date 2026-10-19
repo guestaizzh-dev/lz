@@ -1,0 +1,16 @@
+{
+  "document": "outputs\\management\\老子道学书院_技术说明_管理层阅读版.docx",
+  "bytes": 44080,
+  "pages": 4,
+  "render_method": "Native Microsoft Word PDF export and bundled Poppler; skill renderer attempted but LibreOffice absent",
+  "visual_review": "All 4 final page images inspected; no clipped text, split tables, title borders or overflow",
+  "evidence_basis": [
+    "docs/01-product-requirements.md",
+    "docs/02-technical-research-and-decisions.md",
+    "docs/24-online-deployment.md",
+    "docs/26-remaining-development-plan.md",
+    "docs/33-development-status-summary.md",
+    "docs/34-shop-sales-and-fulfilment.md"
+  ],
+  "tables": 4
+}

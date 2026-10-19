@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-10T08:36:56.835Z",
+  "results": [
+    {
+      "label": "后台",
+      "status": 200,
+      "cors": "不适用"
+    },
+    {
+      "label": "App网页预览",
+      "status": 200,
+      "cors": "不适用"
+    },
+    {
+      "label": "App连接API",
+      "status": 200,
+      "cors": "通过"
+    }
+  ]
+}

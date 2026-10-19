@@ -1,0 +1,238 @@
+Running tests in an isolated temporary database.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "academy_test_31520_1791788227672", schema "public" at "127.0.0.1:55432"
+
+28 migrations found in prisma/migrations
+
+Applying migration `20261006035656_catalog_foundation`
+Applying migration `20261006040323_admin_identity_audit`
+Applying migration `20261006041548_app_identity_private_data`
+Applying migration `20261006041655_note_source_version`
+Applying migration `20261006075056_learning_membership_media`
+Applying migration `20261006080308_teacher_version`
+Applying migration `20261006102000_shopping_cart_addresses`
+Applying migration `20261006111500_pending_orders`
+Applying migration `20261009090000_note_selection_ranges`
+Applying migration `20261009110000_domain_enum_extension`
+Applying migration `20261009120000_full_domain_foundation`
+Applying migration `20261009130000_forum_sections`
+Applying migration `20261009150000_course_completion_and_reviews`
+Applying migration `20261009170000_course_sales`
+Applying migration `20261009171000_course_finance_accounts`
+Applying migration `20261009190000_admin_permission_policies`
+Applying migration `20261009200000_admin_role_baselines`
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+Applying migration `20261011110000_membership_partial_refunds`
+Applying migration `20261011113000_member_shop_pricing`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261006035656_catalog_foundation/
+    └─ migration.sql
+  └─ 20261006040323_admin_identity_audit/
+    └─ migration.sql
+  └─ 20261006041548_app_identity_private_data/
+    └─ migration.sql
+  └─ 20261006041655_note_source_version/
+    └─ migration.sql
+  └─ 20261006075056_learning_membership_media/
+    └─ migration.sql
+  └─ 20261006080308_teacher_version/
+    └─ migration.sql
+  └─ 20261006102000_shopping_cart_addresses/
+    └─ migration.sql
+  └─ 20261006111500_pending_orders/
+    └─ migration.sql
+  └─ 20261009090000_note_selection_ranges/
+    └─ migration.sql
+  └─ 20261009110000_domain_enum_extension/
+    └─ migration.sql
+  └─ 20261009120000_full_domain_foundation/
+    └─ migration.sql
+  └─ 20261009130000_forum_sections/
+    └─ migration.sql
+  └─ 20261009150000_course_completion_and_reviews/
+    └─ migration.sql
+  └─ 20261009170000_course_sales/
+    └─ migration.sql
+  └─ 20261009171000_course_finance_accounts/
+    └─ migration.sql
+  └─ 20261009190000_admin_permission_policies/
+    └─ migration.sql
+  └─ 20261009200000_admin_role_baselines/
+    └─ migration.sql
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+  └─ 20261011110000_membership_partial_refunds/
+    └─ migration.sql
+  └─ 20261011113000_member_shop_pricing/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+▶ member shop prices preserve purchased terms, stock, actual payments and refund allocations
+  ✖ membership tier alone never invents unpurchased discounts; ineligible items keep their price (161.1055ms)
+  ✖ best frozen discount, scoped eligibility, freight thresholds and surcharge are exact (116.0172ms)
+  ✔ expiry and revocation invalidate stale quotes before stock reservation (179.4301ms)
+  ✔ discount usage holds until payment or cancellation; refunded actual money restores usage once (461.6978ms)
+  ✔ benefit revocation after checkout prevents collecting at the obsolete discounted amount (86.6746ms)
+  ✔ version publishing checks permissions and conflicts; old and new grants have different purchased prices (145.1098ms)
+✖ member shop prices preserve purchased terms, stock, actual payments and refund allocations (1621.0959ms)
+▶ frozen membership benefits and atomic quotas preserve independent sources
+  ✖ new benefit versions do not change the old content grant; future and revoked sources fail closed (433.2945ms)
+  ✔ database and generic editor cannot rewrite published terms, source identity or usage ownership (174.6883ms)
+  ✔ concurrent reservations cannot exceed frozen quota and retries cannot change quantity (274.2169ms)
+  ✔ release and compensation are idempotent, consumed reservations survive expiry and transaction rollback frees capacity (81.5476ms)
+  ✔ revoking a membership never revokes an independent compensation quota (26.0535ms)
+✖ frozen membership benefits and atomic quotas preserve independent sources (1547.0465ms)
+✔ quota calendar uses China dates and inclusive source-clipped windows (0.4186ms)
+▶ membership orders use verified facts, frozen versions and isolated entitlement periods
+  ✔ disabled and iOS gates never create an order or membership (183.06ms)
+  ✔ concurrent checkout replays one immutable order and rejects changed requests (177.4116ms)
+  ✔ duplicate concurrent verified receipts create one period and one balanced journal (190.3787ms)
+  ✔ same-tier renewal and cross-tier purchases append independent frozen periods without overlap (373.8445ms)
+  ✔ changed queue before payment prevents collecting and confirmed money enters compensation (199.7238ms)
+  ✔ late or mismatched receipts refund exact received money without grants (223.0716ms)
+  ✔ uncertain prepay requires query; offline cancellation preserves pending state; worker expires unpaid (152.8574ms)
+  ✔ future-period refund requires finance, waits for verified success and leaves other dates intact (307.5844ms)
+  ✔ editing the sale price preserves an already confirmed order and its old benefit version (105.6ms)
+  ✔ approved delayed refunds suspend only their purchased period and quota, including failed retry (310.7281ms)
+  ✔ failed refund cancellation requires verified terminal closure and restores only the original dates (305.8252ms)
+  ✔ active consumed membership requires an explicit amount and customer acceptance before partial refund (465.0513ms)
+  ✔ declining a negotiated refund restores original dates without channel or money effects (215.3165ms)
+  ✔ occupied service rights block a partial refund proposal until the owning workflow releases them (158.8501ms)
+  ✔ stopped sales refuse prepay, and funds arriving after stop are refunded without membership (100.8915ms)
+  ✔ account closure requires explicit paid-membership forfeiture and preserves all financial evidence (355.3021ms)
+  ✔ database rejects purchased periods without verified source and list enforces route permission (40.2756ms)
+✔ membership orders use verified facts, frozen versions and isolated entitlement periods (4547.5314ms)
+▶ physical commerce preserves money, inventory, ownership and fulfilment facts
+  ✔ disabled gate, web, demo and foreign addresses cannot collect money (276.2343ms)
+  ✔ immutable exact quote, shipping allocation, encrypted address and idempotent checkout (339.1335ms)
+  ✔ concurrent buyers cannot oversell; closed reservations release once (210.4144ms)
+  ✔ quote changes require reconfirmation before stock is reserved (43.4641ms)
+  ✔ verified payment deducts stock once, keeps fulfilment separate and posts balanced money (196.2285ms)
+  ✔ uncertain prepay cannot repeat, query outages cannot release inventory (150.856ms)
+  ✔ payment after cancellation becomes compensation without stock deduction (137.2693ms)
+  ✔ mismatched and duplicate verified money is refunded without second fulfilment (174.416ms)
+  ✔ verified cross-channel and unsolicited receipts remain durable compensations (380.4391ms)
+  ✔ split shipments freeze destination, prevent over-shipping and sign only owned parcels (272.0118ms)
+  ✔ partial refunds allocate every cent once and stock returns only after channel success (359.7073ms)
+  ✔ return requires approval and warehouse quality check; finance cannot invent receipt (334.953ms)
+  ✔ refund failure preserves amounts and stock; verified retry is idempotent (226.3236ms)
+  ✔ verified CLOSED refund can reissue with retained original history and one stock return (250.0095ms)
+  ✔ received partial shipment and unsent refund finish in either order (231.5132ms)
+  ✔ exchange zero money, stock atomicity, retry and in-transit protection (463.4588ms)
+  ✔ unpaid shipping and unauthorized address/refund operations are rejected (145.2972ms)
+  ✔ completed physical orders can close accounts without retaining destination copies (287.1729ms)
+  ✔ published cultural evidence, quality review, paired tools and net sales sorting (378.2095ms)
+  ✔ existing verified callback dispatcher routes physical orders to their workflow (89.088ms)
+✔ physical commerce preserves money, inventory, ownership and fulfilment facts (5632.2287ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 48
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21854.1577
+
+✖ failing tests:
+
+test at test\member-shop-pricing.test.mjs:38:13
+✖ membership tier alone never invents unpurchased discounts; ineligible items keep their price (161.1055ms)
+  PrismaClientKnownRequestError: 
+  Invalid `prisma.membership.create()` invocation:
+  
+  
+  Database error. Code: `23P01`. Message: `conflicting key value violates exclusion constraint "domain_member_no_overlap"`
+      at vn.handleRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:8643)
+      at vn.handleAndLogRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7932)
+      at vn.request (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7639)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async a (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:99:6935)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/member-shop-pricing.test.mjs:41:7)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/member-shop-pricing.test.mjs:38:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at test\member-shop-pricing.test.mjs:43:13
+✖ best frozen discount, scoped eligibility, freight thresholds and surcharge are exact (116.0172ms)
+  PrismaClientKnownRequestError: 
+  Invalid `prisma.membership.create()` invocation:
+  
+  
+  Database error. Code: `23P01`. Message: `conflicting key value violates exclusion constraint "domain_member_no_overlap"`
+      at vn.handleRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:8643)
+      at vn.handleAndLogRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7932)
+      at vn.request (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7639)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async a (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:99:6935)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/member-shop-pricing.test.mjs:44:100)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/member-shop-pricing.test.mjs:43:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at test\member-shop-pricing.test.mjs:11:1
+✖ member shop prices preserve purchased terms, stock, actual payments and refund allocations (1621.0959ms)
+  PrismaClientKnownRequestError: 
+  Invalid `prisma.product.deleteMany()` invocation:
+  
+  
+  Foreign key constraint violated on the constraint: `domain_BenefitScope_resourceId_fk`
+      at vn.handleRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:8643)
+      at vn.handleAndLogRequestError (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7932)
+      at vn.request (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:65:7639)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async a (D:\UserData\l6658\Documents\ChatGPT\道学书院\node_modules\.pnpm\@prisma+client@7.10.0_prism_0fff04242e71f3627cf459b9644e576a\node_modules\@prisma\client\runtime\client.js:99:6935)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/member-shop-pricing.test.mjs:77:152)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at test\membership-benefits.test.mjs:20:13
+✖ new benefit versions do not change the old content grant; future and revoked sources fail closed (433.2945ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 1
+  
+      at TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/membership-benefits.test.mjs:31:122)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async TestContext.<anonymous> (file:///C:/Users/l6658/Documents/ChatGPT/%E9%81%93%E5%AD%A6%E4%B9%A6%E9%99%A2/services/api/test/membership-benefits.test.mjs:20:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+Test command failed: 1

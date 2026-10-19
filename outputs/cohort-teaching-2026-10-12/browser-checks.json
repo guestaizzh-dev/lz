@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Pro在所选营期分配助教，保存真实归属",
+    "Pro选择固定版本章节、保存草稿并发布本期作业",
+    "App从本期入口提交真实作业，保留本期身份与待点评状态",
+    "Pro阅读真实提交并点评，保存通知与审核事实",
+    "App点击点评消息回到原营期作业并显示老师反馈",
+    "Pro发布本期每日打卡，服务端补齐营期内日期",
+    "App弹窗完成本期打卡，日历和每日状态更新",
+    "结营后本期打卡保留且不再允许新打卡"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

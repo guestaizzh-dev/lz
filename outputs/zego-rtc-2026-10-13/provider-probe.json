@@ -1,0 +1,96 @@
+{
+  "appId": 563636194,
+  "sdkVersion": "3.13.0",
+  "server": "wss://accesshub-wss.zego.im/accesshub",
+  "checkedAt": "2026-10-14T03:55:10.070Z",
+  "checks": [
+    {
+      "name": "valid_host_login",
+      "ok": true,
+      "events": [
+        {
+          "reason": "LOGINING",
+          "code": 0
+        },
+        {
+          "reason": "LOGINED",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "name": "different_room_rejected",
+      "passed": false,
+      "ok": true,
+      "events": [
+        {
+          "reason": "LOGINING",
+          "code": 0
+        },
+        {
+          "reason": "LOGINED",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "name": "valid_viewer_login",
+      "ok": true,
+      "events": [
+        {
+          "reason": "LOGINING",
+          "code": 0
+        },
+        {
+          "reason": "LOGINED",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "name": "host_publish_requested",
+      "passed": true,
+      "accepted": true
+    },
+    {
+      "name": "rtc_remote_video_decoded",
+      "passed": true,
+      "stats": {
+        "width": 320,
+        "height": 180,
+        "frames": 1
+      }
+    },
+    {
+      "name": "viewer_publish_rejected",
+      "passed": false,
+      "events": [
+        {
+          "state": "PUBLISH_REQUESTING",
+          "code": 0
+        },
+        {
+          "state": "PUBLISHING",
+          "code": 0
+        }
+      ],
+      "attempt": {
+        "accepted": true
+      }
+    },
+    {
+      "name": "host_publish_events",
+      "events": [
+        {
+          "state": "PUBLISH_REQUESTING",
+          "code": 0
+        },
+        {
+          "state": "PUBLISHING",
+          "code": 0
+        }
+      ]
+    }
+  ],
+  "commercialAcceptance": false
+}

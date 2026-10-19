@@ -1,0 +1,3 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const path='services/api/test/cohort-sales.test.mjs';let s=await readFile(path,'utf8');
+s=s.replace('const base=(await app.getUrl())','t.after(async()=>{await app.close();await db.$disconnect();});const base=(await app.getUrl())').replace('title:tag,description:',"title:tag,subtitle:'本期共学',tags:[],description:").replace('watchedSeconds:0,complete:true,cohortId:a.id','elapsedSeconds:0,completed:true').replace(".id+'/progress',s,'POST',input",".id+'/progress?cohortId='+a.id,s,'POST',input").replace("'/forum/sections/'+section.id,s","'/forum/sections/'+section.id+'/tags',s");await writeFile(path,s);

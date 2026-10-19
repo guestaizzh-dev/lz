@@ -1,0 +1,9 @@
+<template><ComposeSheet :visible="visible" title="举报内容" :subtitle="'原因：'+reasonName" v-model="description" :maxlength="1000" placeholder="补充说明（选填）" :saving="saving" :error="error" submitLabel="提交举报" @close="emit('close')" @submit="submit"><button class="change-reason" :disabled="saving" @click="chooseReason">更换举报原因</button></ComposeSheet></template>
+<script setup lang="ts">
+import {ref,computed,onMounted} from 'vue';import ComposeSheet from './ComposeSheet.uvue';import {request} from '../lib/api';
+const props=defineProps<{resourceId:string;commentId?:string;resourceType?:string}>(),emit=defineEmits<{close:[];success:[]}>();
+const reasons=[{code:'SPAM',name:'垃圾广告'},{code:'INAPPROPRIATE',name:'内容不当'},{code:'MISLEADING',name:'误导信息'},{code:'COPYRIGHT',name:'版权问题'},{code:'OTHER',name:'其他'}],reason=ref(0),reasonName=computed(()=>reasons[reason.value].name),description=ref(''),saving=ref(false),error=ref(''),visible=ref(false);
+function chooseReason(){uni.showActionSheet({itemList:reasons.map(r=>r.name),success:r=>{reason.value=r.tapIndex;visible.value=true;},fail:()=>{if(!visible.value)emit('close');}});}
+async function submit(){if(saving.value)return;saving.value=true;error.value='';try{await request((props.resourceType==='THREAD'?'/forum/threads/':'/articles/')+props.resourceId+'/reports',{method:'POST',data:{reason:reasons[reason.value].code,description:description.value,...(props.commentId?{commentId:props.commentId}:{})}});uni.showToast({title:'举报已提交',icon:'none'});emit('success');emit('close');}catch(e){error.value=(e as Error).message;}finally{saving.value=false;}}
+onMounted(chooseReason);
+</script><style>.change-reason{font-size:13px;line-height:22px;min-height:44px;background-color:transparent;color:#245564;padding:10px 0;border-width:0;margin:0 0 10px;align-self:flex-start;}</style>

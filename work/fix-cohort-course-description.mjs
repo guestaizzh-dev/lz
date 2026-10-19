@@ -1,0 +1,12 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const path='apps/mobile/pages/course/detail.uvue';let text=await readFile(path,'utf8');
+text=text.replace('<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">','<scroll-view :show-scrollbar="false" :scroll-into-view="cohortAnchor" class="page-scroll" direction="vertical">');
+text=text.replace('<text class="price">¥{{money(course!.price)}}</text>','<text v-if="course!.format===\'COHORT\'" class="section-heading">按营期报名</text><text v-else class="price">¥{{money(course!.price)}}</text>');
+text=text.replace("course!.isDemo?'示例课程':'课程价格'","course!.isDemo?'示例课程':course!.format==='COHORT'?'费用以本期为准':'课程价格'");
+text=text.replace('<text class="footer-note">{{curriculum?.course.accessDays?', '<text v-if="course!.format===\'COHORT\'&&curriculum?.access===\'TRIAL\'" class="footer-note">每期独立定价、固定课程版本与研习期限；请在下方选择本期安排，查看报名费用和退出规则。</text><text v-else class="footer-note">{{curriculum?.course.accessDays?');
+text=text.replace('<CohortLinks ref="cohortsRef" v-if="course" :courseId="id"/>','<view id="cohort-options"><CohortLinks ref="cohortsRef" v-if="course" :courseId="id"/></view>');
+text=text.replace('<button class="bar-primary" :disabled="enrolling||!curriculum" @click="buy()">','<button v-if="course!.format===\'COHORT\'&&curriculum?.access===\'TRIAL\'" class="bar-primary" @click="chooseCohort">选择报名营期</button><button v-else class="bar-primary" :disabled="enrolling||!curriculum" @click="buy()">');
+text=text.replace("enrolling=ref(false);let id='';","enrolling=ref(false),cohortAnchor=ref('');let id='';function chooseCohort(){cohortAnchor.value='';nextTick(()=>{cohortAnchor.value='cohort-options';});}");
+text=text.replace("function play(){openPage('course/player?id='+id);}","function play(){if(course.value?.format==='COHORT'&&curriculum.value?.access==='TRIAL'){chooseCohort();return;}openPage('course/player?id='+id);}");
+await writeFile(path,text);
+const script='scripts/browser/cohort-sales.mjs';text=await readFile(script,'utf8');text=text.replace("await mobile.goto(mobileUrl+'/#/pages/course/detail?id='+course.id);await mobile.locator", "await mobile.goto(mobileUrl+'/#/pages/course/detail?id='+course.id);await mobile.getByText('按营期报名',{exact:true}).waitFor();await mobile.getByText('选择报名营期',{exact:true}).click();assert.equal(await mobile.getByText('课程价格',{exact:true}).count(),0);await mobile.locator");text=text.replace("checks.push('Web明示购买说明但禁止收款，原生平台门禁保留')","checks.push('课程按营期报价与到期规则引导，Web购买说明明确禁收款，原生平台门禁保留')");await writeFile(script,text);

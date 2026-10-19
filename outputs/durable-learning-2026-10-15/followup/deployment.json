@@ -1,0 +1,9 @@
+{
+  "tag": "20261015-durable-learning-02",
+  "previous": "/opt/daoxue-academy/releases/20261015-durable-learning-01",
+  "release": "/opt/daoxue-academy/releases/20261015-durable-learning-02",
+  "businessTablesVerified": 21,
+  "migration": "20261015100000_durable_sessions_and_learning",
+  "normalizedField": "lastEventAt",
+  "adminUnchanged": true
+}

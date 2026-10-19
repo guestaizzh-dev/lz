@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-12",
+  "tasks": 110,
+  "states": {
+    "已完成": 5,
+    "待验收": 1,
+    "阻塞": 16,
+    "实现完成·待验证": 13,
+    "进行中": 11,
+    "待执行": 64
+  },
+  "commercialBaseline": {
+    "completed": 38,
+    "total": 131,
+    "percentage": 29.0
+  },
+  "commercialReviewSnapshotUnchanged": true,
+  "commercialReviewSha256": "c24a94ff6fb6e1735cc85b57a0412a249858dd2d77d1cfd46edf771958222d04"
+}

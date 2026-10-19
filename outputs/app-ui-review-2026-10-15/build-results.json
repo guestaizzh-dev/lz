@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-15",
+  "compiler": "HBuilderX 5.26",
+  "android": {
+    "mode": "蒸汽，字节码",
+    "result": "编译与资源导出成功",
+    "completedLocal": "19:11:32",
+    "apk": false
+  },
+  "web": {
+    "result": "导出成功",
+    "completedLocal": "19:14:08",
+    "warning": "onResize导出成员的类型声明警告；实际运行与横屏专项通过"
+  },
+  "browser": {
+    "screens": 58,
+    "checks": 8,
+    "pageErrors": 0,
+    "failure": null,
+    "testedAt": "2026-10-16T03:16:30.484Z"
+  },
+  "productionDeployed": false,
+  "deviceInstalled": false
+}

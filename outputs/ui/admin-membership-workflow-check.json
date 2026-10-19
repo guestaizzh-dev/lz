@@ -1,0 +1,54 @@
+{
+  "plan": {
+    "title": "QA 会员授权流程",
+    "days": 17,
+    "tier": 1
+  },
+  "membership": {
+    "id": "78b13442-8040-4858-91a6-13c842a41f5f",
+    "startsAt": "2026-10-06T09:59:53.158Z",
+    "endsAt": "2026-10-23T09:59:53.158Z",
+    "revokedAt": "2026-10-06T10:00:54.378Z"
+  },
+  "audits": [
+    {
+      "id": "c1b0ff59-4d6b-42c9-9501-0f07a941a27b",
+      "action": "membership.plan",
+      "resource": "membershipPlan",
+      "resourceId": "c37cdc2a-9397-4383-a9db-74aded6ffffb",
+      "changes": {
+        "days": 17,
+        "tier": 1,
+        "price": 1900,
+        "title": "QA 会员授权流程",
+        "active": true,
+        "description": "仅用于浏览器工作流验证，验证后清理"
+      },
+      "createdAt": "2026-10-06T09:54:40.384Z"
+    },
+    {
+      "id": "8f0d1144-28fc-45b2-ad66-0257c38ee7db",
+      "action": "membership.grant",
+      "resource": "membership",
+      "resourceId": "78b13442-8040-4858-91a6-13c842a41f5f",
+      "changes": {
+        "planId": "c37cdc2a-9397-4383-a9db-74aded6ffffb",
+        "reason": "QA 浏览器会员补偿验证",
+        "userId": "31eddb06-6577-4dd0-8fa7-30499bdbca1f"
+      },
+      "createdAt": "2026-10-06T09:59:53.161Z"
+    },
+    {
+      "id": "490afbd4-215f-4ed3-b5ab-72d31588420e",
+      "action": "membership.revoke",
+      "resource": "membership",
+      "resourceId": "78b13442-8040-4858-91a6-13c842a41f5f",
+      "changes": {
+        "reason": "QA 浏览器会员撤销验证",
+        "userId": "31eddb06-6577-4dd0-8fa7-30499bdbca1f"
+      },
+      "createdAt": "2026-10-06T10:00:54.381Z"
+    }
+  ],
+  "fixtureRemoved": true
+}

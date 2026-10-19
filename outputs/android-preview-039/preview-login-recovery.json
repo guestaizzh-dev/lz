@@ -1,0 +1,14 @@
+{
+  "release": "/opt/daoxue-academy/releases/20261016-content-m06-01",
+  "image": "daoxue-api:20261016-content-m06-01",
+  "oldExpiry": "2026-10-18T10:30:21.738772+00:00",
+  "newExpiry": "2026-10-25T10:06:52+00:00",
+  "changedEnvironmentKeys": [
+    "PREVIEW_LOGIN_EXPIRES_AT"
+  ],
+  "health": "healthy",
+  "backups": [
+    "/opt/daoxue-academy/production.env.before-preview-renew-20261019T100652Z",
+    "/opt/daoxue-academy/releases/20261016-content-m06-01/infra/.env.before-preview-renew-20261019T100652Z"
+  ]
+}

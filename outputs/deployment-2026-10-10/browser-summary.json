@@ -1,0 +1,26 @@
+{
+  "login": true,
+  "routes": [
+    {
+      "path": "/content/courses",
+      "title": "课程与名师 - 老子道学书院",
+      "rows": 8
+    },
+    {
+      "path": "/products",
+      "title": "商品与库存 - 老子道学书院",
+      "rows": 8
+    },
+    {
+      "path": "/system/users",
+      "title": "账号与会话 - 老子道学书院",
+      "rows": 14
+    },
+    {
+      "path": "/system/config",
+      "title": "系统配置 - 老子道学书院",
+      "rows": 0
+    }
+  ],
+  "failedResponses": []
+}

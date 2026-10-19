@@ -9,7 +9,7 @@ const sharpPath = process.env.DAOXUE_SHARP_PATH;
 if (!sharpPath) throw new Error('Set DAOXUE_SHARP_PATH to a local sharp installation for asset generation.');
 const sharp = require(sharpPath);
 const names = ['house','book-open','compass','bag','user','magnifying-glass','bell','arrow-right','arrow-left',
-  'play','bookmark-simple','calendar-blank','clock','check','gear','shopping-cart','heart','chat-circle','leaf','flower-lotus','headphones','video-camera','list','sign-out','shield-check','share-network','cloud-slash','hourglass','star','note-pencil','crown','package','medal','text-aa','minus','plus','lock'];
+  'play','bookmark-simple','calendar-blank','clock','check','gear','shopping-cart','heart','chat-circle','leaf','flower-lotus','headphones','video-camera','list','sign-out','shield-check','share-network','cloud-slash','hourglass','star','note-pencil','crown','package','medal','text-aa','minus','plus','lock','warning','arrow-bend-up-left','x','clock-clockwise'];
 const dir = resolve('apps/mobile/static/icons');
 mkdirSync(dir, { recursive: true });
 for (const name of names) {

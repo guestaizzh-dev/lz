@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-09",
+  "api": {
+    "compiled": true,
+    "tests": 122,
+    "passed": 122,
+    "failed": 0
+  },
+  "admin": {
+    "typecheck": true,
+    "productionBuild": true
+  },
+  "mobile": {
+    "webBuild": true,
+    "warnings": 0,
+    "registeredRoutes": 40,
+    "brokenStaticReferences": []
+  },
+  "browserAcceptance": "blocked by automatic approval",
+  "phoneAcceptance": "cancelled by user",
+  "cloudPackagingPerformed": false,
+  "productionDeploymentPerformed": false
+}

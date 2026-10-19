@@ -1,0 +1,344 @@
+{
+  "testedAt": "2026-10-16T07:00:02.075Z",
+  "platform": "Edge Web，非原生验收",
+  "checks": [
+    "真实验证码登录，操作仅落隔离数据库",
+    "八类重点页面320px窄屏未产生整页横向溢出",
+    "消息/设置/客服/日志/名师/学习档案320px与130%模拟大字无整页横向溢出（非原生字号验收）",
+    "320px学堂分类存在真实横向溢出，可滚动并选择末项",
+    "训练营空态直接切换学堂并选中训练营，订单入口无默认白按钮",
+    "预约列表订单入口可用，去除重复大标题",
+    "日志弹窗输入与关闭，编辑按钮保持可见",
+    "分类网络错误只有重试态，重试后恢复，不混入空态",
+    "服务端故障显示中文反馈，不向用户输出内部错误"
+  ],
+  "screens": [
+    {
+      "path": "pages/auth/login",
+      "mode": "login",
+      "http": []
+    },
+    {
+      "path": "pages/index/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/academy/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/discover/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shop/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/article/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/product/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/library",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/settings",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/privacy",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/teacher/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/teacher/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/player",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/live/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/community/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/event/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/event/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/membership/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/membership/purchase",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/membership/orders",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/service",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/order/confirm",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/library",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shop/cart",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shop/addresses",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/practice",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/messages",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/reading-history/reading-history",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shared/index",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/share/links/invalid-review-link/resolve",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "path": "pages/search/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/live/watch",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/live/sessions/963ce5d3-39f5-41c7-bd75-0223b14f5fd9/join",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "path": "pages/live/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/order/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/checkin",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/feedback",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/progression",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/community/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/community/editor",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/community/manage",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/profile/edit",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/certificate",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/learning/courses/8a2fb420-c83b-42e1-977d-f92dcf7c74d5/certificate",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "path": "pages/course/purchase",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/orders",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/course/versions",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shop/orders",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/shop/order-detail",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/commerce/product-orders/9a9c9454-771d-4818-b580-15e524bb1260",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "path": "pages/booking/confirm",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/booking/mine",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/cohort/detail",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/cohort/index",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/booking/credential",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/booking/workbench",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/me/event-workbench",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "path": "pages/booking/purchase",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/commerce/bookings/quote",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "path": "pages/booking/orders",
+      "mode": "content-or-empty",
+      "http": []
+    },
+    {
+      "path": "pages/cohort/purchase",
+      "mode": "error-state",
+      "http": [
+        {
+          "path": "/api/v1/commerce/cohorts/quote",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "path": "pages/cohort/orders",
+      "mode": "content-or-empty",
+      "http": []
+    }
+  ],
+  "errors": [],
+  "failure": null
+}

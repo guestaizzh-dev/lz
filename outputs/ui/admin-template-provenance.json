@@ -1,0 +1,31 @@
+{
+  "upstream": "https://github.com/ant-design/ant-design-pro",
+  "tag": "v6.0.3",
+  "commit": "adfd44085738ca953573a13322c1ba84aca8b9e3",
+  "unchangedAnalysisFiles": [
+    "src/pages/dashboard/analysis/data.d.ts",
+    "src/pages/dashboard/analysis/style.style.ts",
+    "src/pages/dashboard/analysis/components/IntroduceRow.tsx",
+    "src/pages/dashboard/analysis/components/OfflineData.tsx",
+    "src/pages/dashboard/analysis/components/ProportionSales.tsx",
+    "src/pages/dashboard/analysis/components/SalesCard.tsx",
+    "src/pages/dashboard/analysis/components/TopSearch.tsx",
+    "src/pages/dashboard/analysis/utils/utils.ts",
+    "src/pages/dashboard/analysis/utils/Yuan.tsx",
+    "src/pages/dashboard/analysis/components/Charts/index.style.ts",
+    "src/pages/dashboard/analysis/components/NumberInfo/index.style.ts",
+    "src/pages/dashboard/analysis/components/NumberInfo/index.tsx",
+    "src/pages/dashboard/analysis/components/PageLoading/index.tsx",
+    "src/pages/dashboard/analysis/components/Trend/index.style.ts",
+    "src/pages/dashboard/analysis/components/Trend/index.tsx",
+    "src/pages/dashboard/analysis/components/Charts/ChartCard/index.style.ts",
+    "src/pages/dashboard/analysis/components/Charts/ChartCard/index.tsx",
+    "src/pages/dashboard/analysis/components/Charts/Field/index.style.ts",
+    "src/pages/dashboard/analysis/components/Charts/Field/index.tsx"
+  ],
+  "adaptedAnalysisFiles": [
+    "src/pages/dashboard/analysis/index.tsx",
+    "src/pages/dashboard/analysis/service.ts"
+  ],
+  "notes": "Original analysis component/styles retained. Index adds fixture notice; service uses explicitly labelled local fixtures."
+}

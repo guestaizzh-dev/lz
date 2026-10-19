@@ -16,4 +16,14 @@
 *.log
 /services/api/src/generated/
 **/.media/
+/services/api/public/live/sdk.js
 /outputs/ui/*-doc.html
+/infra/payment-keys/
+*.pem
+*.p12
+*.pfx
+*.keystore
+
+/apps.zip
+/outputs/android/*.apk
+/node_modules.c-move-backup*/

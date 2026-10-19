@@ -1,0 +1,122 @@
+[
+  {
+    "path": "apps/mobile/styles/app.css",
+    "before": "ffa730cad749a5edcf6fecf5dd73e292d53e39d1b8ab9b87c98f3d884bf56e1e",
+    "after": "5a865eb1973880086297882f17dc657c89177d3f7b81e773e3e15ced286d9396",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/styles/marketing.css",
+    "before": "3353b8e4c61b188257dc4f88b7f2f1e7919040baa54556fe583999ac64260024",
+    "after": "e8b8879c649362cebeeb0489f0117d02537f2c6170fb47918f5e341ff9b02e5d",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/App.uvue",
+    "before": "b55b43ff3e5eac9d135185dfef7be73a5e9594dfda146ba493de230f3fa6998d",
+    "after": "a20c59d4c04249dba168593efbe608f711b1556382f62695ff5923a6342df80f",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/ContentState.uvue",
+    "before": "1aeb8c7125b606d2b47fb66668265d8182faaf9d4d97db00cdc59987a5f9ec43",
+    "after": "2645e6b0421af769cb24597bb74bbda01e5db6783ad6fde3e7dccbbbd13c05b9",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/ComposeSheet.uvue",
+    "before": "b57be4bc702db53d102b961ff811a070acb4c4df1ad597d5ea2ef5015fbffd37",
+    "after": "963a3152bcb7c859818212139236814e6bc95ed65ae325fcf20bb8c007d3b7f8",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/PageHead.uvue",
+    "before": "dda9602287246530b7efbf94fcac2ad7b27c10a02d995e354879f37cfbc4311b",
+    "after": "8ac98600cb299678ee8f77a8a84568058b66562e8d43e4a24ed1049bdb7a88b4",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/BottomBar.uvue",
+    "before": "d590c7d04016d003bc4068722805ff777ee2a5d92b37265c03c812139cd781c9",
+    "after": "b867dab3dfe648768903fc628a64dede2e5593521b28a208bee1be89e4d7680d",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/ArticleRow.uvue",
+    "before": "b855eb425adf222750e1c1ce9c6c6b3ea837d49c8c8c8e6a6c95dbb2e673345d",
+    "after": "01a88c2b4da948fdea8968d82aa8a20c661310332f89a6ad2303afd7414bbffd",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/CourseRow.uvue",
+    "before": "477529c0594181c46dde91c7863a1b020064d704d600c954e4dbf6da4e2d525d",
+    "after": "8fe516402967c5348e323bf89d16af221eb1911ad8f86c72b779f0acd2bcb4cc",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/LessonRow.uvue",
+    "before": "02907a8fdda981e4dc287dd1a97ced6b64f2482f94b9eeb13fe6ac27d847b792",
+    "after": "24dbcb49954c9f09e49b116660261c85d6a9af9f2d71a5a5859d772150578f5b",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/components/JournalDate.uvue",
+    "before": "5f313fb249118d98e7960561de09892f470af4525c72bbb8308207597591e27d",
+    "after": "1a75ea73638b0a6f366d77a0b5d8b4d784c73062aff5cb93b87e5585f3d73414",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/pages/auth/login.uvue",
+    "before": "d97105dcc2eb995cd1a0630ddaf1681a080acd7ff52a211dcd7e42b1d9d2aaea",
+    "after": "4d1008cdd363d00616de3b8dbeef54e9cc179276a8a8cc4edb220862811947eb",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/pages/profile/library.uvue",
+    "before": "c812ee1eaccfa8052928955b96a70becfe10dd843ed0cca4d5f6bdac9d4c3b95",
+    "after": "3a94b226e80151b797f23b9173c8ee9c0bc0803276e51edf46a840fb056f241f",
+    "changed": true
+  },
+  {
+    "path": "apps/mobile/pages/course/library.uvue",
+    "before": "b99bc239786d5d97a93c64c5a81baae70970d3d2dd354d7ec031d84a5b7a8854",
+    "after": "3de9e3eb9672b5af415cdb88c9c18abf45dfc100382327db41d41b61d9b08a5d",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/config/config.ts",
+    "before": "adb5300f76a75c5bb77e55d7e3189518841a939427298311a07bd044b4ef1159",
+    "after": "fa900fad7cb8b1aa0fd26dd042f02f1d7cd42228b859459d38e07b75c6452072",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/src/global.less",
+    "before": "45da7eb9607a0d86bf51340dada4408e2c4154cdc26ee55f05f457071dbf54cd",
+    "after": "0cc580a1bad2d2b52c27ba115de18bfb8cbdb80e6ec99d273d64394b4cf6bb2b",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/src/components/OfflineBanner/index.tsx",
+    "before": "c8c2f7a55e07371ff44d345aba249cc2525d04e6e9cf4a21e00a8ac2eb9e9a5d",
+    "after": "671dbfb5ef0e11f4baee2f5d2a45ea6e8c115641998173f756dfb437950af770",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/src/components/ErrorBoundary/index.tsx",
+    "before": "a072969db03caa6c06ad7ffaefa8d079823ba2a0a0bf6ed86f4bf40f8d660e0e",
+    "after": "46f01c4e7afdff8a83dba64f4527dd96420ae5d5e5a7822e0f180f7fd85a7f56",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/src/pages/workspace/index.less",
+    "before": "098b9746120930f58c6263c5201d265599fcaffbd981388d9c64941a0c4d7d69",
+    "after": "896d164c91ba11a522b774c69a70ab9f1f05df469fe754247073e791753c26ce",
+    "changed": true
+  },
+  {
+    "path": "apps/admin/src/pages/user/login/index.tsx",
+    "before": "544298e670374c33ee128747e5f74c50e28cf360884ddff1c7f115103751c022",
+    "after": "fc15406efe2c4bedb4ceb71615ffb872aa1e3872afed748a4b73619792a60234",
+    "changed": true
+  }
+]

@@ -1,0 +1,194 @@
+{
+  "checkedAt": "2026-10-18T06:40:46.313592+00:00",
+  "scope": "Consumption rewards internal delivery; no production/APK/phone acceptance",
+  "files": [
+    {
+      "path": "services/api/src/consumption-policy.ts",
+      "sha256": "dff32d2ae26b369b8c0e00c85f37f6af11cea9851e032e59cae967be9f2d9947"
+    },
+    {
+      "path": "services/api/src/consumption-rewards.ts",
+      "sha256": "2127e5249bbd3e7f9b2c2c0d4ba394b03e6cd9ed95ffa4007973cad60bb94fc8"
+    },
+    {
+      "path": "services/api/src/points-accounting.ts",
+      "sha256": "94b0e69202318c1a3cd1193b9020ce0aba581f39536e26325e157eb4d4fe8ad5"
+    },
+    {
+      "path": "services/api/src/points-redemptions.ts",
+      "sha256": "5cdc128b461604d4a24ccfedc7856649a6ae6cba5e2b04944d79c141e18bd6fa"
+    },
+    {
+      "path": "services/api/src/progression.ts",
+      "sha256": "ea600c78cf9e6b1a1d9fe17f4bc712fb33907f690d3b0b62eae2f462734d75e4"
+    },
+    {
+      "path": "services/api/src/main.ts",
+      "sha256": "711d44647bf684494288125c631e19a5418ed7fbac5968ffef47bb8430eda32a"
+    },
+    {
+      "path": "services/api/src/learning.ts",
+      "sha256": "9f1b4291576d4d006a31069588d9bad80dd3f145308173101446c69dcd14dc00"
+    },
+    {
+      "path": "services/api/src/practices.ts",
+      "sha256": "2dfc6fea64fe200344a6c1c902b522e5dfd178b708602d5c6fa95dfc5b6576d8"
+    },
+    {
+      "path": "services/api/src/forum.ts",
+      "sha256": "2cb2d3a1afacb544ffae90e7c80e3bf2a9f63d3b779e6956b80d234d238a33ca"
+    },
+    {
+      "path": "services/api/src/community-enhancements.ts",
+      "sha256": "797c73917dffe75ba1b19b7a90f0497c78033332c299affecc142f57429b43bc"
+    },
+    {
+      "path": "services/api/src/course-sales.ts",
+      "sha256": "c4e73d2f088cb96e91112454a584e4a226876c3615912050ba4c0567035e21e7"
+    },
+    {
+      "path": "services/api/src/membership-sales.ts",
+      "sha256": "70fbf82d2433e70fc1feacb5aee91adf0c4a71657f8023a6bfe660c69c013d27"
+    },
+    {
+      "path": "services/api/src/product-sales.ts",
+      "sha256": "e87ff2ac5c0a686a588c099519b7f2132a66eec436b2e5493dcf0966a1d2efa3"
+    },
+    {
+      "path": "services/api/src/booking-sales.ts",
+      "sha256": "a18fd682531c900fcd3fd294577d8aced38eb818179838cbb19b817abca41658"
+    },
+    {
+      "path": "services/api/src/cohort-sales.ts",
+      "sha256": "d5e69b745468d6d3c138a7eabde14e050fe82edd20c97e8b11b39079426db1c5"
+    },
+    {
+      "path": "services/api/src/admin-permissions.ts",
+      "sha256": "301379a608bc77c53824d1df38159ce33edaefdb11e7ab28b6babd90ea734b51"
+    },
+    {
+      "path": "services/api/src/operations-admin.ts",
+      "sha256": "5c3de7a1eb1407144725840bfb4f08c15990337cc149913214e7799e4922dcba"
+    },
+    {
+      "path": "services/api/prisma/schema.prisma",
+      "sha256": "419ca5ba89837af20964a1bbe2f9ba4e85875016ae7e07d0f9167d5a71331480"
+    },
+    {
+      "path": "services/api/prisma/migrations/20261018130000_consumption_rewards/migration.sql",
+      "sha256": "3cb17cdc6cb7d0198adc99e3964feac3564e1d7e2a978e7bcf39e9064fa04d84"
+    },
+    {
+      "path": "services/api/test/consumption-rewards.test.mjs",
+      "sha256": "8292e66c0cc1a8e8563ac0d4b249d463bc7525b0a5c656b6580c1db4ddc7b1f8"
+    },
+    {
+      "path": "services/api/test/service-deliveries.test.mjs",
+      "sha256": "f5cb348d551b049a27bf2e2c89ef1e3d9dd0d625be7422a3c8b8a48c41e118d0"
+    },
+    {
+      "path": "services/api/test/membership-sales.test.mjs",
+      "sha256": "25dedf9a60d60c95d28be2569e716ec020804b284a1dee0f309af4bdb64e13a0"
+    },
+    {
+      "path": "apps/admin/src/pages/points-rewards/index.tsx",
+      "sha256": "2b55eec91abf5907fe857b4b1944b2c20caad4f84f3f9703fa294b75a6b0d4e6"
+    },
+    {
+      "path": "apps/admin/src/pages/points-rewards/Consumption.tsx",
+      "sha256": "06e53e84f25c09f293585cee69e49719310d06aec7e711dc66b646dcdb3acc11"
+    },
+    {
+      "path": "apps/admin/src/pages/operations/index.tsx",
+      "sha256": "cd58f7c46b51c24baa47b0564997dafe31fcc8277999c29919ad6e1b1fcbcb29"
+    },
+    {
+      "path": "apps/admin/src/access.ts",
+      "sha256": "f98585bd7a1723273cae8d0596b6cec183dc4c3a2c8cb83f7f9b97932d8608d8"
+    },
+    {
+      "path": "apps/admin/config/routes.ts",
+      "sha256": "ee1c7107633f450bcb14214a8262acbfa3e7ae889285b333d6edaeeea2a62289"
+    },
+    {
+      "path": "apps/admin/src/operations/navigation.ts",
+      "sha256": "91c49a54c4a9e9c27b58b1f4e554f1704c5e93ccad959029a89c5d416f892005"
+    },
+    {
+      "path": "apps/admin/src/operations/workflows.ts",
+      "sha256": "9bd83f923f65d41cda6daf5dba3a6564f4603ab5628dc9aa9ae30c6119d99140"
+    },
+    {
+      "path": "apps/mobile/components/ConsumptionReward.uvue",
+      "sha256": "8b3df25cdd8499cb10a017744a2abfca5e937f43fca9c295b4dca2e127cb0d2b"
+    },
+    {
+      "path": "apps/mobile/lib/consumption.ts",
+      "sha256": "a00b1855638ecdcfb3d1a7aaf2e10902aa59f27e8f903f6b4d0e8d7d223b2b87"
+    },
+    {
+      "path": "apps/mobile/pages/profile/progression.uvue",
+      "sha256": "2c0d5e48e80f8da7788ddab9923dbf07dc74c4b00c3f55476e66f06512fdadf8"
+    },
+    {
+      "path": "apps/mobile/pages/course/purchase.uvue",
+      "sha256": "bdaae286676d101dcc49ee5100002098c48660f0789fa205f58cc53a5901ec21"
+    },
+    {
+      "path": "apps/mobile/pages/membership/purchase.uvue",
+      "sha256": "2594daeafaa448b5da4e024402fa8301facb839d812f9d3df084f4804dc94a22"
+    },
+    {
+      "path": "apps/mobile/pages/order/confirm.uvue",
+      "sha256": "409e6673369fc9bb8c6cb9dcac1cb0ced5799c0e2121dfac6c172983c10a9d2b"
+    },
+    {
+      "path": "apps/mobile/pages/shop/order-detail.uvue",
+      "sha256": "ba1a25f5d5c6f27b6228d9e800f1e37162b574bdd0fa5c3abb7b91d1355e877b"
+    },
+    {
+      "path": "apps/mobile/pages/booking/purchase.uvue",
+      "sha256": "e9913851308f8ff7870cfc7ad9e0be96559f635ac8f2127f2d1490bdc0c1e671"
+    },
+    {
+      "path": "apps/mobile/pages/cohort/purchase.uvue",
+      "sha256": "224293943d0920bb7bd8731729f144f17b5688a3d01ff3580d3b88ecc0e3f137"
+    },
+    {
+      "path": "scripts/browser/consumption-rewards.cjs",
+      "sha256": "874dfaafda2e3207a375c85697928648b1d876fdff70d238e9d62b7ebf42c80c"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "ffa4f9fc9647a8c40cb5e0472c7ee72b0c504805b0d07e0adead2aba975c7661"
+    },
+    {
+      "path": "docs/01-product-requirements.md",
+      "sha256": "b6f293b679a9601d586a5bfb2eae8ea1136465b0bd8cd93699cf9e06fc98d89b"
+    },
+    {
+      "path": "docs/02-technical-research-and-decisions.md",
+      "sha256": "7b58a69eb745d34aaec60779288f7418f13a1248cb4e00b02ccf10e813d5c211"
+    },
+    {
+      "path": "docs/03-development-progress.md",
+      "sha256": "5589d5254a860f4bca57354a53057a74760be168f02d90350c076d8acb3f945e"
+    },
+    {
+      "path": "docs/26-remaining-development-plan.md",
+      "sha256": "cddba1a6598e2302850abec5ee196799be3de403ad7318e26ec5699bf7cc4526"
+    },
+    {
+      "path": "docs/33-development-status-summary.md",
+      "sha256": "e79259cb5bda0cc3a2935c76a515cdd69928726539c8289a7ac408edd35f881a"
+    },
+    {
+      "path": "docs/80-consumption-rewards-and-refund-holds.md",
+      "sha256": "0f5d340717275f56519b5318cdd8099d149a6516d69a641561ca6f721ec43deb"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "5aaa0cc31f7c1f9c5cdc787af561191b5a678657ef30cc0fd3c3cccef75c8b02"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "task": "A03 chapter schedule subflow",
+  "status": "implemented and locally verified",
+  "relatedTests": {
+    "passed": 115,
+    "failed": 0,
+    "files": 9
+  },
+  "browser": {
+    "passed": 8,
+    "errors": [],
+    "businessResponsesMocked": false
+  },
+  "builds": {
+    "api": true,
+    "adminTypecheck": true,
+    "adminProduction": true,
+    "appWeb": true,
+    "appWebMode": "VDOM",
+    "nativeVerification": false
+  },
+  "database": {
+    "migrations": 31,
+    "tables": 159,
+    "users": 15,
+    "courses": 8,
+    "orders": 0,
+    "cohorts": 0,
+    "registrations": 0,
+    "ordinary_enrollment_digest": "8a76f782528d4f96394cbff0bb314804",
+    "cohort_identity_digest": "d751713988987e9331980363e24189ce",
+    "schedules": 0
+  },
+  "commercial": {
+    "completed": 38,
+    "requirements": 131,
+    "percent": 29.0,
+    "A03": "in progress"
+  },
+  "deployedThisBatch": false,
+  "apkUpdatedThisBatch": false,
+  "next": "A03 cohort teaching staff, assignments, checkins and reviews"
+}

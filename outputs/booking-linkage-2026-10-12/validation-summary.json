@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-12",
+  "scope": [
+    "阶段M03商城服务入口",
+    "阶段M04咨询活动训练营",
+    "阶段M06内容联动"
+  ],
+  "regression": {
+    "total": 107,
+    "passed": 107,
+    "log": "outputs/booking-linkage-tests.log"
+  },
+  "finalBookings": {
+    "total": 13,
+    "passed": 13,
+    "log": "outputs/booking-linkage-bookings-final.log"
+  },
+  "testBatchesOverlap": true,
+  "browser": {
+    "passed": 10,
+    "checks": [
+      "Pro实际创建统一服务与免费报价",
+      "Pro选择北京时间并建立实际老师时段",
+      "App真实隔离验证码与登录流程通过",
+      "App从老师选择时段、确认联系方式并创建真实免费预约",
+      "App实际取消预约并释放统一时段",
+      "App从活动详情选择场次并真实免费报名",
+      "Pro实际报名名单显示脱敏联系方式与北京时间",
+      "Pro实际建立固定版本营期并开放免费报名",
+      "App从课程进入营期、免费报名并进入本期真实讨论",
+      "Pro实际维护名师文章关联，App两边详情展示且链接可打开"
+    ],
+    "errors": [],
+    "isolatedDatabase": true,
+    "adminSessionInjection": true,
+    "appRealOtp": true,
+    "paymentAdapters": false,
+    "commercialEvidence": false
+  },
+  "builds": {
+    "api": "passed",
+    "admin": "passed",
+    "appWeb": "passed",
+    "native": "not-run"
+  },
+  "database": {
+    "newTables": 0,
+    "newMigrations": 0,
+    "existingTables": 155,
+    "existingMigrations": 28,
+    "registryEntities": 144,
+    "crud": 33,
+    "workflow": 111,
+    "manualDatabaseModified": false,
+    "productionDatabaseModified": false
+  },
+  "executionPlan": {
+    "total": 110,
+    "statuses": {
+      "已完成": 5,
+      "实现完成·待验证": 13,
+      "待验收": 1,
+      "进行中": 11,
+      "阻塞": 16,
+      "待执行": 64
+    }
+  },
+  "commercialBaseline": {
+    "passed": 38,
+    "total": 131,
+    "percent": 29,
+    "updated": false
+  },
+  "deployment": {
+    "thisBatch": false,
+    "onlineRelease": "20261012-member-shop-01",
+    "apkUpdated": false
+  },
+  "report": "docs/38-booking-cohort-and-content-linkage.md"
+}

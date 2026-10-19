@@ -1,5 +1,5 @@
 <template>
-<view class="article-row" @click="goArticle(article.id)">
+<view hover-class="row-pressed" class="article-row" @click="goArticle(article.id)">
 <ArtImage :src="article.cover" :kind="artwork(article.cover)" :width="92" :height="100" />
 <view class="article-copy">
 <text class="article-name">{{article.title}}</text>
@@ -15,4 +15,4 @@ import type { Article } from '../lib/api';
 import { artwork } from '../lib/presentation';
 defineProps<{article: Article}>();
 </script>
-<style>.article-row{border-style:solid;border-width:0;flex-direction:row;padding:12px 0;border-bottom-width:1px;border-bottom-color:#DFD9CF;}.article-copy{flex:1;padding-left:12px;}.article-name{font-family:AcademySerif;color:#17292D;font-size:15px;font-weight:600;line-height:23px;}.article-caption{font-family:AcademySerif;font-size:12px;color:#637276;line-height:21px;margin-top:5px;max-height:42px;overflow:hidden;}.article-meta{font-size:10px;color:#788084;line-height:17px;margin-top:7px;}</style>
+<style>.article-row{border-style:solid;border-width:0;flex-direction:row;padding:12px 0;border-bottom-width:1px;border-bottom-color:#DFD9CF;}.article-copy{flex:1;min-width:0;padding-left:12px;}.article-name{font-family:AcademySerif;color:#17292D;font-size:16px;font-weight:600;line-height:25px;}.article-caption{font-family:AcademySans;font-size:13px;color:#637276;line-height:21px;margin-top:5px;max-height:42px;overflow:hidden;}.article-meta{font-family:AcademySans;font-size:12px;color:#637276;line-height:20px;margin-top:7px;}</style>

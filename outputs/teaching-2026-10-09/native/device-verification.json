@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-09",
+  "model": "HONOR JDY-AN00",
+  "versionName": "0.3.0",
+  "versionCode": 5,
+  "packageName": "cn.daoxue.academy",
+  "apk": "outputs/android/daoxue-academy-0.3.0.apk",
+  "bytes": 30786237,
+  "sha256": "013E84A3E89FA4202F45239192491E9827A66F96594A748A8C9059D4D5CB5C1A",
+  "install": "Success",
+  "usbReverse": "tcp:3000 -> tcp:3000",
+  "verified": [
+    "Native app startup",
+    "Home catalog fetched from local API",
+    "Development demo student OTP login",
+    "Course details fetched from local API"
+  ],
+  "fullTeachingNativeFlowVerified": false
+}

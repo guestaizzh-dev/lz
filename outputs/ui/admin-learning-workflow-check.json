@@ -1,0 +1,45 @@
+{
+  "title": "QA 浏览器章节工作流",
+  "courseId": "f54267a9-25b1-4e89-abeb-730a545126ca",
+  "version": 3,
+  "status": "PUBLISHED",
+  "audits": [
+    {
+      "id": "ee8271a7-317d-4726-a545-b1ea8b07d0e0",
+      "actorId": "006f5b99-8efb-4963-a6ac-99b504ae04ce",
+      "action": "course.create",
+      "resource": "course",
+      "resourceId": "f54267a9-25b1-4e89-abeb-730a545126ca",
+      "changes": {
+        "version": 1,
+        "chapters": 1
+      },
+      "createdAt": "2026-10-06T08:30:18.624Z"
+    },
+    {
+      "id": "68883242-4eb4-4512-abb6-8d42cb065efb",
+      "actorId": "006f5b99-8efb-4963-a6ac-99b504ae04ce",
+      "action": "course.submit",
+      "resource": "course",
+      "resourceId": "f54267a9-25b1-4e89-abeb-730a545126ca",
+      "changes": {
+        "reason": "浏览器验收提交",
+        "version": 2
+      },
+      "createdAt": "2026-10-06T08:31:22.841Z"
+    },
+    {
+      "id": "9d4bed8b-5810-4329-8c45-93fecf5b8112",
+      "actorId": "006f5b99-8efb-4963-a6ac-99b504ae04ce",
+      "action": "course.publish",
+      "resource": "course",
+      "resourceId": "f54267a9-25b1-4e89-abeb-730a545126ca",
+      "changes": {
+        "reason": "浏览器验收审核",
+        "version": 3
+      },
+      "createdAt": "2026-10-06T08:32:22.576Z"
+    }
+  ],
+  "fixtureRemoved": true
+}

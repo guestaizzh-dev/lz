@@ -1,0 +1,145 @@
+Running tests in an isolated temporary database.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "academy_test_21344_1791784924280", schema "public" at "127.0.0.1:55432"
+
+27 migrations found in prisma/migrations
+
+Applying migration `20261006035656_catalog_foundation`
+Applying migration `20261006040323_admin_identity_audit`
+Applying migration `20261006041548_app_identity_private_data`
+Applying migration `20261006041655_note_source_version`
+Applying migration `20261006075056_learning_membership_media`
+Applying migration `20261006080308_teacher_version`
+Applying migration `20261006102000_shopping_cart_addresses`
+Applying migration `20261006111500_pending_orders`
+Applying migration `20261009090000_note_selection_ranges`
+Applying migration `20261009110000_domain_enum_extension`
+Applying migration `20261009120000_full_domain_foundation`
+Applying migration `20261009130000_forum_sections`
+Applying migration `20261009150000_course_completion_and_reviews`
+Applying migration `20261009170000_course_sales`
+Applying migration `20261009171000_course_finance_accounts`
+Applying migration `20261009190000_admin_permission_policies`
+Applying migration `20261009200000_admin_role_baselines`
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+Applying migration `20261011110000_membership_partial_refunds`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261006035656_catalog_foundation/
+    └─ migration.sql
+  └─ 20261006040323_admin_identity_audit/
+    └─ migration.sql
+  └─ 20261006041548_app_identity_private_data/
+    └─ migration.sql
+  └─ 20261006041655_note_source_version/
+    └─ migration.sql
+  └─ 20261006075056_learning_membership_media/
+    └─ migration.sql
+  └─ 20261006080308_teacher_version/
+    └─ migration.sql
+  └─ 20261006102000_shopping_cart_addresses/
+    └─ migration.sql
+  └─ 20261006111500_pending_orders/
+    └─ migration.sql
+  └─ 20261009090000_note_selection_ranges/
+    └─ migration.sql
+  └─ 20261009110000_domain_enum_extension/
+    └─ migration.sql
+  └─ 20261009120000_full_domain_foundation/
+    └─ migration.sql
+  └─ 20261009130000_forum_sections/
+    └─ migration.sql
+  └─ 20261009150000_course_completion_and_reviews/
+    └─ migration.sql
+  └─ 20261009170000_course_sales/
+    └─ migration.sql
+  └─ 20261009171000_course_finance_accounts/
+    └─ migration.sql
+  └─ 20261009190000_admin_permission_policies/
+    └─ migration.sql
+  └─ 20261009200000_admin_role_baselines/
+    └─ migration.sql
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+  └─ 20261011110000_membership_partial_refunds/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+▶ Apple fixed-duration membership consent, restoration and reversal
+  ✔ native and membership gates refuse charging; production flags fail closed (46.9299ms)
+  ✔ membership mapping uses the subscription type, exact price and permission boundary (137.645ms)
+  ✔ prepare persists consent once under concurrency and protects attribution and terms (429.2286ms)
+  ✔ verified concurrent restore grants one frozen period and balances membership accounts (454.7236ms)
+  ✔ same-tier and cross-tier purchases append separately without moving existing dates (290.6526ms)
+  ✔ a changed queue or closed account records verified money for Apple review without delivering (226.9379ms)
+  ✔ wrong price, missing consent and duplicate receipt cannot create another grant (130.2613ms)
+  ✔ expired purchase consent can be closed; already-paid original facts restore without extending dates (138.3173ms)
+  ✔ full Apple refund and reversal are idempotent and preserve later queue dates (307.8789ms)
+  ✔ partial Apple revocation revokes the source but never fabricates exact refunded cents (120.1682ms)
+  ✔ refund reversal preserves independent revocation and refuses overlapping replacement periods (289.658ms)
+  ✔ verified V2 notifications and subsequent recovery use the member orchestrator (124.6966ms)
+  ✔ financial dashboard excludes undelivered liabilities and nets verified member refund reversals (222.0758ms)
+✔ Apple fixed-duration membership consent, restoration and reversal (4362.6763ms)
+▶ frozen membership benefits and atomic quotas preserve independent sources
+  ✔ new benefit versions do not change the old content grant; future and revoked sources fail closed (548.0574ms)
+  ✔ database and generic editor cannot rewrite published terms, source identity or usage ownership (205.3119ms)
+  ✔ concurrent reservations cannot exceed frozen quota and retries cannot change quantity (437.7555ms)
+  ✔ release and compensation are idempotent, consumed reservations survive expiry and transaction rollback frees capacity (98.4585ms)
+  ✔ revoking a membership never revokes an independent compensation quota (31.8172ms)
+✔ frozen membership benefits and atomic quotas preserve independent sources (2059.8155ms)
+✔ quota calendar uses China dates and inclusive source-clipped windows (0.4305ms)
+▶ membership orders use verified facts, frozen versions and isolated entitlement periods
+  ✔ disabled and iOS gates never create an order or membership (308.685ms)
+  ✔ concurrent checkout replays one immutable order and rejects changed requests (316.9031ms)
+  ✔ duplicate concurrent verified receipts create one period and one balanced journal (238.4293ms)
+  ✔ same-tier renewal and cross-tier purchases append independent frozen periods without overlap (348.4859ms)
+  ✔ changed queue before payment prevents collecting and confirmed money enters compensation (176.7148ms)
+  ✔ late or mismatched receipts refund exact received money without grants (289.8212ms)
+  ✔ uncertain prepay requires query; offline cancellation preserves pending state; worker expires unpaid (261.4732ms)
+  ✔ future-period refund requires finance, waits for verified success and leaves other dates intact (503.4055ms)
+  ✔ editing the sale price preserves an already confirmed order and its old benefit version (203.8304ms)
+  ✔ approved delayed refunds suspend only their purchased period and quota, including failed retry (466.0928ms)
+  ✔ failed refund cancellation requires verified terminal closure and restores only the original dates (498.9195ms)
+  ✔ active consumed membership requires an explicit amount and customer acceptance before partial refund (588.4544ms)
+  ✔ declining a negotiated refund restores original dates without channel or money effects (276.074ms)
+  ✔ occupied service rights block a partial refund proposal until the owning workflow releases them (217.3375ms)
+  ✔ stopped sales refuse prepay, and funds arriving after stop are refunded without membership (131.7306ms)
+  ✔ account closure requires explicit paid-membership forfeiture and preserves all financial evidence (422.7652ms)
+  ✔ database rejects purchased periods without verified source and list enforces route permission (49.0845ms)
+✔ membership orders use verified facts, frozen versions and isolated entitlement periods (6326.4956ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53847.4124

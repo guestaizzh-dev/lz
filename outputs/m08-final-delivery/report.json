@@ -1,0 +1,69 @@
+{
+  "scope": [
+    "E02",
+    "E04",
+    "E05",
+    "E06",
+    "E08"
+  ],
+  "implementationStatus": "实现完成·待验证",
+  "commercialRequirements": {
+    "accepted": 38,
+    "total": 131
+  },
+  "validation": {
+    "backendFull": {
+      "passed": 611,
+      "failed": 0
+    },
+    "finalTargeted": {
+      "passed": 27,
+      "failed": 0,
+      "overlapsFull": true
+    },
+    "readerBrowser": 18,
+    "adminBrowser": 6,
+    "appWebBrowser": 7,
+    "appWebJsErrors": 0,
+    "appWeb320pxOverflow": false,
+    "builds": {
+      "api": "passed",
+      "antDesignPro": "passed",
+      "appWeb": "passed",
+      "androidVaporResources": "passed (nativecode target; not APK)",
+      "androidKotlin": "passed using Android35, ZEGO3.25, DCloud context declaration boundary",
+      "ios": "not built"
+    }
+  },
+  "database": {
+    "migrations": 54,
+    "originalBusinessTablesChecked": 19,
+    "unchangedAcrossMigration": true
+  },
+  "delivery": {
+    "deployed": false,
+    "newApk": false,
+    "phoneAcceptance": false,
+    "giftsEnabled": false,
+    "offlinePinnedKeysConfigured": false
+  },
+  "evidence": [
+    "api-tests.log",
+    "targeted-tests.log",
+    "api-build.log",
+    "admin-build.log",
+    "web-build.log",
+    "android-resources-build.log",
+    "native-kotlin-build.log",
+    "local-migrations.json",
+    "admin-gifts.png",
+    "app-wallet.png"
+  ],
+  "pending": [
+    "正式双端签名包与系统SDK专项",
+    "iOS StoreKit真实产品与购买恢复",
+    "正式支付收退款、真实老师合同及实际付款核查",
+    "离线发行公钥、正式媒体和200MiB以上双端下载/播放专项",
+    "uni-push2云打包前置条件保持"
+  ]
+}

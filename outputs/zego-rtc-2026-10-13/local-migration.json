@@ -1,0 +1,1297 @@
+{
+  "checkedAt": "2026-10-14T04:27:40.121Z",
+  "localDatabase": true,
+  "migration": "20261013060000_zego_rtc_live",
+  "appliedMigrations": 41,
+  "businessTables": 161,
+  "allTables": 162,
+  "existingRowsPreserved": true,
+  "before": {
+    "AccessRole": {
+      "count": 7,
+      "digest": "ebe3d02fe5ec1db23364cd8050827fa9"
+    },
+    "AdCampaign": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AdPlacement": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Address": {
+      "count": 3,
+      "digest": "25f887a0d8b2073f202103de7c2eba7a"
+    },
+    "AppleAccountBinding": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppleOriginalPurchase": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppleTransactionState": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Appointment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppointmentSlot": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Article": {
+      "count": 10,
+      "digest": "7e3315fd155c8c5c11bfdd13a952ded1"
+    },
+    "ArticleBlock": {
+      "count": 45,
+      "digest": "7d8f27e1aa464216e3e86fe2cf641b01"
+    },
+    "ArticleRelease": {
+      "count": 7,
+      "digest": "1a64f4c3926f5df3950a638436549ffa"
+    },
+    "Assignment": {
+      "count": 4,
+      "digest": "d96d1c5131ec283d5cbbcc66899e1558"
+    },
+    "AttachmentBinding": {
+      "count": 2,
+      "digest": "31a8f5cfc49ebd6978e02098c9a515c9"
+    },
+    "AuditLog": {
+      "count": 320,
+      "digest": "2e2c90ae2488722f429e04fd88f35549"
+    },
+    "AuthIdentity": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AuthSession": {
+      "count": 40,
+      "digest": "1e5ea654b8223d75b85bde9ec22cae2d"
+    },
+    "BenefitDefinition": {
+      "count": 4,
+      "digest": "023241e3fce91eb739aa2b2e7fd7a83b"
+    },
+    "BenefitGrant": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "BenefitScope": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "BenefitUsage": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CampaignEntry": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CartItem": {
+      "count": 2,
+      "digest": "9360470a5108462b5ea197030c1a8391"
+    },
+    "ChannelProductMapping": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortCertificate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortLessonSchedule": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortRegistration": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortScheduleChange": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortStudyProgress": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Comment": {
+      "count": 5,
+      "digest": "6ee666c37f45bc80822a58bf88386bf5"
+    },
+    "CommissionLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ConsentRecord": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ConsumedRefresh": {
+      "count": 1,
+      "digest": "69e28ce5e5ded8c70157ab8127a27970"
+    },
+    "ContentAuthorization": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ContentRelation": {
+      "count": 2,
+      "digest": "da6c7e02f083fbf3a913128edec604bb"
+    },
+    "CouponTemplate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "0f32afdcd0af744d54181702ef6adcd6"
+    },
+    "CourseCertificate": {
+      "count": 2,
+      "digest": "bd7851fa3f753da01377179c2c2f0dee"
+    },
+    "CourseChapter": {
+      "count": 15,
+      "digest": "739d5aaa11267309f43e6230afb6233f"
+    },
+    "CourseCohort": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "4f9c81bb6b4c00c0c2298f33b6be691a"
+    },
+    "CourseReview": {
+      "count": 2,
+      "digest": "67880583c2ccc861c215fb9dcb6a5ba5"
+    },
+    "CourseStaff": {
+      "count": 4,
+      "digest": "cf77ae34cea572d932ed5a70ae1486cb"
+    },
+    "CourseVersionChoice": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DeliveryTemplate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DeliveryZone": {
+      "count": 3,
+      "digest": "57db336f4f6c5e3ac29fe3c1e1b92e7e"
+    },
+    "DeviceToken": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalDelivery": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalRelease": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalReleaseAsset": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "46e9ec0a68d6774a29cefc5a7769b836"
+    },
+    "Event": {
+      "count": 5,
+      "digest": "fb606c60aa430a2908800e56ba38c51f"
+    },
+    "EventCheckin": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventFulfilment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventRegistration": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventSession": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventStaff": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventTicketType": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventWaitlist": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Favorite": {
+      "count": 2,
+      "digest": "c50a5d1f8963483a6db4165504e83c79"
+    },
+    "FeatureConfig": {
+      "count": 3,
+      "digest": "620714fbc3a632b8a721035a76a34db1"
+    },
+    "Feedback": {
+      "count": 3,
+      "digest": "6bbf10d877089e5b94559ef72825c023"
+    },
+    "FeedbackReply": {
+      "count": 4,
+      "digest": "c31d3b5415fc8a16e9fbf673f94174d9"
+    },
+    "FinanceAccount": {
+      "count": 15,
+      "digest": "6d93416b0095aaff9216ac7faa8f932c"
+    },
+    "FinanceEntry": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "FinanceJournal": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ForumSection": {
+      "count": 7,
+      "digest": "fcf33cac1256033fc10e4dff51045e4b"
+    },
+    "ForumThread": {
+      "count": 9,
+      "digest": "2bd75d81ca18ac7fe6cac8d65d203246"
+    },
+    "GiftCreditAllocation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GiftLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GiftWallet": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GroupBuy": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GroupBuyMember": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GrowthLedger": {
+      "count": 11,
+      "digest": "d4ee7565d6407df84a017958e5a54da9"
+    },
+    "IdempotencyRecord": {
+      "count": 20,
+      "digest": "81c33a8b2a30cd3361de8a57bad35339"
+    },
+    "InventoryLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "InventoryReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Lesson": {
+      "count": 12,
+      "digest": "56ee0fe7917d3fc4888debdd2afafc56"
+    },
+    "LiveMicRequest": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LivePoll": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveRoom": {
+      "count": 2,
+      "digest": "5743284a5899e0155f7ea9eb50eabc36"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "018d25512e8e47937998383cdfa58ccb"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "6c0841c22bb3827651c514a6e4d4d47d"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "f73264adb25d991dfa52b53fd7d489e9"
+    },
+    "MembershipPlan": {
+      "count": 9,
+      "digest": "94548e4ea55200c52d0e401e364e96a4"
+    },
+    "MembershipPlanVersion": {
+      "count": 9,
+      "digest": "e1ee401661bfbb3dca7dff54cd7c5be3"
+    },
+    "ModerationAction": {
+      "count": 9,
+      "digest": "c4e8e021c12b2a4a1a7fbeca8c86b9e2"
+    },
+    "Note": {
+      "count": 3,
+      "digest": "6a6b3471ffb42060a952523d7eedc45f"
+    },
+    "NoteExport": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Notification": {
+      "count": 17,
+      "digest": "d736fa8aee64d0f41ec1cab8f5764898"
+    },
+    "NotificationDelivery": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "OfflineLicense": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "OperatingService": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Order": {
+      "count": 2,
+      "digest": "026370c96b8e202bea64ea3fb320c7a2"
+    },
+    "OrderItem": {
+      "count": 2,
+      "digest": "d272bab8b3d465c426c8464752551fa4"
+    },
+    "OtpChallenge": {
+      "count": 18,
+      "digest": "5637ca4b3c895c71fb63ecac9a267775"
+    },
+    "OutboxJob": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Partner": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PartnerContract": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PaymentAttempt": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PaymentTransaction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PlanBenefit": {
+      "count": 9,
+      "digest": "fb442ccf4106d6ad0fa08a67872bcae1"
+    },
+    "PointsAccount": {
+      "count": 2,
+      "digest": "4404159d0e7412ac50e969cbc60e29bd"
+    },
+    "PointsLedger": {
+      "count": 3,
+      "digest": "fe79cd0d1dabc0e74099f8c91c9e141a"
+    },
+    "PointsRedemption": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PointsReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PointsReward": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PollOption": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PollVote": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PracticeCheckin": {
+      "count": 2,
+      "digest": "86dc5a2e4ff95a9f77822b9a6bd7b34d"
+    },
+    "PracticeLog": {
+      "count": 3,
+      "digest": "3f015f3cf4927fd14025f9730b7cd968"
+    },
+    "PracticeTask": {
+      "count": 2,
+      "digest": "62ce023a03fd75b36493027d241362b4"
+    },
+    "Product": {
+      "count": 8,
+      "digest": "778533d090094a0a9efff541dd0c50f2"
+    },
+    "ProductSku": {
+      "count": 10,
+      "digest": "67481c5f588e782b9360791a0593108c"
+    },
+    "Promotion": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PromotionOffer": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ProviderCallback": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RateLimit": {
+      "count": 22,
+      "digest": "ba4283fec718d4916d3c59226a4cd702"
+    },
+    "Reaction": {
+      "count": 6,
+      "digest": "9439efc66a7f2d38f4101452cf10f56f"
+    },
+    "ReadingEvent": {
+      "count": 4,
+      "digest": "a5036084c886fed5eafd0b634ede08a7"
+    },
+    "Reconciliation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Referral": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Refund": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RefundItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RefundTransaction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Report": {
+      "count": 2,
+      "digest": "a082ae46eb3d854d7a4e763f8b9f97f2"
+    },
+    "Resource": {
+      "count": 45,
+      "digest": "479eefcd1c7acf3acbead7b3122253b0"
+    },
+    "ResourceEvidence": {
+      "count": 2,
+      "digest": "22a3f4328e96bc2985a1b8e998de7d1b"
+    },
+    "ResourceTag": {
+      "count": 17,
+      "digest": "0dacd023712bab4edae28125bd251f6e"
+    },
+    "SaleOffer": {
+      "count": 15,
+      "digest": "2e89b350b4e2e93b38a2cd9d531deeb9"
+    },
+    "ServiceOffering": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Settlement": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "SettlementItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Shipment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ShipmentItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ShippingZone": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "SourceEvidence": {
+      "count": 2,
+      "digest": "00b51bf8f2413548c6cf9d3b612bfa52"
+    },
+    "StudyEvent": {
+      "count": 5,
+      "digest": "39a398e96a26e3ae9b1e95532a7e8d73"
+    },
+    "StudyProgress": {
+      "count": 5,
+      "digest": "f8c8b49bbb9c796e6e632c7dbbfb442c"
+    },
+    "Submission": {
+      "count": 3,
+      "digest": "00628e9e745ea487917f7badc86f4221"
+    },
+    "Tag": {
+      "count": 2,
+      "digest": "130a44300d19534be4c264e51d21df10"
+    },
+    "Teacher": {
+      "count": 3,
+      "digest": "bd3b26a8be7e4feac63cafb4eb52964d"
+    },
+    "TeacherAnswer": {
+      "count": 3,
+      "digest": "e4079599a4b9e3b7ee7a7a57a523bd76"
+    },
+    "TeacherQuestion": {
+      "count": 4,
+      "digest": "78b0bcd6b76beb36ca8c4ece5b060960"
+    },
+    "TeacherReview": {
+      "count": 3,
+      "digest": "c6065cf1144d5ce5e5a545d5ecc27ce8"
+    },
+    "TeacherStaff": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "TradeOrderItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "User": {
+      "count": 15,
+      "digest": "5805361224032e66687f972c28795904"
+    },
+    "UserBlock": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserCoupon": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserRestriction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserRole": {
+      "count": 7,
+      "digest": "9c25b92b2293216d40595cd7d11302ba"
+    },
+    "UserTag": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "VirtualGift": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WithdrawalAllocation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WithdrawalRequest": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WritingCampaign": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "after": {
+    "AccessRole": {
+      "count": 7,
+      "digest": "ebe3d02fe5ec1db23364cd8050827fa9"
+    },
+    "AdCampaign": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AdPlacement": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Address": {
+      "count": 3,
+      "digest": "25f887a0d8b2073f202103de7c2eba7a"
+    },
+    "AppleAccountBinding": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppleOriginalPurchase": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppleTransactionState": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Appointment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AppointmentSlot": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Article": {
+      "count": 10,
+      "digest": "7e3315fd155c8c5c11bfdd13a952ded1"
+    },
+    "ArticleBlock": {
+      "count": 45,
+      "digest": "7d8f27e1aa464216e3e86fe2cf641b01"
+    },
+    "ArticleRelease": {
+      "count": 7,
+      "digest": "1a64f4c3926f5df3950a638436549ffa"
+    },
+    "Assignment": {
+      "count": 4,
+      "digest": "d96d1c5131ec283d5cbbcc66899e1558"
+    },
+    "AttachmentBinding": {
+      "count": 2,
+      "digest": "31a8f5cfc49ebd6978e02098c9a515c9"
+    },
+    "AuditLog": {
+      "count": 320,
+      "digest": "2e2c90ae2488722f429e04fd88f35549"
+    },
+    "AuthIdentity": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "AuthSession": {
+      "count": 40,
+      "digest": "1e5ea654b8223d75b85bde9ec22cae2d"
+    },
+    "BenefitDefinition": {
+      "count": 4,
+      "digest": "023241e3fce91eb739aa2b2e7fd7a83b"
+    },
+    "BenefitGrant": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "BenefitScope": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "BenefitUsage": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CampaignEntry": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CartItem": {
+      "count": 2,
+      "digest": "9360470a5108462b5ea197030c1a8391"
+    },
+    "ChannelProductMapping": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortCertificate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortLessonSchedule": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortRegistration": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortScheduleChange": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CohortStudyProgress": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Comment": {
+      "count": 5,
+      "digest": "6ee666c37f45bc80822a58bf88386bf5"
+    },
+    "CommissionLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ConsentRecord": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ConsumedRefresh": {
+      "count": 1,
+      "digest": "69e28ce5e5ded8c70157ab8127a27970"
+    },
+    "ContentAuthorization": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ContentRelation": {
+      "count": 2,
+      "digest": "da6c7e02f083fbf3a913128edec604bb"
+    },
+    "CouponTemplate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "0f32afdcd0af744d54181702ef6adcd6"
+    },
+    "CourseCertificate": {
+      "count": 2,
+      "digest": "bd7851fa3f753da01377179c2c2f0dee"
+    },
+    "CourseChapter": {
+      "count": 15,
+      "digest": "739d5aaa11267309f43e6230afb6233f"
+    },
+    "CourseCohort": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "4f9c81bb6b4c00c0c2298f33b6be691a"
+    },
+    "CourseReview": {
+      "count": 2,
+      "digest": "67880583c2ccc861c215fb9dcb6a5ba5"
+    },
+    "CourseStaff": {
+      "count": 4,
+      "digest": "cf77ae34cea572d932ed5a70ae1486cb"
+    },
+    "CourseVersionChoice": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DeliveryTemplate": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DeliveryZone": {
+      "count": 3,
+      "digest": "57db336f4f6c5e3ac29fe3c1e1b92e7e"
+    },
+    "DeviceToken": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalDelivery": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalRelease": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "DigitalReleaseAsset": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "46e9ec0a68d6774a29cefc5a7769b836"
+    },
+    "Event": {
+      "count": 5,
+      "digest": "fb606c60aa430a2908800e56ba38c51f"
+    },
+    "EventCheckin": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventFulfilment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventRegistration": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventSession": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventStaff": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventTicketType": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "EventWaitlist": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Favorite": {
+      "count": 2,
+      "digest": "c50a5d1f8963483a6db4165504e83c79"
+    },
+    "FeatureConfig": {
+      "count": 3,
+      "digest": "620714fbc3a632b8a721035a76a34db1"
+    },
+    "Feedback": {
+      "count": 3,
+      "digest": "6bbf10d877089e5b94559ef72825c023"
+    },
+    "FeedbackReply": {
+      "count": 4,
+      "digest": "c31d3b5415fc8a16e9fbf673f94174d9"
+    },
+    "FinanceAccount": {
+      "count": 15,
+      "digest": "6d93416b0095aaff9216ac7faa8f932c"
+    },
+    "FinanceEntry": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "FinanceJournal": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ForumSection": {
+      "count": 7,
+      "digest": "fcf33cac1256033fc10e4dff51045e4b"
+    },
+    "ForumThread": {
+      "count": 9,
+      "digest": "2bd75d81ca18ac7fe6cac8d65d203246"
+    },
+    "GiftCreditAllocation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GiftLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GiftWallet": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GroupBuy": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GroupBuyMember": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "GrowthLedger": {
+      "count": 11,
+      "digest": "d4ee7565d6407df84a017958e5a54da9"
+    },
+    "IdempotencyRecord": {
+      "count": 20,
+      "digest": "81c33a8b2a30cd3361de8a57bad35339"
+    },
+    "InventoryLedger": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "InventoryReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Lesson": {
+      "count": 12,
+      "digest": "56ee0fe7917d3fc4888debdd2afafc56"
+    },
+    "LiveMicRequest": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LivePoll": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveRoom": {
+      "count": 2,
+      "digest": "5743284a5899e0155f7ea9eb50eabc36"
+    },
+    "LiveRtcLease": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "018d25512e8e47937998383cdfa58ccb"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "6c0841c22bb3827651c514a6e4d4d47d"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "f73264adb25d991dfa52b53fd7d489e9"
+    },
+    "MembershipPlan": {
+      "count": 9,
+      "digest": "94548e4ea55200c52d0e401e364e96a4"
+    },
+    "MembershipPlanVersion": {
+      "count": 9,
+      "digest": "e1ee401661bfbb3dca7dff54cd7c5be3"
+    },
+    "ModerationAction": {
+      "count": 9,
+      "digest": "c4e8e021c12b2a4a1a7fbeca8c86b9e2"
+    },
+    "Note": {
+      "count": 3,
+      "digest": "6a6b3471ffb42060a952523d7eedc45f"
+    },
+    "NoteExport": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Notification": {
+      "count": 17,
+      "digest": "d736fa8aee64d0f41ec1cab8f5764898"
+    },
+    "NotificationDelivery": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "OfflineLicense": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "OperatingService": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Order": {
+      "count": 2,
+      "digest": "026370c96b8e202bea64ea3fb320c7a2"
+    },
+    "OrderItem": {
+      "count": 2,
+      "digest": "d272bab8b3d465c426c8464752551fa4"
+    },
+    "OtpChallenge": {
+      "count": 18,
+      "digest": "5637ca4b3c895c71fb63ecac9a267775"
+    },
+    "OutboxJob": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Partner": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PartnerContract": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PaymentAttempt": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PaymentTransaction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PlanBenefit": {
+      "count": 9,
+      "digest": "fb442ccf4106d6ad0fa08a67872bcae1"
+    },
+    "PointsAccount": {
+      "count": 2,
+      "digest": "4404159d0e7412ac50e969cbc60e29bd"
+    },
+    "PointsLedger": {
+      "count": 3,
+      "digest": "fe79cd0d1dabc0e74099f8c91c9e141a"
+    },
+    "PointsRedemption": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PointsReservation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PointsReward": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PollOption": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PollVote": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PracticeCheckin": {
+      "count": 2,
+      "digest": "86dc5a2e4ff95a9f77822b9a6bd7b34d"
+    },
+    "PracticeLog": {
+      "count": 3,
+      "digest": "3f015f3cf4927fd14025f9730b7cd968"
+    },
+    "PracticeTask": {
+      "count": 2,
+      "digest": "62ce023a03fd75b36493027d241362b4"
+    },
+    "Product": {
+      "count": 8,
+      "digest": "778533d090094a0a9efff541dd0c50f2"
+    },
+    "ProductSku": {
+      "count": 10,
+      "digest": "67481c5f588e782b9360791a0593108c"
+    },
+    "Promotion": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "PromotionOffer": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ProviderCallback": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RateLimit": {
+      "count": 22,
+      "digest": "ba4283fec718d4916d3c59226a4cd702"
+    },
+    "Reaction": {
+      "count": 6,
+      "digest": "9439efc66a7f2d38f4101452cf10f56f"
+    },
+    "ReadingEvent": {
+      "count": 4,
+      "digest": "a5036084c886fed5eafd0b634ede08a7"
+    },
+    "Reconciliation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Referral": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Refund": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RefundItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "RefundTransaction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Report": {
+      "count": 2,
+      "digest": "a082ae46eb3d854d7a4e763f8b9f97f2"
+    },
+    "Resource": {
+      "count": 45,
+      "digest": "479eefcd1c7acf3acbead7b3122253b0"
+    },
+    "ResourceEvidence": {
+      "count": 2,
+      "digest": "22a3f4328e96bc2985a1b8e998de7d1b"
+    },
+    "ResourceTag": {
+      "count": 17,
+      "digest": "0dacd023712bab4edae28125bd251f6e"
+    },
+    "SaleOffer": {
+      "count": 15,
+      "digest": "2e89b350b4e2e93b38a2cd9d531deeb9"
+    },
+    "ServiceOffering": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Settlement": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "SettlementItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Shipment": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ShipmentItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "ShippingZone": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "SourceEvidence": {
+      "count": 2,
+      "digest": "00b51bf8f2413548c6cf9d3b612bfa52"
+    },
+    "StudyEvent": {
+      "count": 5,
+      "digest": "39a398e96a26e3ae9b1e95532a7e8d73"
+    },
+    "StudyProgress": {
+      "count": 5,
+      "digest": "f8c8b49bbb9c796e6e632c7dbbfb442c"
+    },
+    "Submission": {
+      "count": 3,
+      "digest": "00628e9e745ea487917f7badc86f4221"
+    },
+    "Tag": {
+      "count": 2,
+      "digest": "130a44300d19534be4c264e51d21df10"
+    },
+    "Teacher": {
+      "count": 3,
+      "digest": "bd3b26a8be7e4feac63cafb4eb52964d"
+    },
+    "TeacherAnswer": {
+      "count": 3,
+      "digest": "e4079599a4b9e3b7ee7a7a57a523bd76"
+    },
+    "TeacherQuestion": {
+      "count": 4,
+      "digest": "78b0bcd6b76beb36ca8c4ece5b060960"
+    },
+    "TeacherReview": {
+      "count": 3,
+      "digest": "c6065cf1144d5ce5e5a545d5ecc27ce8"
+    },
+    "TeacherStaff": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "TradeOrderItem": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "User": {
+      "count": 15,
+      "digest": "5805361224032e66687f972c28795904"
+    },
+    "UserBlock": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserCoupon": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserRestriction": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "UserRole": {
+      "count": 7,
+      "digest": "9c25b92b2293216d40595cd7d11302ba"
+    },
+    "UserTag": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "VirtualGift": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WithdrawalAllocation": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WithdrawalRequest": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "WritingCampaign": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  }
+}

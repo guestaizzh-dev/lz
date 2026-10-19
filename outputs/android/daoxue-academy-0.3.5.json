@@ -1,0 +1,22 @@
+{
+  "apk": "daoxue-academy-0.3.5.apk",
+  "bytes": 39490389,
+  "sha256": "65fa4b5220201ef5927dd9427be3a01becf8830e0cf34be7129b4fee4ed64cf5",
+  "package": "cn.daoxue.academy",
+  "versionName": "0.3.5",
+  "versionCode": 10,
+  "minSdkVersion": 23,
+  "architecture": "arm64-v8a",
+  "apiBase": "https://academy.43-160-229-173.sslip.io/api/v1",
+  "certificateSha256": "81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248",
+  "sameCertificateAs033": true,
+  "nativeBuild": "Android uni-app x vapor bytecode cloud release",
+  "phoneInstalled": true,
+  "phoneBlocker": null,
+  "installedVersionName": "0.3.5",
+  "installedVersionCode": 10,
+  "phoneModel": "JDY-AN00",
+  "installedAt": "2026-10-14T08:24:33.799258+00:00",
+  "launchRequested": true,
+  "applicationPid": 24950
+}

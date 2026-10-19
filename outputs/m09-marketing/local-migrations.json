@@ -1,0 +1,39 @@
+{
+  "before": {
+    "user": 15,
+    "article": 10,
+    "course": 8,
+    "teacher": 3,
+    "product": 8,
+    "tradeOrder": 0,
+    "paymentTransaction": 0,
+    "refund": 0,
+    "membership": 2,
+    "enrollment": 5,
+    "pointsLedger": 3,
+    "growthLedger": 11,
+    "writingCampaign": 0,
+    "campaignEntry": 0,
+    "contentAuthorization": 0
+  },
+  "after": {
+    "user": 15,
+    "article": 10,
+    "course": 8,
+    "teacher": 3,
+    "product": 8,
+    "tradeOrder": 0,
+    "paymentTransaction": 0,
+    "refund": 0,
+    "membership": 2,
+    "enrollment": 5,
+    "pointsLedger": 3,
+    "growthLedger": 11,
+    "writingCampaign": 0,
+    "campaignEntry": 0,
+    "contentAuthorization": 0
+  },
+  "existingCountsPreserved": true,
+  "migrations": 56,
+  "last": "20261016190000_priority_shipping"
+}

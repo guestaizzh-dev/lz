@@ -1,0 +1,72 @@
+info  - [你知道吗？] 如果要支持低版本浏览器，可尝试新出的 legacy 配置项，详见 https://umijs.org/blog/legacy-browser
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - Umi v4.7.22
+info  - Preparing...
+[webpackbar] i Compiling Webpack
+[webpackbar] √ Webpack: Compiled successfully in 1.24m
+info  - Memory Usage: 749.5 MB (RSS: 1197.48 MB)
+
+info  - File sizes after gzip:
+
+  580.64 kB  dist\umi.b52f6ee4.js
+  466.58 kB  dist\292.2603f489.async.js
+  248.15 kB  dist\73.7dfc1843.async.js
+  52.28 kB   dist\957.14876bad.async.js
+  31.83 kB   dist\768.660e2b5b.async.js
+  12.41 kB   dist\944.365541c5.async.js
+  10.83 kB   dist\p__table-list__index.6c6bc6eb.async.js
+  9.27 kB    dist\798.d2b4c249.async.js
+  7.21 kB    dist\644.9fe0e78c.async.js
+  7.18 kB    dist\p__data-workbench__index.4068d46d.async.js
+  6.94 kB    dist\p__course-orders__index.b57d1f8d.async.js
+  6.13 kB    dist\p__courses__index.6dbb7b97.async.js
+  5.59 kB    dist\p__teaching__index.decddbb9.async.js
+  4.7 kB     dist\p__forum__index.061b679f.async.js
+  4.41 kB    dist\p__memberships__index.20017c40.async.js
+  4.4 kB     dist\p__products__index.8379b399.async.js
+  4.37 kB    dist\p__user__login__index.89edbd43.async.js
+  3.84 kB    dist\p__practices__index.830c1e39.async.js
+  3.38 kB    dist\916.5404cfa1.async.js
+  3.33 kB    dist\t__plugin-layout__Layout.3a0c6dbb.async.js
+  3.1 kB     dist\p__dashboard__analysis__index.0a690607.async.js
+  2.27 kB    dist\p__questions__index.bf3b2a12.async.js
+  2.27 kB    dist\p__delivery__index.58f2cca3.async.js
+  2.03 kB    dist\p__feedback__index.b8ae6495.async.js
+  2.02 kB    dist\p__course-reviews__index.724a7a22.async.js
+  1.77 kB    dist\p__live-discovery__index.759c3791.async.js
+  1.64 kB    dist\p__comments__index.d3fa3655.async.js
+  1.48 kB    dist\p__orders__index.5410134f.async.js
+  1.29 kB    dist\scripts\loading.js
+  751 B      dist\umi.ac69d059.css
+  372 B      dist\t__plugin-layout__Layout.e2ec6e92.chunk.css
+  354 B      dist\p__exception__404__index.feb1970a.async.js
+  346 B      dist\p__exception__403__index.2b4fdad3.async.js
+  331 B      dist\p__exception__500__index.4e999fd6.async.js
+  221 B      dist\506.1fb3a61e.async.js
+
+event - Build user\index.html
+event - Build user\login\index.html
+event - Build dashboard\index.html
+event - Build dashboard\analysis\index.html
+event - Build content\index.html
+event - Build content\articles\index.html
+event - Build content\live\index.html
+event - Build content\comments\index.html
+event - Build content\course-reviews\index.html
+event - Build content\courses\index.html
+event - Build list\table-list\index.html
+event - Build memberships\index.html
+event - Build products\index.html
+event - Build delivery\index.html
+event - Build course-orders\index.html
+event - Build orders\index.html
+event - Build data\index.html
+event - Build forum\index.html
+event - Build feedback\index.html
+event - Build practices\index.html
+event - Build questions\index.html
+event - Build teaching\index.html
+event - Build exception\403\index.html
+event - Build exception\500\index.html
+event - Build index.html
+event - Build 404.html

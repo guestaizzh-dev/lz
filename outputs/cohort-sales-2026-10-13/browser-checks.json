@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "真实OTP登录回原营期订单，冻结安排、费用、北京时间与占位可读",
+    "取消待付订单实际释放原营期席位",
+    "本期报名直接进入原订单与售后，费用与普通购课分离",
+    "退出弹窗保留理由并实际暂停本期交付，待审核不释放席位",
+    "Pro营期交易、渠道事实、冻结规则与财务操作可用",
+    "财务拒绝恢复原报名，本人刷新可见结果并可重新申请",
+    "审批经持久任务确认渠道退款，本人状态与一次席位释放一致",
+    "课程按营期报价与到期规则引导，Web购买说明明确禁收款，原生平台门禁保留"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "paymentAdapterSimulated": true,
+  "commercialEvidence": false
+}

@@ -1,0 +1,2 @@
+export type OfflineConfigure = (owner: string, api: string, keys: string) => string
+export type OfflineCommand = (action: string, payload: string) => string

@@ -1,24 +1,11 @@
-<template>
-<view class="page">
-<PageHead :title="info.title"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<view v-if="kind==='orders'||kind==='learning'" class="detail-tabs">
-<view v-for="item in info.tabs" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
-<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
-</view>
-</view>
-<ContentState :title="info.empty" :description="info.description"/>
-<button v-if="kind==='learning'||kind==='cart'" class="primary-button" @click="browse">{{kind==='learning'?'去学堂看看':'去看看好物'}}</button>
-<view v-if="kind==='support'" class="menu-group">
-<view class="menu-row" @click="openPage('profile/privacy')">
-<text class="menu-label">服务与隐私说明</text>
-<AppIcon name="arrow-right" :size="16"/>
-</view>
-</view>
-</view>
-</scroll-view>
-</view>
-</template>
-<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ContentState from '../../components/ContentState.uvue';import {openPage} from '../../lib/presentation';const kind=ref('learning'),tab=ref('全部');const services:Record<string,{title:string;empty:string;description:string;tabs:string[]}>= {learning:{title:'学习档案',empty:'开启一段新的研习',description:'学习记录服务尚未接入，当前无法显示已购与学习进度。你可以先浏览课程介绍。',tabs:['全部','最近学习','已完成']},orders:{title:'我的订单',empty:'订单服务尚未开放',description:'当前不提供交易，订单与支付服务接入后可在这里查看。',tabs:['全部','待付款','待发货','已完成']},points:{title:'我的积分',empty:'积分服务尚未开放',description:'积分获取、使用与明细，将在服务接入后展示。',tabs:[]},messages:{title:'消息',empty:'消息服务尚未开放',description:'课程、预约和书院通知，将在消息服务接入后展示。',tabs:[]},cart:{title:'购物车',empty:'购物车尚未开放',description:'商品规格和库存服务尚未接入，你可以先浏览书院好物。',tabs:[]},support:{title:'客服与反馈',empty:'客服渠道待配置',description:'书院尚未发布正式联系方式，服务开放后将展示可用渠道。',tabs:[]}};const info=computed(()=>services[kind.value]??services.learning);function browse(){uni.switchTab({url:kind.value==='cart'?'/pages/shop/index':'/pages/academy/index'});}onLoad(options=>{kind.value=options?.kind??'learning';});</script>
-<style>@import '../../styles/app.css';</style>
+<template><view class="page"><PageHead :title="info.title"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><template v-if="kind==='orders'"><view class="detail-tabs"><view v-for="filter in orderFilters" :key="filter.label" :class="['detail-tab',status===filter.value?'detail-tab-active':'']" @click="status=filter.value;load()"><text :class="['detail-tab-text',status===filter.value?'detail-tab-selected':'']">{{filter.label}}</text></view></view><text class="footer-note">当前订单为测试预占记录，未开通真实支付。</text><ContentState v-if="loading&&!orders.length||error" :loading="loading&&!orders.length" :error="error" @retry="load(failedAppend)"/><view v-for="order in orders" :key="order.id" class="order-record"><view class="row between"><text class="order-state">{{order.status==='PENDING'?'待处理 · 测试预占':'已关闭'}}</text><text class="meta">{{formatChinaDate(order.createdAt)}}</text></view><text v-for="line in order.items" :key="line.skuId" class="order-line">{{line.title}} {{line.skuTitle}} × {{line.quantity}}</text><view class="row between"><text class="order-total">¥{{money(order.total)}}</text><button class="record-button" @click="openOrder(order.id)">查看详情</button></view></view><ContentState v-if="!loading&&!error&&!orders.length" title="还没有订单记录" description="创建的测试订单会在这里显示，当前不会收取费用。"/><button v-if="orders.length<total" class="secondary-button" :disabled="loading" @click="load(true)">查看更多订单</button></template><template v-else><ContentState :title="info.empty" :description="info.description"/><button v-if="kind==='learning'||kind==='cart'" class="primary-button" @click="browse">{{kind==='learning'?'去学堂看看':'去看看好物'}}</button><view v-if="kind==='support'" class="menu-group"><view class="menu-row" @click="openPage('profile/privacy')"><text class="menu-label">服务与隐私说明</text><AppIcon name="arrow-right" :size="16"/></view></view></template></view></scroll-view></view></template>
+<script setup lang="ts">
+import {formatChinaDate} from '../../lib/date-time';import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';
+type OrderLine={skuId:string;title:string;skuTitle:string;quantity:number};type Order={id:string;status:string;total:number;createdAt:string;items:OrderLine[]};const kind=ref('support'),status=ref(''),orders=ref<Order[]>([]),loading=ref(false),error=ref(''),total=ref(0);let page=1,sequence=0;
+const orderFilters=[{label:'全部',value:''},{label:'待处理',value:'PENDING'},{label:'已关闭',value:'CLOSED'}],services:Record<string,{title:string;empty:string;description:string}>={orders:{title:'我的订单',empty:'还没有订单',description:''},points:{title:'我的积分',empty:'积分暂未开放',description:'积分获取、使用与明细正在筹备，开放后可在这里查看。'},support:{title:'客服与反馈',empty:'客服渠道待发布',description:'书院尚未发布正式联系方式。开放后会在这里展示联系渠道。'},learning:{title:'学习档案',empty:'我的学习',description:'请前往学习档案查看课程。'},cart:{title:'购物车',empty:'我的购物车',description:'请前往好物查看购物车。'}};
+const info=computed(()=>services[kind.value]??services.support);
+let failedAppend=false;
+async function load(append=false){if(kind.value!=='orders')return;if(!currentUser.value)orders.value=[];if(needLogin()||(append&&loading.value))return;const turn=++sequence,next=append?page+1:1;failedAppend=append;loading.value=true;error.value='';if(!append)orders.value=[];try{const result=await request<{items:Order[];total:number}>('/orders?page='+next+(status.value?'&status='+status.value:''));if(turn!==sequence)return;orders.value=append?[...orders.value,...result.items]:result.items;total.value=result.total;page=next;}catch(e){if(turn===sequence)error.value=(e as Error).message;}finally{if(turn===sequence)loading.value=false;}}
+function openOrder(id:string){openPage('order/detail?id='+id);}function browse(){uni.switchTab({url:kind.value==='cart'?'/pages/shop/index':'/pages/academy/index'});}
+onLoad(o=>{kind.value=o?.kind??'support';if(kind.value==='support')uni.redirectTo({url:'/pages/profile/feedback'});if(kind.value==='points')uni.redirectTo({url:'/pages/profile/progression'});if(kind.value==='learning'||kind.value==='cart'||kind.value==='messages')uni.redirectTo({url:'/pages/'+({learning:'course/library',cart:'shop/cart',messages:'profile/messages'} as Record<string,string>)[kind.value]});});onShow(()=>load());</script>
+<style>@import '../../styles/app.css';.order-record{padding:16px;background-color:#FAF8F2;border-radius:8px;margin-top:12px;}.order-state{font-size:13px;line-height:22px;color:#245564;}.order-line{font-size:15px;line-height:26px;color:#17292D;margin-top:12px;}.order-total{font-size:18px;color:#B95543;margin-top:12px;}.record-button{min-height:44px;background-color:transparent;border-width:0;color:#245564;font-size:13px;line-height:22px;padding:11px 0;margin:8px 0 0;}</style>

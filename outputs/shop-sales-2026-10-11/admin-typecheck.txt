@@ -1,0 +1,5 @@
+$ max setup && tsc --noEmit
+info  - [你知道吗？] HMR=none max dev 可以关闭 Umi 开发服务器的模块热替换功能。
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - generate files
+info  - Preparing...

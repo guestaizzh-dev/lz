@@ -1,0 +1,163 @@
+Running tests in an isolated temporary database.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "academy_test_45196_1791788753867", schema "public" at "127.0.0.1:55432"
+
+28 migrations found in prisma/migrations
+
+Applying migration `20261006035656_catalog_foundation`
+Applying migration `20261006040323_admin_identity_audit`
+Applying migration `20261006041548_app_identity_private_data`
+Applying migration `20261006041655_note_source_version`
+Applying migration `20261006075056_learning_membership_media`
+Applying migration `20261006080308_teacher_version`
+Applying migration `20261006102000_shopping_cart_addresses`
+Applying migration `20261006111500_pending_orders`
+Applying migration `20261009090000_note_selection_ranges`
+Applying migration `20261009110000_domain_enum_extension`
+Applying migration `20261009120000_full_domain_foundation`
+Applying migration `20261009130000_forum_sections`
+Applying migration `20261009150000_course_completion_and_reviews`
+Applying migration `20261009170000_course_sales`
+Applying migration `20261009171000_course_finance_accounts`
+Applying migration `20261009190000_admin_permission_policies`
+Applying migration `20261009200000_admin_role_baselines`
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+Applying migration `20261011110000_membership_partial_refunds`
+Applying migration `20261011113000_member_shop_pricing`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261006035656_catalog_foundation/
+    └─ migration.sql
+  └─ 20261006040323_admin_identity_audit/
+    └─ migration.sql
+  └─ 20261006041548_app_identity_private_data/
+    └─ migration.sql
+  └─ 20261006041655_note_source_version/
+    └─ migration.sql
+  └─ 20261006075056_learning_membership_media/
+    └─ migration.sql
+  └─ 20261006080308_teacher_version/
+    └─ migration.sql
+  └─ 20261006102000_shopping_cart_addresses/
+    └─ migration.sql
+  └─ 20261006111500_pending_orders/
+    └─ migration.sql
+  └─ 20261009090000_note_selection_ranges/
+    └─ migration.sql
+  └─ 20261009110000_domain_enum_extension/
+    └─ migration.sql
+  └─ 20261009120000_full_domain_foundation/
+    └─ migration.sql
+  └─ 20261009130000_forum_sections/
+    └─ migration.sql
+  └─ 20261009150000_course_completion_and_reviews/
+    └─ migration.sql
+  └─ 20261009170000_course_sales/
+    └─ migration.sql
+  └─ 20261009171000_course_finance_accounts/
+    └─ migration.sql
+  └─ 20261009190000_admin_permission_policies/
+    └─ migration.sql
+  └─ 20261009200000_admin_role_baselines/
+    └─ migration.sql
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+  └─ 20261011110000_membership_partial_refunds/
+    └─ migration.sql
+  └─ 20261011113000_member_shop_pricing/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+▶ member shop prices preserve purchased terms, stock, actual payments and refund allocations
+  ✔ membership tier alone never invents unpurchased discounts; ineligible items keep their price (194.2596ms)
+  ✔ frozen discount, scoped eligibility, freight thresholds and surcharge are exact (59.1687ms)
+  ✔ expiry and revocation invalidate stale quotes before stock reservation (88.8259ms)
+  ✔ discount usage holds until payment or cancellation; refunded actual money restores usage once (402.068ms)
+  ✔ benefit revocation after checkout prevents collecting at the obsolete discounted amount (80.6728ms)
+  ✔ version publishing checks permissions and conflicts; old and new grants have different purchased prices (127.7689ms)
+✔ member shop prices preserve purchased terms, stock, actual payments and refund allocations (1556.5319ms)
+▶ frozen membership benefits and atomic quotas preserve independent sources
+  ✔ new benefit versions do not change the old content grant; future and revoked sources fail closed (448.5696ms)
+  ✔ database and generic editor cannot rewrite published terms, source identity or usage ownership (168.181ms)
+  ✔ concurrent reservations cannot exceed frozen quota and retries cannot change quantity (392.0247ms)
+  ✔ release and compensation are idempotent, consumed reservations survive expiry and transaction rollback frees capacity (66.3437ms)
+  ✔ revoking a membership never revokes an independent compensation quota (26.6977ms)
+✔ frozen membership benefits and atomic quotas preserve independent sources (1628.7034ms)
+✔ quota calendar uses China dates and inclusive source-clipped windows (0.3468ms)
+▶ membership orders use verified facts, frozen versions and isolated entitlement periods
+  ✔ disabled and iOS gates never create an order or membership (199.7042ms)
+  ✔ concurrent checkout replays one immutable order and rejects changed requests (192.3844ms)
+  ✔ duplicate concurrent verified receipts create one period and one balanced journal (216.437ms)
+  ✔ same-tier renewal and cross-tier purchases append independent frozen periods without overlap (430.7606ms)
+  ✔ changed queue before payment prevents collecting and confirmed money enters compensation (228.0009ms)
+  ✔ late or mismatched receipts refund exact received money without grants (222.0293ms)
+  ✔ uncertain prepay requires query; offline cancellation preserves pending state; worker expires unpaid (188.0713ms)
+  ✔ future-period refund requires finance, waits for verified success and leaves other dates intact (409.6505ms)
+  ✔ editing the sale price preserves an already confirmed order and its old benefit version (197.5333ms)
+  ✔ approved delayed refunds suspend only their purchased period and quota, including failed retry (431.3831ms)
+  ✔ failed refund cancellation requires verified terminal closure and restores only the original dates (469.8038ms)
+  ✔ active consumed membership requires an explicit amount and customer acceptance before partial refund (682.5874ms)
+  ✔ declining a negotiated refund restores original dates without channel or money effects (367.1817ms)
+  ✔ occupied service rights block a partial refund proposal until the owning workflow releases them (333.8907ms)
+  ✔ stopped sales refuse prepay, and funds arriving after stop are refunded without membership (207.2487ms)
+  ✔ account closure requires explicit paid-membership forfeiture and preserves all financial evidence (435.585ms)
+  ✔ database rejects purchased periods without verified source and list enforces route permission (45.4182ms)
+✔ membership orders use verified facts, frozen versions and isolated entitlement periods (6206.5832ms)
+▶ physical commerce preserves money, inventory, ownership and fulfilment facts
+  ✔ disabled gate, web, demo and foreign addresses cannot collect money (419.7225ms)
+  ✔ immutable exact quote, shipping allocation, encrypted address and idempotent checkout (307.971ms)
+  ✔ concurrent buyers cannot oversell; closed reservations release once (254.4429ms)
+  ✔ quote changes require reconfirmation before stock is reserved (71.5976ms)
+  ✔ verified payment deducts stock once, keeps fulfilment separate and posts balanced money (278.8293ms)
+  ✔ uncertain prepay cannot repeat, query outages cannot release inventory (245.8099ms)
+  ✔ payment after cancellation becomes compensation without stock deduction (197.8797ms)
+  ✔ mismatched and duplicate verified money is refunded without second fulfilment (165.8295ms)
+  ✔ verified cross-channel and unsolicited receipts remain durable compensations (379.0125ms)
+  ✔ split shipments freeze destination, prevent over-shipping and sign only owned parcels (275.4322ms)
+  ✔ partial refunds allocate every cent once and stock returns only after channel success (428.3311ms)
+  ✔ return requires approval and warehouse quality check; finance cannot invent receipt (345.7748ms)
+  ✔ refund failure preserves amounts and stock; verified retry is idempotent (202.7826ms)
+  ✔ verified CLOSED refund can reissue with retained original history and one stock return (260.5965ms)
+  ✔ received partial shipment and unsent refund finish in either order (253.6992ms)
+  ✔ exchange zero money, stock atomicity, retry and in-transit protection (408.8926ms)
+  ✔ unpaid shipping and unauthorized address/refund operations are rejected (153.2298ms)
+  ✔ completed physical orders can close accounts without retaining destination copies (301.3715ms)
+  ✔ published cultural evidence, quality review, paired tools and net sales sorting (383.8598ms)
+  ✔ existing verified callback dispatcher routes physical orders to their workflow (91.6943ms)
+✔ physical commerce preserves money, inventory, ownership and fulfilment facts (6097.0988ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 53
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23728.309

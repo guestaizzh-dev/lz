@@ -46,6 +46,13 @@ export default defineConfig({
   // Documents redirects between C: and D: can duplicate React in MFSU's cache.
   mfsu: false,
   esbuildMinifyIIFE: true,
+  // Default compression uses every CPU core and exhausts memory on shared development machines.
+  chainWebpack(config, { env }) {
+    if (env !== 'production') return;
+    for (const name of ['js-esbuild', 'css-esbuild']) {
+      config.optimization.minimizer(name).tap((args) => [{ ...args[0], parallel: 2 }]);
+    }
+  },
 
   publicPath: PUBLIC_PATH,
 
@@ -150,10 +157,25 @@ export default defineConfig({
   antd: {
     appConfig: {},
     configProvider: {
-      variant: 'filled',
+      variant: 'outlined',
       theme: {
         token: {
-          fontFamily: 'AlibabaSans, sans-serif',
+          fontFamily: 'AlibabaSans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif',
+          colorPrimary: '#1677ff',
+          colorText: '#202B3A',
+          colorTextSecondary: '#5C6777',
+          colorBgLayout: '#F5F6F8',
+          colorBorder: '#D7DDE5',
+          borderRadius: 8,
+          borderRadiusSM: 6,
+          borderRadiusLG: 12,
+          controlHeight: 36,
+          controlHeightLG: 44,
+          controlHeightSM: 28,
+          controlOutlineWidth: 3,
+          controlOutline: 'rgba(22,119,255,0.14)',
+          boxShadow: '0 6px 24px rgba(23,41,45,0.10)',
+          boxShadowSecondary: '0 12px 40px rgba(23,41,45,0.12)',
         },
       },
     },

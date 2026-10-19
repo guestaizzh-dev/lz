@@ -5,6 +5,12 @@ import { history, Link } from '@umijs/max';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import React from 'react';
+import {api} from '@/api';
+import PermissionRefresh from '@/components/PermissionRefresh';
+import GuideEntry from '@/components/GuideEntry';
+import access from '@/access';
+import { visibleNavigation } from '@/operations/navigation';
+import { AppstoreOutlined, ReadOutlined, BookOutlined, VideoCameraOutlined, ShoppingOutlined, CrownOutlined, CalendarOutlined, AccountBookOutlined, SettingOutlined } from '@ant-design/icons';
 
 // Initialize dayjs plugins globally
 dayjs.extend(relativeTime);
@@ -32,6 +38,9 @@ export async function getInitialState(): Promise<{
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
   settingDrawerOpen?: boolean;
 }> {
+  let academyName=defaultSettings.title;
+  try{academyName=(await api<{academyName:string}>('/configuration')).academyName;}catch{}
+  const runtimeSettings={...defaultSettings,title:academyName};
   const fetchUserInfo = async () => {
     try {
       const msg = await queryCurrentUser({
@@ -55,13 +64,13 @@ export async function getInitialState(): Promise<{
     return {
       fetchUserInfo,
       currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
+      settings: runtimeSettings as Partial<LayoutSettings>,
       settingDrawerOpen: false,
     };
   }
   return {
     fetchUserInfo,
-    settings: defaultSettings as Partial<LayoutSettings>,
+    settings: runtimeSettings as Partial<LayoutSettings>,
     settingDrawerOpen: false,
   };
 }
@@ -72,8 +81,18 @@ export const layout: RunTimeLayoutConfig = ({
   setInitialState,
 }) => {
   return {
+    menu: { locale: false, defaultOpenAll: false },
+    menuDataRender: () => {
+      const icons = { work: <AppstoreOutlined />, content: <ReadOutlined />, education: <BookOutlined />, live: <VideoCameraOutlined />, shop: <ShoppingOutlined />, membership: <CrownOutlined />, events: <CalendarOutlined />, orders: <AccountBookOutlined />, finance: <AccountBookOutlined />, system: <SettingOutlined /> };
+      return visibleNavigation(access(initialState)).map(group => ({
+        key: group.id,
+        name: group.title,
+        icon: icons[group.id as keyof typeof icons],
+        children: group.entries.map(entry => ({ key: entry.path, path: entry.path, name: entry.title })),
+      }));
+    },
     menuItemRender: (item, dom) => {
-      if (item.path) {
+      if (item.path && !item.children?.length) {
         return (
           <Link to={item.path} prefetch>
             {dom}
@@ -143,8 +162,10 @@ export const layout: RunTimeLayoutConfig = ({
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
+          <PermissionRefresh />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}><GuideEntry /></div>
           {children}
-          <SettingDrawer
+          {process.env.NODE_ENV==='development'&&<SettingDrawer
             disableUrlParams
             enableDarkTheme
             collapse={initialState?.settingDrawerOpen}
@@ -161,7 +182,7 @@ export const layout: RunTimeLayoutConfig = ({
                 settings,
               }));
             }}
-          />
+          />}
         </>
       );
     },

@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Official Pro physical order search/reset, truthful disabled collection and empty state",
+    "Legacy order history remains accessible",
+    "Product evidence drawer and empty evidence validation work without creating records",
+    "SKU stock and mandatory change reason remain in dedicated form"
+  ],
+  "errors": [],
+  "failedResponses": [],
+  "productionBusinessMutations": false
+}

@@ -1,0 +1,10 @@
+from pathlib import Path
+p=Path('services/api/src/event-operations.ts')
+s=p.read_text(encoding='utf-8')
+s=s.replace("orderBy:{checkedAt:'asc'}});return{items:rows.map", "orderBy:{checkedAt:'asc'}}),fulfilments=await tx.eventFulfilment.findMany({where:{registrationId:{in:rows.map(r=>r.id)}},orderBy:{revision:'desc'}});return{items:rows.map")
+s=s.replace("quantity:row.quantity,checkins:checks.filter", "quantity:row.quantity,fulfilment:fulfilments.find(f=>f.registrationId===row.id)??null,checkins:checks.filter")
+p.write_text(s,encoding='utf-8')
+p=Path('services/api/src/bookings.ts');s=p.read_text(encoding='utf-8')
+s=s.replace("const sessions=await this.db.eventSession.findMany({where:{id:{in:tickets.map(t=>t.sessionId)}}}),now=new Date();", "const sessions=await this.db.eventSession.findMany({where:{id:{in:tickets.map(t=>t.sessionId)}}}),fulfilments=await this.db.eventFulfilment.findMany({where:{registrationId:{in:registrations.map(r=>r.id)}},orderBy:{revision:'desc'},select:{registrationId:true,revision:true,outcome:true,deliveredCount:true,publicSummary:true,createdAt:true}}),now=new Date();")
+s=s.replace("checkedCount,quantity:a.quantity,state:a.state", "checkedCount,fulfilment:fulfilments.find(f=>f.registrationId===a.id)??null,quantity:a.quantity,state:a.state")
+p.write_text(s,encoding='utf-8')

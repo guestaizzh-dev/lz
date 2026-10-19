@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Deployed membership Apple drawer exposes correct product type and disabled channel",
+    "Mapping form displays frozen version, days and price; empty submission rejected",
+    "Cancel and drawer close work without creating product mappings",
+    "Deployed orders menu and empty search/reset work"
+  ],
+  "errors": [],
+  "failedResponses": [],
+  "productionBusinessMutations": false
+}

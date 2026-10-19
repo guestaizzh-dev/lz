@@ -1,0 +1,172 @@
+{
+  "date": "2026-10-10",
+  "method": "逐项二元计数；部分、缺失和正式交付未验证均计0；R3不计；独立功能与全站发布门禁分别评估",
+  "primary": {
+    "total": 131,
+    "complete": 38,
+    "incomplete": 93,
+    "percent": 29.0
+  },
+  "software_with_supplements": {
+    "total": 153,
+    "complete": 51,
+    "incomplete": 102,
+    "percent": 33.3
+  },
+  "original_including_operations": {
+    "total": 142,
+    "complete": 38,
+    "incomplete": 104,
+    "percent": 26.8
+  },
+  "all_rows": {
+    "total": 164,
+    "complete": 51,
+    "incomplete": 113,
+    "percent": 31.1
+  },
+  "R1": {
+    "total": 122,
+    "complete": 51,
+    "incomplete": 71,
+    "percent": 41.8
+  },
+  "R2": {
+    "total": 31,
+    "complete": 0,
+    "incomplete": 31,
+    "percent": 0.0
+  },
+  "operations": {
+    "total": 11,
+    "complete": 0,
+    "incomplete": 11,
+    "percent": 0.0
+  },
+  "modules": {
+    "基础账号": {
+      "total": 18,
+      "complete": 8,
+      "incomplete": 10,
+      "percent": 44.4
+    },
+    "文章经典": {
+      "total": 17,
+      "complete": 9,
+      "incomplete": 8,
+      "percent": 52.9
+    },
+    "名师服务": {
+      "total": 13,
+      "complete": 3,
+      "incomplete": 10,
+      "percent": 23.1
+    },
+    "课程实践": {
+      "total": 22,
+      "complete": 8,
+      "incomplete": 14,
+      "percent": 36.4
+    },
+    "直播": {
+      "total": 11,
+      "complete": 0,
+      "incomplete": 11,
+      "percent": 0.0
+    },
+    "论坛治理": {
+      "total": 13,
+      "complete": 10,
+      "incomplete": 3,
+      "percent": 76.9
+    },
+    "商城交易": {
+      "total": 19,
+      "complete": 5,
+      "incomplete": 14,
+      "percent": 26.3
+    },
+    "会员积分": {
+      "total": 17,
+      "complete": 2,
+      "incomplete": 15,
+      "percent": 11.8
+    },
+    "联动活动": {
+      "total": 14,
+      "complete": 2,
+      "incomplete": 12,
+      "percent": 14.3
+    },
+    "后台经营与上线": {
+      "total": 20,
+      "complete": 4,
+      "incomplete": 16,
+      "percent": 20.0
+    }
+  },
+  "original_software_modules": {
+    "基础账号": {
+      "total": 15,
+      "complete": 8,
+      "incomplete": 7,
+      "percent": 53.3
+    },
+    "文章经典": {
+      "total": 14,
+      "complete": 6,
+      "incomplete": 8,
+      "percent": 42.9
+    },
+    "名师服务": {
+      "total": 12,
+      "complete": 2,
+      "incomplete": 10,
+      "percent": 16.7
+    },
+    "课程实践": {
+      "total": 19,
+      "complete": 6,
+      "incomplete": 13,
+      "percent": 31.6
+    },
+    "直播": {
+      "total": 9,
+      "complete": 0,
+      "incomplete": 9,
+      "percent": 0.0
+    },
+    "论坛治理": {
+      "total": 12,
+      "complete": 9,
+      "incomplete": 3,
+      "percent": 75.0
+    },
+    "商城交易": {
+      "total": 15,
+      "complete": 3,
+      "incomplete": 12,
+      "percent": 20.0
+    },
+    "会员积分": {
+      "total": 15,
+      "complete": 1,
+      "incomplete": 14,
+      "percent": 6.7
+    },
+    "联动活动": {
+      "total": 13,
+      "complete": 2,
+      "incomplete": 11,
+      "percent": 15.4
+    },
+    "后台经营与上线": {
+      "total": 7,
+      "complete": 1,
+      "incomplete": 6,
+      "percent": 14.3
+    }
+  },
+  "commercial_launch": "不通过",
+  "account_and_database_changes": "未修改生产业务数据、配置或源码"
+}

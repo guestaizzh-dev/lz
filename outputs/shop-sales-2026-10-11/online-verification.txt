@@ -1,0 +1,1 @@
+{"passed":60,"publicArticles":6,"publicCourses":4,"demoReadonly":true}

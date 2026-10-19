@@ -1,0 +1,30 @@
+import Fulfilment, {outcomes, type FulfilmentFact} from './Fulfilment';
+import { PageContainer, ProTable, type ActionType } from '@ant-design/pro-components';
+import { useAccess } from '@umijs/max';
+import { Alert, App, Button, Input, Select, Space, Typography } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { api } from '@/api';
+import { formatChinaTime } from '@/utils/date-time';
+type Session={id:string;title:string;startsAt:string;endsAt:string;location:string;state:string;canRevoke:boolean};
+type Arrival={id:string;attendeeNo:number;checkedAt:string;revokedAt:string|null;revokeReason:string|null};
+type Registration={id:string;name:string;phone:string;quantity:number;state:string;canFulfil:boolean;fulfilment:FulfilmentFact|null;checkins:Arrival[]};
+type Inspection={id:string;sessionId:string;name:string;phone:string;quantity:number;checkedAttendees:number[]};
+export default function Workbench(){
+  const access=useAccess(),{message,modal}=App.useApp(),base=access.canEvents?'/admin/events/workbench':'/admin/teaching/event-workbench',table=useRef<ActionType>(undefined);
+  const [sessions,setSessions]=useState<Session[]>([]),[id,setId]=useState(''),[code,setCode]=useState(''),[inspection,setInspection]=useState<Inspection>(),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const attempt=useRef<{code:string;attendeeNo:number;requestKey:string}|undefined>(undefined);
+  const [fulfilling,setFulfilling]=useState<Registration>();
+  const canWrite=access.canEvents?access.canEventsEdit:access.canTeachingWrite;
+  useEffect(()=>{api<Session[]>(base).then(rows=>{setSessions(rows);setId(rows[0]?.id??'');}).catch(e=>setError((e as Error).message));},[base]);
+  async function inspect(){if(busy)return;setBusy(true);setError('');setInspection(undefined);try{const row=await api<Inspection>(base+'/inspect','POST',{code:code.trim()});setInspection(row);setId(row.sessionId);if(attempt.current&&row.checkedAttendees.includes(attempt.current.attendeeNo))attempt.current=undefined;}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  async function checkin(no:number){if(busy||!inspection)return;setBusy(true);setError('');attempt.current??={code:code.trim(),attendeeNo:no,requestKey:crypto.randomUUID()};try{await api(base+'/checkin','POST',attempt.current);attempt.current=undefined;setInspection(await api(base+'/inspect','POST',{code:code.trim()}));table.current?.reload();message.success('签到已记录');}catch(e){setError((e as Error).message);const status=(e as Error&{status?:number}).status;if(status&&status>=400&&status<500&&status!==408)attempt.current=undefined;}finally{setBusy(false);}}
+  function revoke(arrival:Arrival){let reason='';modal.confirm({title:'撤销第'+arrival.attendeeNo+'位参加者的签到？',content:<Input.TextArea aria-label="撤销签到原因" maxLength={500} placeholder="填写误签到原因，原记录会保留" onChange={e=>{reason=e.target.value;}}/>,onOk:async()=>{if(!reason.trim())throw Error('请填写撤销原因');await api(base+'/checkins/'+arrival.id+'/revoke','POST',{reason});table.current?.reload();setInspection(undefined);}});}
+  return <PageContainer title="现场工作台" subTitle="按场次核对报名，逐人签到；联系信息仅显示脱敏号码">
+    {error&&<Alert type="error" showIcon title={error} style={{marginBottom:16}}/>}
+    <Space wrap style={{marginBottom:20}}><Select aria-label="核销场次" style={{width:480}} value={id||undefined} options={sessions.map(s=>({value:s.id,label:s.title+' · '+formatChinaTime(s.startsAt)}))} onChange={v=>{if(!busy){setId(v);setInspection(undefined);setError('');}}}/><Typography.Text type="secondary">{sessions.find(s=>s.id===id)?.location}</Typography.Text></Space>
+    {canWrite&&<><Space.Compact style={{width:'100%',maxWidth:720,marginBottom:16}}><Input aria-label="报名核销凭证" placeholder="扫码设备录入或粘贴学员出示的完整凭证" value={code} disabled={busy||!!attempt.current} onChange={e=>{setCode(e.target.value);setInspection(undefined);}} onPressEnter={inspect}/><Button onClick={inspect} loading={busy} disabled={!code.trim()}>核对报名</Button></Space.Compact>{inspection&&<Alert type="info" title={inspection.name+' · '+inspection.phone+' · '+inspection.quantity+'人'} description={<Space wrap>{Array.from({length:inspection.quantity},(_,i)=>i+1).map(no=><Button key={no} loading={busy&&attempt.current?.attendeeNo===no} disabled={busy||inspection.checkedAttendees.includes(no)||!!attempt.current&&attempt.current.attendeeNo!==no} onClick={()=>checkin(no)}>{inspection.checkedAttendees.includes(no)?'第'+no+'位已签到':'确认第'+no+'位到场'}</Button>)}</Space>} style={{marginBottom:20}}/>}</>}
+    {id?<ProTable<Registration> key={id} rowKey="id" actionRef={table} search={false} request={async p=>{const r=await api<{items:Registration[];total:number}>(base+'/sessions/'+id+'/roster?page='+(p.current??1)+'&size='+(p.pageSize??20));return{data:r.items,total:r.total,success:true};}} columns={[{title:'联系人',dataIndex:'name'},{title:'电话（脱敏）',dataIndex:'phone'},{title:'人数',dataIndex:'quantity'},{title:'到场',render:(_,r)=>r.checkins.filter(c=>!c.revokedAt).length+' / '+r.quantity},{title:'履约结果',render:(_,r)=><Space direction="vertical"><Typography.Text>{r.fulfilment?outcomes[r.fulfilment.outcome]:'未记录'}</Typography.Text><Button type="link" onClick={()=>setFulfilling(r)}>履约记录</Button></Space>},{title:'签到记录',render:(_,r)=><Space direction="vertical">{r.checkins.map(c=><Space key={c.id}><Typography.Text type={c.revokedAt?'secondary':undefined}>{'第'+c.attendeeNo+'位 · '+formatChinaTime(c.checkedAt)+(c.revokedAt?' · 已撤销：'+c.revokeReason:'')}</Typography.Text>{canWrite&&sessions.find(s=>s.id===id)?.canRevoke&&!c.revokedAt&&<Button type="link" danger onClick={()=>revoke(c)}>撤销签到</Button>}</Space>)}</Space>}]} />:<Alert type="info" title="当前没有可核销的委派场次"/>}
+    {fulfilling&&<Fulfilment id={fulfilling.id} name={fulfilling.name} checkedCount={fulfilling.checkins.filter(c=>!c.revokedAt).length} quantity={fulfilling.quantity} canWrite={!!access.canEventsEdit&&fulfilling.canFulfil} base={base} onClose={()=>setFulfilling(undefined)} onSaved={()=>table.current?.reload()}/>}
+    <Typography.Paragraph type="secondary">签到从开始前1小时至活动结束开放；全部到场表示已签到，活动结束后由运营记录实际交付。工作人员不能跨场次核销，过期凭证须由学员重新出示。</Typography.Paragraph>
+  </PageContainer>;
+}

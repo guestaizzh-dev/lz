@@ -28,7 +28,7 @@ function renderErrorFallback(
   const isChunkError = isChunkLoadError(error);
 
   return (
-    <Card variant="borderless" style={{ margin: 24 }}>
+    <Card variant="borderless" className="academy-error-surface">
       <Result
         status="error"
         title={intl.formatMessage({

@@ -1,0 +1,7 @@
+{
+  "newHttp": 7,
+  "adminRegression": 16,
+  "cohortRegression": 18,
+  "uniqueWithParents": 41,
+  "scope": "isolated PostgreSQL and actual HTTP; browser business/session fixtures documented separately"
+}

@@ -1,0 +1,81 @@
+{
+  "stage": "M09",
+  "complete": false,
+  "implementedPendingCommercialValidation": [
+    "R01",
+    "R02",
+    "R04",
+    "R07",
+    "R08",
+    "R09",
+    "R13",
+    "R14"
+  ],
+  "notImplemented": [
+    "R03",
+    "R05",
+    "R06",
+    "R10",
+    "R11",
+    "R12",
+    "R15"
+  ],
+  "tests": {
+    "initialFull": {
+      "total": 613,
+      "passed": 611,
+      "failed": 2,
+      "cause": "One obsolete customer-facing message assertion plus its parent suite, corrected in code"
+    },
+    "postFixRelated": {
+      "total": 77,
+      "passed": 77,
+      "failed": 0
+    },
+    "finalGuardAndMetrics": {
+      "total": 34,
+      "passed": 34,
+      "failed": 0
+    },
+    "countsOverlap": true
+  },
+  "browsers": {
+    "admin": {
+      "checks": 10,
+      "passed": 10,
+      "pageErrors": 0
+    },
+    "appWeb": {
+      "checks": 10,
+      "passed": 10,
+      "pageErrors": 0,
+      "overflowAt320": false
+    },
+    "realBusinessWrites": false,
+    "target": "local API only during acceptance checks"
+  },
+  "builds": {
+    "api": true,
+    "officialAntDesignProTypecheckAndBuild": true,
+    "appWeb": true,
+    "androidVaporResources": true,
+    "androidRenderTargetReported": "nativecode",
+    "pages": 69,
+    "warningsInFinalMobileBuilds": false,
+    "newApk": false,
+    "iosBuild": false
+  },
+  "database": {
+    "migrations": 56,
+    "models": 170,
+    "existingBusinessCountClassesPreserved": 15,
+    "clearedData": false
+  },
+  "deployment": false,
+  "deviceAcceptance": false,
+  "commercialBaseline": {
+    "accepted": 38,
+    "total": 131,
+    "percent": 29.0
+  }
+}

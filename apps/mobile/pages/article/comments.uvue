@@ -1,0 +1,183 @@
+<template>
+<view><ReportModal v-if="reportComment" :resourceId="resourceId" :commentId="reportComment" @close="reportComment=''"/><view class="comment-section">
+<view class="section-header">
+<text class="section-title">评论</text>
+<button class="write-comment" @click="emit('reply',null,null,null)">写评论</button>
+</view>
+<view v-for="item in mine" :key="item.id" class="my-comment"><view class="comment-header"><text class="comment-author">我的{{item.parentId?'回复':'评论'}}</text><text class="comment-time">{{item.reviewState==='PENDING'?'待审核 · 仅自己可见':'未通过审核 · 仅自己可见'}}</text></view><text class="comment-body" :user-select="true">{{item.body}}</text><button class="withdraw-comment" @click="remove(item.id)">{{item.reviewState==='PENDING'?'撤回':'删除'}}</button></view>
+<view v-if="comments.length===0&&mine.length===0&&!loading&&!error" class="empty-state">
+<text class="empty-text">暂无评论，快来发表你的见解吧</text>
+</view>
+<view v-for="c in comments" :key="c.id" class="comment-item">
+<view class="comment-avatar"><image v-if="c.author?.avatar" :src="assetUrl(c.author?.avatar)" class="comment-avatar-image" mode="aspectFill"/><AppIcon v-else name="user" :size="20"/></view>
+<view class="comment-content">
+<view class="comment-header">
+<text class="comment-author">{{c.author?.nickname??'匿名'}}</text>
+<text class="comment-time">{{formatTime(c.createdAt)}}</text>
+</view>
+<text class="comment-body" :user-select="true">{{c.body}}</text>
+<view v-if="c.quoteSnapshot" class="comment-quote">
+<text class="quote-label">引用：</text>
+<text class="quote-text" :user-select="true">{{c.quoteSnapshot}}</text>
+</view>
+<view class="comment-actions"><button v-if="c.author?.id!==currentUser?.id" class="withdraw-comment" @click="report(c.id)">举报</button><button v-if="c.author?.id===currentUser?.id" class="withdraw-comment" @click="remove(c.id)">删除</button>
+<view class="action-btn" @click="replyTo(c.id,c.author?.nickname??'')">
+<AppIcon name="arrow-bend-up-left" :size="14"/>
+<text class="action-label">回复</text>
+</view>
+</view>
+<button v-if="c.replyCount>(c.replies?.length??0)||c.repliesCursor" class="load-more-text" @click="allReplies(c)">查看更多回复</button>
+<view v-if="c.replies&&c.replies.length>0" class="replies">
+<view v-for="r in c.replies" :key="r.id" class="reply-item">
+<view class="reply-avatar"><AppIcon name="user" :size="18"/></view>
+<view class="reply-content">
+<text class="reply-author">{{r.author?.nickname??'匿名'}}</text>
+<text class="reply-body" :user-select="true">{{r.body}}</text>
+</view>
+</view>
+</view>
+</view>
+</view>
+<text v-if="error" class="empty-text" @click="load()">{{error}} · 点击重试</text>
+<view v-if="hasMore&&!loading" class="load-more" @click="loadMore">
+<text class="load-more-text">加载更多评论</text>
+</view>
+<view v-if="loading" class="loading-indicator">
+<text class="loading-text">加载中...</text>
+</view>
+</view>
+</view></template>
+<script setup lang="ts">
+import {formatChinaDate} from '../../lib/date-time';
+import { ref, computed } from 'vue';
+import { request,assetUrl } from '../../lib/api';
+import AppIcon from '../../components/AppIcon.uvue';
+import ReportModal from '../../components/report-modal.uvue';import {needLogin} from '../../lib/session';import {currentUser} from '../../lib/session';
+
+interface Author {
+  id: string;
+  nickname: string;
+  avatar: string|null;
+}
+
+interface Reply {
+  id: string;
+  body: string;
+  authorId: string;
+  createdAt: string;
+  author?: Author;
+}
+
+interface Comment {
+  id: string;
+  body: string;
+  authorId: string;
+  quoteSnapshot: string|null;
+  replyCount:number;
+  repliesCursor?:string|null;
+  expanded?:boolean;
+  createdAt: string;
+  author?: Author;
+  replies?: Reply[];
+}
+
+interface CommentsResponse {
+  items: Comment[];
+  nextCursor: string|null;
+}
+
+const props = defineProps<{
+  resourceId: string;
+  blocks?: {id:string;text:string}[];
+}>();
+
+const emit = defineEmits<{
+  reply: [parentId: string|null, parentAuthor: string|null, quotedBlockId: string|null];
+}>();
+
+const reportComment=ref('');function report(id:string){if(!needLogin())reportComment.value=id;}
+const comments = ref<Comment[]>([]),mine=ref<{id:string;body:string;reviewState:string;parentId:string|null}[]>([]);
+const cursor = ref<string|null>(null);
+const hasMore = ref(false);
+const loading = ref(false);
+const error=ref('');
+const total = computed(() => comments.value.length);
+
+async function load(append=false) {
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    if(!append)cursor.value=null;
+    error.value='';
+    const params = cursor.value ? `?cursor=${cursor.value}` : '';
+    const res = await request<CommentsResponse>(`/articles/${props.resourceId}/comments${params}`);
+    comments.value = cursor.value ? [...comments.value, ...res.items] : res.items;
+    cursor.value = res.nextCursor;
+    hasMore.value = !!res.nextCursor;if(!append){mine.value=currentUser.value?await request('/articles/'+props.resourceId+'/comments/mine'):[];}
+  } catch (e) {
+    error.value=(e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function loadMore() {
+  if (hasMore.value && !loading.value) load(true);
+}
+
+async function allReplies(c:Comment){try{const data=await request<{items:Reply[];nextCursor:string|null}>('/articles/'+props.resourceId+'/comments?parentId='+c.id+(c.repliesCursor?'&cursor='+c.repliesCursor:''));c.replies=c.expanded?[...(c.replies??[]),...data.items]:data.items;c.expanded=true;c.repliesCursor=data.nextCursor;}catch(e){error.value=(e as Error).message;}}
+function remove(id:string){uni.showModal({title:'删除这条评论？',content:'删除后无法恢复。',confirmText:'删除',confirmColor:'#B95543',success:async r=>{if(!r.confirm)return;try{await request('/articles/'+props.resourceId+'/comments/'+id,{method:'DELETE'});load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}});}
+onMounted(()=>load());watch(()=>currentUser.value?.id,()=>load());
+function replyTo(parentId: string, parentAuthor: string) {
+  emit('reply', parentId, parentAuthor, null);
+}
+
+function formatTime(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 7) return formatChinaDate(iso);
+  if (days > 0) return `${days}天前`;
+  if (hours > 0) return `${hours}小时前`;
+  if (minutes > 0) return `${minutes}分钟前`;
+  return '刚刚';
+}
+
+defineExpose({ load });
+</script>
+<style>
+.comment-section{padding:24px 0;}
+.section-header{display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.section-title{font-size:17px;font-weight:600;color:#17292D;}
+.section-count{font-size:13px;color:#6B7983;}
+.empty-state{padding:40px 0;text-align:center;}
+.empty-text{font-size:14px;color:#788084;}
+.comment-item{display:flex;flex-direction:row;margin-bottom:20px;padding-bottom:20px;border-bottom-width:1px;border-bottom-color:#DFD9CF;border-bottom-style:solid;}
+.comment-avatar{width:36px;height:36px;border-radius:18px;margin-right:12px;}
+.comment-content{flex:1;}
+.comment-header{display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.comment-author{font-size:14px;font-weight:500;color:#17292D;}
+.comment-time{font-size:12px;color:#788084;}
+.comment-body{font-size:15px;color:#17292D;line-height:24px;margin-bottom:8px;}
+.comment-quote{background-color:#EEE9DF;padding:8px 12px;border-radius:4px;margin-bottom:8px;}
+.quote-label{font-size:12px;color:#6B7983;}
+.quote-text{font-size:13px;color:#637276;line-height:20px;}
+.comment-actions{display:flex;flex-direction:row;margin-top:4px;}
+.action-btn{display:flex;flex-direction:row;align-items:center;padding:12px 0;min-height:44px;margin-right:16px;}
+.action-label{font-size:13px;color:#6B7983;margin-left:4px;}
+.replies{margin-top:12px;padding-left:12px;border-left-width:2px;border-left-color:#DFD9CF;border-left-style:solid;}
+.reply-item{display:flex;flex-direction:row;margin-bottom:12px;}
+.reply-avatar{width:28px;height:28px;border-radius:14px;margin-right:8px;}
+.reply-content{flex:1;}
+.reply-author{font-size:13px;font-weight:500;color:#17292D;margin-bottom:4px;}
+.reply-body{font-size:14px;color:#17292D;line-height:22px;}
+.load-more{padding:16px 0;text-align:center;}
+.load-more-text{font-size:14px;color:#245564;}
+.loading-indicator{padding:16px 0;text-align:center;}
+.loading-text{font-size:14px;color:#788084;}
+.my-comment{background-color:#EEE9DF;padding:14px;border-radius:8px;margin-bottom:16px;}.write-comment,.withdraw-comment{font-size:13px;line-height:20px;color:#245564;padding:12px 0;min-height:44px;margin:0;background-color:transparent;border-width:0;}.withdraw-comment{color:#788084;align-self:flex-start;margin-right:16px;}.comment-avatar{background-color:#EEE9DF;align-items:center;justify-content:center;}.comment-avatar-image{width:36px;height:36px;border-radius:18px;}.reply-avatar{align-items:center;justify-content:center;}.section-title{font-family:AcademySerif;}</style>

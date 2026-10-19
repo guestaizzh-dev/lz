@@ -1,0 +1,18 @@
+{
+  "exactMatch": true,
+  "counts": {
+    "users": 15,
+    "articles": 10,
+    "courses": 8,
+    "products": 8,
+    "addresses": 3,
+    "orders": 2,
+    "memberships": 2,
+    "plans": 9,
+    "tradeOrders": 0,
+    "paymentTransactions": 0,
+    "benefitUsage": 0
+  },
+  "tables": 155,
+  "migrations": 24
+}

@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Actual HTTPS catalog, recent/popular controls and 390px product cards",
+    "Cultural copy distinguishes unverified description from approved evidence",
+    "Readable actual return rules, SKU and purchase entry",
+    "Guest checkout redirects to login"
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/products?size=20&sort=recent",
+      "status": 200
+    },
+    {
+      "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/products?size=20&sort=popular",
+      "status": 200
+    },
+    {
+      "url": "https://academy.43-160-229-173.sslip.io/api/v1/catalog/products/e6eac98d-a545-4e82-8e78-17e2a44ec098",
+      "status": 200
+    }
+  ],
+  "scope": "Local App Web with actual HTTPS public responses and local-only CORS allowance; no phone, purchase or production business facts created"
+}

@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-10-10T04:08:57.498717+00:00",
+  "apiBuild": "passed",
+  "apiRegression": {
+    "passed": 139,
+    "failed": 0,
+    "courseSalesIncluded": 17
+  },
+  "adminTypecheck": "passed",
+  "adminProductionBuild": "passed",
+  "mobileWebBuild": {
+    "routes": 42,
+    "warnings": 0,
+    "passed": true,
+    "compiler": "HBuilderX 5.26; Web VDOM target; not native vapor proof"
+  },
+  "migrationsApplied": [
+    "20261009170000_course_sales",
+    "20261009171000_course_finance_accounts"
+  ],
+  "database": {
+    "entities": 144,
+    "physicalTables": 150,
+    "columns": 1775,
+    "foreignKeys": 409,
+    "checks": 277,
+    "fullCrud": 43,
+    "profileEdit": 1,
+    "controlled": 100,
+    "triggers": 23
+  },
+  "realMerchantPayment": "not configured or tested",
+  "androidPaymentSDK": "AppID missing; configuration check correctly refuses payment-enabled release",
+  "iosIAP": "not implemented",
+  "mobileAcceptance": "cancelled by user",
+  "browserAcceptance": "not performed; prior automatic approval rejection preserved",
+  "deployed": false,
+  "sourceSHA256": {
+    "services/api/src/course-sales.ts": "902cb80a09c51b38b49aa2220c9f348be6a1e9b64190d23784e621b1d6ff78dd",
+    "services/api/src/wechat-pay.ts": "50aba752614880151e11fcfd6baa637eb16cf1759da5714912b1002dd89d956a",
+    "services/api/src/learning.ts": "1e3d3cfce58090e3601611b6da8e0a75f6e4efd6f7dc331e826e0f636a7e1b7b",
+    "services/api/test/course-sales.test.mjs": "3a73c100ccf1d94ff95428430b2ef9e20d9f2d234a99993ae36fdc0ace2a9a9d",
+    "apps/mobile/pages/course/purchase.uvue": "b42fb1364512bea9ed105483c1ce69138afb8b4352e9ad829eb93f7381fec481",
+    "apps/mobile/pages/course/orders.uvue": "07d1143fb2a72aab3e4a2be2b4ea46754647bd7c04a41439a67456b2195d4f4e",
+    "apps/admin/src/pages/course-orders/index.tsx": "46cd61b9e5a514f289a4e910585c6ece4dbf5c730a76ece7cbeff88891092543"
+  },
+  "localServices": {
+    "api": {
+      "port": 3000,
+      "health": "ok",
+      "pid": 10780
+    },
+    "admin": {
+      "port": 5173,
+      "courseOrdersHTTP": 200,
+      "requestAccept": "text/html",
+      "restartedWithCurrentRoutes": true
+    },
+    "appWeb": {
+      "port": 9071,
+      "HTTP": 200
+    }
+  }
+}

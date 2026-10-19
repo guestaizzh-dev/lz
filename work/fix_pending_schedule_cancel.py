@@ -1,0 +1,12 @@
+from pathlib import Path
+p=Path('services/api/src/bookings.ts');s=p.read_text(encoding='utf-8')
+s=s.replace("!a.benefitUsageId&&cancelAt>now", "!a.benefitUsageId&&(cancelAt>now||a.acceptedScheduleVersion<slot.scheduleVersion)")
+s=s.replace("!checkedCount&&new Date(cancelAt)>now", "!checkedCount&&(new Date(cancelAt)>now||a.acceptedScheduleVersion<session.scheduleVersion)")
+s=s.replace('row.benefitUsageId||cancelAt<=Date.now()', 'row.benefitUsageId||(cancelAt<=Date.now()&&row.acceptedScheduleVersion>=slot.scheduleVersion)')
+s=s.replace('row.benefitUsageId||cancelAt<=new Date()||', 'row.benefitUsageId||(cancelAt<=new Date()&&row.acceptedScheduleVersion>=session.scheduleVersion)||')
+p.write_text(s,encoding='utf-8')
+p=Path('apps/mobile/pages/booking/mine.uvue');s=p.read_text(encoding='utf-8')
+s=s.replace("'当前安排已开始，请联系书院处理未确认的预约。'", "'你尚未确认此安排，可取消本次预约；不会直接记为缺席。'")
+s=s.replace('v-if="b.state===\'CONFIRMED\'" class="meta">取消截止', 'v-if="b.state===\'CONFIRMED\'&&(!b.schedulePending||new Date(b.cancelAt).getTime()>serverNow)" class="meta">取消截止')
+s=s.replace('b.canCancel&&new Date(b.cancelAt).getTime()>serverNow', 'b.canCancel&&(b.schedulePending||new Date(b.cancelAt).getTime()>serverNow)')
+p.write_text(s,encoding='utf-8')

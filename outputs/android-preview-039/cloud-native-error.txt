@@ -1,0 +1,55 @@
+<div style="background-color: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 5px; font-family: Arial, sans-serif; color: #333;"><p style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">不会看错误日志？让 uni-agent 帮你分析</p><p style="font-size: 14px; margin-bottom: 10px;">uni-agent 可以自动结合项目代码、配置和错误日志，帮助你定位云打包失败原因，并给出修复建议。</p><p style="font-size: 14px; font-weight: bold; margin-bottom: 6px;">只需 3 步</p><ol style="font-size: 14px; margin-top: 0; margin-bottom: 10px; padding-left: 22px;"><li><a href="hbuilderx://" style="color: #007bff; text-decoration: none;">点此打开 HBuilderX</a>，点击右上角“AI”图标，打开「uni-agent」窗口</li><li>点击 uni-agent 窗口顶部“切换项目”，选择当前云打包项目</li><li>复制并发送错误日志</li></ol><p style="font-size: 14px; font-weight: bold; margin-bottom: 6px;">如果日志太长</p><p style="font-size: 14px; margin-bottom: 10px;">请将日志保存为文件（例如 build-error.log），放到项目目录后，在 uni-agent 中选择该文件再发送。这样可以获得更准确的问题分析结果。<a href="https://uniapp.dcloud.net.cn/uni-agent" target="_blank" style="color: #007bff; text-decoration: none;">查看 uni-agent 文档</a></p><button id="copyErrorLogButton" onclick="copyErrorLog()" style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 12px;">一键复制错误信息</button></div><br><script>
+                function copyErrorLog() {
+                    const errorLog = `以下是 HBuilderX 云打包编译错误信息。请结合当前 uni-app / uni-app x 项目上下文分析失败原因，指出最可能的问题代码或配置，并给出可执行的修复步骤。\n\n${"\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':uni_modules:academy-rtc:kspReleaseKotlin'.\n> Could not resolve all files for configuration ':uni_modules:academy-rtc:releaseCompileClasspath'.\n   > Could not find im.zego:express-video:3.25.0.\n     Searched in the following locations:\n       - file:[TemplatePath]plugins\/express-video-3.25.0.jar\n       - file:[TemplatePath]plugins\/express-video.jar\n       - https:\/\/dl.google.com\/dl\/android\/maven2\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/repo.maven.apache.org\/maven2\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/maven.aliyun.com\/repository\/public\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/maven.aliyun.com\/repository\/google\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/jitpack.io\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/mvn.getui.com\/nexus\/content\/repositories\/releases\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/developer.huawei.com\/repo\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/developer.hihonor.com\/repo\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n     Required by:\n         project ':uni_modules:academy-rtc'\n\n* Try:\n> Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to generate a Build Scan (powered by Develocity).\n> Get more help at https:\/\/help.gradle.org.\n\nBUILD FAILED in 45s\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':uni_modules:academy-rtc:kspReleaseKotlin'.\n> Could not resolve all files for configuration ':uni_modules:academy-rtc:releaseCompileClasspath'.\n   > Could not find im.zego:express-video:3.25.0.\n     Searched in the following locations:\n       - file:[TemplatePath]plugins\/express-video-3.25.0.jar\n       - file:[TemplatePath]plugins\/express-video.jar\n       - https:\/\/dl.google.com\/dl\/android\/maven2\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/repo.maven.apache.org\/maven2\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/maven.aliyun.com\/repository\/public\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/maven.aliyun.com\/repository\/google\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/jitpack.io\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/mvn.getui.com\/nexus\/content\/repositories\/releases\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/developer.huawei.com\/repo\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n       - https:\/\/developer.hihonor.com\/repo\/im\/zego\/express-video\/3.25.0\/express-video-3.25.0.pom\n     Required by:\n         project ':uni_modules:academy-rtc'\n\n* Try:\n> Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to generate a Build Scan (powered by Develocity).\n> Get more help at https:\/\/help.gradle.org.\n\nBUILD FAILED in 46s\nError code = -5000\nError message: \nUTS plugin @ utssdk academy-rtc compile error!\n\n"}`;
+                    const errorLogSize = new Blob([errorLog]).size;
+                    
+                    // 检查错误信息长度是否超过64KB
+                    if (errorLogSize >= 127 * 1024) {
+                        // 创建并下载文件
+                        const blob = new Blob([errorLog], { type: "text/plain;charset=utf-8" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "build-error.log";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        alert("错误日志已保存为文件。请将 build-error.log 放到当前云打包项目目录后，在 HBuilderX 右侧 uni-agent 中选择该文件再发送");
+                        return;
+                    }
+                    
+                    // 创建一个临时的textarea元素
+                    const textarea = document.createElement("textarea");
+                    textarea.value = errorLog;
+                    textarea.style.position = "fixed";
+                    textarea.style.opacity = 0;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    
+                    try {
+                        // 尝试使用新的clipboard API
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(errorLog).then(() => {
+                                alert("错误信息已复制到剪贴板");
+                            }).catch(err => {
+                                throw err;
+                            });
+                        } else {
+                            // 回退到传统方法
+                            const successful = document.execCommand("copy");
+                            if (successful) {
+                                alert("错误信息已复制到剪贴板");
+                            } else {
+                                throw new Error("复制失败");
+                            }
+                        }
+                    } catch (err) {
+                        console.error("复制失败:", err);
+                        alert("复制失败，请手动复制错误信息");
+                    } finally {
+                        // 清理临时元素
+                        document.body.removeChild(textarea);
+                    }
+                }
+            </script>Appid: __UNI__AA1E366 <br>HBuilderX版本号：5.26 <br>云打包服务器SDK版本: 5.26 <br><br>######错误解决方案######<br>错误描述： uts插件编译失败<br>解决方案： 请根据编译错误修改插件相关代码后重新提交打包。或联系插件作者解决。<br>######################<br><br><br>FAILURE: Build failed with an exception.<br><br>* What went wrong:<br>Execution failed for task &#039;:uni_modules:academy-rtc:kspReleaseKotlin&#039;.<br>&gt; Could not resolve all files for configuration &#039;:uni_modules:academy-rtc:releaseCompileClasspath&#039;.<br>   &gt; Could not find im.zego:express-video:3.25.0.<br>     Searched in the following locations:<br>       - file:[TemplatePath]plugins/express-video-3.25.0.jar<br>       - file:[TemplatePath]plugins/express-video.jar<br>       - https://dl.google.com/dl/android/maven2/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://repo.maven.apache.org/maven2/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://maven.aliyun.com/repository/public/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://maven.aliyun.com/repository/google/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://jitpack.io/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://mvn.getui.com/nexus/content/repositories/releases/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://developer.huawei.com/repo/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://developer.hihonor.com/repo/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>     Required by:<br>         project &#039;:uni_modules:academy-rtc&#039;<br><br>* Try:<br>&gt; Run with --stacktrace option to get the stack trace.<br>&gt; Run with --info or --debug option to get more log output.<br>&gt; Run with --scan to generate a Build Scan (powered by Develocity).<br>&gt; Get more help at https://help.gradle.org.<br><br>BUILD FAILED in 45s<br>FAILURE: Build failed with an exception.<br><br>* What went wrong:<br>Execution failed for task &#039;:uni_modules:academy-rtc:kspReleaseKotlin&#039;.<br>&gt; Could not resolve all files for configuration &#039;:uni_modules:academy-rtc:releaseCompileClasspath&#039;.<br>   &gt; Could not find im.zego:express-video:3.25.0.<br>     Searched in the following locations:<br>       - file:[TemplatePath]plugins/express-video-3.25.0.jar<br>       - file:[TemplatePath]plugins/express-video.jar<br>       - https://dl.google.com/dl/android/maven2/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://repo.maven.apache.org/maven2/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://maven.aliyun.com/repository/public/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://maven.aliyun.com/repository/google/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://jitpack.io/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://mvn.getui.com/nexus/content/repositories/releases/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://developer.huawei.com/repo/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>       - https://developer.hihonor.com/repo/im/zego/express-video/3.25.0/express-video-3.25.0.pom<br>     Required by:<br>         project &#039;:uni_modules:academy-rtc&#039;<br><br>* Try:<br>&gt; Run with --stacktrace option to get the stack trace.<br>&gt; Run with --info or --debug option to get more log output.<br>&gt; Run with --scan to generate a Build Scan (powered by Develocity).<br>&gt; Get more help at https://help.gradle.org.<br><br>BUILD FAILED in 46s<br>Error code = -5000<br>Error message: <br>UTS plugin @ utssdk academy-rtc compile error!<br><br>

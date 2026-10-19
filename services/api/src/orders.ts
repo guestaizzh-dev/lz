@@ -1,6 +1,9 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Post, Put, Query, Req, ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {FileInterceptor} from '@nestjs/platform-express';
+import {MediaService} from './media.js';
+import { encryptPrivate, personalAddress, orderAddress } from './private-data.js';
+import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Post, Put, Query, Req, UploadedFile,UseInterceptors,ServiceUnavailableException, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional,IsISO8601, IsString, IsUUID, Length, Matches, Max, Min, ValidateNested } from 'class-validator';
 import { createHash } from 'node:crypto';
 import { Database } from './database.js';
 import { AdminGuard, UserGuard, requireRoles } from './auth.js';
@@ -26,6 +29,10 @@ class OrderDto extends QuoteDto {
   @IsString() @Matches(/^[a-f0-9]{64}$/) quoteId!: string;
 }
 class DeliveryDto {
+  @IsOptional() @IsInt() @Min(0) @Max(1000000) priorityFee?:number|null;
+  @IsOptional() @IsString() @Length(5,500) priorityDescription?:string|null;
+  @IsOptional() @IsISO8601() priorityUntil?:string|null;
+  @IsOptional() @IsUUID() priorityProofAssetId?:string|null;
   @IsInt() @Min(0) @Max(100000000) fee!: number;
   @IsInt() @Min(0) @Max(100000000) surcharge!: number;
   @IsOptional() @IsInt() @Min(0) @Max(100000000) freeAbove?: number | null;
@@ -60,8 +67,9 @@ export class OrdersService implements OnModuleInit,OnModuleDestroy {
   }
   private async quotation(tx:Tx,userId:string,dto:QuoteDto,lock=false){
     const lines=this.lines(dto),skuIds=lines.map(row=>row.skuId);
-    const address=await tx.address.findFirst({where:{id:dto.addressId,userId}});
-    if(!address)throw new NotFoundException('请选择自己的收货地址');
+    const storedAddress=await tx.address.findFirst({where:{id:dto.addressId,userId}});
+    if(!storedAddress)throw new NotFoundException('请选择自己的收货地址');
+    const address=personalAddress(storedAddress);
     if(lock){
       // Match SKU administration's Product -> SKU lock order; sort all rows
       // to avoid opposite-order deadlocks during multi-SKU checkout.
@@ -102,12 +110,12 @@ export class OrdersService implements OnModuleInit,OnModuleDestroy {
         const updated=await tx.$executeRaw`UPDATE "ProductSku" SET reserved=reserved+${item.quantity},version=version+1 WHERE id=${item.skuId} AND stock-reserved>=${item.quantity}`;
         if(updated!==1)throw new ConflictException('库存不足，请重新确认');
       }
-      const order=await tx.order.create({data:{userId,requestId:dto.requestId,requestHash,address:quote.address,subtotal:quote.subtotal,shipping:quote.shipping,total:quote.total,quoteId:quote.quoteId,expiresAt:new Date(Date.now()+15*60000),items:{create:quote.items}},include});
+      const order=await tx.order.create({data:{userId,requestId:dto.requestId,requestHash,address:{cipher:encryptPrivate(JSON.stringify(quote.address))},subtotal:quote.subtotal,shipping:quote.shipping,total:quote.total,quoteId:quote.quoteId,expiresAt:new Date(Date.now()+15*60000),items:{create:quote.items}},include});
       await tx.auditLog.create({data:{actorId:userId,action:'order.reserve.preview',resource:'order',resourceId:order.id,changes:{total:order.total}}});
       return this.safe(order);
     },{timeout:15000});
   }
-  private safe<T extends {requestHash:string;requestId:string;userId:string}>(order:T){const {requestHash,requestId,userId,...row}=order;return {...row,paymentEnabled:false};}
+  private safe<T extends {requestHash:string;requestId:string;userId:string;address:unknown}>(order:T){const {requestHash,requestId,userId,...row}=order;return {...row,address:orderAddress(order.address),paymentEnabled:false};}
   async list(userId:string,query:OrderQuery){const where={userId,...(query.status?{status:query.status}:{})};const [rows,total]=await this.db.$transaction([this.db.order.findMany({where,include,orderBy:[{createdAt:'desc'},{id:'desc'}],skip:(query.page-1)*query.size,take:query.size}),this.db.order.count({where})]);return {items:rows.map(row=>this.safe(row)),total};}
   async detail(userId:string,id:string){const row=await this.db.order.findFirst({where:{id,userId},include});if(!row)throw new NotFoundException('订单不存在');return this.safe(row);}
   private async close(tx:Tx,id:string,reason:string,actorId:string,userId?:string,deadline?:Date){
@@ -140,9 +148,11 @@ export class OrdersService implements OnModuleInit,OnModuleDestroy {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${province}))`;
       const prior=await tx.deliveryZone.findUnique({where:{province}});
       if((prior?.version??0)!==dto.expectedVersion)throw new ConflictException('配送配置版本已变化');
-      const data={fee:dto.fee,surcharge:dto.surcharge,freeAbove:dto.freeAbove??null,enabled:dto.enabled};
+      const priority=dto.priorityFee===undefined?{priorityFee:prior?.priorityFee??null,priorityDescription:prior?.priorityDescription??null,priorityUntil:prior?.priorityUntil??null,priorityProofAssetId:prior?.priorityProofAssetId??null}:dto.priorityFee===null?{priorityFee:null,priorityDescription:null,priorityUntil:null,priorityProofAssetId:null}:{priorityFee:dto.priorityFee,priorityDescription:dto.priorityDescription?.trim()??null,priorityUntil:dto.priorityUntil?new Date(dto.priorityUntil):null,priorityProofAssetId:dto.priorityProofAssetId??null};
+      if(priority.priorityFee!==null&&(!priority.priorityDescription||priority.priorityDescription.length<5||!priority.priorityUntil||priority.priorityUntil<=new Date()||!priority.priorityProofAssetId||!await tx.mediaAsset.findFirst({where:{id:priority.priorityProofAssetId,status:'READY',visibility:'PRIVATE',variants:{path:['uploadPurpose'],equals:'EVIDENCE_FILE'}}})))throw new BadRequestException('优先配送须提供真实覆盖与服务说明、有效截止及私有合同凭证');
+      const data={...priority,fee:dto.fee,surcharge:dto.surcharge,freeAbove:dto.freeAbove??null,enabled:dto.enabled};
       const row=await tx.deliveryZone.upsert({where:{province},create:{province,...data},update:{...data,version:{increment:1}}});
-      await tx.auditLog.create({data:{actorId:req.actor.id,action:'delivery.configure',resource:'deliveryZone',resourceId:province,changes:{...data,version:row.version,reason:dto.reason.trim()}}});return row;
+      await tx.auditLog.create({data:{actorId:req.actor.id,action:'delivery.configure',resource:'deliveryZone',resourceId:province,changes:{...data,priorityUntil:data.priorityUntil?.toISOString()??null,version:row.version,reason:dto.reason.trim()}}});return row;
     });
   }
 }
@@ -157,7 +167,8 @@ export class OrdersController {
 }
 @Controller('admin') @UseGuards(AdminGuard)
 export class OrdersAdminController {
-  constructor(private readonly orders:OrdersService,private readonly db:Database){}
+  constructor(private readonly orders:OrdersService,private readonly db:Database,private readonly media:MediaService){}
+  @Post('delivery-zones/proof') @UseInterceptors(FileInterceptor('file',{limits:{fileSize:8*1024*1024}})) proof(@Req() req:AuthRequest,@UploadedFile() file:{originalname:string;mimetype:string;size:number;buffer:Buffer}){requireRoles(req,['OPERATOR']);return this.media.upload(req,file,true,'EVIDENCE_FILE');}
   @Get('delivery-zones') zones(@Req() req:AuthRequest){requireRoles(req,['OPERATOR']);return this.orders.zones();}
   @Put('delivery-zones/:province') zone(@Req() req:AuthRequest,@Param('province') province:string,@Body() dto:DeliveryDto){return this.orders.zone(req,province,dto);}
   @Get('orders') async list(@Req() req:AuthRequest,@Query() query:OrderQuery){requireRoles(req,['SUPPORT','FINANCE']);const where=query.status?{status:query.status}:{};const [items,total]=await this.db.$transaction([this.db.order.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],skip:(query.page-1)*query.size,take:query.size,select:{id:true,status:true,total:true,shipping:true,createdAt:true,expiresAt:true,closeReason:true,items:include.items}}),this.db.order.count({where})]);return {items,total,paymentEnabled:false};}

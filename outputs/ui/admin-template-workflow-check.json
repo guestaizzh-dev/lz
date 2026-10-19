@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-06T05:21:52.964Z",
+  "status": "ARCHIVED",
+  "version": 5,
+  "actions": [
+    "article.create",
+    "article.edit",
+    "article.submit",
+    "article.publish",
+    "article.archive"
+  ],
+  "editedSummaryVerified": true,
+  "fixtureRemovedAfterVerification": true
+}

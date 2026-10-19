@@ -1,0 +1,11 @@
+{
+  "entities": 144,
+  "physicalTables": 150,
+  "columns": 1774,
+  "foreignKeys": 409,
+  "checks": 277,
+  "fullCrud": 43,
+  "profileEdit": 1,
+  "controlled": 100,
+  "triggers": 23
+}

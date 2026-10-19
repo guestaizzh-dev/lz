@@ -46,3 +46,9 @@ ADB使用D:/HBuilderX/plugins/launcher-tools/tools/adbs/adb.exe。开发API仍�
 
 原生字体显式设置行高，避免内置字体度量将题字、品牌和辅助信息撑高。图标与空文本按钮作为同层子元素，避免Android原生button不支持子组件而丢失图标，同时保留button的操作标签。
 最终云包ticket：b2b348e0-c156-11f1-bed1-1761d76168e1；APK路径outputs/android/daoxue-academy-0.1.0.apk；SHA256 d7397d1cfef1a6004be617f5cf043c5f8a8edc1fe803824d56bf4b70e8757318。2026-10-06在荣耀JDY-AN00 Android14更新安装成功。9个核心/详情页面已检查，目录、导航和OTP请求/倒计时通过；完整原生OTP登录及私人数据保存回看尚待完成，Web相关流程已通过。真机截图app-native-{home,academy,discover,shop,profile,login,article,course,product}.png，状态数据app-reference-verification.json。
+
+## 2026-10-09：保持原布局的局部优化
+
+标题保留既有本地Noto Serif SC，正文、摘要与操作说明改为思源黑体；品牌与首页固定题字继续书法，其余不使用书法正文。原配色、七入口、页边距、封面高度与列表密度保留。五个主页面顶部加入低透明度山水SVG衍生PNG（原生使用PNG），首页加一枚道学小印章和一条细卷轴分隔。Web在支持滚动时间轴且未开启减少动效时轻微淡入；原生保持静态。没有连续粒子、滚动劫持或新增动画依赖。
+
+思源黑体来源：https://github.com/adobe-fonts/source-han-sans/blob/release/OTF/SimplifiedChinese/SourceHanSansSC-Regular.otf 。本地AcademySans.otf为GB2312常用字符与当前页面字符子集，改名Academy Sans；许可证Sans-OFL.txt随包保存，未覆盖的生僻字符交由系统字体回退。山水SVG为本项目绘制的装饰素材，未复制官网图片。

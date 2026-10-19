@@ -1,0 +1,106 @@
+[
+  {
+    "path": "services/api/src/service-deliveries.ts",
+    "sha256": "c9962fe93937bc9ace999b2dbb27a46cccf77d5e8fef06945632b42d71d93d7d"
+  },
+  {
+    "path": "services/api/src/service-accounting.ts",
+    "sha256": "6c151358254a424c36aa8eec79a0874bd80bcc9a3233cbb4433970597eb05d1b"
+  },
+  {
+    "path": "services/api/src/main.ts",
+    "sha256": "9763244a9a10debddbdbd7fe363e5fa107c329c1705432f2ef6f6acfb55fa67b"
+  },
+  {
+    "path": "services/api/src/admin-permissions.ts",
+    "sha256": "2a2f2a097ae7867c3b78f43afc7f09257fa14d81f86bcd0e25363b1f14897e3c"
+  },
+  {
+    "path": "services/api/src/domain-policy.ts",
+    "sha256": "d01e45c7efd39c75ecd6c898c8f43312083f2d67ba15ed7bfe07debbc1b5c678"
+  },
+  {
+    "path": "services/api/src/media.ts",
+    "sha256": "a80e2146b2699297b4935768cff551d0e9efa9f870a90489c33958fbb2779ca2"
+  },
+  {
+    "path": "services/api/src/booking-sales.ts",
+    "sha256": "3e3f9ea998eb2929a852f23297312fc4718dcd72f142e179f803d7c2b126e154"
+  },
+  {
+    "path": "services/api/src/cohort-sales.ts",
+    "sha256": "a469799860a67f3dc8f378ef93e80b310bc5e57478f501f168d64033e9daf4bc"
+  },
+  {
+    "path": "services/api/src/bookings.ts",
+    "sha256": "1a131d82e4cba73c215a3315bd03257739ee307849af2257ec747e26f1a4a8a4"
+  },
+  {
+    "path": "services/api/src/event-operations.ts",
+    "sha256": "ac4653f6f9a688ad7d36abb92d500ea6c374e4b549ee007becc8d25342390ba8"
+  },
+  {
+    "path": "services/api/prisma/schema.prisma",
+    "sha256": "9ec7b5407c187973d38661ccd60e1f269918bb1dac70ee66de6bc8de67198614"
+  },
+  {
+    "path": "services/api/prisma/migrations/20261018120000_paid_service_delivery/migration.sql",
+    "sha256": "8912a6f0cf945d908f9fe37bd5d62566f9f07b4df42a6251555914ed107bf454"
+  },
+  {
+    "path": "services/api/test/service-deliveries.test.mjs",
+    "sha256": "e0faefe40218dc9abd5ab1b721c0580db6d8e77ac691c1b90ca19c6fe926cd7c"
+  },
+  {
+    "path": "services/api/test/booking-schedule.test.mjs",
+    "sha256": "b06ceb2fe9f4326a5c51a004b0ee726243c981020512dc74e81941aedae72fcb"
+  },
+  {
+    "path": "apps/admin/src/components/ServiceDelivery/index.tsx",
+    "sha256": "90ac5a1a68e6d9bb2ce7770fb3b55d76b3dc10905cfbb88fba1e47a5307ce421"
+  },
+  {
+    "path": "apps/admin/src/pages/booking-orders/index.tsx",
+    "sha256": "2be18a63ea8e1d8e3802b2147649efc4a99fc4eccb3ecbecf524e64f4ae7799b"
+  },
+  {
+    "path": "apps/admin/src/pages/cohort-orders/index.tsx",
+    "sha256": "8d7f442c176dc3c35f50d6c40b0dee72762a5c260f59816e50872429b061af4d"
+  },
+  {
+    "path": "apps/admin/src/operations/workflows.ts",
+    "sha256": "d3be291d76c8456faf86cd157048ead4625744129d1fc93e49be0493c3aec20e"
+  },
+  {
+    "path": "apps/mobile/components/ServiceDeliveryResult.uvue",
+    "sha256": "45af971a4d89dbce03c8243056d246a2212fbdc85a897d98467ad4d4145de524"
+  },
+  {
+    "path": "apps/mobile/lib/service-delivery.ts",
+    "sha256": "2647d7707d48060581e50585c04691a8886b3b5e10036bcbf6df0eb608d01070"
+  },
+  {
+    "path": "apps/mobile/lib/booking-sales.ts",
+    "sha256": "243235ac86074a892dd5f0f4ed3f077d121b184d2aa8672c22e170d70f296991"
+  },
+  {
+    "path": "apps/mobile/lib/cohort-sales.ts",
+    "sha256": "3412bb832ba56d8aaec6754205325eee00bf4c6ab023616152a9706fd9c7fb7c"
+  },
+  {
+    "path": "apps/mobile/pages/booking/purchase.uvue",
+    "sha256": "1e8037841891ecf1be8419ea04982eadb9355ba28da43ddd0f4188931860498f"
+  },
+  {
+    "path": "apps/mobile/pages/cohort/purchase.uvue",
+    "sha256": "40cba27ef3552f33eb299d05dec636b98aa3888c91c6f0f89df328dcf61b34f5"
+  },
+  {
+    "path": "scripts/browser/paid-service-delivery.cjs",
+    "sha256": "bb55eef46b5816073d785e5c964eb5e3c2db55cc63397a09b5c080fa86c4fa90"
+  },
+  {
+    "path": "docs/79-paid-service-delivery-and-recognition.md",
+    "sha256": "d2e200846e80576908f856465afc2822dff0702e91a67b5f746685d361ea81f5"
+  }
+]

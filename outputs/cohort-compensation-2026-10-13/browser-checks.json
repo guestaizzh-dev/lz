@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "真实OTP返回付费营期原订单",
+    "Pro付费延期，App并列原安排与最新安排、确认和全额退出",
+    "本人确认新版安排，订单和报名状态同步",
+    "已开营延长不重排原教学日期，学员实际确认新期限",
+    "App核查弹窗与Pro元输入金额、交付依据、待本人确认接通",
+    "本人拒绝方案实际恢复原期限，可重新核查",
+    "本人同意后渠道任务执行部分退款并一次释放席位",
+    "Pro取消已开营营期，补退协商后余额，App可查询完整结果",
+    "App拒绝变更从原订单全额退出，未强制财务再次审核"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "paymentAdapterSimulated": true,
+  "commercialEvidence": false
+}

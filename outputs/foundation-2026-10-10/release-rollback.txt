@@ -1,0 +1,3 @@
+previous=/opt/daoxue-academy/releases/20261011-foundation-03
+image=daoxue-api:20261011-foundation-04
+backup=/opt/daoxue-academy/backups/academy-20261011T034031Z-vLsfXl.dump

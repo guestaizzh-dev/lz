@@ -1,0 +1,65 @@
+<template><view v-if="items.length||error" class="live-polls">
+  <view class="poll-heading"><text class="section-heading">课堂互动</text><text class="meta">{{sessionState==='LIVE'?'随堂一问，共同研习':'本场互动记录'}}</text></view>
+  <ContentState v-if="error" :error="error" @retry="load"/>
+  <view v-for="poll in items" :key="poll.id" class="poll-card">
+    <view class="poll-heading"><text class="poll-kind">{{poll.kind==='POLL'?'投票':'问卷'}}</text><text class="meta">{{poll.submitted?'已提交':poll.canSubmit?'进行中':'已截止'}}</text></view>
+    <text class="poll-title">{{poll.question}}</text><text class="poll-caption">{{formatChinaTime(poll.closesAt)}} 截止（北京）</text>
+    <text v-if="poll.kind==='SURVEY'" class="poll-caption">答案仅本人、授权主持和运营可见，结果不向其他学员公开。请勿填写联系方式等敏感信息。</text>
+    <view v-for="(q,index) in poll.questions" :key="q.id" class="poll-question">
+      <text v-if="poll.kind==='SURVEY'" class="poll-prompt">{{index+1}}. {{q.prompt}} <text class="meta">{{q.required?'必答':'选答'}}</text></text>
+      <text v-if="q.type==='MULTIPLE'" class="poll-caption">可选择多项</text>
+      <view v-if="q.type==='TEXT'">
+        <text v-if="poll.submitted" class="poll-answer" :user-select="true">{{answerText(poll,q.id)||'未填写'}}</text>
+        <textarea v-else class="poll-textarea" :value="answerText(poll,q.id)" :maxlength="2000" :disabled="!poll.canSubmit||!!saving||!!error" :placeholder="q.required?'写下你的想法（必答）':'写下你的想法（选答）'" @input="writeText(poll.id,q.id,$event.detail.value)"/>
+      </view>
+      <view v-else>
+        <button v-for="o in q.options" :key="o.id" class="poll-option" :class="{'poll-option-selected':selected(poll,q.id,o.id)}" :disabled="!poll.canSubmit||!!saving||!!error" :aria-label="o.label+(selected(poll,q.id,o.id)?'，已选择':'')" @click="choose(poll,q,o.id)">
+          <text class="poll-mark">{{selected(poll,q.id,o.id)?'✓':q.type==='MULTIPLE'?'□':'○'}}</text><text class="poll-option-label">{{o.label}}</text>
+        </button>
+      </view>
+    </view>
+    <view v-if="poll.results" class="poll-results"><text class="poll-caption">{{poll.participants}} 人参与{{poll.questions[0]?.type==='MULTIPLE'?' · 多选，各项比例独立计算':''}}</text><view v-for="o in poll.questions[0]?.options" :key="o.id" class="poll-result-row"><view class="poll-heading"><text class="poll-result-label">{{o.label}}</text><text class="meta">{{resultCount(poll,o.id)}} 票 · {{resultPercent(poll,o.id)}}%</text></view><view class="poll-track"><view class="poll-fill" :style="{width:resultPercent(poll,o.id)+'%'}"/></view></view></view>
+    <text v-if="poll.submitted" class="poll-caption">{{poll.results?'感谢参与，本场结果持续更新。':poll.resultVisibility==='AFTER_CLOSE'?'已提交，截止后可查看投票结果。':'已提交，感谢你的参与。'}}</text>
+    <text v-else-if="!poll.canSubmit" class="poll-caption">本次互动已截止。</text>
+    <button v-else class="secondary-button poll-submit" :disabled="!!saving||!!error" @click="confirmSubmit(poll)">{{saving===poll.id?'正在提交…':'确认提交'}}</button>
+    <text v-if="itemError[poll.id]" class="error-text">{{itemError[poll.id]}}</text>
+  </view>
+</view></template>
+<script setup lang="ts">
+import {ref,watch,onUnmounted} from 'vue';
+import ContentState from './ContentState.uvue';
+import {request} from '../lib/api';import {currentUser,sessionGeneration} from '../lib/session';import {formatChinaTime} from '../lib/date-time';
+type Option={id:string;label:string};type PollResult={optionId:string;count:number};
+type Question={id:string;type:string;prompt:string;required:boolean;options:Option[]};
+type Answer={questionId:string;optionIds?:string[];text?:string};
+type Poll={id:string;kind:string;question:string;questions:Question[];state:string;closesAt:string;resultVisibility:string;canSubmit:boolean;submitted:boolean;answers:Answer[];participants?:number;results?:PollResult[]};
+type PollPage={items:Poll[];sessionState:string};
+const props=defineProps<{sessionId:string}>(),items=ref<Poll[]>([]),error=ref(''),sessionState=ref(''),saving=ref(''),drafts=ref<Record<string,Answer[]>>({}),itemError=ref<Record<string,string>>({});
+let alive=true,serial=0,loading=false,timer:ReturnType<typeof setInterval>|null=null;
+function clear(){items.value=[];drafts.value={};itemError.value={};saving.value='';error.value='';}
+async function load(){if(loading||!alive||!props.sessionId||!currentUser.value)return;loading=true;const version=serial,generation=sessionGeneration();
+  try{const data=await request<PollPage>('/live/sessions/'+props.sessionId+'/polls');if(!alive||version!==serial||generation!==sessionGeneration())return;items.value=data.items;sessionState.value=data.sessionState;error.value='';const kept:Record<string,Answer[]>={};for(const poll of data.items){if(!poll.submitted&&drafts.value[poll.id])kept[poll.id]=drafts.value[poll.id];}drafts.value=kept;}
+  catch(e){if(alive&&version===serial&&generation===sessionGeneration()){error.value=(e as Error).message;if([401,403,404].includes((e as Error&{status:number}).status)){items.value=[];drafts.value={};itemError.value={};}}}finally{if(version===serial)loading=false;}}
+function answer(poll:Poll,qid:string):Answer|undefined{return(poll.submitted?poll.answers:drafts.value[poll.id]??[]).find(a=>a.questionId===qid);}
+function answerText(poll:Poll,qid:string):string{return answer(poll,qid)?.text??'';}
+function selected(poll:Poll,qid:string,oid:string):boolean{return answer(poll,qid)?.optionIds?.includes(oid)??false;}
+function put(pollId:string,value:Answer){drafts.value[pollId]=[...(drafts.value[pollId]??[]).filter(a=>a.questionId!==value.questionId),value];itemError.value[pollId]='';}
+function choose(poll:Poll,q:Question,oid:string){if(!poll.canSubmit||saving.value||error.value)return;let chosen=answer(poll,q.id)?.optionIds??[];chosen=q.type==='SINGLE'?[oid]:chosen.includes(oid)?chosen.filter(id=>id!==oid):[...chosen,oid];put(poll.id,{questionId:q.id,optionIds:chosen});}
+function writeText(pollId:string,qid:string,text:string){put(pollId,{questionId:qid,text});}
+function resultCount(poll:Poll,oid:string):number{return poll.results?.find(r=>r.optionId===oid)?.count??0;}
+function resultPercent(poll:Poll,oid:string):number{return poll.participants?Math.round(resultCount(poll,oid)/poll.participants*100):0;}
+function confirmSubmit(poll:Poll){if(saving.value||error.value||!poll.canSubmit)return;const answers:Answer[]=poll.questions.map(q=>q.type==='TEXT'?{questionId:q.id,text:answerText(poll,q.id).trim()}:{questionId:q.id,optionIds:answer(poll,q.id)?.optionIds??[]});
+  const missing=poll.questions.find(q=>q.required&&(q.type==='TEXT'?!answers.find(a=>a.questionId===q.id)?.text:!answers.find(a=>a.questionId===q.id)?.optionIds?.length));if(missing){itemError.value[poll.id]='请完成必答题：'+missing.prompt;return;}
+  const version=serial,generation=sessionGeneration();uni.showModal({title:'提交'+(poll.kind==='POLL'?'投票':'问卷'),content:'提交后不能修改，确认提交吗？',confirmText:'确认提交',success:r=>{if(r.confirm&&alive&&version===serial&&generation===sessionGeneration())void submit(poll,answers);}});
+}
+async function submit(poll:Poll,answers:Answer[]){if(saving.value)return;saving.value=poll.id;itemError.value[poll.id]='';const version=serial,generation=sessionGeneration();
+  try{await request('/live/sessions/'+props.sessionId+'/polls/'+poll.id+'/responses',{method:'POST',data:{answers}});if(alive&&version===serial&&generation===sessionGeneration()){uni.showToast({title:'已提交',icon:'none'});await load();}}
+  catch(e){if(alive&&version===serial&&generation===sessionGeneration()){itemError.value[poll.id]=(e as Error).message;await load();}}
+  finally{if(version===serial)saving.value='';}}
+watch(()=>props.sessionId+'|'+(currentUser.value?.id??'')+'|'+sessionGeneration(),()=>{serial++;loading=false;clear();if(timer)clearInterval(timer);void load();timer=setInterval(()=>void load(),5000);},{immediate:true});
+onUnmounted(()=>{alive=false;serial++;if(timer)clearInterval(timer);});
+</script>
+<style>
+@import '../styles/app.css';
+.live-polls{margin-top:24px;}.poll-heading{flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:8px;}.poll-card{background-color:#F4F0E7;border-width:1px;border-style:solid;border-color:#DFD9CF;border-radius:10px;padding:16px;margin-top:12px;}.poll-kind{font-size:12px;color:#245564;}.poll-title{font-family:AcademySerif;font-size:18px;line-height:28px;color:#17292D;margin-bottom:6px;}.poll-caption{font-size:12px;line-height:21px;color:#7A7366;margin-bottom:8px;}.poll-question{margin-top:10px;}.poll-prompt{font-size:14px;line-height:24px;color:#17292D;margin-bottom:8px;}.poll-option{display:flex;flex-direction:row;align-items:center;min-height:44px;padding:10px 12px;margin:0 0 8px;background-color:#FAF8F2;border-width:1px;border-style:solid;border-color:#DFD9CF;border-radius:6px;text-align:left;}.poll-option-selected{border-color:#245564;background-color:#E8EEEA;}.poll-mark{width:24px;font-size:16px;color:#245564;}.poll-option-label{flex:1;font-size:14px;line-height:23px;color:#17292D;}.poll-textarea{height:110px;width:100%;padding:10px;background-color:#FAF8F2;border-radius:6px;font-size:14px;line-height:23px;color:#17292D;}.poll-answer{font-size:14px;line-height:24px;color:#17292D;}.poll-results{margin-top:12px;padding-top:12px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}.poll-result-row{margin-bottom:12px;}.poll-result-label{flex:1;font-size:13px;line-height:22px;color:#17292D;margin-right:10px;}.poll-track{height:5px;border-radius:3px;background-color:#DFD9CF;overflow:hidden;}.poll-fill{height:5px;background-color:#245564;border-radius:3px;}.poll-submit{margin-top:12px;margin-bottom:0;}
+</style>

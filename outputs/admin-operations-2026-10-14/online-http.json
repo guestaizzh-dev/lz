@@ -1,0 +1,20 @@
+{
+  "environment": "https://academy.43-160-229-173.sslip.io/api/v1",
+  "checks": [
+    "实际HTTPS管理员登录成功",
+    "数据库/API健康",
+    "真实管理员会话有新增能力",
+    "公网真实接口 /admin/finance/summary 可用",
+    "公网真实接口 /admin/finance/payments 可用",
+    "公网真实接口 /admin/finance/refunds 可用",
+    "公网真实接口 /admin/finance/journals 可用",
+    "公网真实接口 /admin/operations/summary 可用",
+    "公网真实接口 /admin/operations/jobs 可用",
+    "未登录新增接口拒绝访问",
+    "公网日期验证生效",
+    "五个原业务订单接口兼容",
+    "App原首页API兼容"
+  ],
+  "readOnlyBusinessChecks": true,
+  "noProductionRetry": true
+}

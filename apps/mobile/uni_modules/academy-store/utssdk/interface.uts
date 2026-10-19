@@ -1,0 +1,1 @@
+export type StoreCommand = (action: string, payload: string) => string

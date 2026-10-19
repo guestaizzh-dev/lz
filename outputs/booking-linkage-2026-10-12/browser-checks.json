@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "Pro实际创建统一服务与免费报价",
+    "Pro选择北京时间并建立实际老师时段",
+    "App真实隔离验证码与登录流程通过",
+    "App从老师选择时段、确认联系方式并创建真实免费预约",
+    "App实际取消预约并释放统一时段",
+    "App从活动详情选择场次并真实免费报名",
+    "Pro实际报名名单显示脱敏联系方式与北京时间",
+    "Pro实际建立固定版本营期并开放免费报名",
+    "App从课程进入营期、免费报名并进入本期真实讨论",
+    "Pro实际维护名师文章关联，App两边详情展示且链接可打开"
+  ],
+  "errors": [],
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "paymentAdapters": false,
+  "commercialEvidence": false
+}

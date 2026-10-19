@@ -1,0 +1,51 @@
+{
+  "checks": [
+    "upload limits, ownership, CSRF, capabilities and incomplete completion",
+    "greater than 200MiB upload survives restart, duplicate acknowledgement and chunk conflict",
+    "real H264/AAC conversion, faststart, short GOP, original track offsets and full decode",
+    "actual course publication uses media duration and paid access controls all Range requests",
+    "invalid media never becomes READY; retry, cancellation and expiration clean source files"
+  ],
+  "metrics": {
+    "sourceBytes": 235866638,
+    "uploadMs": 3088,
+    "processMs": 33002,
+    "outputBytes": 53996307,
+    "durationSeconds": 116,
+    "sourceTrackOffsetMs": 179,
+    "outputTrackOffsetMs": 157,
+    "sourceTrackEndOffsetMs": 200,
+    "outputTrackEndOffsetMs": 208,
+    "maxKeyframeGapSeconds": 2.0000000000000036,
+    "decodeSeekMs": [
+      106,
+      115,
+      111
+    ],
+    "browserSeeks": [
+      {
+        "at": 90,
+        "ms": 210
+      },
+      {
+        "at": 15,
+        "ms": 188
+      },
+      {
+        "at": 70,
+        "ms": 288
+      },
+      {
+        "at": 5,
+        "ms": 36
+      }
+    ],
+    "browserPlayback": {
+      "at": 7.460054,
+      "dropped": 0,
+      "total": 263
+    }
+  },
+  "isolatedDatabase": true,
+  "nativeVerified": false
+}

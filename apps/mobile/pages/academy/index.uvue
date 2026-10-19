@@ -1,8 +1,9 @@
 <template>
 <view class="page">
+<InkBackdrop/>
+<SafeTop/>
 <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
 <view class="content">
-<SafeTop/>
 <view class="row between">
 <text class="page-title">学堂</text>
 <view class="icon-button icon-control"><AppIcon name="magnifying-glass" :size="21"/><button class="icon-hit-target" aria-label="搜索课程" @click="showSearch=!showSearch"></button></view>
@@ -11,23 +12,21 @@
 <AppIcon name="magnifying-glass" :size="16"/>
 <input class="search-input" placeholder="搜索课程" v-model="query" @confirm="load()"/>
 </view>
-<scroll-view class="chip-scroll" direction="horizontal">
-<view class="chips">
+<scroll-view class="chip-scroll" direction="horizontal" :show-scrollbar="false">
 <view v-for="item in categories" :key="item" :class="['chip',category===item?'chip-active':'']" @click="category=item">
 <text :class="['chip-text',category===item?'chip-text-active':'']">{{item==='全部'?'推荐':item}}</text>
-</view>
 </view>
 </scroll-view>
 <view class="category-grid">
 <view v-for="item in formats" :key="item.label" class="category-item" @click="format=item.value">
-<view class="category-circle">
+<view :class="['category-circle',format===item.value?'category-circle-selected':'']">
 <AppIcon :name="item.icon" :size="21" :active="format===item.value"/>
 </view>
-<text class="category-label">{{item.label}}</text>
+<text :class="['category-label',format===item.value?'category-label-selected':'']">{{item.label}}</text>
 </view>
 </view>
-<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
-<view v-else>
+<ContentState v-if="loading&&!courses.length||error" :loading="loading" :error="error" @retry="retry()"/>
+<view v-if="!error&&(!loading||courses.length)">
 <CourseRow v-for="course in visible" :key="course.id" :course="course"/>
 <ContentState v-if="!visible.length" title="这一类课程正在筹备" description="试试其他分类，开启一段新的研习。"/>
 <button v-if="nextCursor" class="retry" :disabled="loadingMore" @click="load(true)">更多课程</button>
@@ -37,10 +36,12 @@
 </view>
 </template>
 <script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+
 import SafeTop from '../../components/SafeTop.uvue';
 import AppIcon from '../../components/AppIcon.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {Course} from '../../lib/api';
 const categories=['全部','经典研习','实践修行','生活应用','少儿启蒙'],category=ref('全部'),query=ref(''),showSearch=ref(false),format=ref('');
-const formats=[{label:'全部',value:'',icon:'book-open'},{label:'视频',value:'VIDEO',icon:'play'},{label:'音频',value:'AUDIO',icon:'headphones'},{label:'直播课',value:'LIVE',icon:'video-camera'},{label:'训练营',value:'COHORT',icon:'calendar-blank'},{label:'线下课',value:'OFFLINE',icon:'flower-lotus'}];
-const {items:courses,loading,loadingMore,error,nextCursor,load}=useCatalog<Course>('courses',()=>({category:category.value,q:query.value,format:format.value}));const visible=computed(()=>courses.value);watch([category,format],()=>load());onLoad(()=>load());
+const formats=[{label:'全部',value:'',icon:'book-open'},{label:'图文',value:'TEXT',icon:'text-aa'},{label:'视频',value:'VIDEO',icon:'play'},{label:'音频',value:'AUDIO',icon:'headphones'},{label:'直播课',value:'LIVE',icon:'video-camera'},{label:'训练营',value:'COHORT',icon:'calendar-blank'},{label:'线下课',value:'OFFLINE',icon:'flower-lotus'}];
+const {items:courses,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Course>('courses',()=>({category:category.value,q:query.value,format:format.value}));const visible=computed(()=>courses.value);watch([category,format],()=>load());let searchTimer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(searchTimer!==null)clearTimeout(searchTimer);searchTimer=setTimeout(()=>load(),300);});onUnload(()=>{if(searchTimer!==null)clearTimeout(searchTimer);});onLoad(()=>load());onShow(()=>{const value=uni.getStorageSync('academyFormat');if(value==='COHORT'||value==='ALL'){format.value=value==='ALL'?'':value;uni.removeStorageSync('academyFormat');}});
 </script>
 <style>@import '../../styles/app.css';</style>

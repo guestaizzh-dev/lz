@@ -1,0 +1,38 @@
+[
+  {
+    "id": "4b758d06-c079-4fa5-8bde-8e6531a29778",
+    "lessonId": "f885899e-3050-4210-87df-3ba20d2de974",
+    "positionSeconds": 0,
+    "watchedSeconds": 0,
+    "completedAt": "2026-10-06T09:24:14.472Z",
+    "updatedAt": "2026-10-06T09:24:17.066Z",
+    "lesson": {
+      "title": "先读原文（图文试听）",
+      "format": "TEXT"
+    }
+  },
+  {
+    "id": "5e24ce85-085e-45cc-9b44-85aa567cf8c8",
+    "lessonId": "87fae4e4-0fe2-495f-bb44-2e9958d3a111",
+    "positionSeconds": 0,
+    "watchedSeconds": 0,
+    "completedAt": "2026-10-06T08:28:29.575Z",
+    "updatedAt": "2026-10-06T08:30:25.951Z",
+    "lesson": {
+      "title": "记录你的思考",
+      "format": "TEXT"
+    }
+  },
+  {
+    "id": "e2c94982-ec25-4d2f-ae6c-6a3df3840743",
+    "lessonId": "83609647-f0dc-4c45-83e4-da7653825022",
+    "positionSeconds": 3,
+    "watchedSeconds": 0,
+    "completedAt": null,
+    "updatedAt": "2026-10-06T09:24:17.487Z",
+    "lesson": {
+      "title": "播放验证 · 测试音频（非授课）",
+      "format": "AUDIO"
+    }
+  }
+]

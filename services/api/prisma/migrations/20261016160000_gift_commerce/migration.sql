@@ -1,0 +1,10 @@
+CREATE TABLE "GiftCreditPack" (id text PRIMARY KEY DEFAULT gen_random_uuid()::text,title text NOT NULL,credits bigint NOT NULL CHECK(credits>0 AND credits<=100000),price bigint NOT NULL CHECK(price=credits),active boolean NOT NULL DEFAULT false,version integer NOT NULL DEFAULT 1,"createdAt" timestamptz NOT NULL DEFAULT now(),"updatedAt" timestamptz NOT NULL DEFAULT now());
+CREATE TABLE "GiftTeacherContract" (id text PRIMARY KEY DEFAULT gen_random_uuid()::text,"teacherId" text NOT NULL UNIQUE REFERENCES "Teacher"(id),"contractId" text NOT NULL REFERENCES "PartnerContract"(id),enabled boolean NOT NULL DEFAULT false,version integer NOT NULL DEFAULT 1,"updatedBy" text NOT NULL REFERENCES "User"(id),"updatedAt" timestamptz NOT NULL DEFAULT now());
+ALTER TABLE "SaleOffer" ADD COLUMN "giftPackId" text REFERENCES "GiftCreditPack"(id);
+ALTER TABLE "SaleOffer" DROP CONSTRAINT "domain_SaleOffer_1";
+ALTER TABLE "SaleOffer" ADD CONSTRAINT "domain_SaleOffer_1" CHECK(num_nonnulls("courseReleaseId","skuId","membershipVersionId","serviceOfferingId","eventTicketId","giftId","operatingServiceId","giftPackId")=1);
+ALTER TABLE "GiftWallet" ADD COLUMN "systemHold" boolean NOT NULL DEFAULT false;
+ALTER TABLE "GiftLedger" ADD COLUMN "requestHash" text,ADD COLUMN snapshot jsonb NOT NULL DEFAULT '{}';
+ALTER TABLE "GiftCreditAllocation" ADD COLUMN "partnerAmountMinor" bigint NOT NULL DEFAULT 0 CHECK("partnerAmountMinor">=0 AND "partnerAmountMinor"<="allocatedPaidMinor");
+INSERT INTO "FinanceAccount" (code,title,kind) VALUES ('GIFT_CREDIT_LIABILITY','礼物购买余额待消费','LIABILITY'),('GIFT_REVENUE','礼物平台收入','REVENUE'),('GIFT_PARTNER_PAYABLE','礼物合作方待结算','LIABILITY'),('GIFT_REFUND_PAYABLE','礼物异常款待退款','LIABILITY'),('GIFT_CHARGEBACK_LOSS','礼物已消费款渠道撤销损失','EXPENSE') ON CONFLICT(code) DO NOTHING;
+INSERT INTO "FinanceAccount" (code,title,kind) VALUES ('GIFT_BANK_CLEARING','礼物分成实际银行支出','ASSET') ON CONFLICT(code) DO NOTHING;

@@ -1,0 +1,207 @@
+{
+  "routes": 40,
+  "registeredPages": [
+    {
+      "route": "pages/academy/index",
+      "exists": true,
+      "sourceSha256": "42478bd41883c7d441ba187d966a489d8d5a88e181deca49003ca3a8d90bf478"
+    },
+    {
+      "route": "pages/article/detail",
+      "exists": true,
+      "sourceSha256": "01957eb219cbc7bd0dbf8352303a658a462f2acba9535b4ea8b7f695bcaf801d"
+    },
+    {
+      "route": "pages/auth/login",
+      "exists": true,
+      "sourceSha256": "c25bad82147bdc0c9c6eaeae01a9c556c488ed2af5524250925789603b2605c2"
+    },
+    {
+      "route": "pages/community/detail",
+      "exists": true,
+      "sourceSha256": "5274494545bd9ccd51917c869d23ccf677b787b91e0f5d27a3e3ff84a49754e9"
+    },
+    {
+      "route": "pages/community/editor",
+      "exists": true,
+      "sourceSha256": "56661ab699b1696d7d9ab26975c94530c0069224963c9f2e6f28fc21f4724eac"
+    },
+    {
+      "route": "pages/community/index",
+      "exists": true,
+      "sourceSha256": "8ec5c61aaa2c26840936ba406053610bfd3bc0d105308e6c88b04309d188eed6"
+    },
+    {
+      "route": "pages/community/manage",
+      "exists": true,
+      "sourceSha256": "40d7a67c3526571ef34aa91959e0ed9c11fe4f72df5f67ec09d6da32670f65b5"
+    },
+    {
+      "route": "pages/course/certificate",
+      "exists": true,
+      "sourceSha256": "3920a5408836750aaa49a22786d024d50a596c302862574f98a602c067c46ea8"
+    },
+    {
+      "route": "pages/course/checkin",
+      "exists": true,
+      "sourceSha256": "a7b2b5f136611dd73aad1b4142c4f02c330a604afe0453b05d8eab826140c544"
+    },
+    {
+      "route": "pages/course/detail",
+      "exists": true,
+      "sourceSha256": "7027c6262440d9e6bacbeecc1428937c79b01ca7079be4fd13ab72ba60d80577"
+    },
+    {
+      "route": "pages/course/library",
+      "exists": true,
+      "sourceSha256": "02c625f39bfebbddc842f4cb3e9c1698c493ee9ad4ba9308836b0a3e2ef19b03"
+    },
+    {
+      "route": "pages/course/player",
+      "exists": true,
+      "sourceSha256": "609939bf603a637bc07fd50edf2faabe340f62abc53c424c9db88918f8b485f7"
+    },
+    {
+      "route": "pages/course/practice",
+      "exists": true,
+      "sourceSha256": "cf8d1b598e2b4bb82dab9094b2bc715d1d2d6c8ccc24ec47e927bd98b3976925"
+    },
+    {
+      "route": "pages/discover/index",
+      "exists": true,
+      "sourceSha256": "bfa0b3bd293ce3efa9ced356164cbffbaeb0d8d3d488922f157e30fb69743365"
+    },
+    {
+      "route": "pages/event/detail",
+      "exists": true,
+      "sourceSha256": "784736d102145bc412724a0a2677e49df1a469235563f20aaa5ccb112ed43afd"
+    },
+    {
+      "route": "pages/event/index",
+      "exists": true,
+      "sourceSha256": "f471a46f058d7439d78a87350f1b60b03194faf408938b85a2f9afb2b9d6bd48"
+    },
+    {
+      "route": "pages/index/index",
+      "exists": true,
+      "sourceSha256": "5e8cf26cee3de1bb18595cd2e1fe0eb23a6d0ba3fb0e8a4e103f99d31448df89"
+    },
+    {
+      "route": "pages/live/detail",
+      "exists": true,
+      "sourceSha256": "faba32fba967ad359024a4276b5f6ae8ecc66f30c3698c220a8706b693579a84"
+    },
+    {
+      "route": "pages/live/index",
+      "exists": true,
+      "sourceSha256": "e39a474efeea4ef9cdf9cc1ee9da73f1d68e49466a7ababe35ad5b542cd4420f"
+    },
+    {
+      "route": "pages/membership/index",
+      "exists": true,
+      "sourceSha256": "89e07e84989c5fa7b3e7dc50a0e469a9416f9f1ba12c89e5f5ddb70c355bfb41"
+    },
+    {
+      "route": "pages/order/confirm",
+      "exists": true,
+      "sourceSha256": "5b089e26829e018d0bde5e62b0bd997cb3b42310f981895e3fdddcd2adb8573a"
+    },
+    {
+      "route": "pages/order/detail",
+      "exists": true,
+      "sourceSha256": "de0aeecb28742ba37f7fce1f0fd56f06d2233ef601ec471d24efafcba6292e73"
+    },
+    {
+      "route": "pages/product/detail",
+      "exists": true,
+      "sourceSha256": "fcd4e6d0fce3d158d2c359fa738cbd959f9da2f42a562472fa1d9c7ae1e080da"
+    },
+    {
+      "route": "pages/profile/edit",
+      "exists": true,
+      "sourceSha256": "81655d7821c9793163521e0352141d8a3d385ea35086ef6f8e22e624cdfd21ac"
+    },
+    {
+      "route": "pages/profile/feedback",
+      "exists": true,
+      "sourceSha256": "83f41c5328dbcb62cdc8593d719744ba0ff9a6bf82e57010046cbdb991713e61"
+    },
+    {
+      "route": "pages/profile/index",
+      "exists": true,
+      "sourceSha256": "5dfbd0be03d36a965c9b0c0819c352267f8a04d111e11a8aaad74cec9d484e44"
+    },
+    {
+      "route": "pages/profile/library",
+      "exists": true,
+      "sourceSha256": "5ac7ed3caa3b17573b3ee3625a34fd50ab763822e2e8a0b6b6fbf6044b863805"
+    },
+    {
+      "route": "pages/profile/messages",
+      "exists": true,
+      "sourceSha256": "35b2c726dab904c3209b86a63881da32d183dfbc94441943c170d3ce04eeffe3"
+    },
+    {
+      "route": "pages/profile/privacy",
+      "exists": true,
+      "sourceSha256": "5011f134c2ad4c18c484eb09291127d16828c42665c29aae797b7b05150d7894"
+    },
+    {
+      "route": "pages/profile/progression",
+      "exists": true,
+      "sourceSha256": "e92926b74ba1e0267f7ed0507b83b5eea87c255648bc975e3f3561534c0a0cf2"
+    },
+    {
+      "route": "pages/profile/service",
+      "exists": true,
+      "sourceSha256": "99d4ec2fa746aabda1ab7308c4286b2376d0606b01f7a28a05229bcbdc7b8d49"
+    },
+    {
+      "route": "pages/profile/settings",
+      "exists": true,
+      "sourceSha256": "a844e4be826878c8636a632a3e9061584fc8f2fa51dcae4e256e10a76027fa4f"
+    },
+    {
+      "route": "pages/reading-history/reading-history",
+      "exists": true,
+      "sourceSha256": "80d2bb66871e350812946f17d61a29934656553f85db75d6147dca705cb19f5a"
+    },
+    {
+      "route": "pages/search/index",
+      "exists": true,
+      "sourceSha256": "bf49f02a05fd7765c15a5285d4f11a42ee096e7dbe12f6b01beeb5bdf6454f8f"
+    },
+    {
+      "route": "pages/shared/index",
+      "exists": true,
+      "sourceSha256": "f469fbd9d09d7e56a82171d0222702ee53153086ad003344dbf75c87a95c9a3b"
+    },
+    {
+      "route": "pages/shop/addresses",
+      "exists": true,
+      "sourceSha256": "bc0edca71f788fe1ff69ba08ee7f229f13a7d91eb2aa0b0f33b8092a3b16af1a"
+    },
+    {
+      "route": "pages/shop/cart",
+      "exists": true,
+      "sourceSha256": "c28ecb14d6e6d9c88860e6aa15c159f9b9ba10bb81f46c381ba9ce46dc4dd637"
+    },
+    {
+      "route": "pages/shop/index",
+      "exists": true,
+      "sourceSha256": "c3226b4c2235505496e5b81fc0b240336bd86cd55f07616a19766eb954e36017"
+    },
+    {
+      "route": "pages/teacher/detail",
+      "exists": true,
+      "sourceSha256": "9e66047d2e8efbfa3274ad8f7277669e2132e017c6bb2ff9aa226d710c732490"
+    },
+    {
+      "route": "pages/teacher/index",
+      "exists": true,
+      "sourceSha256": "5a73321682ef69839acba6e156256d7c346bdcb485563cac28c72a9cd64ca687"
+    }
+  ],
+  "brokenReferences": [],
+  "scope": "Static source references only; browser acceptance blocked and phone acceptance cancelled"
+}

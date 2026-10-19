@@ -1,0 +1,13 @@
+<template><view v-if="cues.length" class="transcript">
+  <view class="transcript-head"><text class="transcript-label">同步字幕</text><button class="transcript-action" @click="expanded=!expanded">{{expanded?'收起文字':'展开文字'}}</button></view>
+  <text class="transcript-current" :user-select="true">{{current||'随播放进度显示本讲字幕'}}</text>
+  <view v-if="expanded"><view class="transcript-head"><text class="transcript-label">点击时间可跳转</text><button class="transcript-action" @click="copy">复制全文</button></view><view v-for="(cue,index) in cues.slice(0,limit)" :key="index" class="transcript-line"><button class="transcript-time" @click="$emit('seek',cue.start)">{{time(cue.start)}}</button><text class="transcript-copy" :user-select="true">{{cue.text}}</text></view><button v-if="limit<cues.length" class="transcript-action" @click="limit+=50">继续展开</button></view>
+</view></template>
+<script setup lang="ts">
+import type {SubtitleCue} from '../lib/learning';
+const props=defineProps<{cues:SubtitleCue[];position:number}>();defineEmits<{seek:[seconds:number]}>();
+const expanded=ref(false),limit=ref(50),current=computed(()=>props.cues.find(c=>props.position>=c.start&&props.position<c.end)?.text??'');
+function time(seconds:number):string{const value=Math.floor(seconds);return (value>=3600?String(Math.floor(value/3600))+':':'')+String(Math.floor(value/60)%60).padStart(2,'0')+':'+String(value%60).padStart(2,'0');}
+function copy(){uni.setClipboardData({data:props.cues.map(c=>c.text).join('\n\n'),fail:()=>uni.showToast({title:'复制失败，请重试',icon:'none'})});}
+</script>
+<style>.transcript{margin-top:16px;padding:12px 16px;border-radius:8px;background-color:#F1EDE4;}.transcript-head{flex-direction:row;align-items:center;justify-content:space-between;}.transcript-label{font-size:12px;line-height:22px;color:#807663;}.transcript-action{background-color:transparent;color:#245564;font-size:13px;line-height:22px;min-height:44px;padding:11px 0;margin:0;border-width:0;}.transcript-current{font-size:16px;line-height:28px;color:#263D3C;padding-bottom:8px;min-height:36px;}.transcript-line{flex-direction:row;padding-top:8px;padding-bottom:8px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}.transcript-time{font-size:12px;color:#245564;background-color:transparent;line-height:22px;min-height:44px;padding:11px 10px 11px 0;margin:0;border-width:0;}.transcript-copy{flex:1;font-size:14px;line-height:25px;color:#384848;padding-top:9px;}</style>

@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-12",
+  "task": "A03",
+  "subtask": "Independent cohort registration and learning context",
+  "subtaskStatus": "implemented and locally verified",
+  "wholeTaskStatus": "进行中",
+  "tests": {
+    "passed": 104,
+    "failed": 0,
+    "files": 8,
+    "isolatedDatabase": true
+  },
+  "browser": {
+    "passed": 8,
+    "errors": []
+  },
+  "builds": {
+    "api": true,
+    "adminTypecheck": true,
+    "adminProduction": true,
+    "appWeb": true,
+    "appNative": false
+  },
+  "database": {
+    "businessModels": 157,
+    "tablesIncludingMetadata": 158,
+    "migrations": 30,
+    "localMigrationApplied": true,
+    "ordinaryDataPreserved": true
+  },
+  "plan": {
+    "tasks": 110,
+    "states": {
+      "已完成": 5,
+      "待验收": 1,
+      "阻塞": 16,
+      "实现完成·待验证": 13,
+      "进行中": 11,
+      "待执行": 64
+    }
+  },
+  "commercial": {
+    "completed": 38,
+    "total": 131,
+    "percentage": 29,
+    "newAcceptance": false
+  },
+  "next": "A03 daily lesson schedule and server-side unlocking",
+  "deployed": false,
+  "apkUpdated": false,
+  "historicalReviewSha256": "c24a94ff6fb6e1735cc85b57a0412a249858dd2d77d1cfd46edf771958222d04"
+}

@@ -1,0 +1,9 @@
+{
+  "source": "本轮只读GET /api/v1/learning/plans；仅保留公开业务字段",
+  "date": "2026-10-10",
+  "items": [
+    { "title": "入门月卡（测试）", "tier": 1, "days": 30, "price": 1900 },
+    { "title": "进阶季卡（测试）", "tier": 2, "days": 90, "price": 12900 },
+    { "title": "至尊年卡（测试）", "tier": 3, "days": 365, "price": 89900 }
+  ]
+}

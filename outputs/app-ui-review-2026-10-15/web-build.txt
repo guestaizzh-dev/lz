@@ -1,0 +1,19 @@
+19:12:50.125 项目 mobile [__UNI__AA1E366] 开始发布到Web...
+19:12:51.617 编译器版本：5.26（uni-app x）VDOM模式
+19:12:51.618 当前样式隔离策略：2.0。详见：https://doc.dcloud.net.cn/uni-app-x/css/common/style-isolation.html
+19:12:51.621 正在编译中...
+19:13:38.747 [33m​warning: Module '"@dcloudio/uni-app"' has no exported member 'onResize'.​[39m
+19:13:38.748 [33m​at components/ComposeSheet.uvue:4:59​[39m
+19:13:38.752   3 |
+19:13:38.755     |                                                            ^^^^^^^^
+19:13:38.750   2 | import { unref as _unref, toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, resolveComponent as _resolveComponent, withCtx as _withCtx, createVNode as _createVNode, openBlock as _openBlock, createBlock as _createBlock, createCommentVNode as _createCommentVNode, renderSlot as _renderSlot, normalizeStyle as _normalizeStyle, withModifiers as _withModifiers } from "vue"
+19:13:38.756   5 |
+19:13:38.758   6 | export default /*#__PURE__*/_defineComponent({
+19:13:38.753 > 4 | import {ref,watch,nextTick,onUnmounted} from 'vue';import {onResize} from '@dcloudio/uni-app';import AppIcon from './AppIcon.uvue';
+19:13:38.759   7 |   __name: 'ComposeSheet',
+19:14:08.285 欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+19:14:08.286 项目 mobile 编译成功。
+19:14:08.486 [33m项目 mobile 导出Web成功，路径为：C:\Users\l6658\Documents\ChatGPT\道学书院\apps\mobile\unpackage\dist\build\web[39m
+19:14:08.491 [33m注意请部署到web服务器使用，不要使用资源管理器直接打开，除非进行相对路径配置，具体参考：https://ask.dcloud.net.cn/article/37432。[39m
+19:14:08.493 [31m欢迎开通 <a href='https://uniad.dcloud.net.cn'>uni-ad</a> 广告进行变现，<a href='https://uniad.dcloud.net.cn/login'>申请入口</a> | <a href='https://uniapp.dcloud.net.cn/uni-ad/'>开发文档</a>[39m
+

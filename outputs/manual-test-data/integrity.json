@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-10-10T08:33:49.553Z",
+  "mediaFilesVerified": 4,
+  "financial": {
+    "payments": 0,
+    "refunds": 0,
+    "journals": 0
+  },
+  "states": {
+    "articles": [
+      {
+        "_count": 1,
+        "status": "REJECTED"
+      },
+      {
+        "_count": 1,
+        "status": "REVIEW"
+      },
+      {
+        "_count": 1,
+        "status": "ARCHIVED"
+      },
+      {
+        "_count": 1,
+        "status": "DRAFT"
+      },
+      {
+        "_count": 6,
+        "status": "PUBLISHED"
+      }
+    ],
+    "courses": [
+      {
+        "_count": 1,
+        "status": "REJECTED"
+      },
+      {
+        "_count": 1,
+        "status": "ARCHIVED"
+      },
+      {
+        "_count": 1,
+        "status": "REVIEW"
+      },
+      {
+        "_count": 4,
+        "status": "PUBLISHED"
+      },
+      {
+        "_count": 1,
+        "status": "DRAFT"
+      }
+    ],
+    "products": [
+      {
+        "_count": 1,
+        "status": "ARCHIVED"
+      },
+      {
+        "_count": 1,
+        "status": "REVIEW"
+      },
+      {
+        "_count": 2,
+        "status": "DRAFT"
+      },
+      {
+        "_count": 4,
+        "status": "PUBLISHED"
+      }
+    ],
+    "events": [
+      {
+        "_count": 2,
+        "status": "PUBLISHED"
+      },
+      {
+        "_count": 1,
+        "status": "DRAFT"
+      },
+      {
+        "_count": 1,
+        "status": "REVIEW"
+      },
+      {
+        "_count": 1,
+        "status": "ARCHIVED"
+      }
+    ]
+  }
+}

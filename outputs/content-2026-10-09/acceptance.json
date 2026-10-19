@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-09",
+  "stage": "Content review and delivery",
+  "api": {
+    "tests": 109,
+    "passed": 109,
+    "failed": 0,
+    "log": "api-tests.log"
+  },
+  "database": {
+    "targetEntities": 144,
+    "tables": 148,
+    "fullGenericCrud": 52,
+    "restrictedProfile": 1,
+    "controlledEntities": 91,
+    "migrationExecuted": false
+  },
+  "webAcceptance": [
+    "comprehensive search",
+    "annotation and highlights",
+    "private note Markdown download",
+    "quote comment submitted and admin approved",
+    "article linked course navigation"
+  ],
+  "screenshots": [
+    "content-search.png",
+    "content-annotation.png",
+    "content-library.png",
+    "content-editorial-admin.png",
+    "content-comment-admin.png"
+  ],
+  "android": {
+    "version": "0.3.1",
+    "cloudBuild": "success",
+    "apk": "../android/daoxue-academy-0.3.1.apk",
+    "bytes": 30890933,
+    "sha256": "39975868a7fff4d61a414205ec54ad483a3f20dd2d61985d40d6772bf28922d8",
+    "installed": false,
+    "nativeAnnotationAndExportAcceptance": "not verified",
+    "reason": "Latest UI request builds superseding 0.3.2; device offline during final check"
+  },
+  "limitations": [
+    "degraded text ranges instead of native selection handles",
+    "iOS build and device not verified",
+    "production HTTPS and content rights require actual configuration",
+    "live playback and payments are separate incomplete phases"
+  ],
+  "gitCommitted": false,
+  "productionDeployed": false
+}

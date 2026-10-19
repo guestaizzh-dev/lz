@@ -1,8 +1,10 @@
+import {phoneLookup} from '../dist/private-data.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,randomInt} from 'node:crypto';
 import {createApp} from '../dist/main.js';
 import {Database} from '../dist/database.js';
+import {orderAddress} from '../dist/private-data.js';
 import {OrdersService} from '../dist/orders.js';
 import {passwordHash} from '../dist/auth.js';
 import {clearProducts} from './fixture-cleanup.mjs';
@@ -45,6 +47,7 @@ test('pending physical orders reserve inventory once and protect snapshots and o
       quote=(await call('/orders/quote',a,'POST',quoteBody)).body;
       const creates=await Promise.all([call('/orders',a,'POST',{...quoteBody,requestId,quoteId:quote.quoteId}),call('/orders',a,'POST',{...quoteBody,requestId,quoteId:quote.quoteId})]);assert.deepEqual(creates.map(row=>row.status),[201,201]);assert.equal(creates[0].body.id,creates[1].body.id);order=creates[0].body;
       assert.equal((await db.productSku.findUnique({where:{id:sku.id}})).reserved,2);assert.equal(order.requestHash,undefined);assert.equal(order.userId,undefined);
+      const snapshot=(await db.order.findUniqueOrThrow({where:{id:order.id}})).address;assert.equal(snapshot.phone,undefined);assert.equal(orderAddress(snapshot).phone,addressBody.phone);assert.equal('cipher' in order.address,false);
       assert.equal((await call('/orders',a,'POST',{...quoteBody,items:[{skuId:sku.id,quantity:1}],requestId,quoteId:quote.quoteId})).status,409);
       await call('/shopping/addresses/'+addressA.id,a,'PATCH',{...addressBody,detail:'再次修改'});
       assert.equal((await call('/orders/'+order.id,a)).body.address.detail,'已编辑');
@@ -76,7 +79,7 @@ test('pending physical orders reserve inventory once and protect snapshots and o
   }finally{
     for(const row of await db.order.findMany({where:{userId:{in:users},status:'PENDING'}}))await app.get(OrdersService).cancel(row.userId,row.id);
     await db.order.deleteMany({where:{userId:{in:users}}});if(product){await clearProducts(db,[product.id]);await db.product.delete({where:{id:product.id}});}if(zone)await db.deliveryZone.deleteMany({where:{province:zone}});
-    await db.auditLog.deleteMany({where:{actorId:{in:users}}});await db.authSession.deleteMany({where:{userId:{in:users}}});await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{phone:{in:phones}}});
-    await db.rateLimit.deleteMany({where:{OR:phones.flatMap(phone=>[{key:'sms-phone-minute:'+phone},{key:'sms-phone-day:'+phone}])}});await app.close();await db.$disconnect();
+    await db.auditLog.deleteMany({where:{actorId:{in:users}}});await db.authSession.deleteMany({where:{userId:{in:users}}});await db.address.deleteMany({where:{userId:{in:users}}});await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{OR:[{phone:{in:phones}},{phoneHash:{in:phones.map(phoneLookup)}}]}});
+    await db.rateLimit.deleteMany({where:{OR:phones.flatMap(phone=>[{key:'sms-phone-minute:'+phoneLookup(phone)},{key:'sms-phone-day:'+phoneLookup(phone)}])}});await app.close();await db.$disconnect();
   }
 });

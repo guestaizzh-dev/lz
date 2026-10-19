@@ -1,0 +1,2 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const path='apps/mobile/pages/cohort/purchase.uvue';let text=await readFile(path,'utf8');text=text.replace(':show="showRefund"',':visible="showRefund"').replace(' description="开营前可申请',' subtitle="开营前可申请').replace(':value="refundReason"', 'v-model="refundReason"').replace(':busy="busy" :min-length="2" :max-length="500"', ':saving="busy" :disabled="refundReason.trim().length<2" :maxlength="500"').replace(' @update:value="refundReason=$event"','');await writeFile(path,text);

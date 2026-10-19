@@ -1,88 +1,71 @@
 <template>
-<view class="page">
-<PageHead title="文章阅读" action="share" @action="share"/>
-<scroll-view :scroll-into-view="scrollTarget" :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
+<view class="page"><PageHead title="文章阅读" action="share" @action="share"/>
+<scroll-view id="nested-scroll-view" :scroll-into-view="scrollTarget" :show-scrollbar="false" class="page-scroll" direction="vertical" @scroll="readerRef?.clearSelection()"><view class="content">
 <ContentState v-if="!article" :loading="!error" :error="error" @retry="load"/>
 <view v-else>
 <ArtImage :src="article!.cover" kind="landscape" :width="width" :height="174"/>
-<text class="detail-title">{{article!.title}}</text>
-<view class="article-byline">
-<view class="row">
-<AppIcon name="user" :size="13"/>
-<text class="meta article-author">{{article!.author}}</text>
-</view>
-<text class="meta">来源：{{article!.source||'书院内容'}}</text>
-</view>
-<view class="divider article-divider"/>
-<view v-if="article!.access==='MEMBERSHIP_REQUIRED'">
-<view class="member-panel">
-<text class="member-title">会员专享</text>
-<text class="member-description">{{article!.summary}}</text>
-<text class="member-link" @click="openPage('membership/index')">了解会员权益 ›</text>
-</view>
-</view>
+<text class="detail-title">{{article!.title}}</text><text class="meta byline">{{article!.author}} · {{article!.source||'书院内容'}}</text>
+<view v-if="article!.access==='MEMBERSHIP_REQUIRED'" class="member-panel"><text class="member-title">会员专享</text><text class="member-description">{{article!.summary}}</text><text class="member-link" @click="openPage('membership/index')">了解会员权益 ›</text></view>
 <view v-else>
-<view v-for="block in article!.blocks" :key="block.id" :class="block.type==='quote'?'quote-block':''" @longpress="writeNote(block.id,block.text)">
-<text :class="block.type==='quote'?'quote-block-text':'body-copy'" :style="{fontSize:fontSize+'px',lineHeight:(fontSize*1.95)+'px'}">{{block.text}}</text>
-<button v-if="showNotes" class="note-action" @click="writeNote(block.id,block.text)">为这一段写笔记</button>
+<text class="reading-hint">长按选中文字，拖动两端调整范围，可复制、划线、记笔记或评论</text>
+<ArticleReader ref="readerRef" :articleId="id" :blocks="article!.blocks??[]" :fontSize="fontSize" :templateCode="article!.templateCode" :annotations="annotations" @action="readerAction"/>
+<Comments v-if="article!.access!=='MEMBERSHIP_REQUIRED'" ref="commentsRef" :resourceId="id" @reply="openCommentEditor"/>
 </view>
-</view>
-<view v-if="noteBlock" id="private-note" class="note-editor">
-<view class="row between">
-<text class="tag">我的笔记 · 仅自己可见</text>
-<text class="tag" @click="noteBlock=''">收起</text>
-</view>
-<text class="article-summary">{{noteQuote}}</text>
-<textarea class="note-input" maxlength="10000" placeholder="记录你的思考…" v-model="noteText"/>
-<button class="primary-button" :disabled="saving" @click="saveNote">{{saving?'正在保存…':'保存笔记'}}</button>
-</view>
+<SourceEvidence :items="context.evidence" title="注释版本与来源"/>
+<RelatedContent ref="relatedRef" :resourceId="id"/>
+<SponsoredContent surface="ARTICLE_FOOTER"/>
+<text v-if="contextError" class="footer-note" @click="loadContext">{{contextError}} · 点击重试</text>
 <text v-if="feedback" class="footer-note">{{feedback}}</text>
-<text class="footer-note">{{showNotes?'点击段落下方的按钮可更换引用段落。':'长按段落可记录私人研习笔记。'}}</text>
-</view>
-</view>
-</scroll-view>
-<view v-if="article" class="bottom-bar">
-<view class="toolbar-item" @click="favorite">
-<AppIcon name="star" :size="21" :active="favorited"/>
-<text class="toolbar-label">{{favorited?'已收藏':'收藏'}}</text>
-</view>
-<view class="toolbar-item" @click="comment">
-<AppIcon name="chat-circle" :size="21"/>
-<text class="toolbar-label">评论</text>
-</view>
-<view class="toolbar-item" @click="share">
-<AppIcon name="share-network" :size="21"/>
-<text class="toolbar-label">分享</text>
-</view>
-<view class="toolbar-item" @click="font">
-<AppIcon name="text-aa" :size="21"/>
-<text class="toolbar-label">字号</text>
-</view>
-<view v-if="article!.access!=='MEMBERSHIP_REQUIRED'" class="toolbar-item" @click="beginNote">
-<AppIcon name="note-pencil" :size="21"/>
-<text class="toolbar-label">笔记</text>
-</view>
-</view>
+</view></view></scroll-view>
+<BottomBar v-if="article"><view class="toolbar-item" @click="like"><AppIcon name="heart" :size="21" :active="liked"/><text class="toolbar-label">{{liked?'已赞':'点赞'}}</text></view><view class="toolbar-item" @click="favorite"><AppIcon name="star" :size="21" :active="favorited"/><text class="toolbar-label">{{favorited?'已收藏':'收藏'}}</text></view><view class="toolbar-item" @click="openCommentEditor(null,null,null)"><AppIcon name="chat-circle" :size="21"/><text class="toolbar-label">评论</text></view><view class="toolbar-item" @click="fontSize=fontSize>=20?14:fontSize+2"><AppIcon name="text-aa" :size="21"/><text class="toolbar-label">字号</text></view><view class="toolbar-item" @click="beginNote"><AppIcon name="note-pencil" :size="21"/><text class="toolbar-label">笔记</text></view><view class="toolbar-item" @click="report"><AppIcon name="warning" :size="21"/><text class="toolbar-label">举报</text></view></BottomBar>
+<ReportModal v-if="reportVisible" :resourceId="id" @close="reportVisible=false"/>
+<ComposeSheet :visible="noteVisible" title="研习笔记" subtitle="仅自己可见" :quote="noteQuote" v-model="noteText" :saving="saving" :error="noteError" :disabled="!noteRanges.length&&!noteText.trim()" submitLabel="保存笔记" @close="noteVisible=false" @submit="saveNote"/>
+<CommentEditor :visible="commentVisible" :resourceId="id" :parentId="commentParent" :replyTo="commentAuthor" :quotedBlockId="commentBlock" :quotedText="commentQuote" :quotedRanges="commentRanges" :articleVersion="article?.version" @close="commentVisible=false" @submitted="submitted"/>
 </view>
 </template>
 <script setup lang="ts">
-import {nextTick} from 'vue';
-const scrollTarget=ref('');
-import AppIcon from '../../components/AppIcon.uvue';import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {viewWidth,openPage,shareContent,showUnavailable} from '../../lib/presentation';
-const width=viewWidth(),fontSize=ref(16),showNotes=ref(false);
-function font(){fontSize.value=fontSize.value>=20?14:fontSize.value+2;}function share(){if(article.value)shareContent('文章',id,article.value.title);}function comment(){showUnavailable('文章评论','评论功能尚未开放。你可以先记录私人笔记。');}
-function beginNote(){if(!article.value?.blocks?.length)return;const first=article.value.blocks.find(b=>b.type!=='quote')??article.value.blocks[0];writeNote(first.id,first.text);showNotes.value=true;}
-import { request } from '../../lib/api'; import type { Article } from '../../lib/api';
-const article=ref<Article|null>(null); const error=ref(''); let id='';
-import { currentUser, needLogin } from '../../lib/session';
-const noteBlock=ref(''),noteQuote=ref(''),noteText=ref(''),saving=ref(false),favorited=ref(false),savingFavorite=ref(false),feedback=ref('');
-const back=()=>uni.navigateBack();
-async function load() { error.value=''; try { article.value=await request<Article>('/catalog/articles/'+encodeURIComponent(id)); } catch(e) { error.value=(e as Error).message; } }
-onLoad((options)=>{id=options?.id??'';load();});
-onShow(async()=>{if(currentUser.value&&id){try{favorited.value=(await request<{favorited:boolean}>('/me/favorite-state/'+id)).favorited;}catch(e){feedback.value=(e as Error).message;}}});
-function writeNote(blockId:string,quote:string){if(needLogin())return;noteBlock.value=blockId;noteQuote.value=quote;noteText.value='';feedback.value='';scrollTarget.value='';nextTick(()=>{scrollTarget.value='private-note';});}
-async function saveNote(){if(saving.value)return;if(!noteText.value.trim()){feedback.value='写下你的思考再保存吧';return;}saving.value=true;try{await request('/me/notes',{method:'POST',data:{articleId:id,blockId:noteBlock.value,text:noteText.value}});noteBlock.value='';noteText.value='';feedback.value='笔记已保存，可在“我的 · 研习笔记”回看。';}catch(e){feedback.value=(e as Error).message;}finally{saving.value=false;}}
-async function favorite(){if(needLogin()||savingFavorite.value)return;savingFavorite.value=true;try{await request('/me/favorites/'+id,{method:favorited.value?'DELETE':'PUT'});favorited.value=!favorited.value;feedback.value=favorited.value?'已加入你的收藏。':'已取消收藏。';}catch(e){feedback.value=(e as Error).message;}finally{savingFavorite.value=false;}}
+import SponsoredContent from '../../components/SponsoredContent.uvue';
+import SourceEvidence from '../../components/SourceEvidence.uvue';
+import RelatedContent from '../../components/RelatedContent.uvue';
+import {formatChinaDate} from '../../lib/date-time';
+import BottomBar from '../../components/BottomBar.uvue';
+import ReportModal from '../../components/report-modal.uvue';import ArticleReader from '../../components/ArticleReader.uvue';import ComposeSheet from '../../components/ComposeSheet.uvue';import type {ReaderAction,ReaderSelection} from '../../lib/reader';import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import Comments from './comments.uvue';import CommentEditor from './comment-editor.uvue';
+import {request} from '../../lib/api';import type {Article} from '../../lib/api';import {needLogin,currentUser} from '../../lib/session';import {openPage,viewWidth,shareContent} from '../../lib/presentation';import {openContent,typeNames} from '../../lib/discovery';import type {DiscoveryItem} from '../../lib/discovery';
+type Annotation={id:string;blockId:string;rangeStart:number;rangeEnd:number;quote:string;text:string;ranges?:ReaderSelection[]};
+type Evidence=import('../../lib/api').PublicEvidence;
+const id=ref(''),article=ref<Article|null>(null),error=ref(''),feedback=ref(''),fontSize=ref([14,16,18,20].includes(Number(uni.getStorageSync('readerFontSize')))?Number(uni.getStorageSync('readerFontSize')):16),width=viewWidth(),scrollTarget=ref(''),noteBlock=ref(''),noteQuote=ref(''),noteText=ref(''),saving=ref(false),annotations=ref<Annotation[]>([]),liked=ref(false),favorited=ref(false),busyLike=ref(false),busyFavorite=ref(false);
+watch(fontSize,value=>uni.setStorageSync('readerFontSize',value));
+const context=ref<{evidence:Evidence[];related:DiscoveryItem[]}>({evidence:[],related:[]}),contextError=ref('');
+const commentsRef=ref<InstanceType<typeof Comments>|null>(null),commentVisible=ref(false),commentParent=ref<string|null>(null),commentAuthor=ref<string|null>(null),commentBlock=ref<string|null>(null),commentQuote=ref<string|null>(null);
+const commentRanges=ref<ReaderSelection[]>([]);let readingStart=0,readingKey='',readerOwner='';
+const reportVisible=ref(false),noteVisible=ref(false),noteError=ref(''),noteRanges=ref<ReaderSelection[]>([]);
+const readerRef=ref<InstanceType<typeof ArticleReader>|null>(null);
+async function loadContext(){contextError.value='';try{context.value=await request('/discovery/articles/'+id.value+'/context');}catch{contextError.value='来源与相关研习暂时无法加载';}}
+async function loadPrivate(){annotations.value=[];liked.value=false;favorited.value=false;if(!currentUser.value)return;try{const state=await request<{liked:boolean}>('/articles/'+id.value+'/reaction-state');liked.value=state.liked;favorited.value=(await request<{favorited:boolean}>('/me/favorite-state/'+id.value)).favorited;if(article.value?.access!=='MEMBERSHIP_REQUIRED')annotations.value=await request('/me/articles/'+id.value+'/annotations');}catch(e){feedback.value=(e as Error).message;}}
+async function load(){readerOwner=currentUser.value?.id??'';error.value='';article.value=null;try{article.value=await request('/catalog/articles/'+id.value);await Promise.all([loadContext(),loadPrivate()]);if(article.value?.access!=='MEMBERSHIP_REQUIRED'){readingStart=Date.now();readingKey=String(readingStart)+'-'+Math.random().toString(36).slice(2);if(currentUser.value)await request('/articles/'+id.value+'/reading-events',{method:'POST',data:{eventKey:readingKey,dwellSeconds:0}});}}catch(e){error.value=(e as Error).message;}}
+function readerAction(event:ReaderAction){
+ const ranges=(event.selections??[]).filter(r=>article.value?.blocks?.some(b=>b.id===r.blockId&&r.rangeStart>=0&&r.rangeEnd>r.rangeStart&&r.rangeEnd<=b.text.length));
+ if(event.action==='image'){if(event.url)uni.previewImage({urls:[event.url]});return;}
+ if(!ranges.length)return;
+ if(event.action==='copy'){uni.setClipboardData({data:ranges.map(r=>r.quote).join('\n\n')});return;}
+ if(needLogin())return;
+ if(event.action==='comment'){openCommentEditor(null,null,ranges[0].blockId,ranges.map(r=>r.quote).join('\n\n'),ranges);return;}
+ noteRanges.value=ranges;noteBlock.value=ranges[0].blockId;noteQuote.value=ranges.map(r=>r.quote).join('\n\n');noteError.value='';
+ if(event.action==='highlight'){noteText.value='';saveNote();}else{noteText.value='';noteVisible.value=true;}
+}
+function beginNote(){if(needLogin()||article.value?.access==='MEMBERSHIP_REQUIRED')return;if(noteText.value){noteVisible.value=true;return;}const first=article.value?.blocks?.find(b=>b.type!=='image'&&b.text);if(!first)return;noteBlock.value=first.id;noteRanges.value=[];noteQuote.value='';noteError.value='';noteVisible.value=true;}
+async function saveNote(){if(saving.value||needLogin()||(!noteRanges.value.length&&!noteText.value.trim()))return;saving.value=true;noteError.value='';try{await request('/me/notes',{method:'POST',data:{articleId:id.value,articleVersion:article.value!.version,blockId:noteBlock.value,text:noteText.value,...(noteRanges.value.length?{ranges:noteRanges.value.map(({blockId,rangeStart,rangeEnd})=>({blockId,rangeStart,rangeEnd}))}:{})}});noteVisible.value=false;noteText.value='';uni.showToast({title:noteRanges.value.length?'标注已保存':'笔记已保存',icon:'none'});await loadPrivate();}catch(e){noteError.value=(e as Error).message;if(!noteVisible.value)uni.showToast({title:noteError.value,icon:'none'});}finally{saving.value=false;}}
+async function favorite(){if(needLogin()||busyFavorite.value)return;busyFavorite.value=true;try{await request('/me/favorites/'+id.value,{method:favorited.value?'DELETE':'PUT'});favorited.value=!favorited.value;}catch(e){feedback.value=(e as Error).message;}finally{busyFavorite.value=false;}}
+async function like(){if(needLogin()||busyLike.value)return;busyLike.value=true;try{await request('/articles/'+id.value+'/reactions'+(liked.value?'/LIKE':''),{method:liked.value?'DELETE':'POST',...(liked.value?{}:{data:{kind:'LIKE'}})});liked.value=!liked.value;}catch(e){feedback.value=(e as Error).message;}finally{busyLike.value=false;}}
+function openCommentEditor(parent:string|null,author:string|null,block:string|null,quote?:string,ranges:ReaderSelection[]=[]){if(needLogin()||article.value?.access==='MEMBERSHIP_REQUIRED')return;commentParent.value=parent;commentAuthor.value=author;commentBlock.value=block;commentQuote.value=quote??article.value?.blocks?.find(b=>b.id===block)?.text??null;commentRanges.value=ranges;commentVisible.value=true;}
+function submitted(){uni.showToast({title:'已提交，在评论区可查看审核状态',icon:'none'});commentsRef.value?.load();}
+function share(){if(article.value)shareContent('ARTICLE',id.value,article.value.title);}
+function copySource(url:string){uni.setClipboardData({data:url});}
+function report(){if(!needLogin())reportVisible.value=true;}
+function recordReading(){const start=readingStart;readingStart=0;if(!start||!currentUser.value||article.value?.access==='MEMBERSHIP_REQUIRED')return;const seconds=Math.min(86400,Math.max(0,Math.floor((Date.now()-start)/1000)));if(!seconds)return;request('/articles/'+id.value+'/reading-events',{method:'POST',data:{eventKey:readingKey,dwellSeconds:seconds}}).catch(()=>{});}
+onLoad(o=>{id.value=o?.id??'';load();});onShow(()=>{if(article.value){if(readerOwner!==(currentUser.value?.id??'')){noteVisible.value=false;commentVisible.value=false;noteText.value='';noteRanges.value=[];load();}else loadPrivate();}});onHide(()=>{recordReading();readerRef.value?.clearSelection();readerRef.value?.pauseMedia();});onUnload(recordReading);
+
+const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
+onShow(()=>{relatedRef.value?.refresh();});
 </script>
-<style>@import '../../styles/app.css';.article-byline{margin:14px 0 16px;}.article-author{flex:1;margin-left:5px;}.article-divider{margin-bottom:8px;}.note-action{border-style:solid;border-width:0;color:#245564;font-size:11px;background-color:transparent;border-width:0;padding:6px 0;margin:6px 0 0;min-height:35px;align-self:flex-start;line-height:16px;}.note-editor{border-style:solid;border-width:0;padding:15px;background-color:#FAF8F2;border-width:1px;border-color:#D8D4CA;border-radius:4px;margin-top:24px;}.note-input{width:100%;height:120px;font-family:AcademySerif;font-size:15px;color:#17292D;line-height:26px;margin-top:12px;}</style>
+<style>@import '../../styles/app.css';.byline{margin:14px 0 24px;}.reading-block{margin-bottom:12px;}.caption{text-align:center;margin:8px 0;}.text-action{font-size:12px;color:#245564;background-color:transparent;border-width:0;padding:7px 8px;margin:0 8px 0 0;min-height:36px;line-height:20px;}.note-editor{padding:16px;background-color:#FAF8F2;border-style:solid;border-width:1px;border-color:#DFD9CF;border-radius:4px;margin:20px 0;}.note-input,.range-input{width:100%;height:100px;font-size:15px;line-height:25px;color:#17292D;background-color:#EEE9DF;padding:10px;margin-top:12px;}.range-input{height:72px;}.occurrence{margin:8px 12px 0 0;}.source-panel{margin-top:24px;padding-top:20px;border-top-style:solid;border-top-width:1px;border-top-color:#DFD9CF;}.source-item{padding:16px 0;}.reading-hint{font-size:12px;color:#788084;line-height:22px;}</style>

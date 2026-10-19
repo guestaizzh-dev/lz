@@ -1,0 +1,3 @@
+import { UTSiOS } from 'DCloudUTSFoundation'
+export function offlineConfigure(owner: string, api: string, keys: string): string { return AcademyOffline.configure(owner, api, keys) }
+export function offlineCommand(action: string, payload: string): string { return AcademyOffline.command(action, payload, UTSiOS.getCurrentViewController()) }

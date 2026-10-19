@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "私人日志从资料库进入既有帖子编辑，未确认不得提交",
+    "编辑后真实提交待审帖，仅复制选取正文，私人原件不变",
+    "帖子详情可撤回并留下撤销授权事实，原日志保留"
+  ],
+  "errors": [],
+  "passed": true,
+  "isolatedDatabase": true,
+  "businessResponsesMocked": false
+}

@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Pro真实选择指定活动并发布新会员优先权益，历史会员版本保留",
+    "Pro按北京时间配置会员优先与公众开放，创建共用容量的实际场次",
+    "App游客从原场次登录，返回并刷新本人实际优先报名资格",
+    "App有效优先权益提前报名，保存实际版本来源并进入我的报名",
+    "历史会员不被自动追加新售权益，优先阶段不能选择席位",
+    "公众开放后刷新直接使用同一剩余库存，普通会员可报名",
+    "会员资格终止后，已确认的独立报名继续保留"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

@@ -1,0 +1,40 @@
+{
+  "release": "20261011-member-sales-02",
+  "passed": 6,
+  "admin": {
+    "checks": [
+      "Normal click opens frozen benefit versions",
+      "Empty form is rejected and cancels without mutation",
+      "Sample original membership version and usage render",
+      "Membership menu, empty search and reset work on deployed release"
+    ],
+    "errors": [],
+    "failedResponses": [],
+    "productionMutations": false
+  },
+  "app": {
+    "checks": [
+      "Actual public member plans render at 390 px",
+      "Purchase rules, duration and unavailable payment render with consent"
+    ],
+    "responses": [
+      {
+        "url": "https://academy.43-160-229-173.sslip.io/api/v1/learning/plans",
+        "status": 200
+      },
+      {
+        "url": "https://academy.43-160-229-173.sslip.io/api/v1/commerce/memberships/11d50bbf-2783-48b3-a094-d7c63f1ba330/quote?platform=WEB",
+        "status": 200
+      }
+    ],
+    "errors": [],
+    "scope": "Actual public HTTPS responses with local-only CORS transport allowance; no native or authenticated payment test"
+  },
+  "screenshotsViewed": true,
+  "limitations": [
+    "No native acceptance or real payments",
+    "Authenticated App order/refund states covered by isolated HTTP tests, not native UI",
+    "Initial local Web home requests failed production CORS before route setup; only public visual-check transport was allowed",
+    "Early script exact-label mismatch and transition captures corrected; earlier diagnostics preserved"
+  ]
+}

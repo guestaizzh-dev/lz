@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "App申请核查使用真实隔离业务接口",
+    "Pro核查金额与扣除依据并提出方案",
+    "学员确认前不发起渠道退款",
+    "App确认弹窗实际提交金额版本并记录接受",
+    "隔离模拟渠道成功后按确认金额记账"
+  ],
+  "isolatedDatabase": true,
+  "authInjection": true,
+  "controlledPaymentAdapter": true,
+  "commercialChannelEvidence": false
+}

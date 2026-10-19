@@ -1,0 +1,18 @@
+<template>
+<view v-if="items.length" class="recommendations">
+<view class="section-head"><text class="section-heading">继续探索</text><button class="recommendation-refresh" :disabled="loading" @click="refresh">{{loading?'加载中…':'刷新推荐'}}</button></view>
+<text class="meta">{{personalized?'从你的收藏、点赞与研习足迹中发现':'从书院精选内容开始'}}</text>
+<view v-for="item in items.slice(0,4)" :key="item.id" class="recommendation" @click="openContent(item)">
+<text class="tag">{{typeNames[item.type]}} · {{item.reason}}</text><text class="item-title recommendation-title">{{item.title}}</text><text class="article-summary recommendation-summary">{{item.summary}}</text>
+</view>
+</view>
+</template>
+<script setup lang="ts">
+import {request} from '../lib/api';
+import {currentUser} from '../lib/session';
+import {openContent,typeNames} from '../lib/discovery';import type {DiscoveryItem} from '../lib/discovery';
+const items=ref<DiscoveryItem[]>([]),personalized=ref(false),loading=ref(false);let generation=0;
+async function refresh(){if(loading.value)return;const turn=++generation;loading.value=true;try{const r=await request<{items:DiscoveryItem[];personalized:boolean}>('/discovery/recommendations');if(turn===generation){items.value=r.items;personalized.value=r.personalized;}}catch{if(turn===generation)items.value=[];}finally{if(turn===generation)loading.value=false;}}
+onMounted(refresh);watch(()=>currentUser.value?.id,()=>{generation++;loading.value=false;items.value=[];refresh();});defineExpose({refresh});
+</script>
+<style>@import '../styles/app.css';.recommendations{margin-top:24px;}.recommendation{padding:16px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;}.recommendation-refresh{font-size:12px;line-height:20px;color:#245564;background-color:transparent;border-width:0;padding:10px 0;min-height:40px;margin:0;}.recommendation-title{max-height:56px;overflow:hidden;text-overflow:ellipsis;}.recommendation-summary{max-height:44px;overflow:hidden;text-overflow:ellipsis;}</style>

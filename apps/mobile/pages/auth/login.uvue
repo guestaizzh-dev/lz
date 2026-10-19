@@ -14,17 +14,17 @@
 <text class="login-motto">传承经典 · 研习道学 · 知行合一</text>
 </view>
 <view class="login-tabs">
-<text class="login-tab-active">手机号登录</text>
-<text class="login-tab">验证码登录</text>
+<text class="login-tab-active">{{socialTicket?'验证手机号，保留原有学习账号':'手机号验证码登录'}}</text>
 </view>
-<view class="form-input-row">
+<text v-if="socialTicket" class="social-note">首次授权需验证手机号。原账号的订单、笔记与学习进度会保留。</text>
+<view :class="['form-input-row',phoneFocused?'form-input-focused':'']">
 <AppIcon name="user" :size="18"/>
-<input class="form-input" type="number" maxlength="11" placeholder="请输入手机号" v-model="phone"/>
+<input class="form-input" type="number" maxlength="11" placeholder="请输入手机号" v-model="phone" @focus="phoneFocused=true" @blur="phoneFocused=false"/>
 </view>
 <view class="code-row">
-<view class="form-input-row code-field">
+<view :class="['form-input-row code-field',codeFocused?'form-input-focused':'']">
 <AppIcon name="shield-check" :size="18"/>
-<input class="form-input" type="number" maxlength="6" placeholder="请输入验证码" v-model="code"/>
+<input class="form-input" type="number" maxlength="6" placeholder="请输入验证码" v-model="code" @focus="codeFocused=true" @blur="codeFocused=false" @confirm="signIn()"/>
 </view>
 <button class="send-code" :disabled="sending||countdown>0" @click="send()">{{countdown>0?countdown+'秒后重发':sending?'发送中':'获取验证码'}}</button>
 </view>
@@ -38,8 +38,10 @@
 </view>
 <text class="consent-copy" @click="privacy()">我已阅读并同意《用户协议》和《隐私说明》</text>
 </view>
-<text v-if="development" class="demo-note">测试环境 · 不发送真实短信</text>
+<text v-if="development" class="demo-note">测试验证码登录 · 不发送真实短信</text>
 <text class="login-footnote">未注册手机号将自动创建账号</text>
+<button v-if="socialTicket" class="social-button" :disabled="submitting" @click="socialTicket=null">取消绑定，使用手机号登录</button>
+<view v-if="socialProviders.length&&!socialTicket" class="social-logins"><text class="social-caption">其他登录方式</text><button v-for="provider in socialProviders" :key="provider" class="social-button" :disabled="submitting" @click="socialSignIn(provider)">{{provider==='WECHAT'?'微信登录':'通过 Apple 登录'}}</button></view>
 </view>
 <view class="login-landscape">
 <ArtImage kind="boat" :width="artWidth" :height="130" :radius="0"/>
@@ -48,31 +50,45 @@
 </view>
 </template>
 <script setup lang="ts">
+const phoneFocused=ref(false),codeFocused=ref(false);
 import SafeTop from '../../components/SafeTop.uvue';
 import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';
 const artWidth=Math.max(280,uni.getWindowInfo().windowWidth);
 import { request } from '../../lib/api';
-import { saveSession } from '../../lib/session';
+import { saveSession,sessionGeneration } from '../../lib/session';
+import {availableSocialProviders,authorizeSocial,requiresSocialPhone} from '../../lib/social-login';
+import type {SocialProvider,SocialTicket} from '../../lib/social-login';
 import type { LoginResult } from '../../lib/session';
 const phone=ref(''), code=ref(''), accepted=ref(false), error=ref(''), sending=ref(false), submitting=ref(false), countdown=ref(0), development=ref(false);
-let challengeId='', timer: ReturnType<typeof setInterval>|null=null;
-const back=()=>uni.navigateBack();
+const socialProviders=ref<SocialProvider[]>([]),socialTicket=ref<SocialTicket|null>(null);let active=true;
+function finishLogin(result:LoginResult){saveSession(result);const pages=getCurrentPages(),previous=pages.length>1?pages[pages.length-2].route:'';if(!returnPath||returnPath.split('?')[0]==='/'+previous)back();else uni.redirectTo({url:returnPath});}
+async function socialSignIn(provider:SocialProvider){if(submitting.value)return;if(!accepted.value){error.value='请先阅读并同意服务与隐私说明';return;}const generation=sessionGeneration();submitting.value=true;error.value='';try{const authorized=await authorizeSocial(provider);if(!active||generation!==sessionGeneration())return;if(requiresSocialPhone(authorized.result)){socialTicket.value=authorized.ticket;code.value='';challengeId='';}else finishLogin(authorized.result);}catch(e){if(active&&generation===sessionGeneration())error.value=(e as Error).message;}finally{if(active)submitting.value=false;}}
+onMounted(()=>{void availableSocialProviders().then(items=>{if(active)socialProviders.value=items;}).catch(()=>{});});
+let challengeId='',returnPath='', timer: ReturnType<typeof setInterval>|null=null;
+const back=()=>{if(getCurrentPages().length>1)uni.navigateBack();else uni.switchTab({url:'/pages/profile/index'});};
 const privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
 async function send() {
   if(sending.value||countdown.value>0) return;
   if(!/^1[3-9]\d{9}$/.test(phone.value)) {error.value='请填写有效的 11 位手机号';return;}
   sending.value=true; error.value='';
-  try { const result=await request<{challengeId:string;retryAfter:number;channel:string}>('/auth/sms',{method:'POST',data:{phone:phone.value}});challengeId=result.challengeId;development.value=result.channel==='DEVELOPMENT';countdown.value=result.retryAfter; if(timer!==null) clearInterval(timer);timer=setInterval(()=>{countdown.value=Math.max(0,countdown.value-1);if(countdown.value===0&&timer!==null){clearInterval(timer);timer=null;}},1000); }
+  try { const result=await request<{challengeId:string;retryAfter:number;channel:string}>('/auth/sms',{method:'POST',data:{phone:phone.value}});challengeId=result.challengeId;development.value=result.channel==='DEVELOPMENT'||result.channel==='PREVIEW';countdown.value=result.retryAfter; if(timer!==null) clearInterval(timer);timer=setInterval(()=>{countdown.value=Math.max(0,countdown.value-1);if(countdown.value===0&&timer!==null){clearInterval(timer);timer=null;}},1000); }
   catch(e){error.value=(e as Error).message;} finally{sending.value=false;}
 }
-watch(phone,()=>{challengeId='';development.value=false;});
+watch(phone,()=>{challengeId='';code.value='';development.value=false;countdown.value=0;if(timer!==null){clearInterval(timer);timer=null;}});
 async function signIn(){
   if(submitting.value)return;
   if(!accepted.value){error.value='请先阅读并同意服务与隐私说明';return;}
   if(!challengeId||!/^\d{6}$/.test(code.value)){error.value='请先获取并填写 6 位验证码';return;}
   submitting.value=true;error.value='';
-  try{const result=await request<LoginResult>('/auth/login',{method:'POST',data:{phone:phone.value,code:code.value,challengeId}});saveSession(result);uni.navigateBack();}catch(e){error.value=(e as Error).message;}finally{submitting.value=false;}
+  try{if(socialTicket.value&&Date.parse(socialTicket.value.expiresAt)<=Date.now())throw new Error('第三方授权已过期，请取消绑定后重新授权');const result=await request<LoginResult>(socialTicket.value?'/auth/social/phone':'/auth/login',{method:'POST',data:{phone:phone.value,code:code.value,challengeId,...(socialTicket.value?{ticketId:socialTicket.value.ticketId,state:socialTicket.value.state}:{})}});if(active)finishLogin(result);}catch(e){if(active)error.value=(e as Error).message;}finally{if(active)submitting.value=false;}
 }
-onUnload(()=>{if(timer!==null)clearInterval(timer);});
+onLoad(options=>{let path=options?.redirect??'';try{if(path.startsWith('%2F'))path=decodeURIComponent(path);}catch{path='';}if(/^\/pages\/teacher\/detail\?id=[a-f0-9-]{36}(&tab=questions)?$/.test(path)||/^\/pages\/teacher\/questions(\?teacherId=[a-f0-9-]{36})?$/.test(path)||/^\/pages\/booking\/purchase\?(orderId=[a-f0-9-]{36}|kind=(appointment|registration)&resourceId=[a-f0-9-]{36}&quantity=([1-9]|1[0-9]|20)(&skuId=[a-f0-9-]{36})?)$/.test(path)||['/pages/profile/progression','/pages/marketing/points','/pages/marketing/coupons','/pages/marketing/coupons?tab=wallet','/pages/booking/mine','/pages/booking/workbench','/pages/booking/orders','/pages/cohort/orders'].includes(path)||/^\/pages\/cohort\/purchase\?(cohortId|orderId)=[a-f0-9-]{36}$/.test(path)||/^\/pages\/booking\/confirm\?eventId=[a-f0-9-]{36}$/.test(path)||/^\/pages\/booking\/credential\?id=[a-f0-9-]{36}$/.test(path)||/^\/pages\/course\/(practice|checkin)\?id=[a-f0-9-]{36}(&cohortId=[a-f0-9-]{36})?$/.test(path)||/^\/pages\/cohort\/detail\?id=[a-f0-9-]{36}$/.test(path)||/^\/pages\/course\/purchase\?(courseId|orderId)=[a-f0-9-]{36}$/.test(path)||/^\/pages\/membership\/purchase\?(planId|orderId)=[a-f0-9-]{36}$/.test(path))returnPath=path;});
+onUnload(()=>{active=false;socialTicket.value=null;if(timer!==null)clearInterval(timer);});
 </script>
-<style>@import '../../styles/app.css';.login-content{padding:0 30px;}.login-brand{align-items:center;margin-top:58px;margin-bottom:44px;}.login-logo{font-family:AcademyCalligraphy;font-size:34px;font-weight:400;letter-spacing:2px;color:#17292D;line-height:50px;}.login-stamp{border-style:solid;border-width:0;width:14px;height:24px;border-width:1px;border-color:#B95543;border-radius:2px;margin-left:7px;align-items:center;justify-content:center;}.login-stamp-text{font-family:AcademySerif;font-size:9px;color:#B95543;line-height:14px;}.login-motto{font-family:AcademySerif;font-size:11px;letter-spacing:2px;color:#637276;margin-top:19px;line-height:16px;}.login-tabs{flex-direction:row;justify-content:space-around;margin-bottom:22px;}.login-tab-active{border-style:solid;border-width:0;font-family:AcademySerif;font-size:14px;color:#17292D;padding:10px 0;border-bottom-width:2px;border-bottom-color:#245564;line-height:21px;}.login-tab{font-family:AcademySerif;font-size:14px;color:#788084;padding:10px 0;line-height:21px;}.form-input-row{border-style:solid;border-width:0;flex-direction:row;align-items:center;height:43px;padding:0 12px;border-radius:8px;border-width:1px;border-color:#D8D4CA;background-color:#F7F3EC;}.form-input{flex:1;font-size:13px;color:#17292D;margin-left:10px;height:41px;line-height:19px;}.code-row{flex-direction:row;margin-top:16px;}.code-field{flex:1;}.send-code{border-style:solid;border-width:0;font-size:11px;color:#245564;padding:11px 9px;margin:0 0 0 9px;border-radius:8px;background-color:transparent;border-width:1px;border-color:#D8D4CA;line-height:16px;}.form-error{color:#B95543;font-size:12px;line-height:21px;margin-top:12px;}.login-submit{margin-top:25px;}.consent-row{flex-direction:row;align-items:center;min-height:44px;margin-top:7px;}.consent-touch{width:30px;height:44px;align-items:center;justify-content:center;}.consent-check{border-style:solid;border-width:0;width:13px;height:13px;border-radius:3px;border-width:1px;border-color:#9CA6A5;align-items:center;justify-content:center;}.consent-checked{background-color:#245564;border-color:#245564;}.consent-tick{color:#FFFFFF;font-size:10px;line-height:15px;}.consent-copy{flex:1;color:#788084;font-size:10px;line-height:19px;}.consent-link{color:#245564;font-size:10px;line-height:15px;}.login-footnote{font-size:10px;color:#929490;text-align:center;margin-top:27px;line-height:15px;}.login-landscape{margin-top:16px;}</style>
+<style>@import '../../styles/app.css';.social-note{font-size:13px;line-height:23px;color:#637276;margin-bottom:18px;}.social-logins{margin-top:24px;align-items:center;}.social-caption{font-size:12px;line-height:22px;color:#637276;}.social-button{font-size:14px;line-height:24px;min-height:44px;padding:10px 20px;margin:8px 0;color:#245564;background-color:transparent;border-width:0;}.login-content{padding:0 30px;}.login-brand{align-items:center;margin-top:58px;margin-bottom:44px;}.login-logo{font-family:AcademyCalligraphy;font-size:34px;font-weight:400;letter-spacing:2px;color:#17292D;line-height:50px;}.login-stamp{border-style:solid;border-width:0;width:14px;height:24px;border-width:1px;border-color:#B95543;border-radius:2px;margin-left:7px;align-items:center;justify-content:center;}.login-stamp-text{font-family:AcademySans;font-size:9px;color:#B95543;line-height:14px;}.login-motto{font-family:AcademySans;font-size:11px;letter-spacing:2px;color:#637276;margin-top:19px;line-height:16px;}.login-tabs{flex-direction:row;justify-content:space-around;margin-bottom:22px;}.login-tab-active{border-style:solid;border-width:0;font-family:AcademySans;font-size:14px;color:#17292D;padding:10px 0;border-bottom-width:2px;border-bottom-color:#245564;line-height:21px;}.login-tab{font-family:AcademySans;font-size:14px;color:#788084;padding:10px 0;line-height:21px;}.form-input-row{border-style:solid;border-width:0;flex-direction:row;align-items:center;height:48px;padding:0 12px;border-radius:8px;border-width:1px;border-color:#D8D4CA;background-color:#F7F3EC;}.form-input{flex:1;min-width:0;font-family:AcademySans;font-size:15px;color:#17292D;margin-left:10px;height:46px;line-height:24px;}.code-row{flex-direction:row;margin-top:16px;}.code-field{flex:1;min-width:0;}.send-code{min-height:48px;flex-shrink:0;font-family:AcademySans;border-style:solid;border-width:0;font-size:12px;color:#245564;padding:11px 9px;margin:0 0 0 9px;border-radius:8px;background-color:transparent;border-width:1px;border-color:#D8D4CA;line-height:16px;}.form-error{color:#914A3E;font-family:AcademySans;font-size:13px;line-height:22px;margin-top:12px;padding:8px 12px;background-color:#F4E8E2;border-radius:8px;}.login-submit{margin-top:25px;}.consent-row{flex-direction:row;align-items:center;min-height:44px;margin-top:7px;}.consent-touch{width:30px;height:44px;align-items:center;justify-content:center;}.consent-check{border-style:solid;border-width:0;width:13px;height:13px;border-radius:3px;border-width:1px;border-color:#9CA6A5;align-items:center;justify-content:center;}.consent-checked{background-color:#245564;border-color:#245564;}.consent-tick{color:#FFFFFF;font-size:10px;line-height:15px;}.consent-copy{flex:1;color:#788084;font-size:12px;line-height:22px;}.consent-link{color:#245564;font-size:12px;line-height:22px;}.login-footnote{font-size:10px;color:#929490;text-align:center;margin-top:27px;line-height:15px;}.login-landscape{margin-top:16px;}.form-input-focused{border-color:#245564;background-color:#FAF8F2;}.consent-row{align-items:flex-start;}.consent-copy{margin-top:10px;color:#637276;}.login-footnote{font-size:12px;line-height:20px;color:#637276;}
+/* #ifdef WEB */
+.form-input-row:focus-within{box-shadow:0 0 0 3px rgba(36,85,100,0.12);}.form-input:focus-within{outline:none;}
+@media(max-width:360px){.login-content{padding-left:20px;padding-right:20px;}.login-logo{font-size:30px;letter-spacing:1px;}}
+@media(max-height:600px){.login-brand{margin-top:20px;margin-bottom:24px;}}
+/* #endif */
+</style>

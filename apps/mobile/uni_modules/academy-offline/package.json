@@ -1,0 +1,1 @@
+{"id":"academy-offline","displayName":"书院离线课件","version":"1.0.0","description":"Account-scoped encrypted lesson chunks and licensed native playback","uni_modules":{"dependencies":[],"encrypt":[],"platforms":{"client":{"App":{"app-android":"y","app-ios":"y"}}}}}

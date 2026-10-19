@@ -1,0 +1,25 @@
+<template>
+<view class="page"><PageHead title="订单详情"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
+<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
+<template v-if="order"><view class="order-heading"><text class="detail-title">{{order!.status==='PENDING'?'待处理':'已关闭'}}</text><text class="meta">测试预占订单 · 未收取费用</text><text v-if="order!.status==='PENDING'" class="body-copy">预占截至 {{date(order!.expiresAt)}}，逾期自动释放库存。</text><text v-else class="body-copy">{{order!.closeReason||'订单已关闭'}}</text></view>
+<view class="order-section"><text class="section-heading">商品信息</text><view v-for="item in order!.items" :key="item.skuId" class="order-item"><text class="item-title" :user-select="true">{{item.title}}</text><view class="row between order-item-info"><text class="meta">{{item.skuTitle}} × {{item.quantity}}</text><text class="price">¥{{money(item.subtotal)}}</text></view></view></view>
+<view class="order-section"><text class="section-heading">收货信息</text><text v-if="order!.address.redacted" class="meta">收货信息已清除</text><template v-else><text class="body-copy" :user-select="true">{{order!.address.recipient}}　{{order!.address.phone}}</text><text class="body-copy" :user-select="true">{{order!.address.province}}{{order!.address.city}}{{order!.address.district}} {{order!.address.detail}}</text></template></view>
+<view class="order-section"><view class="row between"><text class="body-copy">商品金额</text><text class="body-copy">¥{{money(order!.subtotal)}}</text></view><view class="row between"><text class="body-copy">配送费</text><text class="body-copy">¥{{money(order!.shipping)}}</text></view><view class="row between"><text class="item-title">合计</text><text class="price">¥{{money(order!.total)}}</text></view></view>
+<view class="order-section"><text class="meta" :user-select="true">订单编号 {{order!.id}}</text><text class="meta">创建时间 {{date(order!.createdAt)}}</text><button class="secondary-button" @click="copy">复制订单编号</button></view>
+</template></view></scroll-view><BottomBar v-if="order?.status==='PENDING'"><button class="secondary-button grow" :disabled="cancelling" @click="cancel">{{cancelling?'取消中…':'取消订单'}}</button></BottomBar></view>
+</template>
+<script setup lang="ts">
+import {formatChinaTime} from '../../lib/date-time';
+import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import BottomBar from '../../components/BottomBar.uvue';
+import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';
+type OrderAddress={recipient?:string;phone?:string;province?:string;city?:string;district?:string;detail?:string;redacted?:boolean};
+type OrderLine={skuId:string;title:string;skuTitle:string;quantity:number;subtotal:number};
+type Order={id:string;status:string;createdAt:string;expiresAt:string;closeReason:string|null;subtotal:number;shipping:number;total:number;address:OrderAddress;items:OrderLine[]};
+const order=ref<Order|null>(null),loading=ref(false),error=ref(''),cancelling=ref(false);let id='',owner='',generation=0;
+const date=(value:string)=>formatChinaTime(value);
+async function load(){const turn=++generation;if(owner!==currentUser.value?.id){order.value=null;owner=currentUser.value?.id??'';}if(needLogin())return;if(!id){error.value='订单地址无效';return;}loading.value=true;error.value='';try{const row=await request<Order>('/orders/'+id);if(turn===generation&&owner===currentUser.value?.id)order.value=row;}catch(e){if(turn===generation)error.value=(e as Error).message;}finally{if(turn===generation)loading.value=false;}}
+function copy(){if(order.value)uni.setClipboardData({data:order.value.id});}
+function cancel(){if(cancelling.value||!order.value)return;uni.showModal({title:'取消这笔订单？',content:'取消后将释放预占库存，本次没有扣款。',confirmText:'取消订单',success:async result=>{if(!result.confirm||cancelling.value)return;cancelling.value=true;try{order.value=await request<Order>('/orders/'+id+'/cancel',{method:'POST'});uni.showToast({title:'订单已取消',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{cancelling.value=false;}}});}
+onLoad(options=>{id=options?.id??'';});onShow(load);
+</script>
+<style>@import '../../styles/app.css';.order-heading{padding:12px 0 20px;}.order-section{padding:18px 0;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}.order-item{padding:14px 0;}.order-item-info{margin-top:8px;}</style>

@@ -1,0 +1,49 @@
+<template>
+<view class="media-upload"><view class="row between"><text class="field-label">音视频心得（选填）</text><text class="meta">{{items.length}} / 2</text></view><text class="meta">每份不超过10分钟、256MiB。先处理，再提交审核；审核通过后才向学友开放。</text>
+  <view v-for="item in items" :key="item.task?.id??item.file!.requestKey" class="upload-card"><text class="upload-name">{{item.task?.name??item.file!.name}}</text><text class="meta">{{status(item)}}{{item.task?' · '+Math.ceil(item.task.bytes/1024/1024)+' MiB':''}}</text><progress v-if="item.running||item.task?.state==='UPLOADING'" :percent="item.progress" stroke-width="3" activeColor="#31564F" backgroundColor="#DFD9CF"/><text v-if="item.error||item.task?.failure" class="upload-error">{{item.error||item.task?.failure}}</text>
+    <ForumMedia v-if="item.task?.state==='READY'" :uploadId="item.task!.id" :type="item.task!.mime.startsWith('video/')?'video':'audio'"/>
+    <view class="upload-actions"><button v-if="item.running" class="upload-action" @click="pause(item)">暂停上传</button><button v-else-if="!item.task||item.task.state==='UPLOADING'" class="upload-action" :disabled="disabled||busy" @click="resume(item)">{{item.file?'继续上传':'重新选择文件'}}</button><button v-if="item.task?.state==='FAILED'" class="upload-action" :disabled="disabled||busy" @click="retry(item)">重试处理</button><button v-if="item.task?.state==='PROCESSING'&&item.error" class="upload-action" @click="refresh">刷新状态</button><button class="upload-action upload-remove" :disabled="disabled||item.removing" @click="remove(item)">{{item.removing?'移除中…':'移除'}}</button></view>
+  </view>
+  <view class="upload-actions"><button class="media-add" :disabled="disabled||busy||items.length>=2||!sectionId" @click="choose('video')">添加视频</button><button class="media-add" :disabled="disabled||busy||items.length>=2||!sectionId" @click="choose('audio')">添加音频</button></view><text v-if="notice" class="upload-error">{{notice}}</text><button v-if="notice" class="upload-action" :disabled="busy" @click="restore">重新读取上传任务</button>
+</view>
+</template>
+<script setup lang="ts">
+import ForumMedia from './ForumMedia.uvue';
+import {request} from '../lib/api';import {currentUser,sessionGeneration} from '../lib/session';
+import {chooseForumMedia,uploadForumMedia} from '../lib/forum-media';import type {ForumFile,ForumUpload,ForumTransfer} from '../lib/forum-media';
+type Item={task:ForumUpload|null;file:ForumFile|null;control:ForumTransfer;running:boolean;removing:boolean;progress:number;error:string};
+const props=defineProps<{sectionId:string;disabled:boolean;modelValue:string[]}>(),emit=defineEmits<{(e:'update:modelValue',value:string[]):void;(e:'busy',value:boolean):void}>();
+const items=ref<Item[]>([]),notice=ref(''),busy=computed(()=>items.value.some(i=>i.running));let timer:ReturnType<typeof setTimeout>|null=null,sequence=0,visible=true;
+function publish(){emit('update:modelValue',items.value.filter(i=>i.task?.state==='READY').map(i=>i.task!.assetId!));emit('busy',items.value.length>2||items.value.some(i=>i.removing||i.running||i.task?.state!=='READY'));}
+function status(item:Item){if(item.running)return'上传中 · '+item.progress+'%';return({UPLOADING:'尚未传完 · '+item.progress+'%',PROCESSING:'正在校验与处理，可先继续编辑正文',READY:'处理完成 · 仅自己可预览',FAILED:'处理失败，正文已保留',CANCELLED:'已取消'} as Record<string,string>)[item.task?.state??'']??'待上传';}
+function clearTimer(){if(timer)clearTimeout(timer);timer=null;}
+async function refresh(){
+  clearTimer();const token=sequence,generation=sessionGeneration();
+  await Promise.all(items.value.filter(i=>i.task?.state==='PROCESSING').map(async item=>{try{const task=await request<ForumUpload>('/forum/media/uploads/'+item.task!.id);if(token!==sequence||generation!==sessionGeneration())return;item.task=task;item.error='';}catch(e){if(token===sequence)item.error=(e as Error).message;}}));
+  publish();if(visible&&items.value.some(i=>i.task?.state==='PROCESSING'&&!i.error))timer=setTimeout(()=>void refresh(),3000);
+}
+async function restore(){
+  const token=++sequence,generation=sessionGeneration();notice.value='';clearTimer();for(const item of items.value)pause(item);items.value=[];publish();if(!props.sectionId||!currentUser.value)return;
+  try{const pending=await request<ForumUpload[]>('/forum/media/uploads');if(token!==sequence||generation!==sessionGeneration())return;items.value=pending.filter(t=>t.sectionId===props.sectionId).map(task=>({task,file:null,control:{stopped:false},running:false,removing:false,progress:Math.floor(task.receivedBytes/task.bytes*100),error:''}));publish();await refresh();}catch(e){if(token===sequence)notice.value=(e as Error).message;}
+}
+async function run(item:Item){
+  if(!item.file||item.running||busy.value)return;const token=sequence,generation=sessionGeneration();item.running=true;item.error='';item.control={stopped:false};publish();
+  try{const task=await uploadForumMedia(item.file,props.sectionId,item.task,item.control,value=>{if(token===sequence&&generation===sessionGeneration())item.task=value;},value=>{if(token===sequence)item.progress=value;});if(token===sequence&&generation===sessionGeneration())item.task=task;}
+  catch(e){if(token===sequence&&generation===sessionGeneration())item.error=(e as Error).message;}
+  finally{if(token===sequence){item.running=false;publish();if(item.task?.state==='PROCESSING')void refresh();}}
+}
+async function choose(type:'video'|'audio'){
+  if(props.disabled||busy.value||items.value.length>=2)return;notice.value='';const token=sequence,generation=sessionGeneration();
+  try{const file=await chooseForumMedia(type);if(!file||token!==sequence||generation!==sessionGeneration())return;const item:Item={file,task:null,control:{stopped:false},running:false,removing:false,progress:0,error:''};items.value.push(item);await run(items.value[items.value.length-1]);}catch(e){if(token===sequence)notice.value=(e as Error).message;}
+}
+function pause(item:Item){item.control.stopped=true;item.control.abort?.();}
+async function resume(item:Item){if(item.file){await run(item);return;}const type=item.task!.mime.startsWith('video/')?'video':'audio';uni.showModal({title:'重新上传这份文件？',content:'原文件授权已失效，重新选择后从头上传；正文不受影响。',success:async r=>{if(!r.confirm)return;await discard(item);if(!items.value.includes(item))await choose(type);}});}
+async function retry(item:Item){const token=sequence,generation=sessionGeneration();try{const task=await request<ForumUpload>('/forum/media/uploads/'+item.task!.id+'/retry',{method:'POST'});if(token!==sequence||generation!==sessionGeneration())return;item.task=task;item.error='';publish();void refresh();}catch(e){if(token===sequence&&generation===sessionGeneration())item.error=(e as Error).message;}}
+async function discard(item:Item){const token=sequence;pause(item);item.removing=true;publish();try{if(item.task)await request('/forum/media/uploads/'+item.task.id+'/cancel',{method:'POST'});if(token===sequence)items.value=items.value.filter(i=>i!==item);}catch(e){if(token===sequence)item.error=(e as Error).message;}finally{if(token===sequence){item.removing=false;publish();}}}
+function remove(item:Item){if(props.disabled||item.removing)return;uni.showModal({title:'移除这份音视频？',content:'上传与处理会停止，已写的正文仍保留。',confirmText:'移除',success:r=>{if(r.confirm)void discard(item);}});}
+watch(()=>props.sectionId,()=>void restore());watch(()=>currentUser.value?.id,()=>void restore());onMounted(()=>void restore());onHide(()=>{visible=false;clearTimer();for(const item of items.value)pause(item);});onShow(()=>{visible=true;void refresh();});onUnmounted(()=>{sequence++;visible=false;clearTimer();for(const item of items.value)pause(item);});
+</script>
+<style>
+.meta{font-size:13px;line-height:22px;color:#637276;}.row{flex-direction:row;align-items:center;}.between{justify-content:space-between;}.field-label{font-size:16px;line-height:26px;color:#17292D;}
+.media-upload{margin-top:24px;}.upload-card{padding:16px;background-color:#F0ECE3;border-radius:8px;margin-top:12px;}.upload-name{font-size:15px;line-height:24px;color:#17292D;margin-bottom:8px;}.upload-actions{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.upload-action,.media-add{min-height:44px;font-size:14px;line-height:24px;padding:10px 12px;margin:0 12px 8px 0;color:#245564;background-color:transparent;border-width:0;}.media-add{background-color:#EEE9DF;border-radius:6px;flex:1;}.upload-remove{color:#8D5345;}.upload-error{font-size:13px;line-height:24px;color:#B95543;margin-top:8px;}
+</style>

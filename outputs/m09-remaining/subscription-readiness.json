@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-17T06:43:04.162Z",
+  "readOnly": true,
+  "appleMappings": [],
+  "autoRenewableMappings": 0,
+  "configuration": {
+    "appleIapEnabled": false,
+    "appleNativeReady": false,
+    "appleMembershipReady": false,
+    "appleKeyFilePresent": false,
+    "wechatPapayEnabled": false,
+    "wechatPapayTemplateProvided": false
+  },
+  "internalGaps": [
+    "No auto-renewable subscription dispatcher/authoritative expiry and renewal reconciliation",
+    "Native StoreKit bridge only purchases Consumable; subscription purchase/management not implemented",
+    "Wechat ordinary APP payment is not a signed PAP contract or recurring billing adapter"
+  ],
+  "status": "R15_NOT_IMPLEMENTED"
+}

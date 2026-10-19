@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "真实分享落地展示公开正文与引用，恶意文字不执行",
+    "明确App回跳，无未发布的虚假下载按钮",
+    "320px窄屏及正文大字无横向溢出",
+    "会员分享只有公开简介，全文未进入页面",
+    "同一旧分享链接在下架后立即404且禁止缓存"
+  ],
+  "errors": [],
+  "passed": true,
+  "isolatedDatabase": true,
+  "businessResponsesMocked": false
+}

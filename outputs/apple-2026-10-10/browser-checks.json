@@ -1,0 +1,15 @@
+{
+  "release": "20261011-membership-01",
+  "checkedAt": "2026-10-11T05:42:00Z",
+  "observations": [
+    "会员渠道核查弹窗已打开，截图已实看，明确未开放收费",
+    "课程Apple产品抽屉显示未配置渠道、无映射及长期版本说明",
+    "新建映射弹窗空提交显示版本、Bundle ID、产品及原因必填，取消未写入配置",
+    "Apple交易与异常标签显示空态及处理状态筛选"
+  ],
+  "errors": [
+    "首次会话恢复请求出现401，后续自动恢复并加载全部后台数据；其他所查入口未见新增控制台错误"
+  ],
+  "productionBusinessWrites": false,
+  "formalAppleTransaction": false
+}

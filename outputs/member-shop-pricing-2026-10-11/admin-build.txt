@@ -1,0 +1,2110 @@
+$ max setup && tsc --noEmit && max build
+info  - [你知道吗？] 如果你需要使用 Tailwind CSS, max g tailwindcss 就可以一键完成配置，详见 https://umijs.org/docs/guides/generator#tailwind-css-配置生成器
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - generate files
+info  - Preparing...
+info  - [你知道吗？] 如果你需要使用 Prettier, max g prettier 就可以一键完成配置，详见 https://umijs.org/docs/guides/generator#prettier-配置生成器
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - Umi v4.7.22
+info  - Preparing...
+[webpackbar] i Compiling Webpack
+fatal error: fatal error: fatal error: fatal error: fatal error: runtime: cannot allocate memory
+runtime: cannot allocate memoryruntime: cannot allocate memory
+
+runtime: cannot allocate memory
+fatal error: runtime: cannot allocate memory
+runtime: cannot allocate memory
+fatal error: unexpected signal during runtime execution
+
+runtime stack:
+
+runtime stack:
+
+runtime stack:
+
+runtime stack:
+[signal 0xc0000005 code=0x1 addr=0x0 pc=0x7ff67883037d]
+
+runtime stack:
+runtime.throw(runtime.throw(runtime.throw(runtime.throw(runtime.throw({0x7ff678eb450b?, 0x7ff67888b581?})
+	runtime/panic.go:1229 +0x4d fp=0xbe66fff8e8 sp=0xbe66fff8b8 pc=0x7ff678883d6d
+{0x7ff678eb450b?, 0xb4b412d4ffff?})
+	runtime/panic.go:1229 +0x4d fp=0x82fd5ff408 sp=0x82fd5ff3d8 pc=0x7ff678883d6d
+{0x7ff678eb450b?, 0x7ff678874740?})
+	runtime/panic.go:1229 +0x4d fp=0x74991ff858 sp=0x74991ff828 pc=0x7ff678883d6d
+{0x7ff678ebc38c?, 0x2000?})
+	runtime/panic.go:1229 +0x4d fp=0x96cb9ff9a0 sp=0x96cb9ff970 pc=0x7ff678883d6d
+{0x7ff678eb450b?, 0x8e057245ffff?})
+	runtime/panic.go:1229 +0x4d fp=0x7a9a9ff8e8 sp=0x7a9a9ff8b8 pc=0x7ff678883d6d
+runtime.persistentalloc1(0xe0, 0x87?, 0x7ff6793471d8)
+	runtime/malloc.go:2379 +0x265 fp=0xbe66fff940 sp=0xbe66fff8e8runtime.persistentalloc1(0x1200, 0x34b412b67220?,  pc=0x7ff67881f5e5
+runtime.persistentalloc.func10x7ff6793471e0()
+	runtime/malloc.go:2332 +0x28 fp=)
+	runtime/malloc.go:2379 +0x265 fp=0x82fd5ff460 sp=0x82fd5ff408 pc=0x7ff67881f5e5
+runtime.persistentalloc.func1()
+	runtime/malloc.go:23320xbe66fff970 sp=0xbe66fff940 +0x28 fp=0x82fd5ff490 sp=0x82fd5ff460 pc=0x7ff67881f368
+ pc=0x7ff67881f368
+runtime.systemstack(0x7ff6792f96e0)
+	runtime/asm_amd64.s:562 +0x49 fp=0xbe66fff980 sp=0xbe66fff970 pc=0x7ff678889949
+runtime.persistentalloc
+(goroutine 0x8001? gp=, 0x270c27992000 m=0 mp=0x7ff6792fa680 [running]:
+runtime.systemstack_switch(0x40)
+?, 0x7ff6793471e0?)
+	runtime/malloc.go:2331 +0x45 fp=0x82fd5ff4d8 sp=0x82fd5ff490 pc=0x7ff67881f305	runtime/asm_amd64.s:516
+ +0x8 fp=runtime.persistentalloc1(0x1200runtime.(*spanSetBlockAlloc).allocruntime.stkbucket(0x7ff67881ca740x270c279eda58(0x1,  sp=?0x270c279eda48runtime.sigpanic()
+	runtime/signal_windows.go:379 +0x265 fp=0x96cb9ff9e8 sp=0x96cb9ff9a0 pc=0x7ff678864da5
+)
+	runtime/mspanset.go:338 +0x49 fp=0x82fd5ff500 sp=0x82fd5ff4d8 pc=0x7ff678844809 pc=0x7ff6788898e8
+runtime.persistentalloc(0x270c279edab8?, 0x7ff678889937?, 0x270c279edb18?)
+
+runtime.(*spanSet).push(0x7ff6793166a0, 0x2527c4c75e0)
+	runtime/mspanset.go:134 +0x11d	, 0xe05721a5220?, 0x7ff6793471e0runtime/malloc.go:2331 +0x45 fp=0x270c279edaa0 sp= fp=0x82fd5ff568 sp=0x82fd5ff500 pc=0x7ff67884449d0x270c279eda58 pc=
+0x7ff67881f305
+runtime.newBucket(0x1, runtime.(*sweepLocked).sweep(0x00x6?, )
+0x0	)
+runtime/mprof.go	runtime/mgcsweep.go::239795 +0x8e5 +0x4e fp=0x270c279edac8 sp=0x270c279edaa0 pc=0x7ff6788414ee
+runtime.stkbucket(0x1, 0x10000, {0x270c2795e000, 0x6, 0x217f17c3c08?}, 0x1)
+	runtime/mprof.go:328 +0x265 fp=0x270c279edb28 sp=0x270c279edac8 pc=0x7ff6788418c5
+runtime.mProf_Malloc(0x7ff6792fa680, 0x270c27bc2000, 0x10000)
+	runtime/mprof.go:450 +0xd7 fp=0x270c279edba8 sp=0x270c279edb28 pc=0x7ff678841cd7
+runtime.profilealloc(0x7ff6792fa680?, 0x270c27bc2000?, 0x10000?)
+	runtime/malloc.go:2245 +0x9b fp=0x270c279edbd8 sp=0x270c279edba8 pc=0x7ff67881f15b
+runtime.mallocgcLarge(0x270c279c6000?, 0x0, 0x0)
+	runtime/malloc.go:1748 +0x12b fp=0x270c279edc30 sp=0x270c279edbd8 pc=0x7ff67881ec2b
+runtime.mallocgc(0x10000, 0x0, 0x0)
+	runtime/malloc.go:1156 +0xd3 fp=0x270c279edc60 sp=0x270c279edc30 pc=0x7ff678881bd3
+runtime.growslice(0x7ff6793419c0, 0x270c27b1c000?, 0xa?, 0x270c27916310?, 0x270c279edd18?)
+	runtime/slice.go:265 +0x573 fp=0x270c279edcd0 sp=0x270c279edc60 pc=0x7ff678886033
+ fp=0x82fd5ff690 sp=0x82fd5ff568 pc=0x7ff678837305
+runtime.(*mcentral).uncacheSpan(0x0?, 0x0?)
+	runtime/mcentral.go:237 +0xb3 fp=0x82fd5ff6b8 sp=0x82fd5ff690 pc=0x7ff6788222f3
+runtime.(*mcache).releaseAll(0x25277253760)
+	runtime/mcache.go:322 +0x12c fp=0x82fd5ff710 sp=0x82fd5ff6b8 pc=0x7ff678821bec
+runtime.(*mcache).prepareForSweep(0x25277253760)
+	runtime/mcache.go:366 +0x35 fp=0x82fd5ff738 sp=0x82fd5ff710 pc=0x7ff678821cf5
+)
+	runtime/malloc.go:2379 +0x265 fp=0x7a9a9ff940 sp=0x7a9a9ff8e8 pc=0x7ff67881f5e5
+0x800, {0x3e6a15eb9b00, 0xb, 0x0?}, 0x1)
+	runtime/mprof.go:284 +0x3c5 fp=0x74991ff8b8 sp=0x74991ff858 pc=0x7ff678841a25
+runtime.mProf_Malloc(0x3e6a15ef7008, 0x3e6a15f08008, 0x800)
+	runtime/mprof.go:450 +0xd7 fp=0x74991ff938 sp=0x74991ff8b8 pc=0x7ff678841cd7
+runtime.profilealloc(0x3e6a15ef7008?, 0x3e6a15f08008?, 0x800?)
+	runtime/malloc.go:2245 +0x9b fp=0x74991ff968 sp=0x74991ff938 pc=0x7ff67881f15b
+runtime.mallocgcSmallScanHeader(0x0?, 0x7ff678e41c60)
+	runtime/malloc.go:1674 +0x296 fp=0x74991ff9c0 sp=0x74991ff968 pc=0x7ff67881ea16
+runtime.(*spanQueue).tryDrain(0x400?, 0x96cb9ffa38?, 0x78832d39?)
+	runtime/mgcmark_greenteagc.go:520 +0x5d fp=0x96cb9ffa08 sp=0x96cb9ff9e8 pc=0x7ff67883037d
+runtime.(*spanQueue).drain(0x1dab7cd45278, 0xb)
+	runtime/mgcmark_greenteagc.go:473 +0x66 fp=0x96cb9ffa38 sp=0x96cb9ffa08 pc=0x7ff678830266
+runtime.(*spanQueue).put(0x1dab7d152780?, 0x7ff67882fe00?)
+	runtime/mgcmark_greenteagc.go:409 +0x105 fp=0x96cb9ffa58 sp=0x96cb9ffa38 pc=0x7ff6788301c5
+runtime.tryDeferToSpanScan(0x1dab7ce1c000?, 0x1dab7cd45260)
+	runtime/mgcmark_greenteagc.go:300 +0x199 fp=0x96cb9ffa88 sp=0x96cb9ffa58 pc=0x7ff67882fe99
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:153 +0x59d fp=0x270c279eddf8 sp=0x270c279edcd0 pc=0x7ff678d364bd
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb16 fp=0x270c279edf48 sp=0x270c279eddf8 pc=0x7ff678d34a16
+runtime.persistentalloc.func1(runtime.mallocgcruntime.procresize(0xc)
+	runtime.main()
+)
+runtime/proc.go		runtime/malloc.goruntime/proc.go:::6086290 +0x2c7 fp=0x270c279edfe0 sp= +0x270c279edf48 pc=0x610 fp=0x82fd5ff868 sp=0x7ff67884efa7
+0x82fd5ff738 pc=0x7ff67885af50runtime.goexit(
+0x7f8, ({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c279edfe8 sp=0x270c279edfe0 pc=0x7ff67888b581
+2332 +0x28 fp=0x7a9a9ff970 sp=0x7a9a9ff940 pc=0x7ff67881f368
+runtime.persistentalloc(0x800?, 0x40?, 0x7ff6793471e0?)
+	runtime/malloc.go:2331 +0x45 fp=0x7a9a9ff9b8 sp=0x7a9a9ff970 pc=0x7ff67881f305
+runtime.(*spanSetBlockAlloc).alloc(0x7ff67881ca74?)
+	runtime/mspanset.go0x7ff678e41c60, 0x1)
+runtime.scanObjectsSmall:338 +0x49 fp=0x7a9a9ff9e0 sp=0x7a9a9ff9b8 pc=0x7ff678844809
+(0x1dab7cfec000, 0x40, 0x7c, 0x1dab7cd45260, 0x96cb9ffb88)
+	runtime.(*spanSet).push(0x7ff6793190c8, 	runtime/malloc.go:1152 +0xac fp=0x74991ff9f0 sp=0x74991ff9c0 pc=0x7ff678881bac
+runtime.newobject(0x3e6a15ef7528?)
+	runtime/malloc.go:2157 +
+goroutine 2 gp=0x270c27992780 m=nil [force gc (idle)]:
+runtime.gopark(runtime/mgcmark_greenteagc.go0x1adfe011548:1055)
+	runtime/mspanset.go:134 +0x11d fp=0x7a9a9ffa48 sp=0x7a9a9ff9e0 pc=0x7ff67884449d
+runtime.(*sweepLocked).sweep(0xe0572388000?, 0x0runtime.startTheWorldWithSema0x25 fp= +(0xa2ed477e4e60, {0x0?, 0x7ff67882a00c?, 0x400000?, 0x34b412f83c7d?})
+	runtime/proc.go:1776 +0xa5 fp=0x82fd5ff8d8 sp=0x82fd5ff868)
+	runtime/mgcsweep.go:0x32e795 + pc= fp=0x96cb9ffb48 sp=0x96cb9ffa88 pc=0x7ff678852105
+runtime.gcMarkTermination.func3()
+	runtime/mgc.go:1515 +0x45 fp=0x82fd5ff910 sp=0x82fd5ff8d8 pc=0x7ff678829f65
+runtime.systemstack(0x34b412e872c0)
+	runtime/asm_amd64.s:562 +0x49 fp=0x82fd5ff920 sp=0x82fd5ff910 pc=0x7ff678889949
+
+goroutine 36 gp=0x34b412e86d20 m=8 mp=0x34b412c6b808 [running]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x8e5 fp=0x7a9a9ffb70 sp=0x7a9a9ffa48 pc=0x7ff678837305
+runtime.(*mcentral).uncacheSpan0x34b412f83c58 sp=0x34b412f83c480x0 pc=?0x7ff6788898e8
+, 0x0?, 0x0?runtime.gcMarkTermination(, ({0x00x7ff67883166e0x20??0x74991ffa18, 0xa2ed477e4e60 sp=, ?0x00x7a9a9ffbd0, ?0xc
+0x74991ff9f0 pc=runtime.scanSpan?(, ?)
+	0x34b412f83ef0runtime/proc.go, 0x7ff678848676?)
+:462 +0x7ff67881f0a50xce fp=
+0x270c27995fa8 sp=0x270c27995f88 pc=0x7ff678883e8e
+?})
+	runtime.goparkunlock0x1dab7cd45260runtime/mgc.go(:...1500)
+ +	runtime/proc.go:468
+0x58f fp=0x34b412f83ea0runtime.forcegchelper( sp=	)
+	runtime/proc.go:375 +0xb8 fp=0x34b412f83c58 pc=0x270c27995fe0 sp=0x7ff6788294afruntime.allocm
+(0x270c27995fa8 pc=0x7ff67884f2980x3e6a15ee4008
+runtime.gcMarkDoneruntime.goexit(, ?runtime/mcentral.go)
+, 	0x7ff678ed98180x1dab7cd45260({, })
+	runtime/asm_amd64.s0x5:)
+:runtime/mgc.go)
+	runtime/proc.go	:2324 +0x91runtime/mgcmark_greenteagc.go fp=0x74991ffa70:8971771 +0x1 fp=0x270c27995fe8 sp=237 sp=0x270c27995fe0 pc=0x74991ffa18 pc=0x7ff67888b581: +1173
+ +created by 0x7ff678852bd1runtime.init.7
+ in goroutine 1
+	0x2beruntime/proc.go:3630xb3 +0x1a fp=
+runtime.newm
+goroutine  +0x39e fp=0x34b412f83f40 sp=0x34b412f83ea0 pc=3 gp=0x270c27992b40 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+0x7ff67882889e
+runtime.gcBgMarkWorker(	0x34b412b0c4d0)
+	runtime/mgc.go:1912 +0x2d9 fp=0x34b412f83fc8 sp=0x34b412f83f40 pc=0x7ff67882a4f9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412f83fe0 sp=0x34b412f83fc8runtime/proc.go:462 +0xce fp=0x270c27997f88 sp=0x270c27997f68 pc=0x7ff678883e8e
+ pc=runtime.goparkunlock(...)
+	runtime/proc.go:4680x7ff67882a1f7 fp=
+0x96cb9ffc50 sp=0x96cb9ffb48 pc=0x7ff678830e5e
+0x7a9a9ffb98( sp=0x7a9a9ffb70 pc=
+runtime.bgsweep(0x270c27938100)
+	runtime/mgcsweep.go:runtime.goexit324( +{0x151} fp=)
+0x270c27997fc8	 sp=runtime/asm_amd64.s0x270c27997f88: pc=17710x7ff678836571 +
+0x1runtime.gcenable.gowrap1 fp=(0x34b412f83fe8)
+ sp=	0x34b412f83fe0runtime/mgc.go pc=:214 +0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 80x17 fp=0x270c27997fe0 sp=
+	runtime/mgc.go0x270c27997fc8 pc=0x7ff678827917
+runtime.goexit({})
+	:1695 +0x105
+
+goroutine runtime/asm_amd64.s:1771 +0x1 fp=0x270c27997fe81 gp= sp=0x270c27997fe0 pc=0x34b412b6a0000x7ff67888b581 m=
+0created by  mp=runtime.gcenable0x7ff6792fa680 in goroutine  [syscall]:
+1
+runtime.cgocall	runtime/mgc.go:214 +0x66
+(
+goroutine 0x7ff6788120e04,  gp=0x270c27992d20 m=nil [GC scavenge wait]:
+0x7ff6792fa9d0runtime.gopark)
+(	0x10000runtime/cgocall.go?:, 1670x7ff678eda1e0 +?0x3e,  fp=0x00x34b412b999b0? sp=, 0x34b412b999480x0 pc=?, 0x0?)
+	0x7ff67888127e
+syscall.syscallnruntime/proc.go:(462 +0x00xce? fp=, 0x270c279a7f780x0 sp=?0x270c279a7f58,  pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:{468
+0x34b412b99a28?, runtime.(*scavengerState).park(0x7ff6792f9300)
+0x5f664b0729d2f553	?runtime/mgcscavenge.go, :0x0425 +0x49 fp=0x270c279a7fa8 sp=0x270c279a7f78 pc=0x7ff678833fe9
+runtime.bgscavenge?})
+	runtime/syscall_windows.go:(0x270c27938100)
+431 +0x4e fp=0x34b412b999d0 sp=0x34b412b999b0 pc=	runtime/mgcscavenge.go:6580x7ff678887aae
+ +0x59 fp=0x270c279a7fc8 sp=0x270c279a7fa8 pc=0x7ff678834579
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0x270c279a7fe0 sp=0x270c279a7fc8 pc=0x7ff6788278d7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c279a7fe8 sp=0x270c279a7fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x270c279930e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c279a9e20 sp=0x270c279a9e00 pc=0x7ff678883e8e
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x107 fp=0x270c279a9fe0 sp=0x270c279a9e20 pc=0x7ff6788268a7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c279a9fe8 sp=0x270c279a9fe0 pc=0x7ff67888b581
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0x270c279932c0 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c279a3f68 sp=0x270c279a3f48 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6792f95e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0x270c279a3fa0 sp=0x270c279a3f68 pc=0x7ff678823734
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0x270c279a3fe0 sp=0x270c279a3fa0 pc=0x7ff678823da5
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c279a3fe8 sp=0x270c279a3fe0 pc=0x7ff67888b581
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 7 gp=0x270c279934a0 m=nil [chan receive]:
+runtime.gopark(0x270c279c60c0?, 0x7ff678815ef2?, 0x0?, 0x0?, 0x7ff6788dc740?)
+	runtime/proc.go:462 +0xce fp=0x270c27999ee8 sp=0x270c27999ec8 pc=0x7ff678883e8e
+runtime.chanrecv(0x270c27934380, 0x270c27999fb0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x270c27999f60 sp=0x270c27999ee8 pc=0x7ff6788163ce
+runtime.chanrecv2(0x270c27916060?, 0x270c27dbc800?)
+	runtime/chan.go:514 +0x12 fp=0x270c27999f88 sp=0x270c27999f60 pc=0x7ff678815f12
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45 fp=0x270c27999fe0 sp=0x270c27999f88 pc=0x7ff678d36725
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27999fe8 sp=0x270c27999fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 8 gp=0x270c27993680 m=nil [sleep]:
+runtime.gopark(0xa2ed431da870?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c279a5f48 sp=0x270c279a5f28 pc=0x7ff678883e8e
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 fp=0x270c279a5fa0 sp=0x270c279a5f48 pc=0x7ff678887d87
+fatal error: runtime: cannot allocate memory
+fatal error: runtime: cannot allocate memory
+runtime.gcDrain0x20000(0x1dab7cd45260, 0x3)
+	runtime/mgcmark.go?, 0x3e6a15ee4008, 0xa2ed475ccfc4?)
+	runtime/proc.go:2870 +0x35 fp=0x74991ffaa0 sp=0x74991ffa70 pc=0x7ff678853675
+runtime.startm(0x3e6a15ee4008?, 0x1, 0x0)
+	runtime/proc.go:3096 +0x130 fp=0x74991ffae8 sp=0x74991ffaa0 pc=0x7ff678853d10
+runtime.wakep()
+	runtime/proc.go:3243 +syscall.SyscallN0xec( fp=0x50x74991ffb18? sp=, 0x74991ffae8{ pc=0x34b412b99a280x7ff678883fec?
+, 0x34b412f4eef7runtime.resetspinning()
+	?, 0x7ff6788058c9?})
+	syscall/dll_windows.go:99 +0x1e fp=0x34b412b99a08 sp=0x34b412b999d0 pc=0x7ff6788b88de
+syscall.readFile(0x564, {0x34b412c86000?, 0x4000, 0x30?}, 0x7ff678ddeea0?, 0x34b412f08b10?)
+	syscall/zsyscall_windows.go:1030 +0xba fp=0x34b412b99a80 sp=0x34b412b99a08 pc=0x7ff6788bdd7a
+syscall.ReadFile(...)
+	syscall/syscall_windows.go:510
+internal/poll.(*FD).Read.func1(0x7ff6792e6520?)
+	internal/poll/fd_windows.go:586 +0x4a fp=0x34b412b99ac8 sp=0x34b412b99a80 pc=0x7ff6788db74a
+internal/poll.(*FD).execIO(0x34b412c16000, 0x72, 0x34b412b99c48)
+	internal/poll/fd_windows.go:304 +0x2c9 fp=0x34b412b99bc8 sp=0x34b412b99ac8 pc=0x7ff6788da709
+internal/poll.(*FD).Read(0x34b412c16000, {0x34b412c86000, 0x4000, 0x4000})
+	internal/poll/fd_windows.go:585 +0x290 fp=0x34b412b99c90 sp=0x34b412b99bc8 pc=0x7ff6788db430
+0x7ff6788222f3
+runtime.(*mcache).releaseAll(0x1adb8da2e88)
+	runtime/mcache.go:322 +0x12c fp=0x7a9a9ffbf0 sp=0x7a9a9ffb98 pc=0x7ff678821bec
+runtime.(*mcache).prepareForSweep(0x1adb8da2e88)
+	runtime/mcache.go:366 +0x35 fp=0x7a9a9ffc18 sp=0x7a9a9ffbf0 pc=0x7ff678821cf5
+runtime.gcMarkTermination.func4(0xe05721a8008)
+	runtime/mgc.go:1546 +0x25 fp=0x7a9a9ffc40:1333 +0x299 fp=0x96cb9ffcc0 sp=0x96cb9ffc50 pc=0x7ff67882e619
+runtime.gcDrainMarkWorkerDedicated(...)
+	runtime/mgcmark.go:1178
+runtime.gcBgMarkWorker.func2()
+	runtime/mgc.go:1862 +0x9a fp=0x96cb9ffd10 sp=0x96cb9ffcc0 pc=0x7ff67882a61a
+runtime.systemstack(0x1dab7cd48960)
+	runtime/asm_amd64.s:562 +0x49 fp=0x96cb9ffd20 sp=0x96cb9ffd10 pc=0x7ff678889949
+
+goroutine 41 gp=0x1dab7cd890e0 m=3 mp=0x1dab7cd53008 [GC worker (active)]:
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:124 +0x48 fp=0x270c279a5fe0 sp=0x270c279a5fa0 pc=0x7ff678d36608
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c279a5fe8 sp=0x270c279a5fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30c
+
+goroutine 12 gp=0x270c27993c20 m=nil [GC worker (idle)]:
+runtime.gopark(0x100000003?, 0x100000003?, 0xd0?, 0x5f?, 0x7ff678d3af37?)
+	runtime/proc.go:462 +0xce fp=0x270c27b25f40 sp=0x270c27b25f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27b25fc8 sp=0x270c27b25f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27b25fe0 sp=0x270c27b25fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27b25fe8 sp=0x270c27b25fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105 sp=
+
+goroutine 13 gp=0x270c27d8ed20runtime/proc.goruntime.systemstack_switch(:4034 +0x3e fp= m=nil0x74991ffb38 [ sp=0x74991ffb18GC worker (idle)os.(*File).read]:
+(...runtime.gopark)
+(	os/file_posix.go:30
+os.(*File).Read(0x0?, 0x0?0x34b412aee058, , 0x0?{0x34b412c86000?, 0xa?, 0x0?, , 0x0?)
+	runtime/proc.go:0x34b412b8a258?})
+	462)
+ +0xce	runtime/asm_amd64.s:516 +0x8 fp=0x1dab7cd9bf40os/file.go fp=:1440x270c27b2bf40 + sp=0x4f0x270c27b2bf20 fp=0x34b412b99cd0 sp=0x34b412b99c90 pc=0x7ff6788e04ef pc=0x7ff678883e8e
+
+runtime.gcBgMarkWorker(main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:134 +0x37f fp=0x34b412b99df80x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27b2bfc8 sp=0x34b412b99cd0 pc=0x7ff678d3629f
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb16 fp=0x34b412b99f48 sp=0x34b412b99df8 sp=0x270c27b2bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27b2bfe0 sp=0x270c27b2bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+ pc=0x7ff678d34a16
+	runtime.main0x7a9a9ffc18runtime/asm_amd64.s: pc=17710x7ff67887f225 +
+0x1(runtime.forEachPInternal(0x7ff678ed9560)
+	)
+ fp=	0x270c27b2bfe8runtime/proc.go sp=:290 +0x270c27b2bfe00x2c7 pc=0x7ff67888b581
+ fp=0x34b412b99fe0 sp=0x34b412b99f48 pc=created by runtime.gcBgMarkStartWorkers in goroutine 100x7ff67884efa7
+
+	runtime.goexit({})
+runtime/mgc.go:1695	runtime/asm_amd64.s:1771 +0x105
+ +0x1 fp=0x34b412b99fe8 sp=0x34b412b99fe0 pc=
+0x7ff67888b581goroutine 14 gp=0x270c27d8ef00 m=nil
+ [GC worker (idle)
+]:
+goroutine 2 gp=0x34b412b6a780 m=nilruntime.gopark(0x0 [force gc (idle)]:
+?, 0x0?, 0x0runtime.gopark(?0x0?,  sp=runtime/proc.go0x0?, 0x0, 0x0?, 0x0??0x1dab7cd9bf30, 0x0?)
+:	2167, runtime/proc.go0x0:? pc=462 +)
+0x7ff67885637e
+	runtime/proc.go0xce fp= pc=:462 +0x34b412b6dfa80xce sp= fp=0x34b412b6df880x270c27de7f40 pc= +0x7ff678883e8e sp=runtime.schedule0x7ff6788898e8
+()
+
+	runtime.goparkunlockruntime.gcBgMarkWorker0x270c27de7f20( pc=...0x7ff678883e8e)
+	runtime/proc.go:
+0x12b468 fp=runtime.gcBgMarkWorker(
+runtime/proc.go0x1dab7ccebd50runtime.forcegchelper)
+	((0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27de7fc8)
+ sp=0x270c27de7f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27de7fe0 sp=0x270c27de7fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s	runtime/proc.go:375:1771 + +0xb8 fp=0x1 fp=0x270c27de7fe8 sp=0x270c27de7fe0 pc=0x7ff67888b581
+:0x34b412b6dfe04199 +0x127 fp= sp=created by 0x34b412b6dfa8 pc=0x7ff67884f298
+runtime.goexitruntime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go({})
+	runtime/asm_amd64.s:1771:1695 +0x105
+
+goroutine 15 +0x1 fp=0x34b412b6dfe8 gp=0x270c27d8f0e0 m=nil [ sp=0x34b412b6dfe0 pc=0x7ff67888b581
+created by runtime.init.7GC worker (idle) in goroutine 1
+	runtime/proc.go:363 +]:
+runtime.gopark(0x1a
+
+goroutine 3 gp=0x34b412b6ab40 m=nil [0x0?, 0x0runnable0x7a9a9ffcd0 sp=0x7a9a9ffc40 pc=?]:
+, 0x0?, runtime.gopark(0x1?, 0x0?, 0x0?, 0x00x0??, 0x0, 0x0?)
+	runtime/proc.go:462 +0xce?)
+	runtime/proc.go:462 +0xce fp= fp=0x270c27de9f40 sp=0x270c27de9f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+0x34b412b6ff88 sp=0x34b412b6ff68 pc=0x7ff678883e8e
+	runtime/mgc.go:1791 +0xeb fp=runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.bgsweep(0x34b412b10100)
+	runtime/mgcsweep.go:324 +0x270c27de9fc8 sp=0x270c27de9f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:0x151 fp=0x34b412b6ffc8 sp=0x34b412b6ff88 pc=0x7ff678836571
+runtime.gcenable.gowrap1()
+1695 +0x17 fp=	runtime/mgc.go:214 +0x270c27de9fe0 sp=0x270c27de9fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+0x17 fp=0x34b412b6ffe0 sp=0x34b412b6ffc8 pc=	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27de9fe8 sp=0x270c27de9fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers0x7ff678827917
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412b6ffe8 sp=0x34b412b6ffe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x34b412b6ad20 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x7ff678eda1e0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 16 gp=0x270c27d8f2c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27de3f40 sp=0x270c27de3f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27de3fc8 sp=0x270c27de3f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27de3fe0 sp=0x270c27de3fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27de3fe8 sp=0x270c27de3fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine  +0xce fp=0x34b412b85f78 sp=0x34b412b85f58 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff6792f9300)
+	runtime/mgcscavenge.go:425 +0x49 fp=0x34b412b85fa8 sp=0x34b412b85f78 pc=0x7ff678833fe9
+runtime.bgscavenge(0x34b412b10100)
+	runtime/mgcscavenge.go:658 +0x59 fp=0x34b412b85fc8 sp=0x34b412b85fa8 pc=0x7ff678834579
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0x34b412b85fe0 sp=0x34b412b85fc8 pc=0x7ff6788278d7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412b85fe8 sp=0x34b412b85fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x34b412b6b0e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412b87e20 sp=0x34b412b87e00 pc=0x7ff678883e8e
+runtime.runFinalizers10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 34 gp=0x270c27d8f4a0 m=nil [GC worker (idle)()
+	runtime/mfinal.go:210 +0x107 fp=0x34b412b87fe0 sp=0x34b412b87e20 pc=0x7ff6788268a7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412b87fe8 sp=0x34b412b87fe0 pc=0x7ff67888b581
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0x34b412b6b2c0 m=nil [cleanup wait]:
+runtime.gopark(]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27de5f40 sp=0x270c27de5f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27de5fc8 sp=0x270c27de5f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27de5fe0 sp=0x270c27de5fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27de5fe8 sp=0x270c27de5fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 35 gp=0x270c27d8f680 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27deff40 sp=0x270c27deff20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27deffc8 sp=0x270c27deff40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27deffe0 sp=0x270c27deffc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412b81f68 sp=0x34b412b81f48 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6792f95e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0x34b412b81fa0 sp=0x34b412b81f68 pc=0x7ff678823734
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0x34b412b81fe0 sp=0x34b412b81fa0 pc=0x7ff678823da5
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412b81fe8 sp=0x34b412b81fe0 pc=0x7ff67888b581
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 18 gp=0x34b412b901e0 m=nil [chan receive]:
+runtime.gopark(0x34b412c160c0?, 0x7ff678815ef2?, 0x0?, 0x0?, 0x7ff6788dc740?)
+	runtime/proc.go:462 +0xce fp=0x34b412b71ee8 sp=0x34b412b71ec8 pc=0x7ff678883e8e
+runtime.chanrecv(0x34b412c84000, 0x34b412b71fb0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x34b412b71f60 sp=0x34b412b71ee8 pc=0x7ff6788163ce
+runtime.chanrecv2(0x34b412aee060?, 0x34b412d8d500?)
+	runtime/chan.go:514 +0x12 fp=0x34b412b71f88 sp=0x34b412b71f60 pc=0x7ff678815f12
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45 fp=0x34b412b71fe0 sp=0x34b412b71f88 pc=0x7ff678d36725
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412b71fe8 sp=0x34b412b71fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 19 gp=0x34b412b903c0 m=nil [sleep]:
+runtime.gopark(0xa2ed452ef4d4?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412c8ff48 sp=0x34b412c8ff28 pc=0x7ff678883e8e
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 fp=0x34b412c8ffa0 sp=0x34b412c8ff48 pc=0x7ff678887d87
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:124 +0x48 fp=0x34b412c8ffe0 sp=0x34b412c8ffa0 pc=0x7ff678d36608
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412c8ffe8 sp=0x34b412c8ffe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30c
+
+goroutine 61 gp=0x34b412b6b680 m=nil [runnable]:
+0x270c27deffe8 sp=0x270c27deffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 36 gp=0x270c27d8f860 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27df1f40 sp=0x270c27df1f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27df1fc8 sp=0x270c27df1f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27df1fe0 sp=0x270c27df1fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27df1fe8 sp=0x270c27df1fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 37 gp=0x270c27d8fa40 m=nil [GC worker (idle)]:
+runtime.gopark(0x7ff678ed9540?, 0x270c27b7d200?, 0x1c?, 0xa?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27debf40 sp=0x270c27debf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27debfc8 sp=0x270c27debf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27debfe0 sp=0x270c27debfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27debfe8 sp=0x270c27debfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 38 gp=0x270c27d8fc20 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed452ef4d4?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27dedf40 sp=0x270c27dedf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27dedfc8 sp=0x270c27dedf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27dedfe0 sp=0x270c27dedfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27dedfe8 sp=0x270c27dedfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 39 gp=0x270c27df2000 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed45465aac?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27df9f40 sp=0x270c27df9f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27df9fc8 sp=0x270c27df9f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27df9fe0 sp=0x270c27df9fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27df9fe8 sp=0x270c27df9fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+
+goroutine 40 gp=0x270c27df21e0 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed452ef4d4?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x270c27dfbf40 sp=0x270c27dfbf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x270c279345b0)
+	runtime/mgc.go:1791 +0xeb fp=0x270c27dfbfc8 sp=0x270c27dfbf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x270c27dfbfe0 sp=0x270c27dfbfc80x74991ffb78 sp=0x74991ffb38 pc=0x7ff6788568a7
+runtime.mstart1()
+	runtime/proc.go:1942 +0xd7 fp=0x74991ffba0 sp=0x74991ffb78 pc=0x7ff678852477
+runtime.mstart0()
+	runtime/proc.go:1888 +0x6a fp=0x74991ffbc8 sp=0x74991ffba0 pc=0x7ff67885238a
+runtime.mstart()
+	runtime/asm_amd64.s:426 +0xc fp=0x74991ffbd0 sp=0x74991ffbc8 pc=0x7ff67888982c
+
+goroutine 1 gp=0x3e6a15eec000 m=nil [runnable, locked to thread]:
+runtime.gcTrigger.test({0x0?, 0x0?, 0x0?} pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x270c27dfbfe8 sp=0x270c27dfbfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	runtime/mgc.go:1695 +0x105
+github.com/evanw/esbuild/internal/js_printer.(*printer).printUnquotedUTF16(0x34b41301d2d0?, {0x34b412ebb650?, 0x1?, 0x4?}, 0x22?, 0x1?)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:65 +0x1758 fp=0x34b413019788 sp=0x34b413019780 pc=0x7ff678c6c0b8
+github.com/evanw/esbuild/internal/js_printer.(*printer).printQuotedUTF16(0x34b41301d2d0, {0x34b412ebb650?, 0x34b412b7af80?, 0x7ff678c6d705?}, 0xe?)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:1395 +0x1b7 fp=0x34b4130197d8 sp=0x34b413019788 pc=0x7ff678c773b7
+
+runtime stack:
+runtime.throw({0x7ff678eb450b?, 0x0?})
+	runtime/panic.go:1229 +0x4d fp=0x5bc8fff2d0 sp=0x5bc8fff2a0 pc=0x7ff678883d6d
+runtime.persistentalloc1(0x3fc0, 0x2ee4?, 0x7ff6793471c8)
+	runtime/malloc.go:2379 +0x265 fp=0x5bc8fff328 sp=0x5bc8fff2d0 pc=0x7ff67881f5e5
+runtime.persistentalloc.func1()
+	runtime/malloc.go:2332 +0x28 fp=0x5bc8fff358 sp=0x5bc8fff328 pc=0x7ff67881f368
+runtime.persistentalloc(0x3b8fd2fa70e0?, 0x1?, 0xffffffffffffffff?)
+	runtime/malloc.go:2331 +0x45 fp=0x5bc8fff3a0 sp=0x5bc8fff358 pc=0x7ff67881f305
+runtime.(*fixalloc).alloc(0x7ff67931a418)
+	runtime/mfixalloc.go:90 +0x77 fp=0x5bc8fff3d8 sp=0x5bc8fff3a0 pc=0x7ff678827677
+runtime.(*mheap).allocMSpanLocked(0x7ff679303980)
+	runtime/mheap.go:1172 +0x9a fp=0x5bc8fff400 sp=0x5bc8fff3d8 pc=0x7ff67883a0ba
+runtime.(*mheap).allocSpan(0x7ff679303980, 0x4, 0x2, 0x0)
+	runtime/mheap.go:1313 +0x225 fp=0x5bc8fff4b0 sp=0x5bc8fff400 pc=0x7ff67883a325
+runtime.(*mheap).allocManual(0x3b8fd2d3c008?, 0x1?, 0x0?)
+	runtime/mheap.go:1043 +0x19 fp=0x5bc8fff4d8 sp=0x5bc8fff4b0 pc=0x7ff678839d99
+runtime.getempty.func1()
+	runtime/mgcwork.go:450 +0x2d fp=0x5bc8fff508 sp=0x5bc8fff4d8 pc=0x7ff678838b8d
+runtime.getempty()
+	runtime/mgcwork.go:449 +0xd2 fp=0x5bc8fff560 sp=0x5bc8fff508 pc=0x7ff678838a52
+runtime.(*gcWork).init(0x3b8fd2d21260)
+	runtime/mgcwork.go:147 +0x14 fp=0x5bc8fff570 sp=0x5bc8fff560 pc=0x7ff678838294
+runtime.(*gcWork).putObj(0x3b8fd2d21260, 0x3b8fd2f24700)
+	runtime/mgcwork.go:167 +0x99 fp=0x5bc8fff590 sp=0x5bc8fff570 pc=0x7ff678838379
+runtime.greyobject(0x3b8fd2f24700, 0x7ff6792d90a0, 0x9390, 0x7c0?, 0x3b8fd2d454a0?, 0x5bc8fff660?)
+	runtime/mgcmark.go:1690 +0x265 fp=0x5bc8fff5d0 sp=0x5bc8fff590 pc=0x7ff67882f2e5
+runtime.scanblock(0x7ff6792d90a0, 0x1e782, 0x1ce65dbdfb0, 0x3b8fd2d21260, 0x0)
+	runtime/mgcmark.go:1503 +0xff fp=0x5bc8fff630 sp=0x5bc8fff5d0 pc=0x7ff67882ecff
+runtime.markrootBlock(0x7ff678ed9808?, 0xc?, 0xc?, 0xa2ed46de3c40?, 0x3b8fd2dfc000?)
+	runtime/mgcmark.go:351 +0x54 fp=0x5bc8fff670 sp=0x5bc8fff630 pc=0x7ff67882c814
+runtime.markroot(0x3b8fd2d21260, 0x3, 0x1)
+	runtime/mgcmark.go:229 +0x42d fp=0x5bc8fff720 sp=0x5bc8fff670 pc=0x7ff67882c60d
+runtime.gcDrain(0x3b8fd2d21260, 0x3)
+	runtime/mgcmark.go:1275 +0x4a7 fp=0x5bc8fff790 sp=0x5bc8fff720 pc=0x7ff67882e827
+runtime.gcDrainMarkWorkerDedicated(...)
+	runtime/mgcmark.go:1178
+runtime.gcBgMarkWorker.func2()
+	runtime/mgc.go:1862 +0x9a fp=0x5bc8fff7e0 sp=0x5bc8fff790 pc=0x7ff67882a61a
+runtime.systemstack(0x3b8fd2d454a0)
+	runtime/asm_amd64.s:562 +0x49 fp=0x5bc8fff7f0 sp=0x5bc8fff7e0 pc=0x7ff678889949
+
+goroutine 51 gp=0x3b8fd2e6b860 m=6 mp=0x3b8fd2e24008 [GC worker (active)]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x3b8fd31aff40 sp=0x3b8fd31aff30 pc=0x7ff6788898e8
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1847 +0x1e5 fp=0x3b8fd31affc8 sp=0x3b8fd31aff40 pc=0x7ff67882a405
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31affe0 sp=0x3b8fd31affc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31affe8 sp=0x3b8fd31affe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 1 gp=0x3b8fd2d44000 m=0 mp=0x7ff6792fa680 [syscall (scan)]:
+runtime.cgocall(0x7ff6788120e0, 0x7ff6792fa9d0)
+	runtime/cgocall.go:167 +0x3e fp=0x3b8fd2e1f9b0 sp=0x3b8fd2e1f948 pc=0x7ff67888127e
+syscall.syscalln(0x0?, 0x0?, {0x3b8fd2e1fa28?, 0xf5a4b7cf58261a5f?, 0x0?})
+	runtime/syscall_windows.go:431 +0x4e fp=0x3b8fd2e1f9d0 sp=0x3b8fd2e1f9b0 pc=0x7ff678887aae
+syscall.SyscallN(0x5?, {0x3b8fd2e1fa28?, 0x3b8fd2d8b457?, 0x7ff6788058c9?})
+	syscall/dll_windows.go:99 +0x1e fp=0x3b8fd2e1fa08 sp=0x3b8fd2e1f9d0 pc=0x7ff6788b88de
+syscall.readFile(0x514, {0x3b8fd2df4000?, 0x4000, 0x30?}, 0x7ff678ddeea0?, 0x3b8fd2d8d710?)
+	syscall/zsyscall_windows.go:1030 +0xba fp=0x3b8fd2e1fa80 sp=0x3b8fd2e1fa08 pc=0x7ff6788bdd7a
+syscall.ReadFile(...)
+	syscall/syscall_windows.go:510
+internal/poll.(*FD).Read.func1(0x7ff6792e6520?)
+	internal/poll/fd_windows.go:586 +0x4a fp=0x3b8fd2e1fac8 sp=0x3b8fd2e1fa80 pc=0x7ff6788db74a
+internal/poll.(*FD).execIO(0x3b8fd2d78000, 0x72, 0x3b8fd2e1fc48)
+	internal/poll/fd_windows.go:304 +0x2c9 fp=0x3b8fd2e1fbc8 sp=0x3b8fd2e1fac8 pc=0x7ff6788da709
+internal/poll.(*FD).Read(0x3b8fd2d78000, {0x3b8fd2df4000, 0x4000, 0x4000})
+	internal/poll/fd_windows.go:585 +0x290 fp=0x3b8fd2e1fc90 sp=0x3b8fd2e1fbc8 pc=0x7ff6788db430
+os.(*File).read(...)
+	os/file_posix.go:30
+os.(*File).Read(0x3b8fd2cc8058, {0x3b8fd2df4000?, 0xa?, 0x3b8fd2d82228?})
+	os/file.go:144 +0x4f fp=0x3b8fd2e1fcd0 sp=0x3b8fd2e1fc90 pc=0x7ff6788e04ef
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:134 +0x37f fp=0x3b8fd2e1fdf8 sp=0x3b8fd2e1fcd0 pc=0x7ff678d3629f
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb16 fp=0x3b8fd2e1ff48 sp=0x3b8fd2e1fdf8 pc=0x7ff678d34a16
+runtime.main()
+	runtime/proc.go:290 +0x2c7 fp=0x3b8fd2e1ffe0 sp=0x3b8fd2e1ff48 pc=0x7ff67884efa7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2e1ffe8 sp=0x3b8fd2e1ffe0 pc=0x7ff67888b581
+
+goroutine 2 gp=0x3b8fd2d44780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d47fa8 sp=0x3b8fd2d47f88 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.forcegchelper()
+	runtime/proc.go:375 +0xb8 fp=0x3b8fd2d47fe0 sp=0x3b8fd2d47fa8 pc=0x7ff67884f298
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d47fe8 sp=0x3b8fd2d47fe0 pc=0x7ff67888b581
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x3b8fd2d44b40 m=nil [GC sweep wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d49f88 sp=0x3b8fd2d49f68 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.bgsweep(0x3b8fd2cea100)
+	runtime/mgcsweep.go:279 +0x94 fp=0x3b8fd2d49fc8 sp=0x3b8fd2d49f88 pc=0x7ff6788364b4
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 +0x17 fp=0x3b8fd2d49fe0 sp=0x3b8fd2d49fc8 pc=0x7ff678827917
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d49fe8 sp=0x3b8fd2d49fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x3b8fd2d44d20 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x7ff678eda1e0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d59f78 sp=0x3b8fd2d59f58 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff6792f9300)
+	runtime/mgcscavenge.go:425 +0x49 fp=0x3b8fd2d59fa8 sp=0x3b8fd2d59f78 pc=0x7ff678833fe9
+runtime.bgscavenge(0x3b8fd2cea100)
+	runtime/mgcscavenge.go:658 +0x59 fp=0x3b8fd2d59fc8 sp=0x3b8fd2d59fa8 pc=0x7ff678834579
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0x3b8fd2d59fe0 sp=0x3b8fd2d59fc8 pc=0x7ff6788278d7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d59fe8 sp=0x3b8fd2d59fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x3b8fd2d450e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d5be20 sp=0x3b8fd2d5be00 pc=0x7ff678883e8e
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x107 fp=0x3b8fd2d5bfe0 sp=0x3b8fd2d5be20 pc=0x7ff6788268a7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d5bfe8 sp=0x3b8fd2d5bfe0 pc=0x7ff67888b581
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0x3b8fd2d452c0 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d55f68 sp=0x3b8fd2d55f48 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6792f95e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0x3b8fd2d55fa0 sp=0x3b8fd2d55f68 pc=0x7ff678823734
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0x3b8fd2d55fe0 sp=0x3b8fd2d55fa0 pc=0x7ff678823da5
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d55fe8 sp=0x3b8fd2d55fe0 pc=0x7ff67888b581
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 18 gp=0x3b8fd2d881e0 m=nilgithub.com/evanw/esbuild/internal/js_printer.(*printer).printExpr [chan receive]:
+(0x34b41301d2d0, {{0x7ff678edf440?, 0x34b412b76720?}, {0x12d2c960?}}, 0x3runtime.gopark(0x3b8fd2d780c0?, 0x0?, 0x0?, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:2953 +0x82a5 fp=0x34b413019d60 sp=0x34b4130197d8?, 0x7ff6788dc740?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2dfdee8 sp= pc=0x7ff678c85905
+github.com/evanw/esbuild/internal/js_printer.(*printer).printExprWithoutLeadingNewline(0x3b8fd2dfdec8 pc=0x7ff678883e8e
+0x34b41301d2d0?, {{0x7ff678edf440runtime.chanrecv(0x3b8fd2df2000, 0x3b8fd2dfdfb0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x3b8fd2dfdf60 sp=?, 0x34b412b76720?}, {0x31303835?}}, 0x5?, 0x400?)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:1986 +0x2ab fp=0x34b413019dd8 sp=0x34b413019d60 pc=0x7ff678c7d2ab
+github.com/evanw/esbuild/internal/js_printer.(*printer).printExpr(0x34b41301d2d0, {{0x7ff678edfb80?, 0x34b412f23310?}, {0x1301d2d0?}}, 0x0, 0x0)
+	0x3b8fd2dfdee8 pc=0x7ff6788163ce
+runtime.chanrecv2(0x3b8fd2cc8060?, 0x3b8fd3106000?)
+	runtime/chan.go:514 +0x12 fp=0x3b8fd2dfdf88 sp=0x3b8fd2dfdf60 pc=0x7ff678815f12
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45 fp=0x3b8fd2dfdfe0 sp=0x3b8fd2dfdf88 pc=github.com/evanw/esbuild/internal/js_printer/js_printer.go:2710 +0x26dc fp=0x34b41301a360 sp=0x34b413019dd8 pc=0x7ff678c7fd3c
+github.com/evanw/esbuild/internal/js_printer.(*printer).printExprWithoutLeadingNewline(0x34b41301d2d0?, {{0x7ff678edfb80?, 0x34b412f23310?}, {0x3?}}, 0xf0?, 0x12db?)
+	0x7ff678d36725
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2dfdfe8 sp=0x3b8fd2dfdfe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 19 gp=0x3b8fd2d883c0 m=nil [sleep]:
+runtime.gopark(0xa2ed45b6f5a0?github.com/evanw/esbuild/internal/js_printer/js_printer.go:1986, 0x0?, 0x0?, 0x0?, 0x0?)
+ +0x2ab fp=0x34b41301a3d8 sp=0x34b41301a360 pc=0x7ff678c7d2ab
+	runtime/proc.go:462 +0xce fp=0x3b8fd2dfff48 sp=0x3b8fd2dfff28 pc=0x7ff678883e8e
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 fp=0x3b8fd2dfffa0 sp=0x3b8fd2dfff48 pc=0x7ff678887d87
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:124 +0x48 fp=0x3b8fd2dfffe0 sp=0x3b8fd2dfffa0 pc=0x7ff678d36608
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2dfffe8 sp=0x3b8fd2dfffe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30c
+
+goroutine 21 gp=0x3b8fd2d88780 m=nil [chan receive]:
+runtime.gopark(0x3b8fd2d5e000?, 0x14008fd2d80008?, 0xc0?, 0x35?, 0x1ce65dc2e88?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2e499d8 sp=0x3b8fd2e499b8 pc=0x7ff678883e8e
+runtime.chanrecv(0x3b8fd2ce6380, 0x3b8fd2e49e40, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x3b8fd2e49a50 sp=github.com/evanw/esbuild/internal/js_printer.(*printer).printStmt(0x3b8fd2e499d8 pc=0x7ff6788163ce0x34b41301d2d0, {{0x7ff678edfcc0?, 
+0x34b412d2cbd0runtime.chanrecv1(?0x0?, 0x0}?, {)
+	runtime/chan.go:0x12ea3830?509 +0x12}},  fp=0x3b8fd2e49a78 sp=0x10x3b8fd2e49a50)
+ pc=	0x7ff678815ef2github.com/evanw/esbuild/internal/js_printer/js_printer.go
+:4861 +0xd785 fp=github.com/evanw/esbuild/internal/bundler.(*scanner).scanAllDependencies(0x3b8fd2cc6d880x34b41301aa48 sp=)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:0x34b41301a3d8 pc=2186 +0x22a fp=0x7ff678ca0e25
+github.com/evanw/esbuild/internal/js_printer.(*printer).printBlock0x3b8fd2e49fb8(0x34b41301d2d0 sp=0x3b8fd2e49a78 pc=, {0x12f232c00x7ff678c4f94a
+?}, {{0x34b412dbf380?, 0x165fe76fc5c5ffb9?, github.com/evanw/esbuild/internal/bundler.ScanBundle(0x34b412f45680_, {?}, {0x1301abb0_?}}, _, _, _, _, _}, {_, _}, )
+0x3b8fd2d121e0, ...)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go	:3780 +github.com/evanw/esbuild/internal/bundler/bundler.go0x1f1 fp=:1509 +0xecc fp=0x3b8fd2e4a650 sp=0x3b8fd2e49fb8 pc=0x34b41301aae8 sp=0x34b41301aa48 pc=0x7ff678c8e971
+0x7ff678c47e8cgithub.com/evanw/esbuild/internal/js_printer.(*printer).printFn(0x34b41301d2d0
+, {0x34b412ebb430, {0x34b412f232c0, 0x1, 0x1}, {{{0x34b412dbf380, 0x2, 0x2}, {0x30ac}}, {0x3020}}, ...})
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:909 +0xfc fp=0x34b41301ab30 sp=0x34b41301aae8 pc=0x7ff678c7299c
+runtime/mgc.go:1847 +0x1e5 fp=0x1dab7cd9bfc8 sp=0x1dab7cd9bf40 pc=0x7ff67882a405
+runtime.gcBgMarkStartWorkers.gowrap1()
+github.com/evanw/esbuild/internal/js_printer.(*printer).printStmt(github.com/evanw/esbuild/pkg/api.transformImpl({0x34b41301d2d0, {{0x7ff678edfc40?, 0x34b412ea37a0?}, _, {0x1300b258?_}, {0x0, 0x0, 0x0, 0x0, 0x3b8fd2d039e0, 0x0, 0x0, {0x0, }}, 0x1)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:4158 +...}, ...})
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1824 +0x143b fp=0x3b8fd2e4b980 sp=0x3b8fd2e4a650 pc=0x7ff678cfc2fb
+github.com/evanw/esbuild/pkg/api.Transform(...)
+	github.com/evanw/esbuild/pkg/api/api.go:487
+main.(*serviceType).handleTransformRequest(0x0?, 0x1, 0x3b8fd2d8d6e0)
+	github.com/evanw/esbuild/cmd/esbuild/service.go0x10625 fp=0x34b41301b1a0 sp=0x34b41301ab30 pc=0x7ff678ca3cc5
+:github.com/evanw/esbuild/internal/js_printer.(*printer).printBlock(0x34b41301d2d0, {0x12edb040?}, {{0x34b412d50ff0?, 0x20?, 1184 +0x34b41301b2a00x3ce? fp=0x3b8fd2e4bf60 sp=0x3b8fd2e4b980}, {0x1301b248?}})
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:3780 + pc=0x7ff678d4226e
+main.(*serviceType).handleIncomingPacket.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:242 +0x57 fp=0x3b8fd2e4bfe0 sp=0x3b8fd2e4bf60 pc=0x7ff678d3af37
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2e4bfe8 sp=0x3b8fd2e4bfe0 pc=0x7ff67888b581
+created by main.(*serviceType).handleIncomingPacket in goroutine 0x1f1 fp=0x34b41301b240 sp=0x34b41301b1a0 pc=0x7ff678c8e971
+github.com/evanw/esbuild/internal/js_printer.(*printer).printFn(0x34b41301d2d0, {0x0, 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:240{0x34b412edb040, 0x3, 0x4},  +0x1772
+{{{0x34b412d50ff0, 0x6
+goroutine 8 gp=, 0x3b8fd2d458600xa}, {0x30b5} m=5 mp=0x3b8fd2d80008 [GC assist marking]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x3b8fd31914f0 sp=0x3b8fd31914e0 pc=0x7ff6788898e8
+}, {0x27fb}}, ...})
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:909 +0xfc fp=0x34b41301b288 sp=0x34b41301b240 pc=0x7ff678c7299c
+runtime.gcAssistAlloc(0x3b8fd2d45860)
+	runtime/mgcmark.go:github.com/evanw/esbuild/internal/js_printer.(*printer).printExpr(0x34b41301d2d0638 +0x2a5 fp=0x3b8fd3191580 sp=0x3b8fd31914f0, {{0x7ff678edf9c0?, 0x34b412ea3810?}, { pc=0x7ff67882d005
+runtime.deductAssistCredit(0x641b?0x78edfac0?}})
+	runtime/malloc.go:1861 +0x46, 0x1, 0x0)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go fp=0x3b8fd31915a0 sp=0x3b8fd3191580:2786 +0x4f99 fp=0x34b41301b810 sp=0x34b41301b288 pc=0x7ff678c825f9
+ pc=github.com/evanw/esbuild/internal/js_printer.(*printer).printExprWithoutLeadingNewline(0x34b41301d2d0?, 0x7ff67881efc6
+runtime.mallocgc(0xc, 0x7ff678e637e0{{0x7ff678edf9c0?, 0x1)
+	runtime/malloc.go:1113 +0x67 fp=0x3b8fd31915d0 sp=0x3b8fd31915a0 pc=0x7ff678881b67
+runtime.newobject(0x3b8fd2e5a610?)
+	runtime/malloc.go:2157 +0x25 fp=0x3b8fd31915f8 sp=0x3b8fd31915d0 pc=0x7ff67881f0a5
+, 0x34b412ea3810?}, {0x12f658d0?}}, 0x0github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(?, 0x3b8fd2e5a008, 0x10x0?)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:1986, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3681 +0x2518 fp=0x3b8fd3191a78 sp=0x3b8fd31915f8 pc=0x7ff678b48fd8
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd3191ac8 sp=0x3b8fd3191a78 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs(0x3b8fd2e5a008)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5146 +0x14f fp=0x3b8fd3191ba0 sp=0x3b8fd3191ac8 pc=0x7ff678b51baf
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a008, {{0x7ff678edfac0 +0x2ab fp=0x34b41301b888 sp=0x34b41301b810 pc=0x7ff678c7d2ab
+?, 0x3b8fd2f92000?}, {0xd3191f00?}}, 0x14, 0x3b8fd3192848, 0x10?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.gogithub.com/evanw/esbuild/internal/js_printer.(*printer).printProperty(0x34b41301d2d0, {0x0, {{0x7ff678edf520, 0x34b412e53998}, {0x27a1}}, {{0x7ff678edf9c0, 0x34b412ea3810}, {0x27af}}, {{0x0, 0x0}, ...}, ...})
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:1328 +0x22f7 fp=0x34b41301b9d8 sp=0x34b41301b888 pc=0x7ff678c76597
+github.com/evanw/esbuild/internal/js_printer.(*printer).printExpr(0x34b41301d2d0, {{0x7ff678edf420?, 0x34b412dbe960?}, {0x0?}}, 0x1, 0x0)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:2889 +0x967b fp=0x34b41301bf60 sp=0x34b41301b9d8 pc=0x7ff678c86cdb
+github.com/evanw/esbuild/internal/js_printer.(*printer).printExpr(0x34b41301d2d0:4517 +0x2165 fp=0x3b8fd3191ee0 sp=0x3b8fd3191ba0 pc=0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd3192848, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4251 +0xd9 fp=0x3b8fd3191f30 sp=0x3b8fd3191ee0 pc=0x7ff678b4b939
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty(0x3b8fd2e5a008, {0xd2e2bd12?}, 0x0, {{0x0, 0x0, 0x0}, 0x0, 0x0, {{0x0}, 0x0}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +0x2c9c fp=0x3b8fd3192620 sp=0x3b8fd3191f30 pc=0x7ff678b3dcdc
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd3192d48, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3945 +0x3dfd fp=0x3b8fd3192aa0 sp=0x3b8fd3192620 pc=0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd3192d48, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd3192af0 sp=0x3b8fd3192aa0 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd31938d8, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3877 +0x36a9 fp=0x3b8fd3192f70 sp=0x3b8fd3192af0 pc=0x7ff678b4a169
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd31938d8, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd3192fc0 sp=0x3b8fd3192f70 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty(0x3b8fd2e5a008, {0x40?}, 0x0, {{0x0, 0x0, 0x0}, 0x0, 0x0, {{0x0}, 0x0}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +0x2c9c fp=0x3b8fd31936b0 sp=0x3b8fd3192fc0 pc=0x7ff678b3dcdc
+, {{0x7ff678edf540?, 0x34b412dbe9f0?}, {0x0?}}, 0x1, 0x0)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go:2834 +0x910f fp=0x34b41301c4e8github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3945 +0x3dfd fp=0x3b8fd3193b30 sp=0x3b8fd31936b0 pc=0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd3193b80 sp=0x34b41301bf60 pc=0x7ff678c8676f
+ sp=0x3b8fd3193b30 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...github.com/evanw/esbuild/internal/js_printer.(*printer).printExpr(0x34b41301d2d0, {{0x7ff678edfb40?, 0x34b412d4c2c0?}, {0x0?}}, 0x0, 0x8)
+	github.com/evanw/esbuild/internal/js_printer/js_printer.go)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go::2435 +4225
+0x9febgithub.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs fp=(0x34b41301ca700x3b8fd2e5a008)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go sp=:5146 +0x14f0x34b41301c4e8 fp= pc=0x7ff678c8764b0x3b8fd3193c58
+0x7ff67885288b
+ sp=0x3b8fd3193b80 pc=0x7ff678b51baf
+github.com/evanw/esbuild/internal/js_printer.(*printer).printStmt(github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a008, {{0x7ff678edfac00x34b41301d2d0, {{0x7ff678edfba0?, 0x34b412b76760?}, {0x0?}}, 0x1)
+?, 0x3b8fd2e55d80?	github.com/evanw/esbuild/internal/js_printer/js_printer.go:4903 +0x4d9f}, {0xd2e5a600?} fp=0x34b41301d0e0 sp=0x34b41301ca70}, 0x14, 0x3b8fd3194240, 0x8?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4517 +0x2165 fp=0x3b8fd3193f98 sp=0x3b8fd3193c58 pc=0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd3194240, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go: pc=4251 +0xd9 fp=0x3b8fd3193fe8 sp=0x3b8fd3193f98 pc=0x7ff678b4b939
+0x7ff678c9843f
+github.com/evanw/esbuild/internal/js_printer.Print({{github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings0x0(, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go{{0x0}:4221
+	github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd3194dd0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3877 +0x36a9 fp=0x3b8fd3194468 sp=0x3b8fd3193fe8 pc=0x7ff678b4a169
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(, 0x0}, 0x0}, {0x34b412b7f4a0, 0x1, 0x1}, {0x0, 0x00x3b8fd2e5a008, 0x0}, ...}, ...)
+, 0x1, 0x3b8fd3194dd0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=	github.com/evanw/esbuild/internal/js_printer/js_printer.go:5010 +0x7580x3b8fd31944b8 sp=0x3b8fd3194468 fp=0x34b41301d620 sp=0x34b41301d0e0 pc=0x7ff678ca47b8
+ pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/linker.(*linkerContext).generateCodeForFileInChunkJS(0x34b412bde160, {0x7ff678ee0400, 0x34b412e60480}, 0x34b412deb640, github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+{github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty(0x3b8fd2e5a008, {0x78b4c896?}, 0x0, {{0x0, 0x0, 0x00x12f67fd0?, 0x34b4?, 0x788575f0?}, {0x7ff6?, 0x78cd543f?}, }, 0x0, 0x0, {0x0, ...{{0x0}, }, ...0x0})
+	github.com/evanw/esbuild/internal/linker/linker.go:4979 +0x15a5 fp=0x34b41301df58 sp=0x34b41301d620 pc=0x7ff678ccd6c5
+github.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunkJS.gowrap4()
+	github.com/evanw/esbuild/internal/linker/linker.go:, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +56070x2c9c + fp=0x3b8fd3194ba8 sp=0x3b8fd31944b8 pc=0x7ff678b3dcdc
+0x86 fp=0x34b41301dfe0 sp=0x34b41301df58 pc=0x7ff678cdc9c6
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008runtime.goexit, 0x1, 0x0, 0x0({})
+	)
+	runtime/asm_amd64.sgithub.com/evanw/esbuild/internal/js_parser/js_parser.go::39451771 +0x1 +0x3dfd fp=0x3b8fd3195028 fp=0x34b41301dfe8 sp= sp=0x3b8fd3194ba80x34b41301dfe0 pc=0x7ff67888b581
+ pc=created by 0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunkJS in goroutine github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a00859
+, 	github.com/evanw/esbuild/internal/linker/linker.go:5607 +0xb2b0x1, 0x0, 
+0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go
+goroutine 9 gp=0x34b412ddf860:4234 +0x35 fp=0x3b8fd3195078 sp=0x3b8fd3195028 pc=0x7ff678b4b895
+ m=nil [GC worker (idle)]:
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...runtime.gopark(
+runtime stack:
+)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs(0x0?0x3b8fd2e5a008)
+	, github.com/evanw/esbuild/internal/js_parser/js_parser.go:5146 +0x14f fp=0x3b8fd3195150 sp=0x3b8fd3195078 pc=0x7ff678b51baf
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a008, 0x0?, 0x0{?{0x7ff678edfac0?, 0x3b8fd2e55d40?, 0x0}, {?, 0x00xd3195400?)
+	runtime/proc.go?}}:462 +, 0x14, 0x0, 0x2f?0xce fp=)
+	0x34b412b83f40 sp=0x34b412b83f20github.com/evanw/esbuild/internal/js_parser/js_parser.go: pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(4517 +0x2165 fp=0x3b8fd3195490 sp=0x3b8fd3195150 pc=0x34b412b0c4d0)
+	runtime/mgc.go0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x8, 0x0, 0x0)
+:1791 +0xeb fp=0x34b412b83fc8 sp=	github.com/evanw/esbuild/internal/js_parser/js_parser.go:0x34b412b83f40 pc=0x7ff67882a30b4251 +0xd9 fp=0x3b8fd31954e0
+ sp=0x3b8fd3195490 pc=runtime.gcBgMarkStartWorkers.gowrap1()
+	0x7ff678b4b939
+)
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr	runtime/mgc.go(:...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:42251695 +0x17 fp=
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a0080x34b412b83fe0 sp=, 0x34b412b83fc8 pc=0x7ff67882a1f7{{0x7ff678edfb60
+runtime.goexit({})
+	runtime/asm_amd64.s:?, 0x3b8fd2e573a01771 +0x1 fp=?0x34b412b83fe8} sp=0x34b412b83fe0 pc=0x7ff67888b581
+, created by {runtime.gcBgMarkStartWorkers0xd3195800?} in goroutine 8
+}	runtime/mgc.go:1695, 0x1, 0x3b8fd3196188, 0x10?)
+	 +0x105
+github.com/evanw/esbuild/internal/js_parser/js_parser.go:4843 +0x74d fp=0x3b8fd3195820 sp=0x3b8fd31954e0 pc=0x7ff678b4c14d
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1
+goroutine 10 gp=0x34b412ddfa40 m=nil, 0x3b8fd3196188, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go [GC worker (idle)]:
+runtime.gopark(0x0?, :4261 +0x150 fp=0x3b8fd3195870 sp=0x3b8fd3195820 pc=0x7ff678b4b9b0
+0x0github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412c8bf40 sp=0x34b412c8bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412c8bfc8 sp=0x34b412c8bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412c8bfe0 sp=0x34b412c8bfc8 pc=0x7ff67882a1f7
+runtime.goexit(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412c8bfe8 sp=0x34b412c8bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+0x3b8fd2e5a008, {0x40?	runtime/mgc.go:1695 +0x105
+}
+goroutine 11 gp=0x34b412ddfc20 m=nil, 0x0, { [GC worker (idle)]:
+{runtime.gopark(0x0?, 0x0?0x0, , 0x0?, 0x0?, 0x00x0, ?)
+	0x0}, 0x0, 0x0, {{0x0}runtime/proc.go:462 +0xce fp=0x34b412c8df40 sp=0x34b412c8df20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412c8dfc8 sp=0x34b412c8df40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412c8dfe0 sp=0x34b412c8dfc8 pc=0x7ff67882a1f7
+, 0x0}, runtime.goexit({})
+...}, ...	runtime/asm_amd64.s:1771 +0x1 fp=)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +0x2c9c fp=0x3b8fd3195f60 sp=0x3b8fd3195870 pc=0x7ff678b3dcdc
+0x34b412c8dfe8 sp=0x34b412c8dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go
+goroutine 12 gp=:3945 +0x3dfd fp=0x3b8fd31963e0 sp=0x3b8fd3195f600x34b412e86000 m=nil [GC worker (idle)]:
+runtime.gopark(0x328d000000f3? pc=0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +, 0x10000eb60?, 0x0?0x35 fp=0x3b8fd3196430 sp=0x3b8fd31963e0 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(, 0x0?, 0xf312e58008?)
+	runtime/proc.go:462 +0xce fp=...)
+0x34b412e8df40 sp=0x34b412e8df20	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs(0x3b8fd2e5a008 pc=0x7ff678883e8e
+)
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+		github.com/evanw/esbuild/internal/js_parser/js_parser.go:runtime/mgc.go:5146 +0x14f fp=0x3b8fd3196508 sp=0x3b8fd3196430 pc=0x7ff678b51baf1791 +0xeb
+ fp=github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a0080x34b412e8dfc8 sp=0x34b412e8df40 pc=, {{0x7ff678edfac00x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +?, 0x3b8fd2e55b800x17 fp=0x34b412e8dfe0?}, {0x0 sp=0x34b412e8dfc8 pc=0x7ff67882a1f7?}}, 0x14, 0x3b8fd3196af0, 0x0
+runtime.goexit({?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4517 +0x2165 fp=0x3b8fd3196848 sp=0x3b8fd3196508 pc=})
+	runtime/asm_amd64.s0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon:1771 +0x1 fp=0x34b412e8dfe8 sp=0x34b412e8dfe0 pc=0x7ff67888b581(0x3b8fd2e5a008, 0x1, 0x3b8fd3196af0, 0x0)
+	
+created by github.com/evanw/esbuild/internal/js_parser/js_parser.go:4251 +runtime.gcBgMarkStartWorkers in goroutine 80xd9 fp=0x3b8fd3196898 sp=
+	runtime/mgc.go0x3b8fd3196848 pc=0x7ff678b4b939
+:1695 +0x105
+
+goroutine 13github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(... gp=0x34b412e861e0 m=nil [GC worker (idle)]:
+)
+runtime.gopark	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+(0x34b412e90398?github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd3197680, 0x0)
+, 0x20?, 0x0?	github.com/evanw/esbuild/internal/js_parser/js_parser.go, 0x0?, 0x5000000000000:3877 +0x36a9?)
+	runtime/proc.go:462 +0xce fp=0x34b412e8ff40 fp=0x3b8fd3196d18 sp=0x3b8fd3196898 pc=0x7ff678b4a169 sp=0x34b412e8ff20 pc=0x7ff678883e8e
+
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xebgithub.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon( fp=0x34b412e8ffc8 sp=0x34b412e8ff40 pc=0x3b8fd2e5a008, 0x1, 0x3b8fd3197680, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go0x7ff67882a30b
+:runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:4234 +0x351695 +0x17 fp=0x34b412e8ffe0 sp=0x34b412e8ffc8 pc=0x7ff67882a1f7 fp=0x3b8fd3196d68
+runtime.goexit({} sp=0x3b8fd3196d18 pc=0x7ff678b4b895
+)
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412e8ffe8 sp=0x34b412e8ffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 14 gp=0x34b412e863c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x1?)
+	runtime/proc.go:462 +0xce fp=0x34b412e89f40 sp=0x34b412e89f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412e89fc8 sp=0x34b412e89f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412e89fe0 sp=0x34b412e89fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412e89fe8 sp=0x34b412e89fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 15 gp=0x34b412e865a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x7ff678b97c12?, 0x34b412e58008?, 0x90?, 0x12?, 0x34b412eba9a0?)
+	runtime/proc.go:462 +0xce fp=0x34b412e8bf40 sp=0x34b412e8bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412e8bfc8 sp=0x34b412e8bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412e8bfe0 sp=0x34b412e8bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412e8bfe8 sp=0x34b412e8bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 16 gp=0x34b412e86780 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed47530778?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412f85f40 sp=0x34b412f85f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412f85fc8 sp=0x34b412f85f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412f85fe0 sp=0x34b412f85fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412f85fe8 sp=0x34b412f85fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 34 gp=0x34b412e86960 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed476519a4?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412f87f40 sp=0x34b412f87f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412f87fc8 sp=0x34b412f87f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412f87fe0 sp=0x34b412f87fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412f87fe8 sp=0x34b412f87fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 35 gp=0x34b412e86b40 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed47530778?, 0x34b412d47400?, 0x1c?, 0xa?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412f81f40 sp=0x34b412f81f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1791 +0xeb fp=0x34b412f81fc8 sp=0x34b412f81f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412f81fe0 sp=0x34b412f81fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412f81fe8 sp=0x34b412f81fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 37 gp=0x34b412e86f00 m=nil [runnable]:
+runtime.gopark(0x7ff679302480?, 0x7ff678889937?, 0x0?, 0x40?, 0x7ff678815765?)
+	runtime/proc.go:462 +0xce fp=0x34b412f8de38 sp=0x34b412f8de18 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.semacquire1(0x7ff6792f9e84, 0x0, 0x0, 0x0, 0xd)
+	runtime/sema.go:192 +0x245 fp=0x34b412f8dea0 sp=0x34b412f8de38 pc=0x7ff678863305
+runtime.semacquire(...)
+	runtime/sema.go:143
+runtime.gcMarkDone()
+	runtime/mgc.go:1018 +0x32 fp=0x34b412f8df40 sp=0x34b412f8dea0 pc=0x7ff678828532
+runtime.gcBgMarkWorker(0x34b412b0c4d0)
+	runtime/mgc.go:1912 +0x2d9 fp=0x34b412f8dfc8 sp=0x34b412f8df40 pc=0x7ff67882a4f9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x34b412f8dfe0 sp=0x34b412f8dfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412f8dfe8 sp=0x34b412f8dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 66 gp=0x34b412e085a0 m=nil [sync.WaitGroup.Wait]:
+runtime.gopark(0x34b412d236e8?, 0x7ff67881e685?, 0xe0?, 0xc0?, 0x34b412bde160?)
+	runtime/proc.go:462 +0xce fp=0x34b412d23688 sp=0x34b412d23668 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.semacquire1(0x34b412deb3a8, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x245 fp=0x34b412d236f0 sp=0x34b412d23688 pc=0x7ff678863305
+sync.runtime_SemacquireWaitGroup(0x7ff678ca8460?, 0x60?)
+	runtime/sema.go:114 +0x2e fp=0x34b412d23728 sp=0x34b412d236f0 pc=0x7ff67888528e
+sync.(*WaitGroup).Wait(0x34b412deb3a0)
+	sync/waitgroup.go:206 +0x85 fp=0x34b412d23750 sp=0x34b412d23728 pc=0x7ff678897e25
+github.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunksInParallel(0x34b412bde160, {0x0, 0x0, 0x8?})
+	github.com/evanw/esbuild/internal/linker/linker.go:624 +0x3d7 fp=0x34b412d23ad8 sp=0x34b412d23750 pc=0x7ff678ca8a77
+github.com/evanw/esbuild/internal/linker.Link(0x34b412d48c08, 0x0, {0x34b412b76900, runtime.gcMarkTermination.forEachP.func7()
+	runtime/proc.go:2126 +0x3f fp=0x7a9a9ffd00 sp=0x7a9a9ffcd0 pc=0x7ff678829edf
+runtime.systemstack(0xe0572388000)
+	runtime/asm_amd64.s:562 +0x49 fp=0x7a9a9ffd10 sp=0x7a9a9ffd00 pc=0x7ff678889949
+
+goroutine 18 gp=0xe057235e1e0 m=5 mp=0xe0572380008 [flushing proc caches]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0xe05726109a0 sp=0xe0572610990 pc=0x7ff6788898e8
+runtime.forEachP(...)
+	runtime/proc.go:2112
+runtime.gcMarkTermination({0x20?, 0xa2ed477e4e60?, 0xc?, 0x28?})
+	runtime/mgc.go:1545 +0x61f fp=0xe0572610be8 sp=0xe05726109a0 pc=0x7ff67882953f
+runtime.gcMarkDone()
+	runtime/mgc.go:1173 +0x39e fp=0xe0572610c88 sp=0xe0572610be8 pc=0x7ff67882889e
+runtime.gcAssistAlloc(0xe057235e1e0)
+	runtime/mgcmark.go:647 +0x2fd fp=0xe0572610d18 sp=0xe0572610c88 pc=0x7ff67882d05d
+runtime.deductAssistCredit(0x1?)
+	runtime/malloc.go:1861 +0x46 fp=0xe0572610d38 sp=0xe0572610d18 pc=0x7ff67881efc6
+runtime.mallocgc(0x108, 0x7ff678e30ec0, 0x1)
+	runtime/malloc.go:1113 +0x67 fp=0xe0572610d68 sp=0xe0572610d38 pc=0x7ff678881b67
+runtime.newarray(0xe057235e1e0?, 0xe0572610e28?)
+	runtime/malloc.go:2201 +0x5e fp=0xe0572610d90 sp=0xe0572610d68 pc=0x7ff678881d9e
+internal/runtime/maps.newarray(0x7ff678b43d20?, 0xe05725d8008?)
+	runtime/malloc.go:2231 +0x13 fp=0xe0572610db0 sp=0xe0572610d90 pc=0x7ff678881e33
+internal/runtime/maps.newGroups(...)
+	internal/runtime/maps/group.go:321
+internal/runtime/maps.(*Map).growToSmall(0xe0572492600, 0x7ff67884aa94?)
+	internal/runtime/maps/map.go:599 +0x25 fp=0xe0572610dd0 sp=0xe0572610db0 pc=0x7ff678804945
+runtime.mapassign_faststr(0x7ff678e1e6a0, 0xe0572492600, {0xe05725c225f, 0x1})
+	internal/runtime/maps/runtime_faststr.go:284 +0xd9 fp=0xe0572610e98 sp=0xe0572610dd0 pc=0x7ff678809cf9
+github.com/evanw/esbuild/internal/js_parser.(*parser).declareSymbol(0xe05725d8008, 0x1, {0xe05?}, {0xe05725c225f, 0x1})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:1519 +0x54b fp=0xe0572610f58 sp=0xe0572610e98 pc=0x7ff678b363ab
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseArrowBody.(*parser).declareBinding.func1({0x78b47c01?}, 0xe0572663000)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:1722 +0x65 fp=0xe0572610f98 sp=0xe0572610f58 pc=0x7ff678b42625
+runtime.throw({0x7ff678eb450b?, 0x7ff678874740?})
+	runtime/panic.go:1229 +0x4d fp=0x9e89ff638 sp=0x9e89ff608 pc=0x7ff678883d6d
+runtime.stkbucket(0x1, 0x800, {0x284c61cdbb00, 0xb, 0x0?}, 0x1)
+	runtime/mprof.go:284 +0x3c5 fp=0x9e89ff698 sp=0x9e89ff638 pc=0x7ff678841a25
+runtime.mProf_Malloc(0x284c61d19008, 0x284c61d80008, 0x800)
+	runtime/mprof.go:450 +0xd7 fp=0x9e89ff718 sp=0x9e89ff698 pc=0x7ff678841cd7
+runtime.profilealloc(0x284c61d19008?, 0x284c61d80008?, 0x800?)
+	runtime/malloc.go:2245 +0x9b fp=0x9e89ff748 sp=0x9e89ff718 pc=0x7ff67881f15b
+runtime.mallocgcSmallScanHeader(0x0?, 0x7ff678e41c60)
+	runtime/malloc.go:1674 +0x296 fp=0x9e89ff7a0 sp=0x9e89ff748 pc=0x7ff67881ea16
+runtime.mallocgc(0x7f8, 0x7ff678e41c60, 0x1)
+	runtime/malloc.go:1152 +0xac fp=0x9e89ff7d0 sp=0x9e89ff7a0 pc=0x7ff678881bac
+runtime.newobject(0x284c61d19528?)
+	runtime/malloc.go:2157 +0x25 fp=0x9e89ff7f8 sp=0x9e89ff7d0 pc=0x7ff67881f0a5
+runtime.allocm(0x284c61d06008, 0x7ff678ed9818, 0x5)
+	runtime/proc.go:2324 +0x91 fp=0x9e89ff850 sp=0x9e89ff7f8 pc=0x7ff678852bd1
+runtime.newm(0x20000?, 0x284c61d06008, 0xa2ed4887fb44?)
+	runtime/proc.go:2870 +0x35 fp=0x9e89ff880 sp=0x9e89ff850 pc=0x7ff678853675
+runtime.startm(0x284c61d06008?, 0x1, 0x0)
+	runtime/proc.go:3096 +0x130 fp=0x9e89ff8c8 sp=0x9e89ff880 pc=0x7ff678853d10
+runtime.wakep()
+	runtime/proc.go:3243 +0xec fp=0x9e89ff8f8 sp=0x9e89ff8c8 pc=0x7ff678883fec
+runtime.resetspinning()
+	runtime/proc.go:4034 +0x3e fp=0x9e89ff918 sp=0x9e89ff8f8 pc=0x7ff67885637e
+runtime.schedule()
+	runtime/proc.go:4199 +0x127 fp=0x9e89ff958 sp=0x9e89ff918 pc=0x7ff6788568a7
+runtime.mstart1()
+	runtime/proc.go:1942 +0xd7 fp=0x9e89ff980 sp=0x9e89ff958 pc=0x7ff678852477
+runtime.mstart0()
+	runtime/proc.go:1888 +0x6a fp=0x9e89ff9a8 sp=0x9e89ff980 pc=0x7ff67885238a
+runtime.mstart()
+	runtime/asm_amd64.s:426 +0xc fp=0x9e89ff9b0 sp=0x9e89ff9a8 pc=0x7ff67888982c
+
+goroutine 1 gp=0x284c61d0e000 m=nil [chan receive, locked to thread]:
+runtime.gopark(0x1499a9d0108?, 0x2000000000080?, 0xd0?, 0xb0?, 0x1499a9d0108?)
+	runtime/proc.go:462 +0xce fp=0x284c61d15e80 sp=0x284c61d15e60 pc=0x7ff678883e8e
+runtime.chanrecv(0x284c61cb4100, 0x0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x284c61d15ef8 sp=0x284c61d15e80 pc=0x7ff6788163ce
+runtime.chanrecv1(0x0?, 0x2?)
+	runtime/chan.go:509 +0x12 fp=0x284c61d15f20 sp=0x284c61d15ef8 pc=0x7ff678815ef2
+runtime.gcenable()
+	runtime/mgc.go:216 +0xb1 fp=0x284c61d15f48 sp=0x284c61d15f20 pc=0x7ff678827891
+runtime.main()
+	runtime/proc.go:213 +0x17a fp=0x284c61d15fe0 sp=0x284c61d15f48 pc=0x7ff67884ee5a
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x284c61d15fe8 sp=0x284c61d15fe0 pc=0x7ff67888b581
+
+goroutine 2 gp=0x284c61d0e780 m=nil [runnable]:
+runtime.forcegchelper()
+	runtime/proc.go:366 fp=0x284c61d11fe0 sp=0x284c61d11fd8 pc=0x7ff67884f1e0
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x284c61d11fe8 sp=0x284c61d11fe0 pc=0x7ff67888b581
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x284c61d0eb40 m=nil [runnable]:
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 fp=0x284c61d13fe0 sp=0x284c61d13fd8 pc=0x7ff678827900
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x284c61d13fe8 sp=0x284c61d13fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x284c61d0ed20 m=nil [runnable]:
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 fp=0x284c61d23fe0 sp=0x284c61d23fd8 pc=0x7ff6788278c0
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x284c61d23fe8 sp=0x284c61d23fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+0x34b412d2d8f0, 0x34b412af2600, 0x34b412f3a420, 0x6, 0x34b412b29080}, {0x7ff678eec490, 0x34b412f454c0}, ...)
+	github.com/evanw/esbuild/internal/linker/linker.go:349 +0x1197 fp=0x34b412d23f68 sp=0x34b412d23ad8 pc=0x7ff678ca5e77
+github.com/evanw/esbuild/internal/bundler.(*Bundle).Compile(0x34b412c68008, {0x34b412ea2b60, 0x34b412af25b8, 0x34b412af2600, 0x34b412f3a420, 0x6, 0x34b412b29080}, 0x0, 0x0, 0x7ff678ed9308)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:3084 +0x98f fp=0x34b412d24650 sp=0x34b412d23f68 pc=0x7ff678c5a3ef
+github.com/evanw/esbuild/pkg/api.transformImpl({_, _}, {0x0, 0x0, 0x0, 0x0, 0x34b412b28fc0, 0x0, 0x0, {0x0, ...}, ...})
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1829 +0x1545 fp=0x34b412d25980 sp=0x34b412d24650 pc=0x7ff678cfc405
+github.com/evanw/esbuild/pkg/api.Transform(...)
+	github.com/evanw/esbuild/pkg/api/api.go:487
+main.(*serviceType).handleTransformRequest(0x0?, 0x1, 0x34b412f081e0)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:1184 +0x3ce fp=0x34b412d25f60 sp=0x34b412d25980 pc=0x7ff678d4226e
+main.(*serviceType).handleIncomingPacket.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:242 +0x57 fp=0x34b412d25fe0 sp=0x34b412d25f60 pc=0x7ff678d3af37
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412d25fe8 sp=0x34b412d25fe0 pc=0x7ff67888b581
+created by main.(*serviceType).handleIncomingPacket in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:240 +0x1772
+
+goroutine 59 gp=0x34b412b90960 m=nil [sync.WaitGroup.Wait]:
+runtime.gopark(0x0?, 0x0?, 0x30?, 0x49?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x34b412e10dc8 sp=0x34b412e10da8 pc=0x7ff678883e8e
+
+runtime stack:
+runtime.goparkunlockruntime.throw({0x7ff678eb450b?(, ...0x4fa53ff318	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty(0x3b8fd2e5a008, {0x40?}, 0x0, {{0x0, 0x0, 0x0}, 0x0, 0x0, {{0x0}, 0x0}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +0x2c9c fp=0x3b8fd3197458 sp=0x3b8fd3196d68 pc=0x7ff678b3dcdc
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3945 +0x3dfd fp=0x3b8fd31978d8 sp=0x3b8fd3197458 pc=0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd3197928 sp=0x3b8fd31978d8 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs(0x3b8fd2e5a008)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5146 +0x14f fp=0x3b8fd3197a00 sp=0x3b8fd3197928 pc=0x7ff678b51baf
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a008, {{0x7ff678edfac0?, 0x3b8fd2e54e80?}, {0x0?}}, 0x14, 0x0, 0xc0?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4517 +0x2165 fp=0x3b8fd3197d40 sp=0x3b8fd3197a00 pc=0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x0, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4251 +0xd9 fp=0x3b8fd3197d90 sp=0x3b8fd3197d40 pc=0x7ff678b4b939
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(0x3b8fd2e5a610?, 0x1?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225 +0x17 fp=0x3b8fd3197dc0 sp=0x3b8fd3197d90 pc=0x7ff678b4b837
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0x3b8fd2e5a008, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8231 +0x19e5 fp=0x3b8fd3198720 sp=)
+?}	runtime/proc.go:468
+runtime.semacquire1(0x34b412deb648, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x245 fp=0x34b412e10e30 sp=0x34b412e10dc8 pc=0x7ff678863305
+sync.runtime_SemacquireWaitGroup(0x98?, 0x21?)
+	runtime/sema.go:114 +0x2e fp=0x34b412e10e68 sp=0x34b412e10e30 pc=0x7ff67888528e
+sync.(*WaitGroup).Wait(0x34b412deb640)
+	sync/waitgroup.go:2060x3b8fd3197dc0)
+ pc=0x7ff678b62105
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmtsUpTo(	runtime/panic.go:1229 +0x4d fp=0x4fa53ff2d8 sp=0x4fa53ff2a8 pc=0x7ff678883d6d0x3b8fd2e5a008, 0x12, {0x0,  +0x85 fp=0x34b412e10e90 sp=0x34b412e10e68 pc=0x7ff678897e25
+
+github.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunkJS(0x34b412bde160, 0x1?, 0x34b412deb3a0)
+	github.com/evanw/esbuild/internal/linker/linker.go:5669 +0x137c fp=0x34b412e11fb8 sp=0x34b412e10e90 pc=0x7ff678cd6ddc
+0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8529 +0xe8 fp=0x3b8fd3198880 sp=0x3b8fd3198720 pc=0x7ff678b6a5c8
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFnBody(0x3b8fd2e5a008, {0x0, 0x0, {{0x0}, 0x0}, {0x1579}, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8481 +0x17a fp=0x3b8fd3198960 sp=0x3b8fd3198880 pc=0x7ff678b69e5a
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFn(0x3b8fd2e5a008, 0x148a?, {{0x0?}, 0x0?}, 0x0, {0x0, 0x0, {{0x0}, 0x0}, {0x1579}, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:6362 +0x7cd fp=0x3b8fd3198ad8 sp=0x3b8fd3198960 pc=0x7ff678b5a60d
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFnStmt(0x3b8fd2e5a008, {0x1?}, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:6819 +0x60f fp=0x3b8fd3198d38 sp=0x3b8fd3198ad8 pc=0x7ff678b5eaef
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0x3b8fd2e5a008, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:7428 +0x1d7e fp=0x3b8fd3199698 sp=0x3b8fd3198d38 pc=0x7ff678b6249e
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmtsUpTo(0x3b8fd2e5a008, 0x12, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8529 +0xe8 fp=0x3b8fd31997f8 sp=0x3b8fd3199698 pc=0x7ff678b6a5c8
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFnBody(0x3b8fd2e5a008, {0x0, 0x0, {{0x0}, 0x0}, {0x7f}, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8481 +0x17a fp=0x3b8fd31998d8 sp=0x3b8fd31997f8 pc=0x7ff678b69e5a
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFn(0x3b8fd2e5a008, 0x0?, {{0x0?}, 0x0?}, 0x0, {0x0, 0x0, {{0x0}, 0x0}, {0x7f}, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:6362 +0x7cd fp=0x3b8fd3199a50 sp=0x3b8fd31998d8 pc=0x7ff678b5a60d
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFnExpr(0x3b8fd2e5a008, {0x0?}, 0x0, {{0x0?}, 0x0?})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3136 +0x508 fp=0x3b8fd3199c68 sp=0x3b8fd3199a50 pc=0x7ff678b43b08
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd2e522e0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3803 +0x299f fp=0x3b8fd319a0e8 sp=0x3b8fd3199c68 pc=0x7ff678b4945f
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd319a2e0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd319a138 sp=0x3b8fd319a0e8 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseParenExpr(0x3b8fd2e5a008, {0x0?}, 0x1, {{{0x0?}, 0x0?}, 0x0?, 0x0?})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3194 +0x2aa fp=0x3b8fd319a450 sp=0x3b8fd319a138 pc=0x7ff678b4410a
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd2e53238, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3548 +0x1219 fp=0x3b8fd319a8d0 sp=0x3b8fd319a450 pc=0x7ff678b47cd9
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd319b238, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd319a920 sp=0x3b8fd319a8d0 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseProperty(0x3b8fd2e5a008, {0x65db0108?}, 0x0, {{0x0, 0x0, 0x0}, 0x0, 0x0, {{0x0}, 0x0}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2730 +0x2c9c fp=0x3b8fd319b010 sp=0x3b8fd319a920 pc=0x7ff678b3dcdc
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x3b8fd319b738, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3945 +0x3dfd fp=0x3b8fd319b490 sp=0x3b8fd319b010 pc=0x7ff678b4a8bd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x3b8fd319b738, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd319b4e0 sp=0x3b8fd319b490 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrBindings(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4221
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3877 +0x36a9 fp=0x3b8fd319b960 sp=0x3b8fd319b4e0 pc=0x7ff678b4a169
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0x3b8fd319b9b0 sp=0x3b8fd319b960 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseCallArgs(0x3b8fd2e5a008)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5146 +0x14f fp=0x3b8fd319ba88 sp=0x3b8fd319b9b0 pc=0x7ff678b51baf
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseSuffix(0x3b8fd2e5a008, {{0x7ff678edfac0?, 0x3b8fd2d5c200?}, {0x0?}}, 0x0, 0x0, 0x0?)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4517 +0x2165 fp=0x3b8fd319bdc8 sp=0x3b8fd319ba88 pc=0x7ff678b4db65
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0x3b8fd2e5a008, 0x0, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4261 +0x150 fp=0x3b8fd319be18 sp=0x3b8fd319bdc8 pc=0x7ff678b4b9b0
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprOrLetOrUsingStmt(0x0?, {0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5040 +0xa5d fp=0x3b8fd319bf10 sp=0x3b8fd319be18 pc=0x7ff678b519fd
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0x3b8fd2e5a008, {0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8280 +0x6a77 fp=0x3b8fd319c870 sp=0x3b8fd319bf10 pc=0x7ff678b67197
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmtsUpTo(0x3b8fd2e5a008, 0x0, {0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8529 +0xe8 fp=0x3b8fd319c9d0 sp=0x3b8fd319c870 pc=0x7ff678b6a5c8
+github.com/evanw/esbuild/internal/js_parser.Parse({_, _, _, _, _, _}, {{{0x3b8fd2d9c88d, 0x2d}, {0x3b8fd2d9c88d, 0x2d}}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:17851 +0x44f fp=0x3b8fd319d570 sp=0x3b8fd319c9d0 pc=0x7ff678bb2d0f
+github.com/evanw/esbuild/internal/cache.(*JSCache).Parse(_, {_, _, _, _, _, _}, {{{0x3b8fd2d9c88d, 0x2d}, {0x3b8fd2d9c88d, ...}}, ...}, ...)
+	github.com/evanw/esbuild/internal/cache/cache_ast.go:170 +0x2da fp=0x3b8fd319dc70 sp=0x3b8fd319d570 pc=0x7ff678bfb3da
+github.com/evanw/esbuild/internal/bundler.parseFile({{0x7ff678eec490, 0x3b8fd2d5c100}, {0x3b8fd2d5e070, 0x3b8fd2ccc4b0, 0x3b8fd2ccc4c8, 0x3b8fd2d507a0, 0x6, 0x3b8fd2d03a40}, 0x3b8fd2cc6908, 0x3b8fd2d121e0, ...})
+	github.com/evanw/esbuild/internal/bundler/bundler.go:269 +0xce9 fp=0x3b8fd319f600 sp=0x3b8fd319dc70 pc=0x7ff678c3b449
+github.com/evanw/esbuild/internal/bundler.(*scanner).maybeParseFile.gowrap1()
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1634 +0x385 fp=0x3b8fd319ffe0 sp=0x3b8fd319f600 pc=0x7ff678c49e25
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd319ffe8 sp=0x3b8fd319ffe0 pc=0x7ff67888b581
+created by github.com/evanw/esbuild/internal/bundler.(*scanner).maybeParseFile in goroutine 21
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1634 +0xca9
+
+goroutine 9 gp=0x3b8fd2e6a780 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462github.com/evanw/esbuild/internal/js_ast.ForEachIdentifierBinding +0xce fp=0x3b8fd2d4bf40 sp=0x3b8fd2d4bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd2d4bfc8 sp=0x3b8fd2d4bf40 pc=0x7ff67882a30b
+runtime/mgc.goruntime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd2d4bfe0 sp=0x3b8fd2d4bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d4bfe8 sp=0x3b8fd2d4bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 10 gp=0x3b8fd2e6a960 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2d57f40 sp=0x3b8fd2d57f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd2d57fc8 sp=0x3b8fd2d57f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd2d57fe0 sp=0x3b8fd2d57fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2d57fe8 sp=0x3b8fd2d57fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 11 gp=0x3b8fd2e6ab40 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2f9bf40 sp=0x3b8fd2f9bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd2f9bfc8 sp=0x3b8fd2f9bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd2f9bfe0 sp=0x3b8fd2f9bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2f9bfe8 sp=0x3b8fd2f9bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 12 gp=0x3b8fd2e6ad20 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd2f9df40 sp=0x3b8fd2f9df20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd2f9dfc8 sp=0x3b8fd2f9df40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd2f9dfe0 sp=0x3b8fd2f9dfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd2f9dfe8 sp=0x3b8fd2f9dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 13 gp=0x3b8fd2e6af00 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31a5f40 sp=0x3b8fd31a5f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31a5fc8 sp=0x3b8fd31a5f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31a5fe0 sp=0x3b8fd31a5fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31a5fe8 sp=0x3b8fd31a5fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 14 gp=0x3b8fd2e6b0e0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31a7f40 sp=0x3b8fd31a7f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31a7fc8 sp=0x3b8fd31a7f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31a7fe0 sp=0x3b8fd31a7fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31a7fe8 sp=0x3b8fd31a7fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 15 gp=0x3b8fd2e6b2c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31a1f40 sp=0x3b8fd31a1f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31a1fc8 sp=0x3b8fd31a1f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31a1fe0 sp=0x3b8fd31a1fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31a1fe8 sp=0x3b8fd31a1fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 16 gp=0x3b8fd2e6b4a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31a3f40 sp=0x3b8fd31a3f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31a3fc8 sp=0x3b8fd31a3f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31a3fe0 sp=0x3b8fd31a3fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31a3fe8 sp=0x3b8fd31a3fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 50 gp=0x3b8fd2e6b680 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31adf40 sp=0x3b8fd31adf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31adfc8 sp=0x3b8fd31adf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31adfe0 sp=0x3b8fd31adfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31adfe8 sp=0x3b8fd31adfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 52 gp=0x3b8fd2e6ba40 m=3 mp=0x3b8fd2d4f008 [GC worker (active)]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x3b8fd31a9f40 sp=0x3b8fd31a9f30 pc=0x7ff6788898e8
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1847 +0x1e5 fp=0x3b8fd31a9fc8 sp=0x3b8fd31a9f40 pc=0x7ff67882a405
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31a9fe0 sp=0x3b8fd31a9fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31a9fe8 sp=0x3b8fd31a9fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 53 gp=0x3b8fd2e6bc20 m=nil [GC worker (idle)]:
+runtime.gopark(0x7ff679342c20?, 0x1?, 0xa0?, 0xe1?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x3b8fd31abf40 sp=0x3b8fd31abf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x3b8fd2ce63f0)
+	runtime/mgc.go:1791 +0xeb fp=0x3b8fd31abfc8 sp=0x3b8fd31abf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x3b8fd31abfe0 sp=0x3b8fd31abfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x3b8fd31abfe8 sp=0x3b8fd31abfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+({{0x7ff678edf900?, 0xe0572663000?}, {0x78886066?}}, 0xe0572611180)
+	github.com/evanw/esbuild/internal/js_ast/js_ast_helpers.go:3001 +0xcf fp=0xe0572611038 sp=0xe0572610f98 pc=0x7ff678adc52f:
+runtime.newArenaMayUnlock()
+	1695runtime/mheap.go:3022 +0xa5 fp=runtime/mgc.gogithub.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunksInParallel.gowrap2:github.com/evanw/esbuild/internal/js_parser.(*parser).declareBinding0x4fa53ff318( sp=0x4fa53ff2d8 pc=0x7ff67883d2c5
+runtime.newMarkBits(0x4fa53ff388?706 +0x17 fp=0x1dab7cd9bfe0 sp=0x1dab7cd9bfc8)
+ +)
+0xdc fp=	runtime/mheap.go0x3e6a15ef3b08 pc=:2942 +0x12e0x7ff67882a1f7 fp=
+ sp=0x4fa53ff3600x3e6a15ef3b00 sp=0x4fa53ff318 pc=runtime.goexit0x7ff67883cf8e
+( pc=runtime.(*mheap).initSpan(0x7ff679303980, 0x21568a43b40, 0x0, 0x4c, 0x2cba5c500000, 0x1, 0x4fa53ff490?)
+	runtime/mheap.go:1493 +0x15f fp=0x4fa53ff398 sp=0x4fa53ff360 pc=0x7ff67883a8bf
+runtime.(*mheap).allocSpan(0x7ff679303980, 0x1, 0x0, 0x4c)
+	runtime/mheap.go:1393 +0x465 fp=0x4fa53ff448 sp=0x4fa53ff398 pc=0x7ff67883a565
+runtime.(*mheap).alloc.func1()
+	runtime/mheap.go:1017 +0x5c fp=0x4fa53ff490 sp=0x4fa53ff448 pc=0x7ff678839d5c
+runtime.(*mheap).alloc(0x4fa53ff568?, 0x7ff678848405?, 0x28?)
+	runtime/mheap.go:1011 +0x57 fp=0x4fa53ff4d8 sp=0x4fa53ff490 pc=0x7ff678839cb7
+runtime.(*mcentral).grow(0x2cba5c1272c0?)
+	runtime/mcentral.go:253 +0x36 fp=0x4fa53ff508 sp=0x4fa53ff4d8 pc=0x7ff678822376
+runtime.(*mcentral).cacheSpan(0x7ff679317718)
+	runtime/mcentral.go:171 +0x454 fp=0x4fa53ff580 sp=0x4fa53ff508 pc=0x7ff6788221f4
+runtime.(*mcache).refill(0x215637e1b90, 0x98?)
+	runtime/mcache.go:205 +0x16b fp=0x4fa53ff5c0 sp=0x4fa53ff580 pc=0x7ff6788217cb
+{0x7ff678827b9cruntime.(*mcache).nextFree(0x215637e1b90, 0x4c)
+	runtime/malloc.go:1006 +0x7e fp=0x4fa53ff5f8 sp=0x4fa53ff5c0 pc=0x7ff67881dcde
+runtime.mallocgcSmallScanHeader(0x1?, 0x7ff678e41c60)
+	runtime/malloc.go:1627 +0x18e fp=0x4fa53ff650 sp=0x4fa53ff5f8 pc=0x7ff67881e90e
+runtime.mallocgc(0x7f8, 0x7ff678e41c60, 0x1)
+	runtime/malloc.go:1152 +0xac fp=0x4fa53ff680 sp=0x4fa53ff650 pc=0x7ff678881bac
+runtime.newobject(0x2cba00000000?)
+	runtime/malloc.go:2157 +0x25 fp=0x4fa53ff6a8 sp=0x4fa53ff680 pc=0x7ff67881f0a5
+runtime.allocm(0x2cba5c122008, 0x7ff678ed9818, 0x8)
+	runtime/proc.go:2324 +0x91 fp=0x4fa53ff700 sp=0x4fa53ff6a8 pc=0x7ff678852bd1
+runtime.newm(0x2cba5c0b000c?, 0x2cba5c122008, 0xa2ed476d43e0?)
+	runtime/proc.go:2870 +0x35 fp=0x4fa53ff730 sp=0x4fa53ff700 pc=0x7ff678853675
+runtime.startm(0x2cba5c122008?, 0x1, 0x0)
+	runtime/proc.go:3096 +0x130 fp=0x4fa53ff778 sp=0x4fa53ff730 pc=0x7ff678853d10
+runtime.wakep()
+	runtime/proc.go:3243 +0xec fp=0x4fa53ff7a8 sp=0x4fa53ff778 pc=0x7ff678883fec
+runtime.schedule()
+	runtime/proc.go:4221 +0x209 fp=0x4fa53ff7e8 sp=0x4fa53ff7a8 pc=0x7ff678856989
+runtime.park_m(0x2cba5c188960)
+	runtime/proc.go:4304 +0x285 fp=0x4fa53ff848 sp=0x4fa53ff7e8 pc=0x7ff678856cc5
+runtime.mcall()
+	runtime/asm_amd64.s:496 +0x5a fp=0x4fa53ff860 sp=0x4fa53ff848 pc=0x7ff6788898ba
+
+goroutine 1 gp=0x2cba5c126000 m=0 mp=0x7ff6792fa680 [syscall]:
+runtime.cgocall(0x7ff6788120e0, 0x7ff6792fa9d0)
+	runtime/cgocall.go:167 +0x3e fp=0x2cba5c1ad9b0 sp=0x2cba5c1ad948 pc=0x7ff67888127e
+syscall.syscalln(0x0?, 0x0?, {0x2cba5c1ada28?, 0xf32bf0c70abf4947?, 0x0?})
+	runtime/syscall_windows.go:431 +0x4e fp=0x2cba5c1ad9d0 sp=0x2cba5c1ad9b0 pc=0x7ff678887aae
+syscall.SyscallN(0x5?, {0x2cba5c1ada28?, 0x2cba5c195557?, 0x7ff6788058c9?})
+	syscall/dll_windows.go:99 +0x1e fp=0x2cba5c1ada08 sp=0x2cba5c1ad9d0 pc=0x7ff6788b88de
+syscall.readFile(0x614, {0x2cba5c206000?, 0x4000, 0x30?}, 0x7ff678ddeea0?, 0x2cba5c18bbc0?)
+	syscall/zsyscall_windows.go:1030 +0xba fp=0x2cba5c1ada80 sp=0x2cba5c1ada08 pc=0x7ff6788bdd7a
+syscall.ReadFile(...)
+	syscall/syscall_windows.go:510
+internal/poll.(*FD).Read.func1(0x7ff6792e6520?)
+	internal/poll/fd_windows.go:586 +0x4a fp=0x2cba5c1adac8 sp=0x2cba5c1ada80 pc=0x7ff6788db74a
+internal/poll.(*FD).execIO(0x2cba5c15a000, 0x72, 0x2cba5c1adc48)
+	internal/poll/fd_windows.go:304 +0x2c9 fp=0x2cba5c1adbc8 sp=0x2cba5c1adac8 pc=0x7ff6788da709
+internal/poll.(*FD).Read(0x2cba5c15a000, {0x2cba5c206000, 0x4000, 0x4000})
+	internal/poll/fd_windows.go:585 +0x290 fp=0x2cba5c1adc90 sp=0x2cba5c1adbc8 pc=0x7ff6788db430
+os.(*File).read(...)
+	os/file_posix.go:30
+os.(*File).Read(0x2cba5c0aa058, {0x2cba5c206000?, 0xa?, 0x2cba5c182268?})
+	os/file.go:144 +0x4f fp=0x2cba5c1adcd0 sp=0x2cba5c1adc90 pc=0x7ff6788e04ef
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:134 +0x37f fp=0x2cba5c1addf8 sp=0x2cba5c1adcd0 pc=0x7ff678d3629f
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb16 fp=0x2cba5c1adf48 sp=0x2cba5c1addf8 pc=0x7ff678d34a16
+runtime.main()
+	runtime/proc.go:290 +0x2c7 fp=0x2cba5c1adfe0 sp=0x2cba5c1adf48 pc=0x7ff67884efa7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c1adfe8 sp=0x2cba5c1adfe0 pc=0x7ff67888b581
+
+goroutine 2 gp=0x2cba5c126780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c129fa8 sp=0x2cba5c129f88 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.forcegchelper()
+	runtime/proc.go:375 +0xb8 fp=0x2cba5c129fe0 sp=0x2cba5c129fa8 pc=0x7ff67884f298
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c129fe8 sp=0x2cba5c129fe0 pc=0x7ff67888b581
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x2cba5c126b40 m=nil [GC sweep wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c12bf88 sp=0x2cba5c12bf68 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.bgsweep(0x2cba5c0cc100)
+	runtime/mgcsweep.go:279 +0x94 fp=0x2cba5c12bfc8 sp=0x2cba5c12bf88 pc=0x7ff6788364b4
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 +0x17 fp=0x2cba5c12bfe0 sp=0x2cba5c12bfc8 pc=0x7ff678827917
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c12bfe8 sp=0x2cba5c12bfe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x2cba5c126d20 m=nil [runnable]:
+runtime.gopark(0x2cba5c0cc100?, 0x7ff678eda1e0?, 0x1?, 0x0?, 0x2cba5c126d20?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c13bf78 sp=0x2cba5c13bf58 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff6792f9300)
+	runtime/mgcscavenge.go:425 +0x49 fp=0x2cba5c13bfa8 sp=0x2cba5c13bf78 pc=0x7ff678833fe9
+runtime.bgscavenge(0x2cba5c0cc100)
+	runtime/mgcscavenge.go:653 +0x3c fp=0x2cba5c13bfc8 sp=0x2cba5c13bfa8 pc=0x7ff67883455c
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0x2cba5c13bfe0 sp=0x2cba5c13bfc8 pc=0x7ff6788278d7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c13bfe8 sp=0x2cba5c13bfe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x2cba5c1270e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c13de20 sp=0x2cba5c13de00 pc=0x7ff678883e8e
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x107 fp=0x2cba5c13dfe0 sp=0x2cba5c13de20 pc=0x7ff6788268a7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c13dfe8 sp=0x2cba5c13dfe0 pc=0x7ff67888b581
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 18 gp=0x2cba5c1881e0 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c137f68 sp=0x2cba5c137f48 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6792f95e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0x2cba5c137fa0 sp=0x2cba5c137f68 pc=0x7ff678823734
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0x2cba5c137fe0 sp=0x2cba5c137fa0 pc=0x7ff678823da5
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c137fe8 sp=0x2cba5c137fe0 pc=0x7ff67888b581
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 19 gp=0x2cba5c1883c0 m=nil [chan receive]:
+runtime.gopark(0x2cba5c15a0c0?, 0x7ff678815ef2?, 0x0?, 0x0?, 0x7ff6788dc740?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c12dee8 sp=0x2cba5c12dec8 pc=0x7ff678883e8e
+runtime.chanrecv(0x2cba5c204000, 0x2cba5c12dfb0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0x2cba5c12df60 sp=0x2cba5c12dee8 pc=0x7ff6788163ce
+runtime.chanrecv2(0x2cba5c0aa060?, 0x2cba5c43c000?)
+	runtime/chan.go:514 +0x12 fp=0x2cba5c12df88 sp=0x2cba5c12df60 pc=0x7ff678815f12
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45 fp=0x2cba5c12dfe0 sp=0x2cba5c12df88 pc=0x7ff678d36725
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c12dfe8 sp=0x2cba5c12dfe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 20 gp=0x2cba5c1885a0 m=nil [sleep]:
+runtime.gopark(0xa2ed46169eb0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c139f48 sp=0x2cba5c139f28 pc=0x7ff678883e8e
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 fp=0x2cba5c139fa0 sp=0x2cba5c139f48 pc=0x7ff678887d87
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:124 +0x48 fp=0x2cba5c139fe0 sp=0x2cba5c139fa0 pc=0x7ff678d36608
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c139fe8 sp=0x2cba5c139fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30c
+
+goroutine 22 gp=0x2cba5c188960 m=nil [sync.WaitGroup.Wait]:
+runtime.gopark(0x2cba5c433868?, 0x7ff67881e654?, 0x0?, 0x0?, 0x7ff67881e026?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c433808 sp=0x2cba5c4337e8 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.semacquire1(0x2cba5c49fa88, 0x0, 0x1, 0x0, 0x19)
+	runtime/sema.go:192 +0x245 fp=0x2cba5c433870 sp=0x2cba5c433808 pc=0x7ff678863305
+sync.runtime_SemacquireWaitGroup(0x2cba5c4e3b00?, 0x60?)
+	runtime/sema.go:114 +0x2e fp=0x2cba5c4338a8 sp=0x2cba5c433870 pc=0x7ff67888528e
+sync.(*WaitGroup).Wait(0x2cba5c49fa80)
+	sync/waitgroup.go:206 +0x85 fp=0x2cba5c4338d0 sp=0x2cba5c4338a8 pc=0x7ff678897e25
+github.com/evanw/esbuild/internal/graph.CloneLinkerGraph({0x2cba5c4f52c0, 0x2, 0x2}, {0x2cba5c49fa50, 0x2, 0x2}, {0x2cba5c0ae498?, 0x1?, 0x0?}, 0x0)
+	github.com/evanw/esbuild/internal/graph/graph.go:255 +0x397 fp=0x2cba5c433ad8 sp=0x2cba5c4338d0 pc=0x7ff678c378d7
+github.com/evanw/esbuild/internal/linker.Link(0x2cba5c4fec08, 0x0, {0x2cba5c4face0, 0x2cba5c4e3aa0, 0x2cba5c0ae468, 0x2cba5c1325a0, 0x6, 0x2cba5c0e5590}, {0x7ff678eec490, 0x2cba5c13e0c0}, ...)
+	github.com/evanw/esbuild/internal/linker/linker.go:254 +0x545 fp=0x2cba5c433f68 sp=0x2cba5c433ad8 pc=0x7ff678ca5225
+github.com/evanw/esbuild/internal/bundler.(*Bundle).Compile(0x2cba5c308008, {0x2cba5c140070, 0x2cba5c0ae450, 0x2cba5c0ae468, 0x2cba5c1325a0, 0x6, 0x2cba5c0e5590}, 0x0, 0x0, 0x7ff678ed9308)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:3084 +0x98f fp=0x2cba5c434650 sp=0x2cba5c433f68 pc=0x7ff678c5a3ef
+github.com/evanw/esbuild/pkg/api.transformImpl({_, _}, {0x0, 0x0, 0x0, 0x0, 0x2cba5c0e5530, 0x0, 0x0, {0x0, ...}, ...})
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1829 +0x1545 fp=0x2cba5c435980 sp=0x2cba5c434650 pc=0x7ff678cfc405
+github.com/evanw/esbuild/pkg/api.Transform(...)
+	github.com/evanw/esbuild/pkg/api/api.go:487
+main.(*serviceType).handleTransformRequest(0x0?, 0x1, 0x2cba5c18bb90)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:1184 +0x3ce fp=0x2cba5c435f60 sp=0x2cba5c435980 pc=0x7ff678d4226e
+main.(*serviceType).handleIncomingPacket.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:242 +0x57 fp=0x2cba5c435fe0 sp=0x2cba5c435f60 pc=0x7ff678d3af37
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c435fe8 sp=0x2cba5c435fe0 pc=0x7ff67888b581
+created by main.(*serviceType).handleIncomingPacket in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:240 +0x1772
+
+goroutine 8 gp=0x2cba5c127680 m=nil [runnable]:
+runtime.Gosched(...)
+	runtime/proc.go:391
+runtime.gcAssistAlloc(0x2cba5c127680)
+	runtime/mgcmark.go:659 +0x329 fp=0x2cba5c489d08 sp=0x2cba5c489c78 pc=0x7ff67882d089
+runtime.deductAssistCredit(0x0?)
+	runtime/malloc.go:1861 +0x46 fp=0x2cba5c489d28 sp=0x2cba5c489d08 pc=0x7ff67881efc6
+runtime.mallocgc(0x27c8, 0x7ff678e85660, 0x1)
+	runtime/malloc.go:1113 +0x67 fp=0x2cba5c489d58 sp=0x2cba5c489d28 pc=0x7ff678881b67
+runtime.growslice(0x7ff6793419c0, 0x2cba5c536008?, 0x0?, 0x2cba5c3ec008?, 0x7ff678e85660)
+	runtime/slice.go:273 +0x507 fp=0x2cba5c489dc8 sp=0x2cba5c489d58 pc=0x7ff678885fc7
+github.com/evanw/esbuild/internal/graph.CloneLinkerGraph.func1(0x0)
+	github.com/evanw/esbuild/internal/graph/graph.go:172 +0x431 fp=0x2cba5c489fc8 sp=0x2cba5c489dc8 pc=0x7ff678c38571
+github.com/evanw/esbuild/internal/graph.CloneLinkerGraph.gowrap1()
+	github.com/evanw/esbuild/internal/graph/graph.go:253 +0x1a fp=0x2cba5c489fe0 sp=0x2cba5c489fc8 pc=0x7ff678c3811a
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c489fe8 sp=0x2cba5c489fe0 pc=0x7ff67888b581
+created by github.com/evanw/esbuild/internal/graph.CloneLinkerGraph in goroutine 22
+	github.com/evanw/esbuild/internal/graph/graph.go:153 +0x20e
+
+goroutine 10 gp=0x2cba5c4f54a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x2cba5c49fa98?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c48bf40 sp=0x2cba5c48bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c48bfc8 sp=0x2cba5c48bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c48bfe0 sp=0x2cba5c48bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c48bfe8 sp=0x2cba5c48bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 11 gp=0x2cba5c4f5680 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c485f40 sp=0x2cba5c485f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c485fc8 sp=0x2cba5c485f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c485fe0 sp=0x2cba5c485fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c485fe8 sp=0x2cba5c485fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 12 gp=0x2cba5c4f5860 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c487f40 sp=0x2cba5c487f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c487fc8 sp=0x2cba5c487f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c487fe0 sp=0x2cba5c487fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c487fe8 sp=0x2cba5c487fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 13 gp=0x2cba5c4f5a40 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c54df40 sp=0x2cba5c54df20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c54dfc8 sp=0x2cba5c54df40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c54dfe0 sp=0x2cba5c54dfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c54dfe8 sp=0x2cba5c54dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 14 gp=0x2cba5c4f5c20 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c54ff40 sp=0x2cba5c54ff20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c54ffc8 sp=0x2cba5c54ff40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c54ffe0 sp=0x2cba5c54ffc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c54ffe8 sp=0x2cba5c54ffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 15 gp=0x2cba5c550000 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c549f40 sp=0x2cba5c549f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c549fc8 sp=0x2cba5c549f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c549fe0 sp=0x2cba5c549fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c549fe8 sp=0x2cba5c549fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 16 gp=0x2cba5c5501e0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c54bf40 sp=0x2cba5c54bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c54bfc8 sp=0x2cba5c54bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c54bfe0 sp=0x2cba5c54bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c54bfe8 sp=0x2cba5c54bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 50 gp=0x2cba5c5503c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c557f40 sp=0x2cba5c557f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c557fc8 sp=0x2cba5c557f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c557fe0 sp=0x2cba5c557fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c557fe8 sp=0x2cba5c557fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 51 gp=0x2cba5c5505a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c559f40 sp=0x2cba5c559f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c559fc8 sp=0x2cba5c559f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c559fe0 sp=0x2cba5c559fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c559fe8 sp=0x2cba5c559fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 52 gp=0x2cba5c550780 m=nil [runnable]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0x2cba5c553f40 sp=0x2cba5c553f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1791 +0xeb fp=0x2cba5c553fc8 sp=0x2cba5c553f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c553fe0 sp=0x2cba5c553fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c553fe8 sp=0x2cba5c553fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 53 gp=0x2cba5c550960 m=7 mp=0x2cba5c2cf808 [GC worker (active)]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x2cba5c555f40 sp=0x2cba5c555f30 pc=0x7ff6788898e8
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1847 +0x1e5 fp=0x2cba5c555fc8 sp=0x2cba5c555f40 pc=0x7ff67882a405
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c555fe0 sp=0x2cba5c555fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c555fe8 sp=0x2cba5c555fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+
+goroutine 54 gp=0x2cba5c550b40 m=3 mp=0x2cba5c131008 [GC worker (active)]:
+runtime.systemstack_switch()
+	runtime/asm_amd64.s:516 +0x8 fp=0x2cba5c55ff40 sp=0x2cba5c55ff30 pc=0x7ff6788898e8
+runtime.gcBgMarkWorker(0x2cba5c0c84d0)
+	runtime/mgc.go:1847 +0x1e5 fp=0x2cba5c55ffc8 sp=0x2cba5c55ff40 pc=0x7ff67882a405
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0x2cba5c55ffe0 sp=0x2cba5c55ffc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x2cba5c55ffe8 sp=0x2cba5c55ffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 8
+	runtime/mgc.go:1695 +0x105
+	github.com/evanw/esbuild/internal/linker/linker.go:618 +0x1f fp=0x34b412e11fe0 sp=0x34b412e11fb8 pc=0x7ff678cabc1f
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0x34b412e11fe8 sp=0x34b412e11fe0 pc=0x7ff67888b581
+created by github.com/evanw/esbuild/internal/linker.(*linkerContext).generateChunksInParallel in goroutine 66
+	github.com/evanw/esbuild/internal/linker/linker.go:618 +0x385
+(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:1720
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseArrowBody(0xe05725d8008, {0xe057265f270, 0x1, 0x1}, {0x0, 0x0, {{0x0}, 0x0}, {0x425f}, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2941 +0x15e fp=0xe05726111c8 sp=0xe0572611038 pc=0x7ff678b41f3e
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0xe05725d8008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3675 +0x23ad fp=0xe0572611648 sp=0xe05726111c8 pc=0x7ff678b48e6d
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0xe05725d8008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0xe0572611698 sp=0xe0572611648 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseAndDeclareDecls(0xe05725d8008, 0x1, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5631 +0x314 fp=0xe05726117d8 sp=0xe0572611698 pc=0x7ff678b55fd4
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0xe05725d8008, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:7499 +0x3f34 fp=0xe0572612138 sp=0xe05726117d8 pc=0x7ff678b64654
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmtsUpTo(0xe05725d8008, 0x12, {0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8529 +0xe8 fp=0xe0572612298 sp=0xe0572612138 pc=0x7ff678b6a5c8
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseFnBody(0xe05725d8008, {0x0, 0x0, {{0x0}, 0x0}, {0x417e}, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8481 +0x17a fp=0xe0572612378 sp=0xe0572612298 pc=0x7ff678b69e5a
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseArrowBody(0xe05725d8008, {0xe057265a500, 0x3, 0x4}, {0x0, 0x0, {{0x0}, 0x0}, {0x417e}, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:2950 +0x1f9 fp=0xe0572612508 sp=0xe0572612378 pc=0x7ff678b41fd9
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseParenExpr(0xe05725d8008, {0x72490540?}, 0x1, {{{0x0?}, 0x50000?}, 0x8?, 0x32?})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3312 +0x1529 fp=0xe0572612820 sp=0xe0572612508 pc=0x7ff678b45389
+github.com/evanw/esbuild/internal/js_parser.(*parser).parsePrefix(0xe05725d8008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:3548 +0x1219 fp=0xe0572612ca0 sp=0xe0572612820 pc=0x7ff678b47cd9
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExprCommon(0xe05725d8008, 0x1, 0x0, 0x0)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4234 +0x35 fp=0xe0572612cf0 sp=0xe0572612ca0 pc=0x7ff678b4b895
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseExpr(...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:4225
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseAndDeclareDecls(0xe05725d8008, 0x1, {0x0, 0x1, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:5631 +0x314 fp=0xe0572612e30 sp=0xe0572612cf0 pc=0x7ff678b55fd4
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0xe05725d8008, {0x0, 0x1, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:7499 +0x3f34 fp=0xe0572613790 sp=0xe0572612e30 pc=0x7ff678b64654
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmt(0xe05725d8008, {0x0, 0x1, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:7128 +0x681a fp=0xe05726140f0 sp=0xe0572613790 pc=0x7ff678b66f3a
+github.com/evanw/esbuild/internal/js_parser.(*parser).parseStmtsUpTo(0xe05725d8008, 0x0, {0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, ...})
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:8529 +0xe8 fp=0xe0572614250 sp=0xe05726140f0 pc=0x7ff678b6a5c8
+github.com/evanw/esbuild/internal/js_parser.Parse({_, _, _, _, _, _}, {{{0x7ff678ea29c8, 0x9}, {0x7ff678ea29c8, 0x9}}, ...}, ...)
+	github.com/evanw/esbuild/internal/js_parser/js_parser.go:17851 +0x44f fp=0xe0572614df0 sp=0xe0572614250 pc=0x7ff678bb2d0f
+github.com/evanw/esbuild/internal/bundler.(*runtimeCache).parseRuntime(_, _)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:3405 +0x40c fp=0xe0572615848 sp=0xe0572614df0 pc=0x7ff678c5df0c
+github.com/evanw/esbuild/internal/bundler.ScanBundle.func2()
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1428 +0xab fp=0xe0572615fe0 sp=0xe0572615848 pc=0x7ff678c485ab
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572615fe8 sp=0xe0572615fe0 pc=0x7ff67888b581
+created by github.com/evanw/esbuild/internal/bundler.ScanBundle in goroutine 9
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1427 +0xc8b
+
+goroutine 1 gp=0xe05721b0000 m=0 mp=0x7ff6792fa680 [syscall]:
+runtime.cgocall(0x7ff6788120e0, 0x7ff6792fa9d0)
+	runtime/cgocall.go:167 +0x3e fp=0xe057220b9b0 sp=0xe057220b948 pc=0x7ff67888127e
+syscall.syscalln(0x0?, 0x0?, {0xe057220ba28?, 0xf8f0a3261c1a386f?, 0x0?})
+	runtime/syscall_windows.go:431 +0x4e fp=0xe057220b9d0 sp=0xe057220b9b0 pc=0x7ff678887aae
+syscall.SyscallN(0x5?, {0xe057220ba28?, 0xe057213b6a7?, 0x7ff6788058c9?})
+	syscall/dll_windows.go:99 +0x1e fp=0xe057220ba08 sp=0xe057220b9d0 pc=0x7ff6788b88de
+syscall.readFile(0x6ac, {0xe057223a000?, 0x4000, 0x30?}, 0x7ff678ddeea0?, 0xe0572219170?)
+	syscall/zsyscall_windows.go:1030 +0xba fp=0xe057220ba80 sp=0xe057220ba08 pc=0x7ff6788bdd7a
+syscall.ReadFile(...)
+	syscall/syscall_windows.go:510
+internal/poll.(*FD).Read.func1(0x7ff6792e6520?)
+	internal/poll/fd_windows.go:586 +0x4a fp=0xe057220bac8 sp=0xe057220ba80 pc=0x7ff6788db74a
+internal/poll.(*FD).execIO(0xe05721e4000, 0x72, 0xe057220bc48)
+	internal/poll/fd_windows.go:304 +0x2c9 fp=0xe057220bbc8 sp=0xe057220bac8 pc=0x7ff6788da709
+internal/poll.(*FD).Read(0xe05721e4000, {0xe057223a000, 0x4000, 0x4000})
+	internal/poll/fd_windows.go:585 +0x290 fp=0xe057220bc90 sp=0xe057220bbc8 pc=0x7ff6788db430
+os.(*File).read(...)
+	os/file_posix.go:30
+os.(*File).Read(0xe0572134058, {0xe057223a000?, 0xa?, 0xe0572134310?})
+	os/file.go:144 +0x4f fp=0xe057220bcd0 sp=0xe057220bc90 pc=0x7ff6788e04ef
+main.runService(0x1)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:134 +0x37f fp=0xe057220bdf8 sp=0xe057220bcd0 pc=0x7ff678d3629f
+main.main()
+	github.com/evanw/esbuild/cmd/esbuild/main.go:252 +0xb16 fp=0xe057220bf48 sp=0xe057220bdf8 pc=0x7ff678d34a16
+runtime.main()
+	runtime/proc.go:290 +0x2c7 fp=0xe057220bfe0 sp=0xe057220bf48 pc=0x7ff67884efa7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057220bfe8 sp=0xe057220bfe0 pc=0x7ff67888b581
+
+goroutine 2 gp=0xe05721b0780 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721b3fa8 sp=0xe05721b3f88 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.forcegchelper()
+	runtime/proc.go:375 +0xb8 fp=0xe05721b3fe0 sp=0xe05721b3fa8 pc=0x7ff67884f298
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721b3fe8 sp=0xe05721b3fe0 pc=0x7ff67888b581
+created by runtime.init.7 in goroutine 1
+	runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0xe05721b0b40 m=nil [runnable]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721b5f88 sp=0xe05721b5f68 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.bgsweep(0xe0572156100)
+	runtime/mgcsweep.go:279 +0x94 fp=0xe05721b5fc8 sp=0xe05721b5f88 pc=0x7ff6788364b4
+runtime.gcenable.gowrap1()
+	runtime/mgc.go:214 +0x17 fp=0xe05721b5fe0 sp=0xe05721b5fc8 pc=0x7ff678827917
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721b5fe8 sp=0xe05721b5fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0xe05721b0d20 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x7ff678eda1e0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721c5f78 sp=0xe05721c5f58 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*scavengerState).park(0x7ff6792f9300)
+	runtime/mgcscavenge.go:425 +0x49 fp=0xe05721c5fa8 sp=0xe05721c5f78 pc=0x7ff678833fe9
+runtime.bgscavenge(0xe0572156100)
+	runtime/mgcscavenge.go:658 +0x59 fp=0xe05721c5fc8 sp=0xe05721c5fa8 pc=0x7ff678834579
+runtime.gcenable.gowrap2()
+	runtime/mgc.go:215 +0x17 fp=0xe05721c5fe0 sp=0xe05721c5fc8 pc=0x7ff6788278d7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721c5fe8 sp=0xe05721c5fe0 pc=0x7ff67888b581
+created by runtime.gcenable in goroutine 1
+	runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0xe05721b10e0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721c7e20 sp=0xe05721c7e00 pc=0x7ff678883e8e
+runtime.runFinalizers()
+	runtime/mfinal.go:210 +0x107 fp=0xe05721c7fe0 sp=0xe05721c7e20 pc=0x7ff6788268a7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721c7fe8 sp=0xe05721c7fe0 pc=0x7ff67888b581
+created by runtime.createfing in goroutine 1
+	runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0xe05721b12c0 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721c1f68 sp=0xe05721c1f48 pc=0x7ff678883e8e
+runtime.goparkunlock(...)
+	runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x7ff6792f95e0)
+	runtime/mcleanup.go:522 +0xd4 fp=0xe05721c1fa0 sp=0xe05721c1f68 pc=0x7ff678823734
+runtime.runCleanups()
+	runtime/mcleanup.go:718 +0x45 fp=0xe05721c1fe0 sp=0xe05721c1fa0 pc=0x7ff678823da5
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721c1fe8 sp=0xe05721c1fe0 pc=0x7ff67888b581
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	runtime/mcleanup.go:672 +0xa5
+
+goroutine 7 gp=0xe05721b14a0 m=nil [chan receive]:
+runtime.gopark(0x0?, 0x7ff678815ef2?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721b7ee8 sp=0xe05721b7ec8 pc=0x7ff678883e8e
+runtime.chanrecv(0xe0572152380, 0xe05721b7fb0, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0xe05721b7f60 sp=0xe05721b7ee8 pc=0x7ff6788163ce
+runtime.chanrecv2(0x7ff67928a220?, 0x0?)
+	runtime/chan.go:514 +0x12 fp=0xe05721b7f88 sp=0xe05721b7f60 pc=0x7ff678815f12
+main.runService.func1()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:98 +0x45 fp=0xe05721b7fe0 sp=0xe05721b7f88 pc=0x7ff678d36725
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721b7fe8 sp=0xe05721b7fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:97 +0x1db
+
+goroutine 8 gp=0xe05721b1680 m=nil [sleep]:
+runtime.gopark(0xa2ed45b6f5a0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe05721c3f48 sp=0xe05721c3f28 pc=0x7ff678883e8e
+time.Sleep(0x3b9aca00)
+	runtime/time.go:363 +0x167 fp=0xe05721c3fa0 sp=0xe05721c3f48 pc=0x7ff678887d87
+main.runService.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:124 +0x48 fp=0xe05721c3fe0 sp=0xe05721c3fa0 pc=0x7ff678d36608
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe05721c3fe8 sp=0xe05721c3fe0 pc=0x7ff67888b581
+created by main.runService in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:122 +0x30c
+
+goroutine 9 gp=0xe05721b1860 m=nil [chan receive]:
+runtime.gopark(0xe05723000e0?, 0x140005721bb808?, 0x8?, 0x19?, 0x1adb8da2e88?)
+	runtime/proc.go:462 +0xce fp=0xe05724219d8 sp=0xe05724219b8 pc=0x7ff678883e8e
+runtime.chanrecv(0xe057241a000, 0xe0572421e40, 0x1)
+	runtime/chan.go:667 +0x4ae fp=0xe0572421a50 sp=0xe05724219d8 pc=0x7ff6788163ce
+runtime.chanrecv1(0x0?, 0x0?)
+	runtime/chan.go:509 +0x12 fp=0xe0572421a78 sp=0xe0572421a50 pc=0x7ff678815ef2
+github.com/evanw/esbuild/internal/bundler.(*scanner).scanAllDependencies(0xe057237e488)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:2186 +0x22a fp=0xe0572421fb8 sp=0xe0572421a78 pc=0x7ff678c4f94a
+github.com/evanw/esbuild/internal/bundler.ScanBundle(_, {_, _, _, _, _, _}, {_, _}, 0xe057231c0c0, ...)
+	github.com/evanw/esbuild/internal/bundler/bundler.go:1509 +0xecc fp=0xe0572422650 sp=0xe0572421fb8 pc=0x7ff678c47e8c
+github.com/evanw/esbuild/pkg/api.transformImpl({_, _}, {0x0, 0x0, 0x0, 0x0, 0xe057231e030, 0x0, 0x0, {0x0, ...}, ...})
+	github.com/evanw/esbuild/pkg/api/api_impl.go:1824 +0x143b fp=0xe0572423980 sp=0xe0572422650 pc=0x7ff678cfc2fb
+github.com/evanw/esbuild/pkg/api.Transform(...)
+	github.com/evanw/esbuild/pkg/api/api.go:487
+main.(*serviceType).handleTransformRequest(0x0?, 0x0, 0xe0572219140)
+	github.com/evanw/esbuild/cmd/esbuild/service.go:1184 +0x3ce fp=0xe0572423f60 sp=0xe0572423980 pc=0x7ff678d4226e
+main.(*serviceType).handleIncomingPacket.func3()
+	github.com/evanw/esbuild/cmd/esbuild/service.go:242 +0x57 fp=0xe0572423fe0 sp=0xe0572423f60 pc=0x7ff678d3af37
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572423fe8 sp=0xe0572423fe0 pc=0x7ff67888b581
+created by main.(*serviceType).handleIncomingPacket in goroutine 1
+	github.com/evanw/esbuild/cmd/esbuild/service.go:240 +0x1772
+
+goroutine 34 gp=0xe05725885a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0xd0?, 0xff?, 0x7ff678d3af37?)
+	runtime/proc.go:462 +0xce fp=0xe057229ff40 sp=0xe057229ff20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe057229ffc8 sp=0xe057229ff40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe057229ffe0 sp=0xe057229ffc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057229ffe8 sp=0xe057229ffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 35 gp=0xe0572588780 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe057266df40 sp=0xe057266df20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe057266dfc8 sp=0xe057266df40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe057266dfe0 sp=0xe057266dfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057266dfe8 sp=0xe057266dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 36 gp=0xe0572588960 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe057266ff40 sp=0xe057266ff20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe057266ffc8 sp=0xe057266ff40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe057266ffe0 sp=0xe057266ffc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057266ffe8 sp=0xe057266ffe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 37 gp=0xe0572588b40 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe0572669f40 sp=0xe0572669f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe0572669fc8 sp=0xe0572669f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe0572669fe0 sp=0xe0572669fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572669fe8 sp=0xe0572669fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 38 gp=0xe0572588d20 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe057266bf40 sp=0xe057266bf20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe057266bfc8 sp=0xe057266bf40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe057266bfe0 sp=0xe057266bfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057266bfe8 sp=0xe057266bfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 39 gp=0xe0572588f00 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe0572675f40 sp=0xe0572675f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe0572675fc8 sp=0xe0572675f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe0572675fe0 sp=0xe0572675fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572675fe8 sp=0xe0572675fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 40 gp=0xe05725890e0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe0572677f40 sp=0xe0572677f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe0572677fc8 sp=0xe0572677f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe0572677fe0 sp=0xe0572677fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572677fe8 sp=0xe0572677fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 41 gp=0xe05725892c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe0572671f40 sp=0xe0572671f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe0572671fc8 sp=0xe0572671f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe0572671fe0 sp=0xe0572671fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572671fe8 sp=0xe0572671fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 42 gp=0xe05725894a0 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed47530778?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe0572673f40 sp=0xe0572673f20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe0572673fc8 sp=0xe0572673f40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe0572673fe0 sp=0xe0572673fc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe0572673fe8 sp=0xe0572673fe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 43 gp=0xe0572589680 m=nil [GC worker (idle)]:
+runtime.gopark(0xa2ed47530778?, 0x0?, 0x0?, 0x0?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe057267df40 sp=0xe057267df20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)
+	runtime/mgc.go:1791 +0xeb fp=0xe057267dfc8 sp=0xe057267df40 pc=0x7ff67882a30b
+runtime.gcBgMarkStartWorkers.gowrap1()
+	runtime/mgc.go:1695 +0x17 fp=0xe057267dfe0 sp=0xe057267dfc8 pc=0x7ff67882a1f7
+runtime.goexit({})
+	runtime/asm_amd64.s:1771 +0x1 fp=0xe057267dfe8 sp=0xe057267dfe0 pc=0x7ff67888b581
+created by runtime.gcBgMarkStartWorkers in goroutine 18
+	runtime/mgc.go:1695 +0x105
+
+goroutine 44 gp=0xe0572589860 m=nil [GC worker (idle)]:
+runtime.gopark(0x7ff679342c20?, 0x1?, 0x90?, 0x3a?, 0x0?)
+	runtime/proc.go:462 +0xce fp=0xe057267ff40 sp=0xe057267ff20 pc=0x7ff678883e8e
+runtime.gcBgMarkWorker(0xe057264c070)

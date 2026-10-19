@@ -5,6 +5,9 @@ import { IsString, Length } from 'class-validator';
 import type { Request, Response } from 'express';
 import { Database } from './database.js';
 import type { Role, User } from './generated/prisma/client.js';
+import {AdminPermissions} from './admin-permissions.js';
+import { isPreviewUser, previewSessionDevice } from './preview-login.js';
+import {encryptPrivate,decryptPrivate} from './private-data.js';
 
 const scrypt = promisify(scryptCallback);
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -27,7 +30,7 @@ const cookies = (req: Request) => Object.fromEntries((req.headers.cookie ?? '').
   return [[item.slice(0, offset).trim(), item.slice(offset + 1).trim()]];
 }));
 export const publicUser = (user: User) => ({ id: user.id, nickname: user.nickname, avatar: user.avatar, tags: user.tags, roles: user.roles });
-export type AuthRequest = Request & { actor: User; authSessionId: string; csrfToken: string };
+export type AuthRequest = Request & { actor: User; authSessionId: string; csrfToken: string; permissions?:string[]; requestId?:string };
 
 export function requireOrigin(req: Request) {
   const origin = req.headers.origin;
@@ -37,7 +40,7 @@ export function requireOrigin(req: Request) {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Database, private readonly permissions:AdminPermissions) {}
   async rateLimit(key: string, maximum: number, duration: number) {
     const now = new Date();
     const expiresAt = new Date(Date.now() + duration);
@@ -53,7 +56,7 @@ export class AuthService {
     const access = token(), refresh = token();
     return { access, refresh, accessHash: digest(access), refreshHash: digest(refresh), accessExpiresAt: new Date(Date.now() + 15 * 60_000) };
   }
-  async login(username: string, password: string, ip: string) {
+  async login(username: string, password: string, ip: string, requestId = '') {
     await this.rateLimit(`admin-login-ip:${ip}`, 30, 15 * 60_000);
     await this.rateLimit(`admin-login:${ip}:${username}`, 10, 15 * 60_000);
     const user = await this.db.user.findUnique({ where: { username } });
@@ -62,11 +65,15 @@ export class AuthService {
     const valid = await passwordMatches(password, user?.passwordHash ?? dummy);
     if (!user || !valid || user.status !== 'ACTIVE' || !user.roles.some(role => role !== 'USER')) throw new UnauthorizedException('账号或密码错误');
     const credentials = this.credentials();
-    const session = await this.db.authSession.create({ data: {
+    const session = await this.db.$transaction(async tx => {
+    const row = await tx.authSession.create({ data: {
       userId: user.id, accessHash: credentials.accessHash, refreshHash: credentials.refreshHash,
       accessExpiresAt: credentials.accessExpiresAt, csrfToken: token(), expiresAt: new Date(Date.now() + 30 * 86400_000),
     } });
-    return { ...credentials, user: publicUser(user), csrfToken: session.csrfToken };
+    await tx.auditLog.create({data:{actorId:user.id,action:'auth.login',resource:'auth_session',resourceId:row.id,changes:{},requestId,ipHash:digest(ip)}});
+    return row;
+    });
+    return { ...credentials, user: {...publicUser(user),permissions:await this.permissions.resolve(user.roles)}, csrfToken: session.csrfToken };
   }
   async authenticate(req: Request) {
     const bearer = req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
@@ -74,6 +81,7 @@ export class AuthService {
     if (!value || value.length > 128) throw new UnauthorizedException('请登录');
     const session = await this.db.authSession.findUnique({ where: { accessHash: digest(value) }, include: { user: true } });
     if (!session || session.revokedAt || session.expiresAt <= new Date() || session.accessExpiresAt <= new Date() || session.user.status !== 'ACTIVE') throw new UnauthorizedException('登录已过期');
+    if (session.deviceId === previewSessionDevice && !isPreviewUser(session.user)) throw new UnauthorizedException('预览登录已关闭或过期');
     if (bearer && session.kind !== 'APP') throw new UnauthorizedException('请使用 App 登录');
     return session;
   }
@@ -84,7 +92,7 @@ export class AuthService {
     if (!value || typeof csrf !== 'string') throw new UnauthorizedException('请重新登录');
     return this.rotate(value, 'ADMIN', csrf);
   }
-  async rotate(value: string, kind: 'ADMIN' | 'APP', csrf?: string) {
+  async rotate(value: string, kind: 'ADMIN' | 'APP', csrf?: string,rotationId?:string) {
     if (value.length !== 43) throw new UnauthorizedException('请重新登录');
     const hash = digest(value);
     const credentials = this.credentials();
@@ -92,27 +100,42 @@ export class AuthService {
       // Lock token rotation; only one request can consume the current token.
       const matches = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "AuthSession" WHERE "refreshHash" = ${hash} FOR UPDATE`;
       if (!matches[0]) {
-        const consumed = await tx.consumedRefresh.findUnique({ where: { hash }, include: { session: true } });
+        const consumed = await tx.consumedRefresh.findUnique({ where: { hash }, include: { session: {include:{user:true}} } });
+        if(kind==='APP'&&rotationId&&consumed?.session.kind==='APP'){
+          await tx.$queryRaw`SELECT id FROM "AuthSession" WHERE id=${consumed.sessionId} FOR UPDATE`;
+          const session=await tx.authSession.findUniqueOrThrow({where:{id:consumed.sessionId},include:{user:true}});
+          if(consumed.requestHash===digest(rotationId)&&consumed.resultCipher&&consumed.expiresAt>new Date()&&!session.revokedAt&&session.expiresAt>new Date()&&session.user.status==='ACTIVE'&&(session.deviceId!==previewSessionDevice||isPreviewUser(session.user))){
+            const saved=JSON.parse(decryptPrivate(consumed.resultCipher)) as ReturnType<AuthService['credentials']>;
+            if(saved.refreshHash===session.refreshHash)return {...saved,user:publicUser(session.user),csrfToken:session.csrfToken};
+          }
+        }
         if (consumed && consumed.session.kind === kind && (kind === 'APP' || safeEqual(csrf ?? '', consumed.session.csrfToken))) {
           await tx.authSession.update({ where: { id: consumed.sessionId }, data: { revokedAt: new Date() } });
         }
         return null;
       }
       const session = await tx.authSession.findUniqueOrThrow({ where: { id: matches[0].id }, include: { user: true } });
+      if (session.deviceId === previewSessionDevice && !isPreviewUser(session.user)) return null;
       if (session.kind !== kind || session.revokedAt || session.expiresAt <= new Date() || session.user.status !== 'ACTIVE' || (kind === 'ADMIN' && !safeEqual(csrf ?? '', session.csrfToken))) return null;
-      await tx.consumedRefresh.create({ data: { hash, sessionId: session.id } });
+      credentials.accessExpiresAt=new Date(Math.min(credentials.accessExpiresAt.getTime(),session.expiresAt.getTime()-1));
+      await tx.consumedRefresh.updateMany({where:{sessionId:session.id,resultCipher:{not:null}},data:{resultCipher:null}});
+      await tx.consumedRefresh.create({ data: { hash, sessionId: session.id,expiresAt:session.expiresAt,...(kind==='APP'&&rotationId?{requestHash:digest(rotationId),resultCipher:encryptPrivate(JSON.stringify(credentials))}:{}) } });
       await tx.authSession.update({ where: { id: session.id }, data: { accessHash: credentials.accessHash, refreshHash: credentials.refreshHash, accessExpiresAt: credentials.accessExpiresAt } });
-      return { user: publicUser(session.user), csrfToken: session.csrfToken };
+      return { ...credentials,user: publicUser(session.user), csrfToken: session.csrfToken };
     });
     if (!result) throw new UnauthorizedException('请重新登录');
-    return { ...credentials, ...result };
+    return { ...result, user:kind==='ADMIN'?{...result.user,permissions:await this.permissions.resolve(result.user.roles)}:result.user };
   }
-  async logout(id: string) { await this.db.authSession.update({ where: { id }, data: { revokedAt: new Date() } }); }
+  async logout(id: string, requestId = '', ip = '') { await this.db.$transaction(async tx => {
+    const session=await tx.authSession.update({ where: { id }, data: { revokedAt: new Date() } });
+    await tx.deviceToken.updateMany({where:{sessionId:id},data:{enabled:false,revokedAt:new Date(),version:{increment:1}}});
+    await tx.auditLog.create({data:{actorId:session.userId,action:'auth.logout',resource:'auth_session',resourceId:id,changes:{},requestId,ipHash:ip?digest(ip):''}});
+  }); }
 }
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-  constructor(private readonly auth: AuthService) {}
+  constructor(private readonly auth: AuthService, private readonly permissions:AdminPermissions, private readonly db:Database) {}
   async canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest<AuthRequest>();
     const session = await this.auth.authenticate(req);
@@ -123,6 +146,8 @@ export class AdminGuard implements CanActivate {
       if (typeof req.headers['x-csrf-token'] !== 'string' || !safeEqual(req.headers['x-csrf-token'], session.csrfToken)) throw new ForbiddenException('请求校验失败，请刷新页面');
     }
     req.actor = session.user; req.authSessionId = session.id; req.csrfToken = session.csrfToken;
+    try{req.permissions=await this.permissions.assert(session.user.roles,req.method,req.path,req.body);}
+    catch(error){await this.db.auditLog.create({data:{actorId:req.actor.id,action:'access.denied',resource:'admin_api',changes:{method:req.method,path:req.path},requestId:req.requestId??'',ipHash:digest(req.ip??'')}});throw error;}
     return true;
   }
 }
@@ -164,12 +189,12 @@ export class AdminAuthController {
   @Post('login') @HttpCode(200)
   async login(@Body() body: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     requireOrigin(req);
-    const result = await this.auth.login(body.username, body.password, req.ip ?? 'unknown');
+    const result = await this.auth.login(body.username, body.password, req.ip ?? 'unknown', (req as AuthRequest).requestId);
     setCookies(res, result.access, result.refresh, result.csrfToken);
     return { user: result.user, csrfToken: result.csrfToken };
   }
   @Get('session') @UseGuards(AdminGuard)
-  session(@Req() req: AuthRequest) { return { user: publicUser(req.actor), csrfToken: req.csrfToken }; }
+  session(@Req() req: AuthRequest) { return { user: {...publicUser(req.actor),permissions:req.permissions??[]}, csrfToken: req.csrfToken }; }
   @Post('refresh') @HttpCode(200)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.auth.refresh(req);
@@ -178,7 +203,8 @@ export class AdminAuthController {
   }
   @Post('logout') @HttpCode(200) @UseGuards(AdminGuard)
   async logout(@Req() req: AuthRequest, @Res({ passthrough: true }) res: Response) {
-    await this.auth.logout(req.authSessionId);
+    await this.auth.logout(req.authSessionId, req.requestId, req.ip);
+    // Logout audit belongs to the administrator, even after its session is revoked.
     res.clearCookie('daoxue_access', { path: '/api/v1' });
     res.clearCookie('daoxue_refresh', { path: '/api/v1/admin/auth' });
     res.clearCookie('daoxue_csrf', { path: '/' });

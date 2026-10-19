@@ -1,0 +1,10 @@
+<template><ComposeSheet :visible="visible" :title="replyTo?'回复 '+replyTo:'发表评论'" subtitle="提交后可在评论区查看审核状态" :quote="quotedText??''" v-model="text" :maxlength="5000" :saving="submitting" :error="error" :disabled="!text.trim()" submitLabel="发送" @close="emit('close')" @submit="submit"/></template>
+<script setup lang="ts">
+import {ref,watch} from 'vue';import {request} from '../../lib/api';import ComposeSheet from '../../components/ComposeSheet.uvue';import type {ReaderSelection} from '../../lib/reader';
+const props=defineProps<{visible:boolean;resourceId:string;parentId:string|null;replyTo:string|null;quotedBlockId:string|null;quotedText:string|null;quotedRanges?:ReaderSelection[];articleVersion?:number}>();
+const emit=defineEmits<{close:[];submitted:[]}>();
+const text=ref(''),submitting=ref(false),error=ref('');
+const drafts=new Map<string,string>();let activeKey='';
+watch(()=>props.visible,visible=>{if(visible){activeKey=props.resourceId+':'+(props.parentId??'')+':'+(props.quotedText??'');text.value=drafts.get(activeKey)??'';error.value='';}else drafts.set(activeKey,text.value);});
+async function submit(){if(submitting.value||!text.value.trim())return;submitting.value=true;error.value='';try{await request('/articles/'+props.resourceId+'/comments',{method:'POST',data:{body:text.value.trim(),quotedBlockId:props.quotedBlockId,parentId:props.parentId,...(props.quotedRanges?.length?{quotedRanges:props.quotedRanges.map(({blockId,rangeStart,rangeEnd})=>({blockId,rangeStart,rangeEnd})),articleVersion:props.articleVersion}:{})}});text.value='';drafts.delete(activeKey);emit('submitted');emit('close');}catch(e){error.value=(e as Error).message;}finally{submitting.value=false;}}
+</script>

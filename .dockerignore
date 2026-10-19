@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/.umi*
+**/unpackage
+**/.env
+**/.media
+**/generated
+.git
+.runtime
+.playwright-cli
+node_modules.c-move-backup-*
+outputs
+work
+docs/design-reference
+*.log

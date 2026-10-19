@@ -1,0 +1,11 @@
+{
+  "version": "0.3.3",
+  "versionCode": 8,
+  "device": "Honor JDY-AN00",
+  "installed": true,
+  "launched": true,
+  "login": "user will sign in with existing development account",
+  "apiPort": 3000,
+  "adminPort": 5173,
+  "sha256": "838ef9d3feaef159e97c3289bb07b125632c676a9e0ce168c36edbff6c315cba"
+}

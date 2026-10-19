@@ -1,0 +1,12 @@
+Sun Oct 11 05:46:16 AM UTC 2026
+ 13:46:16 up 129 days, 15:33,  0 users,  load average: 0.07, 0.18, 0.16
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2        59G   45G   13G  79% /
+               total        used        free      shared  buff/cache   available
+Mem:            3655        1603         652          28        1400        1733
+Swap:           2047         810        1237
+/opt/daoxue-academy/releases/20261011-membership-01
+daoxue-edge-1 Up 29 minutes nginx:1.28-bookworm
+daoxue-api-1 Up 29 minutes (healthy) daoxue-api:20261011-membership-01
+daoxue-database-1 Up 19 hours (healthy) postgres:17.10-bookworm
+active

@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-16T07:28:19.876754+00:00",
+  "cloudBuildTerminal": true,
+  "cloudBuildResult": "rejected_before_submission",
+  "reason": "App __UNI__AA1E366 has not enabled uni-push 2.0",
+  "developerCenter": "login_required",
+  "existingBrowserDcloudSession": false,
+  "localProjectAssociatedAliyunSpaces": [],
+  "cliResult": "cloud functions:OK; no associated spaces listed",
+  "productionPushEnabled": false,
+  "recovery": "Application owner logs in, enables uni-push 2.0, binds a uniCloud service space, then configure gateway and platform channels",
+  "repeatedCloudBuildSubmitted": false
+}

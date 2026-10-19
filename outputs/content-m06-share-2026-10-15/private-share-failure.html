@@ -1,0 +1,341 @@
+<!DOCTYPE html><html lang="zh-CN" style="font-size: 16.64px; --status-bar-height: 0px; --top-window-height: 0px; --window-left: 0px; --window-right: 0px; --window-margin: 0px; --tab-bar-height: 60px; --window-top: calc(0px + env(safe-area-inset-top)); --window-bottom: calc(0px + env(safe-area-inset-bottom));"><head>
+		<link rel="stylesheet" href="/assets/uni.880a22cb.css">
+
+		<meta charset="UTF-8">
+		<link rel="icon" type="image/png" href="/assets/app-icon-72-XRV9HKDL.png">
+		<script>
+			var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
+				CSS.supports('top: constant(a)'))
+			document.write(
+				'<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
+				(coverSupport ? ', viewport-fit=cover' : '') + '" />')
+		</script><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+		<title>道学书院</title>
+		<style>
+			/* App styles are isolated per component; reset Web button decoration here. */
+			uni-button::after { border: 0; }
+			uni-button[disabled] { opacity: .5; }
+		</style>
+		<!--preload-links-->
+		<!--app-context-->
+		<script type="module" crossorigin="" src="/assets/index-lFwB3ayp.js"></script>
+		<link rel="stylesheet" crossorigin="" href="/assets/index-DOfJFxZJ.css">
+	<style type="text/css">
+	/**
+	 * 透明背景
+	 */
+.uni-loading-mask {
+		display: flex;
+		height: 100%;
+		width: 100%;
+		justify-content: center;
+		align-items: center;
+		background-color: rgba(0, 0, 0, 0);
+		transition-duration: 0.1s;
+		transition-property: opacity;
+		opacity: 0;
+}
+.uni-loading-mask--show {
+		opacity: 1;
+}
+
+	/**
+	 * 居中的内容展示区域
+	 */
+.uni-loading-dialog {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-width: 136px;
+
+
+
+
+		max-width: 80%;
+
+		height: 136px;
+		padding: 10px;
+		background-color: rgba(76, 76, 76, 0.95);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		border-radius: 10px;
+		opacity: 0;
+		transform: scale(0.9);
+		transition-duration: 0.1s;
+		transition-property: opacity, transform;
+}
+.uni-loading-dialog.uni-loading-dialog--show {
+		opacity: 1;
+		transform: scale(1);
+}
+.uni-loading-dialog__spinner {
+		width: 36px;
+		height: 36px;
+		border-color: white;
+}
+.uni-loading-dialog__title {
+		margin-top: 14px;
+		color: white;
+		font-size: 16px;
+		lines: 1;
+		text-align: center;
+		text-overflow: ellipsis;
+
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+}
+</style><link rel="modulepreload" as="script" crossorigin="" href="/assets/pages-auth-login.BI0oSi1x.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/SafeTop.uvue_vue_type_style_index_0_lang.DIPUm8Eo.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/AppIcon.uvue_vue_type_style_index_0_lang.Cni7aH4a.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/ArtImage.D0e1YEim.js"><link rel="stylesheet" href="/assets/ArtImage-3mfFqZcE.css"><link rel="stylesheet" href="/assets/login-FpLesgL1.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/pages-profile-index.HY5vrP1g.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/InkBackdrop.C4kKl4Mu.js"><link rel="stylesheet" href="/assets/InkBackdrop-DomH5BXI.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/presentation.iLB-nBLB.js"><link rel="stylesheet" href="/assets/index-nMssfN6E.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/pages-profile-library.B1dOyleE.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/date-time.ONXp7V_j.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/PageHead.BHlSGrFB.js"><link rel="stylesheet" href="/assets/PageHead-DwrSK5JX.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/ContentState.CUZYggTL.js"><link rel="stylesheet" href="/assets/ContentState-DzAYKqqH.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/ComposeSheet.yJQ-f2YT.js"><link rel="stylesheet" href="/assets/ComposeSheet-BbPxQvyK.css"><link rel="stylesheet" href="/assets/library-D63kbFVD.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/pages-community-editor.CFhBmuia.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/BottomBar.Bt0uqelh.js"><link rel="stylesheet" href="/assets/BottomBar-CihuB3lD.css"><link rel="modulepreload" as="script" crossorigin="" href="/assets/teaching.C_2VMbpB.js"><link rel="stylesheet" href="/assets/editor-CCLAn1Nv.css"><style type="text/css">
+.uni-action-sheet_dialog__mask {
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    transition: opacity 0.1s;
+}
+.uni-action-sheet_dialog__mask__show {
+    opacity: 1;
+}
+.uni-action-sheet_dialog__container {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    z-index: 999;
+    transform: translate(0, 100%);
+    transition-property: transform;
+    transition-duration: 0.15s;
+    background-color: #f7f7f7;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.uni-action-sheet_dialog__menu {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    overflow: hidden;
+}
+.uni-action-sheet_dialog__container.uni-action-sheet_dialog__show {
+    transform: translate(0, 0);
+}
+.uni-action-sheet_dialog__title,
+  .uni-action-sheet_dialog__cell,
+  .uni-action-sheet_dialog__action {
+    padding: 16px;
+}
+.uni-action-sheet_dialog__title__text,
+  .uni-action-sheet_dialog__cell__text,
+  .uni-action-sheet_dialog__action__text {
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.uni-action-sheet_dialog__action {
+    margin-top: 8px;
+}
+.uni-action-sheet_dialog__title__text {
+    color: #666666;
+}
+.uni-action-sheet_dialog__cell__text,
+  .uni-action-sheet_dialog__action__text {
+    color: #000000;
+}
+.uni-action-sheet_dialog__menu,
+  .uni-action-sheet_dialog__action,
+  .uni-action-sheet_dialog__safe-area {
+    background-color: #ffffff;
+}
+.uni-action-sheet_dialog__cell__container {
+    max-height: 330px;
+
+    display: block;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.uni-action-sheet_dialog__hover {
+		background-color: #efefef;
+}
+.uni-action-sheet_dialog__hover__dark__mode {
+		background-color: #1c1c1c;
+}
+.divider{
+    height: 1px;
+    background-color: #e5e5e5;
+    transform: scaleY(0.5);
+}
+.divider.uni-action-sheet_dark__mode {
+    background-color: #2F3131;
+}
+.uni-action-sheet_dialog__container.uni-action-sheet_dark__mode {
+    background-color: #1D1E1E;
+}
+.uni-action-sheet_dialog__menu.uni-action-sheet_dark__mode,
+  .uni-action-sheet_dialog__action.uni-action-sheet_dark__mode {
+    background-color: #2C2C2B;
+}
+.uni-action-sheet_dialog__title__text.uni-action-sheet_dark__mode {
+    color: #999999;
+}
+.uni-action-sheet_dialog__cell__text.uni-action-sheet_dark__mode,
+  .uni-action-sheet_dialog__action__text.uni-action-sheet_dark__mode {
+    color: #ffffff;
+}
+
+
+  /* landscape mode */
+.uni-action-sheet_dialog__container.uni-action-sheet_landscape__mode {
+    width: 300px;
+    position: fixed;
+    left: 50%;
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    z-index: 999;
+    transform: translate(-50%, -50%);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.uni-action-sheet_dialog__menu.uni-action-sheet_landscape__mode {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.3);
+}
+.uni-action-sheet_dialog__action.uni-action-sheet_landscape__mode {
+    display: none;
+}
+.uni-action-sheet_dialog__cell__container.uni-action-sheet_landscape__mode {
+    max-height: 260px;
+}
+.uni-action-sheet_dialog__title.uni-action-sheet_landscape__mode,
+  .uni-action-sheet_dialog__cell.uni-action-sheet_landscape__mode,
+  .uni-action-sheet_dialog__action.uni-action-sheet_landscape__mode {
+    padding: 10px 6px;
+}
+.uni-action-sheet_dialog__menu {
+    display: block;
+}
+.uni-action-sheet_dialog__title,
+  .uni-action-sheet_dialog__cell,
+  .uni-action-sheet_dialog__action {
+    display: block;
+    text-align: center;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.uni-action-sheet_dialog__cell,
+  .uni-action-sheet_dialog__action {
+    cursor: pointer;
+}
+.uni-action-sheet_dialog__triangle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin-left: -6px;
+    border-style: solid;
+}
+
+
+
+
+
+
+
+
+  /* web wide screen */
+@media screen and (min-width: 500px) and (min-height: 500px) {
+.uni-action-sheet_dialog__mask {
+      background: none;
+}
+.uni-action-sheet_dialog__container {
+      width: 300px;
+      position: fixed;
+      left: 50%;
+      right: auto;
+      top: 50%;
+      bottom: auto;
+      z-index: 999;
+      border-radius: 5px;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.3);
+}
+.uni-action-sheet_dialog__show {
+      transform: translate(-50%, -50%) !important;
+}
+.uni-action-sheet_dialog__menu {
+      border-radius: 5px;
+}
+.uni-action-sheet_dialog__cell__container {
+      max-height: 260px;
+}
+.uni-action-sheet_dialog__action {
+      display: none;
+}
+.uni-action-sheet_dialog__title {
+      font-size: 15px;
+}
+.uni-action-sheet_dialog__title,
+    .uni-action-sheet_dialog__cell,
+    .uni-action-sheet_dialog__action {
+      padding: 10px 6px;
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</style><link rel="modulepreload" as="script" crossorigin="" href="/assets/pages-community-detail.CY6nSO4R.js"><link rel="modulepreload" as="script" crossorigin="" href="/assets/report-modal.BSqJMkY8.js"><link rel="stylesheet" href="/assets/report-modal-B6OXtNzG.css"><link rel="stylesheet" href="/assets/detail-C89lIS8L.css"></head>
+	<body uvue="" uvue-dir-column="" data-v-3f577a9a="" style="--background-color-content: transparent;">
+		<div id="app" data-v-app=""><uni-app data-v-bf43d73e="" class=""><uni-page data-page="pages/community/detail" type=""><!----><uni-page-wrapper style="--uni-safe-area-inset-top: 0px; --uni-safe-area-inset-left: 0px; --uni-safe-area-inset-right: 0px; --uni-safe-area-inset-bottom: 0px;"><uni-page-body data-v-bf43d73e="" data-v-3f577a9a=""><uni-view data-v-3f577a9a="" data-v-bf43d73e="" class="page" id="d5e77f0a-7f5b-4679-8902-87b13e809e75"><uni-view data-v-a0bbcfc4="" data-v-3f577a9a="" data-v-bf43d73e="" class="page-head" style="padding-top: 10px;"><uni-view data-v-a0bbcfc4="" class="head-action icon-control"><uni-image data-v-a0bbcfc4="" style="width: 21px; height: 21px;"><div style="background-image: url(&quot;/static/icons/arrow-left.png&quot;); background-position: center center; background-size: contain;"></div><span></span><img src="/static/icons/arrow-left.png" draggable="false"></uni-image><uni-button data-v-a0bbcfc4="" id="" class="icon-hit-target" aria-label="返回"><!----></uni-button></uni-view><uni-text data-v-a0bbcfc4="" class="head-title"><span>研习讨论</span></uni-text><uni-view data-v-a0bbcfc4="" class="head-action icon-control"></uni-view></uni-view><uni-scroll-view data-v-3f577a9a="" data-v-bf43d73e="" class="page-scroll"><div class="uni-scroll-view"><div class="uni-scroll-view uni-scroll-view-scrollbar-hidden" style="overflow: hidden auto;"><!----><div class="uni-scroll-view-content"><uni-view data-v-3f577a9a="" data-v-bf43d73e="" class="content"><!----><uni-text data-v-3f577a9a="" data-v-bf43d73e="" class="tag"><span>日常研习</span></uni-text><uni-text data-v-3f577a9a="" data-v-bf43d73e="" class="page-title"><span>倾听的日常实践</span></uni-text><uni-view data-v-3f577a9a="" data-v-bf43d73e="" class="row between"><uni-text data-v-3f577a9a="" data-v-bf43d73e="" class="meta"><span>研习者 · 2026-10-16</span></uni-text><uni-button data-v-3f577a9a="" data-v-bf43d73e="" id="" class="small-action">更多</uni-button></uni-view><uni-text data-v-3f577a9a="" data-v-bf43d73e="" class="review-note"><span>待审核，仅自己可见</span></uni-text><uni-text data-v-3f577a9a="" data-v-bf43d73e="" class="thread-copy" user-select="true"><span>只公开先听后说这一点心得。</span></uni-text><!----><!----><uni-view data-v-3f577a9a="" data-v-bf43d73e="" class="thread-reactions"><uni-button data-v-3f577a9a="" data-v-bf43d73e="" id="" class="reaction-button" disabled="true">赞同 · 0</uni-button><uni-button data-v-3f577a9a="" data-v-bf43d73e="" id="" class="reaction-button" disabled="true">收藏 · 0</uni-button></uni-view><!----></uni-view></div></div></div></uni-scroll-view><!----><!----></uni-view></uni-page-body><uni-resize-sensor><div><div></div></div><div><div></div></div></uni-resize-sensor></uni-page-wrapper></uni-page><uni-tabbar class="uni-tabbar-bottom" style="display: none;"><div class="uni-tabbar" style="background-color: rgb(250, 248, 242); backdrop-filter: none;"><div class="uni-tabbar-border" style="background-color: rgba(255, 255, 255, 0.33);"></div><div class="uni-tabbar__item"><div class="uni-tabbar__bd" style="height: 60px;"><div class="uni-tabbar__icon uni-tabbar__icon__diff" style="width: 24px; height: 24px;"><img src="/static/icons/house.png"></div><div class="uni-tabbar__label" style="color: rgb(120, 128, 132); font-size: 11px; line-height: normal; margin-top: 5px;">首页</div><!----></div></div><div class="uni-tabbar__item"><div class="uni-tabbar__bd" style="height: 60px;"><div class="uni-tabbar__icon uni-tabbar__icon__diff" style="width: 24px; height: 24px;"><img src="/static/icons/book-open.png"></div><div class="uni-tabbar__label" style="color: rgb(120, 128, 132); font-size: 11px; line-height: normal; margin-top: 5px;">学堂</div><!----></div></div><div class="uni-tabbar__item"><div class="uni-tabbar__bd" style="height: 60px;"><div class="uni-tabbar__icon uni-tabbar__icon__diff" style="width: 24px; height: 24px;"><img src="/static/icons/compass.png"></div><div class="uni-tabbar__label" style="color: rgb(120, 128, 132); font-size: 11px; line-height: normal; margin-top: 5px;">发现</div><!----></div></div><div class="uni-tabbar__item"><div class="uni-tabbar__bd" style="height: 60px;"><div class="uni-tabbar__icon uni-tabbar__icon__diff" style="width: 24px; height: 24px;"><img src="/static/icons/bag.png"></div><div class="uni-tabbar__label" style="color: rgb(120, 128, 132); font-size: 11px; line-height: normal; margin-top: 5px;">好物</div><!----></div></div><div class="uni-tabbar__item"><div class="uni-tabbar__bd" style="height: 60px;"><div class="uni-tabbar__icon uni-tabbar__icon__diff" style="width: 24px; height: 24px;"><img src="/static/icons/user-active.png"></div><div class="uni-tabbar__label" style="color: rgb(36, 85, 100); font-size: 11px; line-height: normal; margin-top: 5px;">我的</div><!----></div></div></div><div class="uni-placeholder" style="height: 60px;"></div></uni-tabbar></uni-app></div>
+	
+
+<div style="position: absolute; left: 0px; top: 0px; width: 0px; height: 0px; z-index: -1; overflow: hidden; visibility: hidden;"><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-top);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 400px; height: 400px;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-top);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 250%; height: 250%;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-left);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 400px; height: 400px;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-left);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 250%; height: 250%;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-right);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 400px; height: 400px;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-right);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 250%; height: 250%;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-bottom);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 400px; height: 400px;"></div></div><div style="position: absolute; width: 100px; height: 200px; box-sizing: border-box; overflow: hidden; padding-bottom: env(safe-area-inset-bottom);"><div style="transition: all; animation: auto ease 0s 1 normal none running none; width: 250%; height: 250%;"></div></div></div></body></html>

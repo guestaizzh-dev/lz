@@ -1,11 +1,11 @@
 <template>
-<view class="lesson-row" @click="select()">
+<view hover-class="row-pressed" :class="['lesson-row',active?'lesson-row-active':'']" @click="select()">
 <text class="lesson-number">{{String(lesson.position).padStart(2,'0')}}</text>
-<view class="lesson-copy"><text class="lesson-title" @click.stop="select()">{{lesson.title}}</text><text class="lesson-meta">{{lesson.format==='TEXT'?'图文研习':duration(lesson.durationSeconds)}}{{lesson.trial?' · 试听':''}}{{lesson.progress?.completedAt?' · 已完成':''}}</text></view>
-<AppIcon :name="lesson.accessible?'play':'lock'" :size="18"/>
+<view class="lesson-copy"><text class="lesson-title" @click.stop="select()">{{lesson.title}}</text><text class="lesson-meta">{{lessonType(lesson.format)}}{{lesson.format==='TEXT'?'':' · '+duration(lesson.durationSeconds)}}{{lesson.trial?' · 免费试学':''}}{{lesson.progress?.completedAt?' · 已完成':''}}</text><text v-if="lesson.live" class="lesson-meta">{{formatChinaTime(lesson.live!.scheduledAt)}}（北京） · {{liveStates[lesson.live!.state]??'直播安排'}}</text><text v-if="lesson.opensAt" class="lesson-meta">{{lesson.accessible?'已开放':'待开放'}} · {{formatChinaTime(lesson.opensAt!)}}（北京）</text></view>
+<AppIcon :name="!lesson.accessible?'lock':lesson.format==='TEXT'?'book-open':lesson.format==='AUDIO'?'headphones':'video-camera'" :size="18"/>
 </view>
 </template>
 <script setup lang="ts">
-import AppIcon from './AppIcon.uvue';import {duration} from '../lib/learning';import type {LessonSummary} from '../lib/learning';const props=defineProps<{lesson:LessonSummary}>();const emit=defineEmits<{select:[lesson:LessonSummary]}>();function select(){emit('select',props.lesson);}
+import {formatChinaTime} from '../lib/date-time';import AppIcon from './AppIcon.uvue';import {duration,lessonType} from '../lib/learning';import type {LessonSummary} from '../lib/learning';const liveStates:Record<string,string>={SCHEDULED:'预告',PREPARING:'准备中',LIVE:'正在直播',ENDED:'已结束',REPLAY_READY:'回放已发布',CANCELLED:'已取消'};const props=defineProps<{lesson:LessonSummary;active?:boolean}>();const emit=defineEmits<{select:[lesson:LessonSummary]}>();function select(){emit('select',props.lesson);}
 </script>
-<style>.lesson-row{flex-direction:row;align-items:center;min-height:72px;padding:14px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D8D4CA;}.lesson-number{font-size:13px;line-height:20px;color:#788084;width:30px;}.lesson-copy{flex:1;padding-right:12px;}.lesson-title{font-family:AcademySerif;font-size:16px;line-height:25px;color:#17292D;}.lesson-meta{font-size:12px;line-height:19px;color:#637276;margin-top:4px;}</style>
+<style>.lesson-row{flex-direction:row;align-items:center;min-height:72px;padding:14px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D8D4CA;}.lesson-number{font-size:13px;line-height:20px;color:#788084;width:30px;}.lesson-copy{flex:1;min-width:0;padding-right:12px;}.lesson-title{font-family:AcademySerif;font-size:16px;line-height:25px;color:#17292D;}.lesson-meta{font-size:12px;line-height:19px;color:#637276;margin-top:4px;}.lesson-row-active{background-color:#EEE9DF;border-radius:8px;padding-left:12px;padding-right:10px;}</style>

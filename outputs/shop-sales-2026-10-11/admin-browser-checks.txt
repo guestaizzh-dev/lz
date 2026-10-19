@@ -1,0 +1,16 @@
+### Result
+{"checks":["Official Pro physical order search/reset, truthful disabled collection and empty state","Legacy order history remains accessible","Product evidence drawer and empty evidence validation work without creating records","SKU stock and mandatory change reason remain in dedicated form"],"errors":[],"failedResponses":[],"productionBusinessMutations":false}
+### Ran Playwright code
+```js
+await (async page => {
+ const checks=[],errors=[],failedResponses=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().includes('/api/v1/')&&r.status()>=400)failedResponses.push({url:r.url(),status:r.status()});});await page.setViewportSize({width:1360,height:900});
+ await page.goto('https://academy.43-160-229-173.sslip.io/orders');await page.getByText('商城收款尚未开放',{exact:true}).waitFor();await page.getByRole('textbox',{name:'订单编号搜索 :',exact:true}).fill('不存在的订单');await page.getByRole('button',{name:'查 询',exact:true}).click();await page.getByRole('cell',{name:'暂无数据 暂无数据',exact:true}).waitFor();await page.getByRole('button',{name:'重 置',exact:true}).click();if(await page.getByRole('textbox',{name:'订单编号搜索 :',exact:true}).inputValue())throw Error('Search failed to reset');await page.screenshot({path:'outputs/shop-sales-2026-10-11/admin-orders.png',animations:'disabled'});checks.push('Official Pro physical order search/reset, truthful disabled collection and empty state');
+ await page.getByRole('button',{name:'查看旧订单',exact:true}).click();await page.waitForURL('**/legacy-orders');await page.getByText('库存预占与关闭记录',{exact:true}).waitFor();checks.push('Legacy order history remains accessible');
+ await page.goto('https://academy.43-160-229-173.sslip.io/products');await page.getByRole('button',{name:'来源与质量 / 配套课程',exact:true}).first().waitFor();await page.getByRole('button',{name:'来源与质量 / 配套课程',exact:true}).first().click();const d=page.getByRole('dialog').filter({hasText:'来源与配套'});await d.getByText('新增文化来源 / 质量证据',{exact:true}).waitFor();await d.getByRole('button',{name:'保存并待审核',exact:true}).click();await d.locator('.ant-form-item-explain-error').first().waitFor();await page.screenshot({path:'outputs/shop-sales-2026-10-11/admin-product-evidence.png',animations:'disabled'});checks.push('Product evidence drawer and empty evidence validation work without creating records');await d.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.getByRole('button',{name:'规格与库存',exact:true}).first().click();const inv=page.getByRole('dialog').filter({hasText:'规格与库存'});await inv.getByText('可售',{exact:true}).waitFor();await inv.getByRole('button',{name:'编辑',exact:true}).first().click();const edit=page.getByRole('dialog',{name:'规格配置',exact:true});await edit.getByLabel('变更原因',{exact:true}).waitFor();await page.screenshot({path:'outputs/shop-sales-2026-10-11/admin-sku-form.png',animations:'disabled'});await edit.getByRole('button',{name:'取 消',exact:true}).click();await inv.getByRole('button',{name:'关闭',exact:true}).click();checks.push('SKU stock and mandatory change reason remain in dedicated form');
+ if(errors.length||failedResponses.length)throw Error(JSON.stringify({errors,failedResponses}));return {checks,errors,failedResponses,productionBusinessMutations:false};
+})(page);
+```
+### Page
+- Page URL: https://academy.43-160-229-173.sslip.io/products
+- Page Title: 商品与库存 - 老子道学书院

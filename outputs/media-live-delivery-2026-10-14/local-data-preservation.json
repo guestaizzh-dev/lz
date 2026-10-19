@@ -1,0 +1,103 @@
+{
+  "preserved": true,
+  "before": {
+    "User": {
+      "count": 15,
+      "digest": "10e8e912140302819955e08fe3faafd2"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "839eb00c736691db0f0be51e27a6d447"
+    },
+    "CourseChapter": {
+      "count": 15,
+      "digest": "8fde37ec5c38534b3eaba1e8d8607878"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "17f8311359e86d54b7138ee0fe74b1ec"
+    },
+    "Lesson": {
+      "count": 12,
+      "digest": "29adceaa2d1aec16a833ea2f01bf2d37"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "3f5b2570186f97817a61f613672adf7f"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "129bcfbaedca817684b16e9614164b9b"
+    },
+    "StudyProgress": {
+      "count": 5,
+      "digest": "d85d6cd1bbc8a2c61832094f6c0a3037"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "d49af279f0b2b505a46d04f659a2b0bc"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "e35432c38bc3d6a7a023b7276637bb71"
+    }
+  },
+  "after": {
+    "User": {
+      "count": 15,
+      "digest": "10e8e912140302819955e08fe3faafd2"
+    },
+    "Course": {
+      "count": 8,
+      "digest": "839eb00c736691db0f0be51e27a6d447"
+    },
+    "CourseChapter": {
+      "count": 15,
+      "digest": "8fde37ec5c38534b3eaba1e8d8607878"
+    },
+    "CourseRelease": {
+      "count": 5,
+      "digest": "17f8311359e86d54b7138ee0fe74b1ec"
+    },
+    "Lesson": {
+      "count": 12,
+      "digest": "29adceaa2d1aec16a833ea2f01bf2d37"
+    },
+    "LiveSession": {
+      "count": 2,
+      "digest": "3f5b2570186f97817a61f613672adf7f"
+    },
+    "LiveReplay": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "Enrollment": {
+      "count": 5,
+      "digest": "129bcfbaedca817684b16e9614164b9b"
+    },
+    "StudyProgress": {
+      "count": 5,
+      "digest": "d85d6cd1bbc8a2c61832094f6c0a3037"
+    },
+    "Membership": {
+      "count": 2,
+      "digest": "d49af279f0b2b505a46d04f659a2b0bc"
+    },
+    "TradeOrder": {
+      "count": 0,
+      "digest": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "MediaAsset": {
+      "count": 4,
+      "digest": "e35432c38bc3d6a7a023b7276637bb71"
+    }
+  }
+}

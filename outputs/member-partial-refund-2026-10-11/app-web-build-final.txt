@@ -1,0 +1,10 @@
+22:41:45.680 项目 mobile [__UNI__AA1E366] 开始发布到Web...
+22:41:47.121 编译器版本：5.26（uni-app x）VDOM模式
+22:41:47.123 当前样式隔离策略：2.0。详见：https://doc.dcloud.net.cn/uni-app-x/css/common/style-isolation.html
+22:41:47.125 正在编译中...
+22:42:50.454 项目 mobile 编译成功。
+22:42:50.452 欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+22:42:50.671 [33m注意请部署到web服务器使用，不要使用资源管理器直接打开，除非进行相对路径配置，具体参考：https://ask.dcloud.net.cn/article/37432。[39m
+22:42:50.671 [31m欢迎开通 <a href='https://uniad.dcloud.net.cn'>uni-ad</a> 广告进行变现，<a href='https://uniad.dcloud.net.cn/login'>申请入口</a> | <a href='https://uniapp.dcloud.net.cn/uni-ad/'>开发文档</a>[39m
+
+22:42:50.666 [33m项目 mobile 导出Web成功，路径为：C:\Users\l6658\Documents\ChatGPT\道学书院\apps\mobile\unpackage\dist\build\web[39m

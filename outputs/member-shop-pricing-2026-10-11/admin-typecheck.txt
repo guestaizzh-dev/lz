@@ -1,0 +1,5 @@
+$ max setup && tsc --noEmit
+info  - [你知道吗？] max g page 可以快速生成页面模板，详见 https://umijs.org/docs/guides/generator#页面生成器
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - generate files
+info  - Preparing...

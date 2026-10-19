@@ -13458,6 +13458,16 @@
         "initial": null,
         "choices": [],
         "reference": null
+      },
+      {
+        "source": "debt",
+        "default": true,
+        "initial": null,
+        "name": "debt",
+        "type": "bigint",
+        "reference": null,
+        "nullable": false,
+        "choices": []
       }
     ],
     "versioned": true
@@ -13600,6 +13610,26 @@
         "initial": null,
         "choices": [],
         "reference": null
+      },
+      {
+        "source": "debt_delta",
+        "default": true,
+        "initial": null,
+        "name": "debtDelta",
+        "type": "bigint",
+        "reference": null,
+        "nullable": false,
+        "choices": []
+      },
+      {
+        "source": "debt_after",
+        "default": true,
+        "initial": null,
+        "name": "debtAfter",
+        "type": "bigint",
+        "reference": null,
+        "nullable": false,
+        "choices": []
       }
     ],
     "versioned": false

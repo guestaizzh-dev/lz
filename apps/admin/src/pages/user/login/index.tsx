@@ -65,7 +65,7 @@ const useStyles = createStyles(({ token }) => {
     container: {
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
+      minHeight: '100dvh',
       overflow: 'auto',
       backgroundImage:
         "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
@@ -168,8 +168,9 @@ const Login: React.FC = () => {
       >
         <LoginForm
           contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
+            width: 'min(360px, calc(100vw - 48px))',
+            minWidth: 0,
+            maxWidth: '100%',
           }}
           logo={<img alt="logo" src="/logo.svg" />}
           title="老子道学书院"

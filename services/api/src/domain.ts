@@ -1,10 +1,10 @@
+import { encryptPrivate } from './private-data.js';
 import { BadRequestException, Body, ConflictException, Controller, Delete, ForbiddenException, Get, Injectable, NotFoundException, OnModuleDestroy, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Pool, types, type PoolClient } from 'pg';
-import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { createHash, randomUUID } from 'node:crypto';
 import { AdminGuard, type AuthRequest } from './auth.js';
 import { access, domains, hidden, resourceKinds, writable, type Entity, type Field } from './domain-policy.js';
+import {entityPermission} from './admin-permissions.js';
 
 const quote = (name: string) => '"' + name.replaceAll('"', '""') + '"';
 const revision = (row: Record<string, unknown>) => createHash('sha256').update(JSON.stringify(row)).digest('hex');
@@ -26,17 +26,17 @@ export class DomainService implements OnModuleDestroy {
     if(format!=='binary'&&oid===1114)return (value:string)=>new Date(value.replace(' ','T')+'Z'); // Existing Prisma timestamps store UTC without an offset.
     return types.getTypeParser(oid,format);
   } } });
-  private encryptionKey?: Buffer;
   async onModuleDestroy() { await this.pool.end(); }
   entity(key: string, req: AuthRequest, operation: 'read' | 'create' | 'update' | 'delete' = 'read') {
     const entity = domains.find(item => item.key === key);
     if (!entity) throw new NotFoundException('数据模块不存在');
     if (!access(entity, req.actor.roles)[operation]) throw new ForbiddenException('无此操作权限；业务事实请通过对应业务流程处理');
+    if(req.permissions&&!req.permissions.includes(entityPermission(key,operation!=='read')))throw new ForbiddenException('没有该业务模块的操作权限');
     return entity;
   }
   schema(req: AuthRequest) {
-    return domains.filter(e => access(e, req.actor.roles).read).map(e => ({
-      ...e, permissions: access(e, req.actor.roles), fields: e.fields.filter(f => !hidden(f) || f.name.endsWith('Cipher')).map(f => ({ ...f, readable: !hidden(f), writable: writable(e, f), writeOnly: hidden(f) }))
+    return domains.filter(e => access(e, req.actor.roles).read&&(!req.permissions||req.permissions.includes(entityPermission(e.key)))).map(e => ({
+      ...e, permissions: {...access(e, req.actor.roles),...(req.permissions&&!req.permissions.includes(entityPermission(e.key,true))?{create:false,update:false,delete:false}:{})}, fields: e.fields.filter(f => !hidden(f) || f.name.endsWith('Cipher')).map(f => ({ ...f, readable: !hidden(f), writable: writable(e, f), writeOnly: hidden(f) }))
     }));
   }
   present(e: Entity, row: Record<string, unknown>) {
@@ -44,6 +44,7 @@ export class DomainService implements OnModuleDestroy {
   }
   owner(e: Entity, req: AuthRequest) {
     if (!access(e, req.actor.roles).ownerOnly) return undefined;
+    if(e.key==='teacher_review')return 'reviewerId';
     return e.fields.find(f => ['userId','authorId'].includes(f.name))?.name;
   }
   filters(e: Entity, req: AuthRequest, query: Record<string, unknown>) {
@@ -116,24 +117,7 @@ export class DomainService implements OnModuleDestroy {
     if (f.reference && (typeof value !== 'string' || !/^[a-zA-Z0-9_-]{1,150}$/.test(value))) throw new BadRequestException(`${f.name} 外键标识不合法`);
     return value;
   }
-  encrypt(value: string) {
-    if (!this.encryptionKey) {
-      const configured = process.env.DOMAIN_ENCRYPTION_KEY;
-      if (configured) {
-        if (!/^[a-fA-F0-9]{64}$/.test(configured)) throw new Error('DOMAIN_ENCRYPTION_KEY must be a 32-byte hex key');
-        this.encryptionKey = Buffer.from(configured,'hex');
-      } else {
-        if (process.env.NODE_ENV === 'production') throw new Error('Production requires DOMAIN_ENCRYPTION_KEY');
-        const path = resolve('../../.runtime/domain-encryption.key'); mkdirSync(dirname(path),{ recursive:true });
-        if (!existsSync(path)) writeFileSync(path,randomBytes(32),{ flag:'wx',mode:0o600 });
-        this.encryptionKey = readFileSync(path);
-        if (this.encryptionKey.length !== 32) throw new Error('Invalid local domain encryption key');
-      }
-    }
-    const iv=randomBytes(12), cipher=createCipheriv('aes-256-gcm',this.encryptionKey,iv);
-    const body=Buffer.concat([cipher.update(value,'utf8'),cipher.final()]);
-    return `v1:${iv.toString('hex')}:${body.toString('base64')}:${cipher.getAuthTag().toString('hex')}`;
-  }
+  encrypt(value: string) { return encryptPrivate(value); }
   data(req: AuthRequest, e: Entity, input: unknown, create: boolean) {
     const raw = object(input), data: Record<string, unknown> = {};
     if (Object.keys(raw).length > e.fields.length+1) throw new BadRequestException('字段过多');
@@ -155,7 +139,7 @@ export class DomainService implements OnModuleDestroy {
     if(create&&e.key==='submission')data.submittedAt=new Date().toISOString();
     if(e.key==='article'&&data.blocks!==undefined){
       const blocks=JSON.parse(String(data.blocks));
-      if(!Array.isArray(blocks)||blocks.length<1||blocks.length>100||blocks.some(b=>!b||typeof b.id!=='string'||! /^[a-zA-Z0-9_-]{1,80}$/.test(b.id)||!['paragraph','quote'].includes(b.type)||typeof b.text!=='string'||b.text.length<1||b.text.length>10000)||new Set(blocks.map(b=>b.id)).size!==blocks.length)throw new BadRequestException('文章段落格式不合法');
+      if(!Array.isArray(blocks)||blocks.length<1||blocks.length>100||blocks.some(b=>!b||typeof b.id!=='string'||! /^[a-zA-Z0-9_-]{1,80}$/.test(b.id)||!['paragraph','quote','image'].includes(b.type)||typeof b.text!=='string'||b.text.length>10000||(b.type==='image'?(typeof b.url!=='string'||!/^https:\/\/[^\s]+$/.test(b.url)):!b.text.trim())||(b.caption!==undefined&&(typeof b.caption!=='string'||b.caption.length>500)))||new Set(blocks.map(b=>b.id)).size!==blocks.length)throw new BadRequestException('文章段落格式不合法');
     }
     if(['teacher_answer','feedback_reply','comment','forum_thread'].includes(e.key)&&data.authorId!==undefined&&data.authorId!==req.actor.id)throw new ForbiddenException('不能以其他用户身份写入内容');
     if (create) {
@@ -195,6 +179,7 @@ export class DomainService implements OnModuleDestroy {
       await this.foreignOwners(client,req,e,data);
       const title=data.resourceTitle; delete data.resourceTitle;
       let row: Record<string,unknown>;
+      if(e.key==='forum_section'&&old?.cohortId)throw new ForbiddenException('营内讨论区须通过营期工作台管理，不能修改其准入范围');
       if (remove) {
         // Auto-generated draft offers and snapshots may be removed only when their FKs permit it.
         if(e.key==='product_sku')await client.query('DELETE FROM "SaleOffer" WHERE id=$1',['sku-offer-'+id]);

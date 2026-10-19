@@ -1,0 +1,20 @@
+$ prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "daoxue_dev", schema "public" at "127.0.0.1:55432"
+
+28 migrations found in prisma/migrations
+
+Applying migration `20261011110000_membership_partial_refunds`
+Applying migration `20261011113000_member_shop_pricing`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261011110000_membership_partial_refunds/
+    └─ migration.sql
+  └─ 20261011113000_member_shop_pricing/
+    └─ migration.sql
+
+All migrations have been successfully applied.

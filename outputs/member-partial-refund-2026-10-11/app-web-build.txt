@@ -1,0 +1,66 @@
+22:05:56.484 项目 mobile [__UNI__AA1E366] 开始发布到Web...
+22:06:20.606 编译器版本：5.26（uni-app x）VDOM模式
+22:06:20.610 当前样式隔离策略：2.0。详见：https://doc.dcloud.net.cn/uni-app-x/css/common/style-isolation.html
+22:06:20.612 正在编译中...
+22:07:10.298 ​​warning: Argument of type '{ method: "POST"; body: { expectedVersion: number; action: string; }; }' is not assignable to parameter of type 'RequestOptions'.
+22:07:10.298 [33m​[39m
+22:07:10.298 [33m​  Object literal may only specify known properties, and 'body' does not exist in type 'RequestOptions'.​​[39m
+22:07:10.298 [33m​at pages/membership/purchase.uvue:27:641​[39m
+22:07:10.311   25 | function cancelOrder(){if(!order.value||busy.value)return;uni.showModal({title:'取消会员订单',content:'先确认是否已付款，已付款订单将保留并转入售后。',confirmText:'确认取消',success:async result=>{if(!result.confirm||!order.value||busy.value)return;busy.value=true;try{order.value=await request<MembershipOrder>('/commerce/membership-orders/'+order.value.id+'/cancel',{method:'POST'});}catch(e){notice.value=(e as Error).message;order.value={...order.value,canPay:false};}finally{busy.value=false;}}});}
+22:07:10.313   26 | async function submitRefund(){if(!order.value||busy.value)return;busy.value=true;refundError.value='';try{order.value=await request<MembershipOrder>('/commerce/membership-orders/'+order.value.id+'/refund',{method:'POST',data:{requestKey:refundKey,reason:refundReason.value}});showRefund.value=false;refundKey=studyEventId();refundReason.value='';notice.value='退款申请已提交，可在此查看处理进度。';}catch(e){refundError.value=(e as Error).message;}finally{busy.value=false;}}
+22:07:10.315 > 27 | function decideRefund(id:string,version:number,action:string){if(busy.value||!order.value)return;const proposal=order.value.refunds.find(r=>r.id===id);if(!proposal)return;uni.showModal({title:action==='ACCEPT'?'确认退款并退订？':'保留原会员？',content:action==='ACCEPT'?'本次原路退回 ¥'+money(Number(proposal.approvedAmount))+'。确认后暂停本段权益，退款成功后结束此次购买的剩余会员；其他购买不变。':'拒绝本次方案，按原生效时间和到期日期恢复会员，不产生退款。',confirmText:action==='ACCEPT'?'确认退订':'保留会员',success:async result=>{if(!result.confirm||busy.value)return;busy.value=true;notice.value='';try{order.value=await request<MembershipOrder>('/commerce/membership-orders/'+orderId+'/refunds/'+id+'/decision',{method:'POST',body:{expectedVersion:version,action}});notice.value=action==='ACCEPT'?'方案已确认，正在办理原路退款。':'已保留原会员及原有效期限。';}catch(e){notice.value=(e as Error).message;}finally{busy.value=false;}}});}
+22:07:10.317      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ^^^^
+22:07:10.319   28 | function copyAppleRefund(){if(order.value?.refundUrl)uni.setClipboardData({data:order.value.refundUrl});}
+22:07:10.321   29 | function copyNumber(){if(order.value)uni.setClipboardData({data:order.value.orderNo});}function copyRules(){if(purchase.value)uni.setClipboardData({data:purchase.value.title+'\n金额：¥'+price.value+'\n期限：'+periodCopy.value+'\n权益：'+purchase.value.description+'\n退款与续费：'+purchase.value.refundPolicy});}
+22:07:10.326   30 | onLoad(options=>{planId=options?.planId??'';orderId=options?.orderId??'';});onShow(()=>void load());onUnload(()=>{revision++;});onBackPress(()=>{if(busy.value){uni.showToast({title:'正在确认订单，请稍候',icon:'none'});return true;}if(showRefund.value){showRefund.value=false;return true;}return false;});
+22:07:10.330 [33m​warning: 'refund.assessmentSnapshot' is possibly 'null'.​[39m
+22:07:10.332 [33m​at pages/membership/purchase.uvue:476:188​[39m
+22:07:10.334   474 |                                         }, {
+22:07:10.336   475 |                                           default: _withCtx(() => [
+22:07:10.338 > 476 |                                             _createTextVNode("拟原路退回 ¥" + _toDisplayString(_unref(money)(Number(refund.approvedAmount))) + " · 扣除 ¥" + _toDisplayString(_unref(money)(Number(refund.assessmentSnapshot.deductionAmount??'0'))), 1)
+22:07:10.341       |                                                                                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+22:07:10.343   477 |                                           ]),
+22:07:10.345   478 |                                           _: 2
+22:07:10.345   479 |                                         }, 1024))
+22:07:10.348 [33m​warning: 'refund.assessmentSnapshot' is possibly 'null'.​[39m
+22:07:10.350 [33m​at pages/membership/purchase.uvue:483:107​[39m
+22:07:10.350   481 |                                     _createVNode(_component_v_uni_text, { class: "footer-note" }, {
+22:07:10.350   482 |                                       default: _withCtx(() => [
+22:07:10.350 > 483 |                                         _createTextVNode("核查于 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.assessedAt)) + " · 原期限 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.startsAt)) + " 至 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.endsAt)), 1)
+22:07:10.358       |                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+22:07:10.360   484 |                                       ]),
+22:07:10.366   485 |                                       _: 2
+22:07:10.367   486 |                                     }, 1024),
+22:07:10.369 [33m​warning: 'refund.assessmentSnapshot' is possibly 'null'.​[39m
+22:07:10.373 [33m​at pages/membership/purchase.uvue:483:201​[39m
+22:07:10.374   481 |                                     _createVNode(_component_v_uni_text, { class: "footer-note" }, {
+22:07:10.377   482 |                                       default: _withCtx(() => [
+22:07:10.378 > 483 |                                         _createTextVNode("核查于 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.assessedAt)) + " · 原期限 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.startsAt)) + " 至 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.endsAt)), 1)
+22:07:10.381       |                                                                                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+22:07:10.381   484 |                                       ]),
+22:07:10.381   485 |                                       _: 2
+22:07:10.381   486 |                                     }, 1024),
+22:07:10.388 [33m​warning: 'refund.assessmentSnapshot' is possibly 'null'.​[39m
+22:07:10.388 [33m​at pages/membership/purchase.uvue:483:289​[39m
+22:07:10.396   481 |                                     _createVNode(_component_v_uni_text, { class: "footer-note" }, {
+22:07:10.399   482 |                                       default: _withCtx(() => [
+22:07:10.401 > 483 |                                         _createTextVNode("核查于 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.assessedAt)) + " · 原期限 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.startsAt)) + " 至 " + _toDisplayString(_unref(formatChinaTime)(refund.assessmentSnapshot.endsAt)), 1)
+22:07:10.403       |                                                                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+22:07:10.405   484 |                                       ]),
+22:07:10.406   485 |                                       _: 2
+22:07:10.408   486 |                                     }, 1024),
+22:07:10.413 [33m​warning: 'refund.assessmentSnapshot' is possibly 'null'.​[39m
+22:07:10.416 [33m​at pages/membership/purchase.uvue:487:104​[39m
+22:07:10.419   485 |                                       _: 2
+22:07:10.422   486 |                                     }, 1024),
+22:07:10.428 > 487 |                                     (_openBlock(true), _createElementBlock(_Fragment, null, _renderList(refund.assessmentSnapshot.usage, (use, index) => {
+22:07:10.428       |                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+22:07:10.428   488 |                                       return (_openBlock(), _createBlock(_component_v_uni_text, {
+22:07:10.438   489 |                                         key: index,
+22:07:10.438   490 |                                         class: "footer-note"
+22:07:56.486 欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+22:07:56.488 项目 mobile 编译成功。
+22:07:56.704 [33m项目 mobile 导出Web成功，路径为：C:\Users\l6658\Documents\ChatGPT\道学书院\apps\mobile\unpackage\dist\build\web[39m
+22:07:56.716 [33m注意请部署到web服务器使用，不要使用资源管理器直接打开，除非进行相对路径配置，具体参考：https://ask.dcloud.net.cn/article/37432。[39m
+22:07:56.719 [31m欢迎开通 <a href='https://uniad.dcloud.net.cn'>uni-ad</a> 广告进行变现，<a href='https://uniad.dcloud.net.cn/login'>申请入口</a> | <a href='https://uniapp.dcloud.net.cn/uni-ad/'>开发文档</a>[39m
+

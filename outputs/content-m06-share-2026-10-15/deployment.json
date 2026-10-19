@@ -1,0 +1,9 @@
+{
+  "tag": "20261016-content-m06-01",
+  "previous": "/opt/daoxue-academy/releases/20261015-large-media-01",
+  "release": "/opt/daoxue-academy/releases/20261016-content-m06-01",
+  "businessTablesVerified": 24,
+  "migration": "20261015140000_notification_delivery",
+  "adminUpdated": true,
+  "pushEnabled": false
+}

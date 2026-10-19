@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Pro独立授课方向、传承与教学成果实际保存",
+    "Pro名师档案编排入口可找到代表课程、来源与专属解读操作",
+    "App介绍层级与会员解读入口清晰，会员全文不泄露",
+    "App实际咨询安排显示北京时间并进入真实预约页面",
+    "共享路由真实解析并跳转文章阅读"
+  ],
+  "errors": [],
+  "passed": true,
+  "isolatedDatabase": true,
+  "businessResponsesMocked": false
+}

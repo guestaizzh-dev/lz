@@ -1,27 +1,25 @@
 <template>
 <view class="page"><PageHead title="收货地址"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
-<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
+<ContentState v-if="!editing&&(loading||error)" :loading="loading" :error="error" @retry="load()"/>
 <view v-if="editing">
 <text class="section-heading">{{selectedId?'编辑地址':'添加地址'}}</text>
 <view class="address-field"><text class="field-label">收货人</text><input class="address-input" v-model="form.recipient" maxlength="30" placeholder="姓名"/></view>
 <view class="address-field"><text class="field-label">联系电话</text><input class="address-input" type="number" v-model="form.phone" maxlength="11" placeholder="11位手机号"/></view>
-<view class="address-field"><text class="field-label">省 / 直辖市</text><input class="address-input" v-model="form.province" maxlength="30" placeholder="填写省或直辖市"/></view>
-<view class="address-field"><text class="field-label">市</text><input class="address-input" v-model="form.city" maxlength="30" placeholder="填写城市"/></view>
-<view class="address-field"><text class="field-label">区 / 县</text><input class="address-input" v-model="form.district" maxlength="30" placeholder="填写区县"/></view>
-<view class="address-field"><text class="field-label">详细地址</text><input class="address-input" v-model="form.detail" maxlength="150" placeholder="街道、楼栋、门牌号"/></view>
-<view class="menu-row"><text class="menu-label">设为默认地址</text><switch :checked="form.isDefault" color="#245564" @change="setDefault"/></view>
-<button class="primary-button" :disabled="busy" @click="save()">{{busy?'保存中…':'保存地址'}}</button><button class="text-action" :disabled="busy" @click="cancel()">取消</button>
+<view class="address-field" @click="regionVisible=true"><text class="field-label">所在地区</text><text class="region-value">{{form.province?[form.province,form.city,form.district].join(' / '):'选择省、市、区县 ›'}}</text></view>
+<view class="address-field"><text class="field-label">详细地址</text><textarea class="address-detail-input" v-model="form.detail" maxlength="150" placeholder="街道、楼栋、门牌号"/></view>
+<view class="menu-row"><text class="menu-label">设为默认地址</text><switch :checked="form.isDefault" color="#31564F" @change="setDefault"/></view>
+<text v-if="error" class="form-feedback">{{error}}</text><button class="primary-button" :disabled="busy" @click="save()">{{busy?'保存中…':'保存地址'}}</button><button class="text-action" :disabled="busy" @click="cancel()">取消</button>
 </view>
 <view v-else>
-<view v-for="item in items" :key="item.id" class="address-row"><view class="row between"><text class="item-title">{{item.recipient}}　{{item.phone}}</text><text v-if="item.isDefault" class="tag">默认</text></view><text class="address-copy">{{addressText(item)}}</text><view class="row address-actions"><button class="text-action" :disabled="busy" @click="edit(item)">编辑</button><button class="text-action remove-action" :disabled="busy" @click="remove(item)">删除</button></view></view>
+<view v-for="item in items" :key="item.id" class="address-row"><view class="row between"><text class="item-title">{{item.recipient}}　{{item.phone}}</text><text v-if="item.isDefault" class="tag">默认</text></view><text class="address-copy" :user-select="true">{{addressText(item)}}</text><view class="row address-actions"><button class="text-action" :disabled="busy" @click="edit(item)">编辑</button><button class="text-action remove-action" :disabled="busy" @click="remove(item)">删除</button></view></view>
 <ContentState v-if="!loading&&!error&&!items.length" title="留下好物的去处" description="收货地址仅用于你的商品配送。"/>
 <button class="primary-button" :disabled="loading||busy||items.length>=20" @click="edit()">添加收货地址</button><text class="footer-note">最多保存20个地址。订单会保存当时的收货信息，修改地址不会改变已提交的订单。</text>
-</view></view></scroll-view></view>
+</view></view></scroll-view><RegionPicker :visible="regionVisible" @close="regionVisible=false" @select="Object.assign(form,$event)"/></view>
 </template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {addressText} from '../../lib/shopping';import type {Address,AddressInput} from '../../lib/shopping';
+import RegionPicker from '../../components/RegionPicker.uvue';import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {addressText} from '../../lib/shopping';import type {Address,AddressInput} from '../../lib/shopping';
 const blank=():AddressInput=>({recipient:'',phone:'',province:'',city:'',district:'',detail:'',isDefault:false});
-const items=ref<Address[]>([]),form=ref<AddressInput>(blank()),editing=ref(false),selectedId=ref(''),loading=ref(false),busy=ref(false),error=ref('');let alive=true,turn=0;
+const regionVisible=ref(false);const items=ref<Address[]>([]),form=ref<AddressInput>(blank()),editing=ref(false),selectedId=ref(''),loading=ref(false),busy=ref(false),error=ref('');let alive=true,turn=0;
 async function load(){const owner=currentUser.value?.id;items.value=[];if(needLogin())return;const version=++turn;loading.value=true;error.value='';try{const data=await request<Address[]>('/shopping/addresses');if(alive&&turn===version&&currentUser.value?.id===owner)items.value=data;}catch(e){error.value=(e as Error).message;}finally{if(version===turn)loading.value=false;}}
 function edit(item?:Address){selectedId.value=item?.id??'';form.value=item?{recipient:item.recipient,phone:item.phone,province:item.province,city:item.city,district:item.district,detail:item.detail,isDefault:item.isDefault}:{...blank(),isDefault:items.value.length===0};editing.value=true;error.value='';}
 function cancel(){editing.value=false;form.value=blank();selectedId.value='';error.value='';}
@@ -30,4 +28,4 @@ async function save(){if(busy.value||needLogin())return;if(!/^1[3-9]\d{9}$/.test
 function remove(item:Address){if(busy.value)return;uni.showModal({title:'删除地址',content:'删除这个收货地址？',confirmText:'删除',success:async result=>{if(!result.confirm||busy.value||needLogin())return;busy.value=true;try{await request('/shopping/addresses/'+item.id,{method:'DELETE'});await load();}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}});}
 onShow(()=>{if(!editing.value)load();});onUnload(()=>{alive=false;turn++;form.value=blank();});
 </script>
-<style>@import '../../styles/app.css';.address-row{padding:20px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.address-copy{font-size:13px;color:#637276;line-height:23px;margin-top:7px;}.address-actions{justify-content:flex-end;margin-top:4px;}.address-field{padding:12px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.field-label{font-family:AcademySerif;font-size:13px;color:#344C54;line-height:22px;}.address-input{font-size:14px;color:#17292D;min-height:44px;line-height:21px;}.text-action{color:#245564;background-color:transparent;margin:0;padding:10px 8px;font-size:12px;line-height:24px;border-style:solid;border-width:0;}.remove-action{color:#788084;margin-left:12px;}</style>
+<style>@import '../../styles/app.css';.address-row{padding:20px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.address-copy{font-size:13px;color:#637276;line-height:23px;margin-top:7px;}.address-actions{justify-content:flex-end;margin-top:4px;}.address-field{padding:12px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.field-label{font-family:AcademySans;font-size:13px;color:#344C54;line-height:22px;}.address-input{font-size:14px;color:#17292D;min-height:44px;line-height:21px;}.text-action{color:#245564;background-color:transparent;margin:0;padding:10px 8px;font-size:12px;line-height:24px;border-style:solid;border-width:0;}.remove-action{color:#788084;margin-left:12px;}.form-feedback{font-size:13px;line-height:22px;color:#B95543;margin-top:10px;}.address-detail-input{width:100%;height:80px;font-size:15px;line-height:25px;color:#17292D;padding:10px 0;}.region-value{font-size:15px;line-height:24px;min-height:44px;color:#245564;padding:10px 0;}</style>

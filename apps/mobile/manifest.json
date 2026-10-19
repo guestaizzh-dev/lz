@@ -2,8 +2,8 @@
   "name": "老子道学书院",
   "appid": "__UNI__AA1E366",
   "description": "道学文化研习与实践",
-  "versionName": "0.2.2",
-  "versionCode": "4",
+  "versionName": "0.3.9",
+  "versionCode": "14",
   "uni-app-x": {
     "styleIsolationVersion": "2",
     "vapor": true,
@@ -44,6 +44,7 @@
   },
   "app-android": {
     "distribute": {
+      "schemes": "daoxueacademy",
       "modules": {},
       "icons": {
         "xxhdpi": "static/brand/app-icon-144.png",

@@ -1,0 +1,34 @@
+server {
+  listen 80;
+  server_name ${ADMIN_HOST};
+  return 308 https://${ADMIN_HOST}$request_uri;
+}
+server {
+  listen 80;
+  server_name ${APP_HOST};
+  return 308 https://${APP_HOST}$request_uri;
+}
+server {
+  listen 443 ssl;
+  server_name ${ADMIN_HOST};
+  ssl_certificate /etc/nginx/tls/fullchain.pem;
+  ssl_certificate_key /etc/nginx/tls/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  add_header Strict-Transport-Security "max-age=31536000" always;
+  add_header X-Content-Type-Options nosniff always;
+  root /srv/admin;
+  include /etc/nginx/snippets/api-proxy.conf;
+  location / { try_files $uri $uri/ /index.html; }
+}
+server {
+  listen 443 ssl;
+  server_name ${APP_HOST};
+  ssl_certificate /etc/nginx/tls/fullchain.pem;
+  ssl_certificate_key /etc/nginx/tls/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  add_header Strict-Transport-Security "max-age=31536000" always;
+  add_header X-Content-Type-Options nosniff always;
+  root /srv/app;
+  include /etc/nginx/snippets/api-proxy.conf;
+  location / { try_files $uri $uri/ /index.html; }
+}

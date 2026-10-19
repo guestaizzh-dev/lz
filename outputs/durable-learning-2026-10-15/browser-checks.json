@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "断网后本机保留已读记录、显示待同步，待发送记录不阻挡切章",
+    "恢复联网后两章自动依序补传并更新真实学习记录",
+    "服务器写入后响应丢失，重试使用同一事件且不重复完成或奖励",
+    "刷新响应丢失不清除登录，同一轮换编号重试后可继续保存",
+    "普通浏览器Storage无登录令牌",
+    "断网时也能立即退出，不保留当前登录界面"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "appRealOtp": true,
+  "nativeStorageVerified": false,
+  "businessResponsesMocked": false,
+  "networkFaultsInjected": true,
+  "commercialEvidence": false
+}

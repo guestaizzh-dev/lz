@@ -1,0 +1,12 @@
+{
+  "policy": {
+    "version": "CONSUMPTION_20261018_V1",
+    "pointsUnit": 100,
+    "growthUnit": 1000,
+    "pointsDailyLimit": 500,
+    "growthDailyLimit": 20,
+    "observationDays": 7
+  },
+  "healthStatus": 200,
+  "checkedAt": "2026-10-18T06:40:46.4486657Z"
+}

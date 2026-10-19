@@ -1,26 +1,56 @@
 <template>
 <view class="page">
-<PageHead title="活动详情"/>
+<PageHead title="活动详情" action="share" @action="share"/>
 <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
 <view class="content">
 <ContentState v-if="!event" :loading="!error" :error="error" @retry="load"/>
 <view v-else>
 <ArtImage :src="event!.cover" kind="room" :width="width" :height="190"/>
 <text class="detail-title">{{event!.title}}</text>
-<text class="meta">时间：{{event!.startsAt}}</text>
+<text class="meta">时间：{{formatChinaTime(event!.startsAt)}}</text>
 <text class="meta">地点：{{event!.location}}</text>
-<text class="price event-price">{{event!.price?'¥'+money(event!.price):'免费活动'}}</text>
+<text class="footer-note">选择开放场次报名，具体名额和取消规则以确认页为准。</text><text class="price event-price">{{event!.price?'¥'+money(event!.price):'免费活动'}}</text>
 <view class="section">
 <text class="section-heading">活动介绍</text>
-<text class="body-copy">{{event!.description}}</text>
+<text class="body-copy" :user-select="true">{{event!.description}}</text><view v-if="event!.studyTour" class="section"><text class="section-heading">研学行程与参加说明</text><text class="body-copy" :user-select="true">{{event!.studyTourBrief}}</text><text class="meta">优先报名仅在场次公布的会员开放窗内生效，名额共用；公众开放后可报名剩余席位，不减免票价、不保证获位。</text></view>
 </view>
+<RelatedContent ref="relatedRef" v-if="event" :resourceId="id"/>
 </view>
-</view>
-</scroll-view>
-<view v-if="event" class="bottom-bar">
-<button class="bar-primary" @click="book">预约报名</button>
-</view>
+</view></scroll-view>
+<BottomBar v-if="event">
+<button class="bar-primary" @click="book">查看场次与报名</button>
+</BottomBar>
 </view>
 </template>
-<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {AcademyEvent} from '../../lib/api';import {viewWidth,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';const width=viewWidth(),event=ref<AcademyEvent|null>(null),error=ref('');let id='';async function load(){error.value='';try{event.value=await request<AcademyEvent>('/catalog/events/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;}}function book(){if(needLogin())return;showUnavailable('暂未开放报名','预约和席位确认服务尚未接入，请等待书院开放报名。');}onLoad(options=>{id=options?.id??'';load();});</script>
+<script setup lang="ts">
+import RelatedContent from '../../components/RelatedContent.uvue';
+import {formatChinaTime} from '../../lib/date-time';
+import BottomBar from '../../components/BottomBar.uvue';import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {AcademyEvent} from '../../lib/api';import {viewWidth,openPage} from '../../lib/presentation';import {needLogin} from '../../lib/session';const width=viewWidth(),event=ref<AcademyEvent|null>(null),error=ref('');let id='';async function load(){error.value='';try{event.value=await request<AcademyEvent>('/catalog/events/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;}}function book(){openPage('booking/confirm?eventId='+id);}
+async function share(){
+  if(!event.value)return;
+  try{
+    const result=await request<{url:string,shortUrl:string}>('/share/links',{
+      method:'POST',
+      data:{
+        resourceType:'EVENT',
+        resourceId:id,
+        title:event.value.title,
+        description:event.value.description,
+        coverUrl:event.value.cover
+      }
+    });
+    uni.setClipboardData({
+      data:result.shortUrl,
+      success:()=>{
+        uni.showToast({title:'分享链接已复制',icon:'success'});
+      }
+    });
+  }catch(e){
+    uni.showToast({title:'生成分享链接失败',icon:'none'});
+  }
+}
+onLoad(options=>{id=options?.id??'';load();});
+const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
+onShow(()=>{relatedRef.value?.refresh();});
+</script>
 <style>@import '../../styles/app.css';.event-price{margin-top:18px;}</style>

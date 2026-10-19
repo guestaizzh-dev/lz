@@ -1,22 +1,36 @@
+import {validateOfflineCourse} from './offline-courses.js';
+import {activateMemberGift} from './member-gift-stock.js';
+import { validateEvidencePublication } from './evidence.js';
+import { subtitleCues } from './subtitles.js';
+import { randomUUID } from 'node:crypto';
+import { maskedPhone, phoneLookup } from './private-data.js';
 import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min, ValidateNested } from 'class-validator';
+import { IsISO8601, ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min, ValidateNested } from 'class-validator';
 import { Database } from './database.js';
+import { membershipPlanView } from './membership-terms.js';
+import { membershipRefundHolds } from './membership-benefits.js';
 import { AdminGuard, requireRoles } from './auth.js';
 import type { AuthRequest } from './auth.js';
 import { TableQuery, TransitionDto } from './admin.js';
 import type { CourseFormat, LessonFormat, PublishStatus } from './generated/prisma/client.js';
 
 class ChapterDto {
+  @IsOptional() @IsString() @Length(0, 200000) subtitleText?: string;
   @IsString() @Length(1, 120) title!: string;
-  @IsIn(['TEXT', 'VIDEO', 'AUDIO']) format!: LessonFormat;
+  @IsIn(['TEXT', 'VIDEO', 'AUDIO', 'LIVE','OFFLINE']) format!: LessonFormat;
   @IsString() @Length(0, 50000) body!: string;
   @IsOptional() @IsUUID() mediaId?: string | null;
+  @IsOptional() @IsUUID() liveSessionId?: string | null;
+  @IsOptional() @IsUUID() eventSessionId?:string|null;
   @IsInt() @Min(0) @Max(86400) durationSeconds!: number;
   @IsBoolean() trial!: boolean;
   @IsBoolean() required!: boolean;
 }
 class CourseDto {
+  @IsOptional() @IsBoolean() memberDiscountEligible?:boolean;
+  @IsOptional() @IsISO8601({strict:true}) @Matches(/(?:Z|[+-]\d{2}:\d{2})$/) earlyAccessAt?:string|null;
+  @IsOptional() @IsISO8601({strict:true}) @Matches(/(?:Z|[+-]\d{2}:\d{2})$/) publicOpenAt?:string|null;
   @IsString() @Length(1, 120) title!: string;
   @IsString() @Length(1, 500) subtitle!: string;
   @IsString() @Length(1, 10000) description!: string;
@@ -34,6 +48,9 @@ class CourseDto {
 }
 class CourseEditDto extends CourseDto { @IsInt() @Min(1) expectedVersion!: number; }
 class TeacherDto {
+  @IsOptional() @IsString() @Length(0, 1000) teachingDirection?: string;
+  @IsOptional() @IsString() @Length(0, 3000) lineageSummary?: string;
+  @IsOptional() @IsString() @Length(0, 3000) achievementSummary?: string;
   @IsString() @Length(1, 100) name!: string;
   @IsString() @Length(1, 200) title!: string;
   @IsString() @Length(1, 10000) bio!: string;
@@ -54,6 +71,7 @@ class EntitlementQuery {
   @IsIn(['membership', 'course']) kind = 'membership';
 }
 class PlanDto {
+  @IsOptional() @IsInt() @Min(1) expectedVersion?:number;
   @IsString() @Length(1, 100) title!: string;
   @IsInt() @Min(1) @Max(3) tier!: number;
   @IsInt() @IsIn([30, 90, 365]) days!: number;
@@ -73,14 +91,25 @@ export class CurriculumAdminService {
   async save(req: AuthRequest, dto: CourseDto | CourseEditDto, id?: string) {
     requireRoles(req, ['OPERATOR']);
     if (!await this.db.teacher.findUnique({ where: { id: dto.teacherId } })) throw new BadRequestException('名师不存在');
+    if((!!dto.earlyAccessAt)!==(!!dto.publicOpenAt)||dto.earlyAccessAt&&(Date.parse(dto.earlyAccessAt)>=Date.parse(dto.publicOpenAt!)||!['VIDEO','AUDIO'].includes(dto.format)||!dto.membershipTier))throw new BadRequestException('提前研习仅用于包含会员内容的录播课程，请同时填写有效的提前与公开时间，提前时间须早于公开时间');
     for (const chapter of dto.chapters) {
+      if(chapter.subtitleText?.trim()&&!['VIDEO','AUDIO'].includes(chapter.format))throw new BadRequestException('仅录播音视频章节可配置字幕，直播字幕请随回放提交审核');
+      subtitleCues(chapter.subtitleText??'',chapter.durationSeconds);
       if (chapter.format === 'TEXT' && !chapter.body.trim()) throw new BadRequestException('图文章节必须填写正文');
-      if (chapter.format !== 'TEXT') {
+      if (['VIDEO','AUDIO'].includes(chapter.format)) {
         const media = chapter.mediaId ? await this.db.mediaAsset.findUnique({ where: { id: chapter.mediaId } }) : null;
-        if (!media || !media.mime.startsWith(chapter.format === 'VIDEO' ? 'video/' : 'audio/') || chapter.durationSeconds === 0) throw new BadRequestException('音视频章节必须选择对应媒体并填写时长');
+        if (!media || media.status!=='READY' || (media.variants as {uploadPurpose?:string})?.uploadPurpose || !media.mime.startsWith(chapter.format === 'VIDEO' ? 'video/' : 'audio/') || chapter.durationSeconds === 0) throw new BadRequestException('音视频章节必须选择可用的对应媒体并填写时长，不能使用处理中、失败或私人附件');
+        if(media.durationSeconds&&Math.abs(chapter.durationSeconds-media.durationSeconds)>1)throw new BadRequestException('章节时长须与媒体实际时长一致，请重新选择媒体自动填入');
       }
     }
-    const { chapters, expectedVersion: _, ...data } = dto as CourseEditDto;
+    if(dto.memberDiscountEligible&&!['VIDEO','AUDIO'].includes(dto.format))throw new BadRequestException('会员购课折扣仅适用于录播音视频课程');
+    if(dto.format==='LIVE'&&dto.accessDays!=null)throw new BadRequestException('直播课程采用长期访问，避免购课有效期早于开播与回放交付');
+    if(dto.chapters.some(c=>c.format==='LIVE'&&(dto.format!=='LIVE'||c.trial||c.mediaId||c.durationSeconds<1)))throw new BadRequestException('直播章节须归属直播课程、填写预计时长，不能试听或使用录播媒体');
+    if(dto.chapters.some(c=>c.format==='OFFLINE'&&(dto.format!=='OFFLINE'||c.trial||c.mediaId||c.liveSessionId)||c.format!=='OFFLINE'&&c.eventSessionId))throw new BadRequestException('线下课堂须属于线下课程，不能试听、绑定播放媒体或混用直播场次');
+    if(dto.format==='OFFLINE'&&(dto.price!==0||dto.membershipTier!=null||dto.accessDays!=null))throw new BadRequestException('线下课按活动票价报名，课程标价为0，不附加数字课程购买或会员内容授权');
+    if(dto.chapters.some(c=>c.format!=='LIVE'&&c.liveSessionId))throw new BadRequestException('仅直播章节可绑定场次');
+    const { chapters, expectedVersion: _, earlyAccessAt, publicOpenAt, ...fields } = dto as CourseEditDto;
+    const data={...fields,earlyAccessAt:earlyAccessAt?new Date(earlyAccessAt):null,publicOpenAt:publicOpenAt?new Date(publicOpenAt):null};
     return this.db.$transaction(async tx => {
       let course;
       const stats = { chaptersCount: chapters.length, durationMinutes: Math.ceil(chapters.reduce((sum, c) => sum + c.durationSeconds, 0) / 60) };
@@ -90,7 +119,14 @@ export class CurriculumAdminService {
         course = await tx.course.findUniqueOrThrow({ where: { id } });
         await tx.courseChapter.deleteMany({ where: { courseId: id } });
       } else course = await tx.course.create({ data: { ...data, ...stats } });
-      if (chapters.length) await tx.courseChapter.createMany({ data: chapters.map((c, i) => ({ ...c, courseId: course.id, position: i + 1, mediaId: c.format === 'TEXT' ? null : c.mediaId })) });
+      for(const chapter of chapters.filter(c=>c.liveSessionId)){
+        await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${chapter.liveSessionId!} FOR SHARE`;
+        const session=await tx.liveSession.findUnique({where:{id:chapter.liveSessionId!}}),room=session?await tx.liveRoom.findUnique({where:{id:session.roomId}}):null;
+        const rule=session?.accessRuleSnapshot as {mode?:string;courseId?:string;lessonBound?:boolean}|undefined;
+        if(!session||!room||room.teacherId!==dto.teacherId||rule?.mode!=='COURSE'||rule.courseId!==course.id||!rule.lessonBound||session.state==='CANCELLED')throw new BadRequestException('请选择本课程、本名师的有效专属直播场次');
+      }
+      if(new Set(chapters.filter(c=>c.liveSessionId).map(c=>c.liveSessionId)).size!==chapters.filter(c=>c.liveSessionId).length)throw new BadRequestException('同一场直播不能重复配置为多个章节');
+      if (chapters.length) await tx.courseChapter.createMany({ data: chapters.map((c, i) => ({ ...c, courseId: course.id, position: i + 1, mediaId: ['TEXT','LIVE','OFFLINE'].includes(c.format) ? null : c.mediaId,liveSessionId:c.format==='LIVE'?c.liveSessionId??null:null,eventSessionId:c.format==='OFFLINE'?c.eventSessionId??null:null })) });
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: id ? 'course.edit' : 'course.create', resource: 'course', resourceId: course.id, changes: { version: course.version, chapters: chapters.length } } });
       return course;
     });
@@ -107,11 +143,32 @@ export class CurriculumAdminService {
       const course = await tx.course.findUniqueOrThrow({ where: { id }, include: { chapters: { orderBy: { position: 'asc' } }, teacher: true } });
       if (['submit', 'publish'].includes(dto.action)) {
         if (!course.chapters.length || course.teacher.status !== 'PUBLISHED') throw new BadRequestException('须先发布名师并填写有效章节');
-        if (!['VIDEO', 'AUDIO'].includes(course.format)) throw new BadRequestException('直播、训练营与线下交付尚未配置，不能发布');
+        if (!['VIDEO', 'AUDIO', 'LIVE','OFFLINE'].includes(course.format)) throw new BadRequestException('请通过训练营或线下交付专用流程发布');
+        for(const chapter of course.chapters.filter(c=>['VIDEO','AUDIO'].includes(c.format))){
+          if(!chapter.mediaId)throw new BadRequestException('音视频章节缺少媒体');
+          await tx.$queryRaw`SELECT id FROM "MediaAsset" WHERE id=${chapter.mediaId} FOR SHARE`;
+          const media=await tx.mediaAsset.findUnique({where:{id:chapter.mediaId}});
+          if(!media||media.status!=='READY'||(media.variants as {uploadPurpose?:string})?.uploadPurpose||!media.mime.startsWith(chapter.format==='VIDEO'?'video/':'audio/')||chapter.durationSeconds<1)throw new BadRequestException('音视频章节媒体已失效或为私人附件，请更换后重新送审');
+        if(media.durationSeconds&&Math.abs(chapter.durationSeconds-media.durationSeconds)>1)throw new BadRequestException('章节时长与媒体实际时长不一致，请修订后重新送审');
+          subtitleCues(chapter.subtitleText,chapter.durationSeconds);
+        }
+        await validateOfflineCourse(tx,course,course.chapters,req.actor.id,dto.action==='publish');
+        if(course.format==='LIVE'){
+          const liveChapters=course.chapters.filter(c=>c.format==='LIVE');
+          if(!liveChapters.length||course.accessDays!=null)throw new BadRequestException('直播课程须配置直播章节并采用长期访问');
+          for(const chapter of liveChapters){
+            if(!chapter.liveSessionId)throw new BadRequestException('直播章节尚未绑定场次，请先保存草稿、创建专属直播间及场次，再回到课程绑定');
+            await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${chapter.liveSessionId} FOR SHARE`;
+            const session=await tx.liveSession.findUniqueOrThrow({where:{id:chapter.liveSessionId}}),room=await tx.liveRoom.findUniqueOrThrow({where:{id:session.roomId}}),resource=await tx.resource.findUnique({where:{id:room.id}});
+            const rule=session.accessRuleSnapshot as {mode?:string;courseId?:string;lessonBound?:boolean};
+            if(resource?.publishState!=='PUBLISHED'||room.teacherId!==course.teacherId||rule.mode!=='COURSE'||rule.courseId!==id||!rule.lessonBound||session.state==='CANCELLED')throw new BadRequestException('专属直播间须已发布，场次须有效且属于本课程名师');
+          }
+        }
       }
       if (dto.action === 'publish') {
-        const release = await tx.courseRelease.create({ data: { courseId: id, version: course.version, title: course.title, descriptionSnapshot: course.description, teacherSnapshot: { id: course.teacher.id, name: course.teacher.name }, accessDays: course.accessDays, refundPolicySnapshot: { text: course.refundPolicy }, completionPolicySnapshot: { text: course.completionPolicy }, lessons: { create: course.chapters.map(c => ({ sourceId: c.stableKey || c.id, position: c.position, title: c.title, format: c.format, body: c.body, mediaId: c.mediaId, durationSeconds: c.durationSeconds, trial: c.trial, required: c.required })) } } });
+        const release = await tx.courseRelease.create({ data: { courseId: id, version: course.version, title: course.title, memberPolicySnapshot:{discountEligible:course.memberDiscountEligible,category:course.category,earlyAccessAt:course.earlyAccessAt?.toISOString()??null,publicOpenAt:course.publicOpenAt?.toISOString()??null}, descriptionSnapshot: course.description, teacherSnapshot: { id: course.teacher.id, name: course.teacher.name }, accessDays: course.accessDays, refundPolicySnapshot: { text: course.refundPolicy }, completionPolicySnapshot: { text: course.completionPolicy }, lessons: { create: course.chapters.map(c => ({ sourceId: c.stableKey || c.id, position: c.position, title: c.title, format: c.format, body: c.body, subtitleText:c.subtitleText, mediaId: c.mediaId, liveSessionId:c.liveSessionId,eventSessionId:c.eventSessionId, durationSeconds: c.durationSeconds, trial: c.trial, required: c.required })) } } });
         await tx.course.update({ where: { id }, data: { publishedReleaseId: release.id } });
+        if(course.format!=='OFFLINE')await tx.saleOffer.create({data:{kind:'COURSE',courseReleaseId:release.id,currency:'CNY',price:BigInt(course.price),active:true,quantityLimit:1,policySnapshot:{title:release.title,accessDays:release.accessDays,refundPolicy:release.refundPolicySnapshot,refundDays:7}}});
       }
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'course.' + dto.action, resource: 'course', resourceId: id, changes: { reason: dto.reason, version: course.version } } });
       return tx.course.findUniqueOrThrow({ where: { id } });
@@ -123,10 +180,14 @@ export class CurriculumAdminService {
       const users = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "User" WHERE id = ${dto.userId} AND status = 'ACTIVE' FOR UPDATE`;
       if (!users.length) throw new NotFoundException('有效用户不存在');
       const course = await tx.course.findUnique({ where: { id } });
+      if(course?.format==='OFFLINE')throw new BadRequestException('线下课程请通过实际场次报名，不可单独授予绕过席位的数字权限');
       if (!course?.publishedReleaseId || course.status !== 'PUBLISHED') throw new BadRequestException('只能授权已发布课程');
+      await tx.$queryRaw`SELECT id FROM "CourseRelease" WHERE id=${course.publishedReleaseId} FOR SHARE`;
+      if((await tx.courseRelease.findUniqueOrThrow({where:{id:course.publishedReleaseId}})).withdrawnAt)throw new BadRequestException('此版本已停止交付，不能补授访问权');
       const previous = await tx.enrollment.findUnique({ where: { userId_courseId: { userId: dto.userId, courseId: id } } });
+      if(previous?.cohortId)throw new ConflictException('此账号已有营期记录，请通过训练营流程处理，不能覆盖营期权限');
       if (previous && !previous.revokedAt && (!previous.expiresAt || previous.expiresAt > new Date())) throw new ConflictException('用户已有有效课程权限');
-      const data = { releaseId: course.publishedReleaseId, source: 'ADMIN_COMPENSATION', revokedAt: null, startsAt: new Date(), grantActorId: req.actor.id, grantReason: dto.reason, expiresAt: course.accessDays ? new Date(Date.now() + course.accessDays * 86400000) : null };
+      const data = { grantKey: randomUUID(), version: (previous?.version ?? 0) + 1, releaseId: course.publishedReleaseId, source: 'ADMIN_COMPENSATION', orderItemId:null, startedAt:null, revokedAt: null, startsAt: new Date(), grantActorId: req.actor.id, grantReason: dto.reason, expiresAt: course.accessDays ? new Date(Date.now() + course.accessDays * 86400000) : null };
       const result = await tx.enrollment.upsert({ where: { userId_courseId: { userId: dto.userId, courseId: id } }, create: { userId: dto.userId, courseId: id, ...data }, update: data });
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'course.grant', resource: 'course', resourceId: id, changes: { userId: dto.userId, reason: dto.reason, releaseId: result.releaseId } } });
       return result;
@@ -141,28 +202,44 @@ export class CurriculumAdminService {
       if (!plan?.active) throw new BadRequestException('会员套餐未启用');
       const latest = await tx.membership.findFirst({ where: { userId: dto.userId, revokedAt: null, endsAt: { gt: new Date() } }, orderBy: { endsAt: 'desc' } });
       const startsAt = latest?.endsAt ?? new Date();
-      const member = await tx.membership.create({ data: { userId: dto.userId, planId: plan.id, tier: plan.tier, startsAt, endsAt: new Date(startsAt.getTime() + plan.days * 86400000), source: 'ADMIN_COMPENSATION' } });
-      await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'membership.grant', resource: 'membership', resourceId: member.id, changes: { userId: dto.userId, reason: dto.reason, planId: plan.id } } });
+      const member = await tx.membership.create({ data: { userId: dto.userId, planId: plan.id, tier: plan.tier, startsAt, endsAt: new Date(startsAt.getTime() + plan.days * 86400000), source: 'ADMIN_COMPENSATION',actorId:req.actor.id,reason:dto.reason } });
+      await activateMemberGift(tx,member.id);await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'membership.grant', resource: 'membership', resourceId: member.id, changes: { userId: dto.userId, reason: dto.reason, planId: plan.id } } });
       return member;
     });
   }
   async plan(req: AuthRequest, dto: PlanDto) {
     requireRoles(req, ['ADMIN']);
     return this.db.$transaction(async tx => {
-      const row = await tx.membershipPlan.upsert({ where: { tier_days: { tier: dto.tier, days: dto.days } }, create: dto, update: dto });
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`membership.plan:${dto.tier}:${dto.days}`},0))`;
+      const old=await tx.membershipPlan.findUnique({where:{tier_days:{tier:dto.tier,days:dto.days}}});
+      if(old&&dto.expectedVersion!==old.version)throw new ConflictException('同层级同期限套餐已存在或版本已变化，请刷新后编辑；不会静默覆盖旧套餐');
+      if(!old&&dto.expectedVersion!==undefined)throw new ConflictException('套餐不存在，请刷新后重新创建');
+      const {expectedVersion:_,...data}=dto;
+      const row=old?await tx.membershipPlan.update({where:{id:old.id},data:{...data,version:{increment:1}}}):await tx.membershipPlan.create({data});
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'membership.plan', resource: 'membershipPlan', resourceId: row.id, changes: { ...dto } } });
-      return row;
+      return tx.membershipPlan.findUniqueOrThrow({where:{id:row.id}});
     });
+  }
+  async planChannels(id:string){
+    const plan=await this.db.membershipPlan.findUnique({where:{id}});if(!plan)throw new NotFoundException('会员套餐不存在');
+    const offers=plan.currentVersionId?await this.db.saleOffer.findMany({where:{kind:'MEMBERSHIP',membershipVersionId:plan.currentVersionId,active:true}}):[];
+    const mappings=await this.db.channelProductMapping.findMany({where:{offerId:{in:offers.map(o=>o.id)},channel:'APPLE_IAP'}});
+    const issues:string[]=['会员购买续费、退款及对应原生渠道尚未完成验收，当前不收费。'];
+    if(!offers.length)issues.push('当前套餐版本没有有效会员售卖项；后续购买流程须绑定此版本。');
+    if(!mappings.length)issues.push('尚无Apple会员产品映射；固定天数手动套餐须对应非续期订阅，不能复用长期课程的非消耗型产品。');
+    return{planId:id,version:plan.version,planVersionId:plan.currentVersionId,purchaseReady:false,issues,products:mappings.map(m=>({id:m.id,appScope:m.appScope,productId:m.externalProductId,active:m.active,price:String(m.priceMinor??0n),valid:m.productType==='Non-Renewing Subscription'&&m.currency==='CNY'&&m.priceMinor===BigInt(plan.price)&&!!offers.find(o=>o.id===m.offerId&&o.currency==='CNY'&&o.price===BigInt(plan.price)),explanation:m.productType!=='Non-Renewing Subscription'?'产品类型不匹配固定天数手动会员套餐':'价格、版本和商店配置仍需对应购买流程验证'}))};
   }
   async entitlements(req: AuthRequest, query: EntitlementQuery) {
     requireRoles(req, ['ADMIN']);
     const where = query.userId ? { userId: query.userId } : {};
     const paging = { skip: (query.page - 1) * query.size, take: query.size, orderBy: { createdAt: 'desc' as const } };
-    const user = { select: { id: true, nickname: true, phone: true } };
+    const user = { select: { id: true, nickname: true, phone: true, phoneCipher: true } };
     const [rows, total] = query.kind === 'membership'
       ? await this.db.$transaction([this.db.membership.findMany({ where, ...paging, include: { user, plan: true } }), this.db.membership.count({ where })])
       : await this.db.$transaction([this.db.enrollment.findMany({ where, ...paging, include: { user, course: { select: { id: true, title: true } } } }), this.db.enrollment.count({ where })]);
-    return { items: rows.map(row => ({ ...row, user: { ...row.user, phone: row.user.phone ? row.user.phone.slice(0, 3) + '****' + row.user.phone.slice(-4) : null } })), total };
+    const versions=query.kind==='membership'?await this.db.membershipPlanVersion.findMany({where:{id:{in:rows.flatMap(row=>'planVersionId' in row&&row.planVersionId?[row.planVersionId]:[])}}}):[];
+    const suspended=query.kind==='membership'?(await Promise.all([...new Set(rows.map(row=>row.userId))].map(userId=>membershipRefundHolds(userId,this.db)))).flat():[];
+    return { items: rows.map(row => ({ ...row,...('plan' in row?{plan:membershipPlanView(row.plan,versions.find(v=>v.id===row.planVersionId)),refundPending:suspended.includes(row.id)}:{}), user: { id: row.user.id, nickname: row.user.nickname, phone: maskedPhone(row.user) } })), total };
   }
   async revoke(req: AuthRequest, kind: 'membership' | 'course', id: string, reason: string) {
     requireRoles(req, ['ADMIN']);
@@ -170,6 +247,7 @@ export class CurriculumAdminService {
     return this.db.$transaction(async tx => {
       const row = kind === 'membership' ? await tx.membership.findUnique({ where: { id } }) : await tx.enrollment.findUnique({ where: { id } });
       if (!row) throw new NotFoundException('授权记录不存在');
+      if('cohortId' in row&&row.cohortId)throw new ConflictException('营期撤权须通过训练营退出流程，避免席位与访问权不一致');
       await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${row.userId} FOR UPDATE`;
       const update = { where: { id, revokedAt: null }, data: { revokedAt: new Date() } };
       const changed = kind === 'membership' ? await tx.membership.updateMany(update) : await tx.enrollment.updateMany(update);
@@ -196,21 +274,22 @@ export class CurriculumAdminController {
   @Post('teachers/:id/transition') async teacherTransition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: TransitionDto, @Req() req: AuthRequest) {
     requireRoles(req, ['publish', 'reject'].includes(dto.action) ? ['MODERATOR'] : ['OPERATOR']);
     const states: Record<string, [PublishStatus[], PublishStatus]> = { submit: [['DRAFT', 'REJECTED'], 'REVIEW'], publish: [['REVIEW'], 'PUBLISHED'], reject: [['REVIEW'], 'REJECTED'], archive: [['PUBLISHED'], 'ARCHIVED'], revise: [['ARCHIVED', 'REJECTED'], 'DRAFT'] };
-    return this.db.$transaction(async tx => { const [from, to] = states[dto.action]!; const changed = await tx.teacher.updateMany({ where: { id, version: dto.expectedVersion, status: { in: from } }, data: { status: to, version: { increment: 1 } } }); if (!changed.count) throw new ConflictException('名师状态或版本已变化'); await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'teacher.' + dto.action, resource: 'teacher', resourceId: id, changes: { reason: dto.reason } } }); return tx.teacher.findUniqueOrThrow({ where: { id } }); });
+    return this.db.$transaction(async tx => { if(['submit','publish'].includes(dto.action))await validateEvidencePublication(tx,id); const [from, to] = states[dto.action]!; const changed = await tx.teacher.updateMany({ where: { id, version: dto.expectedVersion, status: { in: from } }, data: { status: to, version: { increment: 1 } } }); if (!changed.count) throw new ConflictException('名师状态或版本已变化'); await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'teacher.' + dto.action, resource: 'teacher', resourceId: id, changes: { reason: dto.reason } } }); return tx.teacher.findUniqueOrThrow({ where: { id } }); });
   }
   @Patch('teachers/:id') async editTeacher(@Param('id', ParseUUIDPipe) id: string, @Body() dto: TeacherEditDto, @Req() req: AuthRequest) {
     requireRoles(req, ['OPERATOR']);
     const { expectedVersion, ...data } = dto;
-    return this.db.$transaction(async tx => { const result = await tx.teacher.updateMany({ where: { id, version: expectedVersion, status: { in: ['DRAFT', 'REJECTED'] } }, data: { ...data, version: { increment: 1 } } }); if (!result.count) throw new ConflictException('名师版本或状态已变化'); await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'teacher.edit', resource: 'teacher', resourceId: id, changes: { name: dto.name } } }); return tx.teacher.findUniqueOrThrow({ where: { id } }); });
+    return this.db.$transaction(async tx => { const result = await tx.teacher.updateMany({ where: { id, version: expectedVersion, status: { in: ['DRAFT', 'REJECTED'] } }, data: { ...data, version: { increment: 1 } } }); if (!result.count) throw new ConflictException('名师版本或状态已变化'); await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'teacher.edit', resource: 'teacher', resourceId: id, changes: { name: dto.name, changedFields: Object.keys(data), version:expectedVersion+1 } } }); return tx.teacher.findUniqueOrThrow({ where: { id } }); });
   }
-  @Get('users') async users(@Query() query: TableQuery, @Req() req: AuthRequest) {
+  @Get('entitlements/users') async users(@Query() query: TableQuery, @Req() req: AuthRequest) {
     requireRoles(req, ['ADMIN']);
-    const where = { status: 'ACTIVE' as const, ...(query.q ? { OR: [{ nickname: { contains: query.q } }, { phone: { contains: query.q } }] } : {}) };
-    const rows = await this.db.user.findMany({ where, orderBy: { createdAt: 'desc' }, take: query.size, skip: (query.page - 1) * query.size, select: { id: true, nickname: true, phone: true } });
-    return rows.map(({ phone, ...row }) => ({ ...row, phone: phone ? phone.slice(0, 3) + '****' + phone.slice(-4) : null }));
+    const where = { status: 'ACTIVE' as const, ...(query.q ? { OR: [{ nickname: { contains: query.q } }, { phone: { contains: query.q } }, ...(/^1[3-9]\d{9}$/.test(query.q) ? [{phoneHash:phoneLookup(query.q)}] : [])] } : {}) };
+    const rows = await this.db.user.findMany({ where, orderBy: { createdAt: 'desc' }, take: query.size, skip: (query.page - 1) * query.size, select: { id: true, nickname: true, phone: true, phoneCipher: true } });
+    return rows.map(row => ({ id: row.id, nickname: row.nickname, phone: maskedPhone(row) }));
   }
   @Post('memberships/grant') memberGrant(@Body() dto: MemberGrantDto, @Req() req: AuthRequest) { return this.service.memberGrant(req, dto); }
   @Get('memberships/plans') plans(@Req() req: AuthRequest) { requireRoles(req, ['ADMIN']); return this.db.membershipPlan.findMany({ orderBy: [{ tier: 'asc' }, { days: 'asc' }] }); }
+  @Get('memberships/plans/:id/channel-check') planChannels(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){requireRoles(req,['ADMIN']);return this.service.planChannels(id);}
   @Post('memberships/plans') plan(@Body() dto: PlanDto, @Req() req: AuthRequest) { return this.service.plan(req, dto); }
   @Get('entitlements') entitlements(@Query() query: EntitlementQuery, @Req() req: AuthRequest) { return this.service.entitlements(req, query); }
   @Post('memberships/:id/revoke') revokeMember(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RevokeDto, @Req() req: AuthRequest) { return this.service.revoke(req, 'membership', id, dto.reason); }

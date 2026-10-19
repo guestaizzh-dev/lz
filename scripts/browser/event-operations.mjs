@@ -1,0 +1,57 @@
+import {createRequire} from 'node:module';
+import {spawn} from 'node:child_process';
+import {createServer} from 'node:http';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+
+const require=createRequire(new URL('../../services/api/package.json',import.meta.url)),{Pool}=require('pg'),{chromium}=createRequire(process.env.ACADEMY_BROWSER_MODULE+'/package.json')('playwright');
+const source=new URL(process.env.DATABASE_URL);
+if(process.env.NODE_ENV==='production'||!['localhost','127.0.0.1'].includes(source.hostname))throw Error('Use a local isolated database');
+const database='academy_test_event_ops_ui_'+Date.now(),target=new URL(source);target.pathname='/'+database;
+const pool=new Pool({connectionString:source.toString()}),output=resolve('outputs/event-checkin-2026-10-12'),checks=[],errors=[],servers=[];
+await mkdir(output,{recursive:true});await pool.query('CREATE DATABASE "'+database+'"');
+Object.assign(process.env,{DATABASE_URL:target.toString(),NODE_ENV:'test',DEV_OTP_CODE:'123456',PREVIEW_LOGIN_ENABLED:'false',SMS_ENABLED:'true',MEMBERSHIP_PAYMENT_WORKER_ENABLED:'false',COURSE_PAYMENT_WORKER_ENABLED:'false',PRODUCT_PAYMENT_WORKER_ENABLED:'false',CORS_ORIGINS:'http://127.0.0.1:5173',MEDIA_DIR:resolve('work/cohort-ui-media-'+database)});
+let db,app,browser,mobile,admin,mobileUrl,failure=null;
+async function run(args){await new Promise((ok,fail)=>{const child=spawn(process.execPath,args,{cwd:resolve('services/api'),env:process.env,stdio:'ignore',windowsHide:true});child.on('error',fail);child.on('exit',code=>code===0?ok():fail(Error('Migration failed')));});}
+async function serve(folder){const server=createServer(async(req,res)=>{try{let path=resolve(folder,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));if(!path.startsWith(folder+sep))path=resolve(folder,'index.html');let data;try{data=await readFile(path);}catch{path=resolve(folder,'index.html');data=await readFile(path);}res.setHeader('Content-Type',({'.js':'application/javascript','.css':'text/css','.html':'text/html','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.jpg':'image/jpeg'})[extname(path)]??'application/octet-stream');res.end(data);}catch{res.writeHead(500).end();}});await new Promise(ok=>server.listen(0,'127.0.0.1',ok));servers.push(server);return 'http://127.0.0.1:'+server.address().port;}
+
+const pending=p=>{p.catch(()=>{});return p;},day=86400000;
+try{
+  await run(['node_modules/prisma/build/index.js','migrate','deploy']);
+  const {createApp}=await import('../../services/api/dist/main.js'),{Database}=await import('../../services/api/dist/database.js'),{AuthService}=await import('../../services/api/dist/auth.js'),{LearningService}=await import('../../services/api/dist/learning.js'),{CohortsService}=await import('../../services/api/dist/cohorts.js');
+  db=new Database();app=await createApp(false);app.getHttpAdapter().getInstance().set('trust proxy','loopback');await app.listen(0,'127.0.0.1');const base=(await app.getUrl())+'/api/v1',auth=app.get(AuthService),cohorts=app.get(CohortsService),learning=app.get(LearningService);
+  const operator=await db.user.create({data:{nickname:'书院运营验证',roles:['ADMIN']}}),student=await db.user.create({data:{phone:'19900001002',nickname:'共学体验学员',roles:['USER']}}),credentials=auth.credentials(),csrfToken=randomUUID();
+  await db.authSession.create({data:{userId:operator.id,kind:'ADMIN',accessHash:credentials.accessHash,refreshHash:credentials.refreshHash,accessExpiresAt:credentials.accessExpiresAt,expiresAt:new Date(Date.now()+day),csrfToken}});
+
+  const req={actor:operator,permissions:[],requestId:randomUUID()},worker=await db.user.create({data:{nickname:'书院现场助教',phone:'19900001003',roles:['TEACHER']}});
+  const {BookingsService}=await import('../../services/api/dist/bookings.js'),bookings=app.get(BookingsService),{rolePermissions}=await import('../../services/api/dist/admin-permissions.js');await db.accessRole.upsert({where:{code:'TEACHER'},create:{code:'TEACHER',name:'老师',permissionCodes:rolePermissions.TEACHER,active:true},update:{}});
+  const startsAt=new Date(Date.now()+30*60000),endsAt=new Date(Date.now()+2*3600000),event=await db.event.create({data:{title:'书院秋日共读',category:'经典研学',description:'共读经典，交流日常实践。',cover:'/static/art/books.svg',location:'书院共学厅',startsAt,endsAt,capacity:10,price:0,status:'PUBLISHED',responsibleUserId:operator.id}});
+  const session=await bookings.createSession(req,event.id,{startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),publicOpenAt:new Date(Date.now()-60000).toISOString(),cancelDeadline:new Date(Date.now()+20*60000).toISOString(),location:event.location,capacity:10,ticketTitle:'共读席位',perUserLimit:2});const ticket=await db.eventTicketType.findFirstOrThrow({where:{sessionId:session.id}}),registration=await bookings.register({actor:student},{ticketTypeId:ticket.id,requestKey:randomUUID(),quantity:2,name:'共学体验学员',phone:'19900001002',contactConsent:true});
+  mobileUrl=await serve(resolve('apps/mobile/unpackage/dist/build/web'));const adminUrl=await serve(resolve('apps/admin/dist'));
+  browser=await chromium.launch({headless:true,channel:'msedge'});admin=await browser.newPage({viewport:{width:1440,height:1050}});mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  for(const [page,isMobile] of [[admin,false],[mobile,true]]){
+    page.setDefaultTimeout(18000);page.on('pageerror',e=>errors.push(e.message));
+    await page.route('**/api/v1/**',async route=>{
+      const request=route.request(),url=new URL(request.url()),path=url.pathname.replace('/api/v1','')+url.search,cors={'access-control-allow-origin':isMobile?mobileUrl:adminUrl,'access-control-allow-credentials':'true','access-control-allow-headers':'authorization,content-type,x-csrf-token','access-control-allow-methods':'GET,POST,PATCH,PUT,DELETE,OPTIONS'};
+      if(request.method()==='OPTIONS'){await route.fulfill({status:204,headers:cors});return;}
+      const headers={...request.headers(),origin:'http://127.0.0.1:5173','x-forwarded-for':'2001:db8::'+(isMobile?'1':'2'),...(!isMobile?{cookie:'daoxue_access='+credentials.access,'x-csrf-token':csrfToken}:{})};delete headers.host;
+      const response=await page.request.fetch(base+path,{method:request.method(),headers,data:request.postData()??undefined});await route.fulfill({response,headers:{...response.headers(),...cors}});
+    });
+  }
+
+  await admin.goto(adminUrl+'/events');await admin.locator('tr').filter({hasText:event.title}).getByText('场次与报名',{exact:true}).click();await admin.getByText('工作人员',{exact:true}).click();const modal=admin.locator('.ant-modal:visible');await modal.locator('.ant-select').click();await admin.getByTitle(worker.nickname,{exact:true}).click();await modal.getByLabel('撤销误签到',{exact:true}).check();await modal.getByRole('textbox',{name:'委派说明',exact:true}).fill('负责本场次接待与误签到更正');const granted=pending(admin.waitForResponse(r=>r.url().endsWith('/staff')&&r.request().method()==='POST'));await modal.getByRole('button',{name:'保存委派',exact:true}).click();assert.equal((await granted).status(),201);await modal.locator('tr').filter({hasText:worker.nickname}).waitFor();await admin.screenshot({path:output+'/admin-event-staff.png',fullPage:true});checks.push('Pro从真实老师账号选择本场次工作人员并授予签到与撤销权限');
+  async function loginMobile(phone,path){await mobile.goto(mobileUrl+'/#/pages/auth/login?redirect='+encodeURIComponent(path));await mobile.locator('input').nth(0).fill(phone);const sms=pending(mobile.waitForResponse(r=>r.url().endsWith('/auth/sms')&&r.request().method()==='POST'));await mobile.getByText('获取验证码',{exact:true}).click();assert.equal((await sms).status(),201);await mobile.getByText(/秒后重发/).waitFor();await mobile.locator('input').nth(1).fill('123456');await mobile.locator('.consent-touch').click();await mobile.locator('.login-submit').click();await mobile.waitForURL(url=>url.hash.includes(path));}
+  await loginMobile('19900001002','/pages/booking/mine');await mobile.getByText('出示活动核销凭证',{exact:true}).click();await mobile.locator('.credential-qr img').waitFor();
+  const refreshed=pending(mobile.waitForResponse(r=>r.url().endsWith('/checkin-code')&&r.request().method()==='POST'));await mobile.getByText('刷新二维码',{exact:true}).click();const credential=await (await refreshed).json();assert.ok(credential.code.startsWith('DXCHECK1:'));await mobile.screenshot({path:output+'/app-event-credential.png'});checks.push('App从本人报名出示实际二维码，刷新取得新的临时凭证');
+  await admin.goto(adminUrl+'/event-workbench');await admin.getByRole('textbox',{name:'报名核销凭证',exact:true}).fill(credential.code);await admin.getByRole('button',{name:'核对报名',exact:true}).click();await admin.getByRole('button',{name:'确认第1位到场',exact:true}).click();await admin.getByRole('button',{name:'第1位已签到',exact:true}).waitFor();await admin.screenshot({path:output+'/admin-event-checkin.png',fullPage:true});checks.push('Pro粘贴真实凭证，核对脱敏联系人并记录第一位到场');
+  await loginMobile('19900001003','/pages/booking/workbench');await mobile.getByText(event.title+' · 当前场次',{exact:true}).waitFor();await mobile.locator('.code-input textarea').fill(credential.code);await mobile.getByText('核对报名',{exact:true}).click();await mobile.getByText('确认第2位到场',{exact:true}).click();await mobile.getByText('第2位已签到',{exact:true}).waitFor();await mobile.screenshot({path:output+'/app-event-worker.png'});checks.push('获委派助教App工作台核对凭证，分别确认第二位到场');
+  await mobile.getByText('撤销误签到',{exact:true}).first().click();await mobile.locator('.compose-input textarea').fill('第一位尚未到场，修正误点签到。');const reversed=pending(mobile.waitForResponse(r=>r.url().includes('/checkins/')&&r.url().endsWith('/revoke')&&r.request().method()==='POST'));await mobile.getByText('确认撤销',{exact:true}).click();assert.equal((await reversed).status(),201);await mobile.getByText('第一位尚未到场，修正误点签到。',{exact:true}).waitFor();assert.equal((await db.eventRegistration.findUniqueOrThrow({where:{id:registration.id}})).state,'CONFIRMED');checks.push('App弹窗填写误签到原因，保留原记录并更新有效到场人数');
+  await mobile.getByText('核对报名',{exact:true}).click();await mobile.getByText('确认第1位到场',{exact:true}).click();await mobile.getByText('第1位已签到',{exact:true}).waitFor();assert.equal(await db.eventCheckin.count({where:{registrationId:registration.id}}),3);checks.push('撤销后真实再次到场产生新签到事实，不覆盖历史');
+  assert.equal(errors.length,0,JSON.stringify(errors));
+}catch(error){failure=String(error);errors.push(failure);console.error(failure);if(mobile){await mobile.screenshot({path:output+'/app-failure.png',fullPage:true});console.error((await mobile.locator('body').innerText()).slice(-2500));}if(admin){await admin.screenshot({path:output+'/admin-failure.png',fullPage:true});console.error((await admin.locator('body').innerText()).slice(-2500));}throw error;
+}finally{
+  await writeFile(output+'/browser-checks.json',JSON.stringify({checks,errors,status:failure?'failed':'passed',isolatedDatabase:true,adminSessionInjection:true,appRealOtp:true,businessResponsesMocked:false,commercialEvidence:false},null,2));await browser?.close();for(const server of servers)await new Promise(ok=>server.close(ok));await app?.close();await db?.$disconnect();await pool.query('DROP DATABASE "'+database+'" WITH (FORCE)');await pool.end();
+}
+console.log(JSON.stringify({passed:checks.length,errors}));

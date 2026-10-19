@@ -1,0 +1,55 @@
+<template><view class="rtc-panel">
+<!-- #ifdef APP-ANDROID || APP-IOS -->
+<native-view :style="{height:height+'px',width:'100%'}" @init="bind"/>
+<!-- #endif -->
+<view class="rtc-status"><text class="rtc-state">{{statusLabel}}</text><text v-if="error" class="rtc-error">{{error}}</text></view>
+<view class="rtc-actions"><button v-if="host||mode==='CONSULTATION'||own?.state==='APPROVED'" class="rtc-button" :disabled="busy" @click="startSpeaking">{{consent?'重新检查连接':own?.state==='APPROVED'?'接受邀请 · 开始连麦':mode==='CONSULTATION'?'进入音视频咨询':'开始推流'}}</button><button v-if="consent" class="rtc-button" @click="mute">{{muted?'开启麦克风':'关闭麦克风'}}</button><button v-if="host||mode==='CONSULTATION'||own?.state==='CONNECTED'" class="rtc-button" @click="camera">{{video?'关闭摄像头':'使用摄像头'}}</button><button v-if="!host&&mode==='LIVE'&&!own" class="rtc-button" :disabled="busy" @click="micAction('REQUEST')">申请连麦</button><button v-if="own&&['WAITING','APPROVED','CONNECTED'].includes(own!.state)" class="rtc-button" :disabled="busy" @click="micAction('CANCEL',own!)">{{own!.state==='CONNECTED'?'结束连麦':'取消申请'}}</button><button v-if="status==='PERMISSION'" class="rtc-button" @click="settings">权限设置</button><button v-if="error" class="rtc-button" @click="refresh">重试连接</button></view>
+<text v-if="own?.state==='WAITING'" class="rtc-note">{{own!.priority?'会员优先 · ':''}}已提交申请，等候主播邀请。批准后仍需你确认开麦。</text>
+<view v-if="host&&queue.length" class="rtc-queue"><text class="rtc-label">连麦申请</text><view v-for="item in queue" :key="item.id" class="rtc-person"><view class="rtc-person-copy"><text class="rtc-name">{{item.nickname}}</text><text class="rtc-note">{{item.priority?'会员优先 · ':''}}{{micLabel(item.state)}}</text></view><view class="rtc-person-actions"><button v-if="item.state==='WAITING'" class="rtc-button" :disabled="busy" @click="micAction('APPROVE',item)">邀请</button><button v-if="item.state==='WAITING'" class="rtc-button" :disabled="busy" @click="micAction('REJECT',item)">暂不接受</button><button v-else class="rtc-button" :disabled="busy" @click="micAction('REMOVE',item)">结束连麦</button></view></view></view>
+<text class="rtc-note">{{mode==='CONSULTATION'?'仅本次预约双方可进入。离开页面会停止采集，结束咨询后请在预约中核对履约结果。':'观看不需要摄像头或麦克风权限。离开页面会停止采集。'}}</text>
+</view></template>
+<script setup lang="ts">
+import {ref,computed,onMounted,onUnmounted,watch} from 'vue';
+// #ifdef APP-ANDROID || APP-IOS
+import {bindRtc,rtcCommand,rtcState,closeRtc} from '@/uni_modules/academy-rtc';
+// #endif
+import {request} from '../lib/api';import {currentUser,sessionGeneration} from '../lib/session';
+const props=defineProps<{leaseKey:string;sessionId?:string;mode:'LIVE'|'CONSULTATION';height:number}>(),emit=defineEmits<{error:[message:string];reconnect:[]}>();
+type Credential={appId:number;roomId:string;userId:string;token:string;role:string;title:string;publishStreamId:string|null;playStreamIds:string[]};type Mic={id:string;state:string;version:number;priority:number;nickname?:string};
+const id='rtc-'+Math.random().toString(36).slice(2),status=ref('CONNECTING'),error=ref(''),consent=ref(false),muted=ref(false),video=ref(props.mode==='CONSULTATION'),busy=ref(false),host=ref(false),queue=ref<Mic[]>([]),own=ref<Mic|null>(null);
+const statusLabel=computed(()=>({IDLE:'等待连接',CONNECTING:'正在连接',CONNECTED:'已连接，等待画面',PLAYING:'研习中',PUBLISHING:'正在推流',PERMISSION:'需要设备权限',ERROR:'连接中断',CLOSED:'连接已结束'} as Record<string,string>)[status.value]??'正在连接');
+const owner=currentUser.value?.id,generation=sessionGeneration();let disposed=false,bound=false,credentials:Credential|null=null,poll:ReturnType<typeof setInterval>|null=null,timer:ReturnType<typeof setInterval>|null=null,micTimer:ReturnType<typeof setInterval>|null=null,refreshing=false,micLoading=false,receiving=false,hadMic=false,reconnecting=false;
+function valid(){return !disposed&&owner===currentUser.value?.id&&generation===sessionGeneration();}
+function command(data:Record<string,unknown>){
+// #ifdef APP-ANDROID || APP-IOS
+if(bound&&valid())rtcCommand(id,JSON.stringify(data));
+// #endif
+}
+function configure(){if(credentials)command({...credentials,action:'CONFIGURE',publishStreamId:credentials.publishStreamId??'',publishConsent:consent.value,video:video.value});}
+function bind(e:{detail:{element:UniNativeViewElement}}){
+// #ifdef APP-ANDROID || APP-IOS
+bindRtc(e.detail.element,id);bound=true;configure();
+// #endif
+}
+async function refresh(){if(!valid()||refreshing)return;refreshing=true;try{const data=await request<Credential>(props.mode==='LIVE'?'/live/rtc/refresh':'/rtc/consultations/refresh',{method:'POST',data:{key:props.leaseKey,...(props.mode==='LIVE'?{watching:receiving}:{})}});if(!valid())return;if(credentials?.publishStreamId&&!data.publishStreamId)consent.value=false;const first=credentials===null;credentials=data;host.value=data.role==='HOST';if(first&&host.value)video.value=true;configure();error.value='';}catch(e){if(valid()){error.value=(e as Error).message;command({action:'STOP'});status.value='ERROR';if(hadMic&&!host.value&&props.mode==='LIVE'&&!reconnecting){reconnecting=true;consent.value=false;emit('reconnect');}else emit('error',error.value);}}finally{refreshing=false;}}
+async function mics(){if(props.mode!=='LIVE'||!valid()||micLoading)return;micLoading=true;try{const result=await request<{host:boolean;items:Mic[]}>('/live/mics',{method:'POST',data:{key:props.leaseKey,action:'LIST'}});if(!valid())return;host.value=result.host;queue.value=result.host?result.items:[];own.value=result.host?null:result.items.find(item=>['WAITING','APPROVED','CONNECTED'].includes(item.state))??null;}catch(e){if(valid()&&(e as Error&{status?:number}).status===403){consent.value=false;command({action:'STOP'});}}finally{micLoading=false;}}
+async function micAction(action:string,item?:Mic){if(busy.value||!valid())return;busy.value=true;try{const result=await request<{host:boolean;items:Mic[]}>('/live/mics',{method:'POST',data:{key:props.leaseKey,action,...(item?{requestId:item.id,expectedVersion:item.version}:{})}});if(!valid())return;queue.value=result.host?result.items:[];own.value=result.host?null:result.items.find(item=>['WAITING','APPROVED','CONNECTED'].includes(item.state))??null;if(action==='CONNECT')hadMic=true;if(action==='CANCEL'){consent.value=false;command({action:'MUTE',muted:true});}await refresh();}catch(e){if(valid())uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
+function hasConnectedMic(){return own.value?.state==='CONNECTED';}
+function startSpeaking(){uni.showModal({title:host.value?'开始本场直播':props.mode==='CONSULTATION'?'开始咨询':'开始连麦',content:video.value?'确认后申请摄像头和麦克风权限，并向本房间传输画面与声音。':'确认后申请麦克风权限，并向本房间传输声音。',confirmText:'确认开始',success:async result=>{if(!result.confirm||!valid())return;if(own.value?.state==='APPROVED'){await micAction('CONNECT',own.value);if(!hasConnectedMic())return;}consent.value=true;muted.value=false;configure();}});}
+function mute(){muted.value=!muted.value;command({action:'MUTE',muted:muted.value});}function camera(){video.value=!video.value;configure();command({action:'CAMERA',enabled:video.value});}function settings(){uni.openAppAuthorizeSetting({});}
+const micLabel=(state:string)=>({WAITING:'等候邀请',APPROVED:'已邀请，等候对方确认',CONNECTED:'连麦中'} as Record<string,string>)[state]??'已结束';
+onMounted(()=>{void refresh();void mics();timer=setInterval(()=>void refresh(),20000);micTimer=setInterval(()=>void mics(),5000);poll=setInterval(()=>{
+// #ifdef APP-ANDROID || APP-IOS
+if(bound&&valid()){try{const state=JSON.parse(rtcState(id)) as {state:string;error?:string;receiving:boolean};status.value=state.state;receiving=state.receiving;if(state.error)error.value=state.error;}catch{error.value='音视频状态读取失败，请重连';}}
+// #endif
+},500);});
+function stop(){if(disposed)return;disposed=true;if(timer)clearInterval(timer);if(micTimer)clearInterval(micTimer);if(poll)clearInterval(poll);
+// #ifdef APP-ANDROID || APP-IOS
+closeRtc(id);
+// #endif
+void request(props.mode==='LIVE'?'/live/rtc/leave':'/rtc/consultations/leave',{method:'POST',data:{key:props.leaseKey}}).catch(()=>{});}
+watch(()=>currentUser.value?.id,()=>{if(!valid())stop();});onUnmounted(stop);
+</script>
+<style>
+.rtc-panel{padding-bottom:12px;}.rtc-status{padding:12px 0 4px;}.rtc-state{font-size:14px;color:#31564F;}.rtc-error{font-size:13px;color:#A44F42;margin-top:6px;line-height:21px;}.rtc-actions{flex-direction:row;flex-wrap:wrap;margin:8px 0;}.rtc-button{margin-right:8px;margin-bottom:8px;font-size:13px;color:#31564F;background-color:#F4F1E9;border-width:1px;border-color:#DFD9CF;line-height:22px;min-height:44px;padding:10px 12px;margin-left:0;margin-top:0;border-radius:5px;}.rtc-note{font-size:12px;color:#7F847D;line-height:20px;}.rtc-queue{margin-top:12px;padding-top:12px;border-top-width:1px;border-top-color:#DFD9CF;}.rtc-label{font-size:15px;color:#293B34;font-family:AcademySerif;margin-bottom:8px;}.rtc-person{padding:10px 0;border-bottom-width:1px;border-bottom-color:#E9E4D9;}.rtc-person-copy{margin-bottom:8px;}.rtc-person-actions{flex-direction:row;}.rtc-name{font-size:14px;color:#293B34;}
+</style>

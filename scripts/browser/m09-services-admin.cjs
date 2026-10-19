@@ -1,0 +1,10 @@
+async page=>{
+const errors=[];page.on('pageerror',e=>errors.push(e.message));let checks=0;
+await page.goto('http://127.0.0.1:5174/promotion-services');await page.getByRole('tab',{name:'项目办理',exact:true}).waitFor();
+for(const name of ['项目办理','合同与报价','广告排期','广告位置']){await page.getByRole('tab',{name,exact:true}).click();await page.getByRole('table').waitFor();checks++;}
+await page.getByRole('tab',{name:'合同与报价',exact:true}).click();await page.getByRole('button',{name:'核验新合同',exact:true}).click();let dialog=page.getByRole('dialog');await dialog.getByLabel('实际委托人账号',{exact:true}).waitFor();await dialog.getByLabel('合同总价（元）',{exact:true}).fill('1250.50');await dialog.getByLabel('项目名称',{exact:true}).fill('文化研习课程宣传');await page.screenshot({path:'outputs/m09-remaining/admin-operating-contract.png',fullPage:true});await dialog.getByRole('button',{name:'Close',exact:true}).click();await dialog.waitFor({state:'hidden'});checks++;
+await page.getByRole('tab',{name:'广告排期',exact:true}).click();await page.getByRole('button',{name:'创建广告排期',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('已收款推广服务',{exact:true}).waitFor();await dialog.getByLabel('广告标题',{exact:true}).fill('一同研读道德经');await dialog.getByLabel('广告摘要',{exact:true}).fill('跟随经典，静心研习。');await page.screenshot({path:'outputs/m09-remaining/admin-advertising-form.png',fullPage:true});await dialog.getByRole('button',{name:'Close',exact:true}).click();await dialog.waitFor({state:'hidden'});checks++;
+await page.goto('http://127.0.0.1:5174/charity');for(const name of ['公益计划','资格申请','协议分成','月结付款']){await page.getByRole('tab',{name,exact:true}).click();await page.getByRole('table').waitFor();checks++;}
+for(const [id,title] of [['promotion-services','推广服务收款、交付与广告排期'],['charity','公益研习与协议结算']]){await page.goto('http://127.0.0.1:5174/guide?workflow='+id);await page.getByRole('heading',{name:title,exact:true}).waitFor();checks++;}
+if(errors.length)throw Error(errors.join(';'));return{checks,passed:checks,pageErrors:errors.length,submittedBusinessData:false};
+}

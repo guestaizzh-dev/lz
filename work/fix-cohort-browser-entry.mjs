@@ -1,0 +1,2 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const path='scripts/browser/cohort-sales.mjs';let text=await readFile(path,'utf8');text=text.replace("await mobile.goto(mobileUrl+'/#/pages/cohort/purchase?cohortId='+openTerm.id);await mobile.getByText", "await mobile.goto(mobileUrl+'/#/pages/cohort/purchase?cohortId='+openTerm.id);await mobile.reload();await mobile.getByText");await writeFile(path,text);

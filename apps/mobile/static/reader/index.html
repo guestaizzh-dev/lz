@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><link rel="stylesheet" href="reader.css"><style>html,body{margin:0;background:#F4F0E7;}body{overflow:hidden;}</style></head><body><div id="reader" class="academy-reader"></div><script src="uni.webview.js"></script><script src="reader-engine.js"></script><script>
+const reader=AcademyReader.create(document.getElementById('reader'),data=>uni.webView.postMessage({data}));
+window.renderAcademyReader=encoded=>reader.render(JSON.parse(decodeURIComponent(encoded)));
+window.academyMediaResult=encoded=>reader.mediaResult(JSON.parse(decodeURIComponent(encoded)));
+window.pauseAcademyMedia=()=>reader.pauseMedia();
+window.clearAcademySelection=()=>reader.clearSelection();
+</script></body></html>

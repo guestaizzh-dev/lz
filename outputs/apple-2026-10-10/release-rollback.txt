@@ -1,0 +1,5 @@
+previous=/opt/daoxue-academy/releases/20261011-commerce-01
+image=daoxue-api:20261011-membership-01
+backup=/opt/daoxue-academy/backups/academy-20261011T051608Z-YoogpK.dump
+healthy
+active

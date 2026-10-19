@@ -1,0 +1,7 @@
+<template><view class="action-bar" :style="{paddingBottom:Math.max(12,safeBottom)+'px'}"><slot/></view></template>
+<script setup lang="ts">const safeBottom=uni.getWindowInfo().safeAreaInsets?.bottom??0;</script>
+<style>.action-bar{flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 16px 12px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;background-color:#FAF8F2;flex-shrink:0;}
+/* #ifdef WEB */
+.action-bar{padding-bottom:max(12px,env(safe-area-inset-bottom))!important;}
+/* #endif */
+</style>

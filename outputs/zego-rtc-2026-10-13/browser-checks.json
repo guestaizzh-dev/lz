@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "App真实OTP登录返回原直播研习安排",
+    "正在直播优先、预告最近优先、北京时间与真实预约保存",
+    "Pro预告改期按北京时间保存，预约和站内消息保留",
+    "App弹窗发言与点击经典引用，真实保存权威原文、本人待审核可见",
+    "Pro实际发言审核与App授权HTTP刷新接通",
+    "房间禁言实际记录，App发言按钮与服务端资格同步",
+    "Pro解除房间禁言，App恢复发言",
+    "审核回放20秒H.264实际解码播放，回放讨论只读",
+    "撤下回放后旧媒体票据即时拒绝，未留下公开永久视频地址"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "providerAdapterSimulated": true,
+  "rtcPlayerAcceptance": false,
+  "replayVideoDecoded": true,
+  "commercialEvidence": false
+}

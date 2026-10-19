@@ -1,0 +1,9 @@
+{
+  "tag": "20261014-admin-operations-02",
+  "release": "/opt/daoxue-academy/releases/20261014-admin-operations-02",
+  "previous": "/opt/daoxue-academy/releases/20261014-admin-operations-01",
+  "apiImage": "daoxue-api:20261014-admin-operations-02",
+  "dataTablesVerified": 19,
+  "migrationsChanged": false,
+  "oldChunksRetained": true
+}

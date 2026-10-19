@@ -15,6 +15,7 @@ export function smsRequestHeaders(payload: string, config: { secretId: string; s
   return { 'Content-Type': contentType, 'X-TC-Action': action, 'X-TC-Version': '2021-01-11', 'X-TC-Region': config.region, 'X-TC-Timestamp': String(timestamp), Authorization: `TC3-HMAC-SHA256 Credential=${config.secretId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${hmac(key, stringToSign).toString('hex')}` };
 }
 export async function sendSms(phone: string, code: string) {
+  if (process.env.SMS_ENABLED === 'false') throw new ServiceUnavailableException('短信登录尚未开通，请联系书院');
   if (process.env.NODE_ENV !== 'production' && process.env.DEV_OTP_CODE) return 'DEVELOPMENT';
   const secretId = process.env.SMS_SECRET_ID, secretKey = process.env.SMS_SECRET_KEY, appId = process.env.SMS_SDK_APP_ID, templateId = process.env.SMS_TEMPLATE_ID, signName = process.env.SMS_SIGN_NAME;
   if (!secretId || !secretKey || !appId || !templateId || !signName) throw new ServiceUnavailableException('短信服务暂不可用，请稍后再试');

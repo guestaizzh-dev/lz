@@ -1,0 +1,200 @@
+Running tests in an isolated temporary database.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "academy_test_8908_1791708134292", schema "public" at "127.0.0.1:55432"
+
+26 migrations found in prisma/migrations
+
+Applying migration `20261006035656_catalog_foundation`
+Applying migration `20261006040323_admin_identity_audit`
+Applying migration `20261006041548_app_identity_private_data`
+Applying migration `20261006041655_note_source_version`
+Applying migration `20261006075056_learning_membership_media`
+Applying migration `20261006080308_teacher_version`
+Applying migration `20261006102000_shopping_cart_addresses`
+Applying migration `20261006111500_pending_orders`
+Applying migration `20261009090000_note_selection_ranges`
+Applying migration `20261009110000_domain_enum_extension`
+Applying migration `20261009120000_full_domain_foundation`
+Applying migration `20261009130000_forum_sections`
+Applying migration `20261009150000_course_completion_and_reviews`
+Applying migration `20261009170000_course_sales`
+Applying migration `20261009171000_course_finance_accounts`
+Applying migration `20261009190000_admin_permission_policies`
+Applying migration `20261009200000_admin_role_baselines`
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261006035656_catalog_foundation/
+    └─ migration.sql
+  └─ 20261006040323_admin_identity_audit/
+    └─ migration.sql
+  └─ 20261006041548_app_identity_private_data/
+    └─ migration.sql
+  └─ 20261006041655_note_source_version/
+    └─ migration.sql
+  └─ 20261006075056_learning_membership_media/
+    └─ migration.sql
+  └─ 20261006080308_teacher_version/
+    └─ migration.sql
+  └─ 20261006102000_shopping_cart_addresses/
+    └─ migration.sql
+  └─ 20261006111500_pending_orders/
+    └─ migration.sql
+  └─ 20261009090000_note_selection_ranges/
+    └─ migration.sql
+  └─ 20261009110000_domain_enum_extension/
+    └─ migration.sql
+  └─ 20261009120000_full_domain_foundation/
+    └─ migration.sql
+  └─ 20261009130000_forum_sections/
+    └─ migration.sql
+  └─ 20261009150000_course_completion_and_reviews/
+    └─ migration.sql
+  └─ 20261009170000_course_sales/
+    └─ migration.sql
+  └─ 20261009171000_course_finance_accounts/
+    └─ migration.sql
+  └─ 20261009190000_admin_permission_policies/
+    └─ migration.sql
+  └─ 20261009200000_admin_role_baselines/
+    └─ migration.sql
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+✔ admin route policies cover existing exceptional workflows and reject unknown routes (1.097ms)
+✔ audit read boundary strips nested credentials and private text; configuration rejects prototype keys (0.5503ms)
+✔ last active administrator cannot be frozen before any mutation (2.0213ms)
+▶ admin management uses real HTTP, database versions, CSRF, scope policies and effective configuration
+  ✔ dashboard returns only permitted indicators and real course finance series (279.1443ms)
+  ✔ CSRF and non-administrator access deny account, configuration and permission changes (80.1475ms)
+  ✔ policy changes narrow active sessions immediately and the generic editor cannot bypass them (132.6263ms)
+  ✔ account creation, role grants and revokes use trigger synchronization (216.6247ms)
+  ✔ freezing revokes sessions, restoration never restores revoked sessions and password resets invalidate access (503.305ms)
+  ✔ configuration validates types, prevents lost updates and affects actual catalog output (156.2284ms)
+  ✔ public posting switch takes effect while the read endpoint remains available (74.9954ms)
+  ✔ activities validate intervals, versions and publication transitions; generic edit cannot bypass review (134.1537ms)
+  ✔ media library excludes private images and does not expose storage references (59.4413ms)
+  ✔ global audit filters redact private history and include request correlation (232.386ms)
+  ✔ article and community comment workflows stay separate; report access follows the target module (240.8844ms)
+  ✔ revoking module access immediately invalidates already-issued private image tickets (193.6957ms)
+✔ admin management uses real HTTP, database versions, CSRF, scope policies and effective configuration (4169.122ms)
+▶ course sales: signed payment protocol, real HTTP, PostgreSQL and delivery ownership
+  ✔ stored channels fail closed instead of using WeChat and other fulfillment orders remain isolated (508.3657ms)
+  ✔ mixed purchase quote describes the released lesson formats and all-order filter is optional (274.2475ms)
+  ✔ Alipay exact cents and signed App credentials preserve the selected channel (641.0883ms)
+  ✔ Alipay notifications verify identity and rotating pinned keys; dual-channel receipts deliver once and compensate (537.3076ms)
+  ✔ published sale quote carries version and policy; platform and ownership gates are enforced (237.558ms)
+  ✔ demo visibility never authorizes a payment, including an existing pending order (299.0399ms)
+  ✔ concurrent requests reuse one pending order; changed quote and reused idempotency key conflict (142.7839ms)
+  ✔ prepay request and native SDK payload are RSA signed; pending payment does not grant playback (83.0377ms)
+  ✔ forged, stale and modified notifications never grant access (72.3167ms)
+  ✔ concurrent verified callback retries grant exactly once with balanced journal and one notification (274.2235ms)
+  ✔ started paid media makes default refund ineligible; trial does not count as starting paid delivery (161.9935ms)
+  ✔ purchased release and policies survive republishing and withdrawal; public requests remain denied (225.9487ms)
+  ✔ version upgrades require explicit consent, preserve original release, progress and expiry, and support restoring it (773.0518ms)
+  ✔ stopped delivery denies issued tickets and text, preserves history, and permits compensation refund after paid learning (989.8833ms)
+  ✔ withdrawal replacement is optional and reversible, with history retained and no cross-course replacement (732.6979ms)
+  ✔ new grants cannot inherit previous version choices; withdrawal also blocks free enrollment and library playback (643.6898ms)
+  ✔ query after client success grants access only from a verified provider result (361.3313ms)
+  ✔ refund request is private and idempotent; support cannot authorize monetary refunds (698.4713ms)
+  ✔ refund success cannot revoke a replacement manual grant; wrong refund amount cannot be confirmed (434.7289ms)
+  ✔ duplicate and incorrect-amount receipts are retained and refunded without extra access or refunding the first payment (737.2039ms)
+  ✔ cancel consults the channel and cannot close an already paid order; delayed closed-order receipt is refunded (721.7622ms)
+  ✔ unknown network and invalid provider signatures stay pending without granting; retries recover through the original order (281.3836ms)
+  ✔ delivery loss and frozen-account late receipts are refunded without granting access (601.2811ms)
+  ✔ purchase refunds preserve separate membership access and its original period (497.4316ms)
+  ✔ durable jobs expire unpaid orders; disabled or incomplete courses cannot collect money (409.832ms)
+  ✔ account closure retains paid facts, requires explicit forfeiture and blocks unsettled refunds (853.4001ms)
+  ✔ closing an unpaid order preserves late-payment compensation without restoring a deleted account (559.613ms)
+✔ course sales: signed payment protocol, real HTTP, PostgreSQL and delivery ownership (14842.5733ms)
+▶ membership orders use verified facts, frozen versions and isolated entitlement periods
+  ✔ disabled and iOS gates never create an order or membership (190.6589ms)
+  ✔ concurrent checkout replays one immutable order and rejects changed requests (179.4532ms)
+  ✔ duplicate concurrent verified receipts create one period and one balanced journal (170.3736ms)
+  ✔ same-tier renewal and cross-tier purchases append independent frozen periods without overlap (322.7866ms)
+  ✔ changed queue before payment prevents collecting and confirmed money enters compensation (233.9403ms)
+  ✔ late or mismatched receipts refund exact received money without grants (286.581ms)
+  ✔ uncertain prepay requires query; offline cancellation preserves pending state; worker expires unpaid (298.1737ms)
+  ✔ future-period refund requires finance, waits for verified success and leaves other dates intact (435.9161ms)
+  ✔ editing the sale price preserves an already confirmed order and its old benefit version (156.9242ms)
+  ✔ approved delayed refunds suspend only their purchased period and quota, including failed retry (509.4951ms)
+  ✔ failed refund cancellation requires verified terminal closure and restores only the original dates (461.3649ms)
+  ✔ stopped sales refuse prepay, and funds arriving after stop are refunded without membership (183.0007ms)
+  ✔ account closure requires explicit paid-membership forfeiture and preserves all financial evidence (429.3931ms)
+  ✔ database rejects purchased periods without verified source and list enforces route permission (56.9179ms)
+✔ membership orders use verified facts, frozen versions and isolated entitlement periods (4649.5024ms)
+▶ pending physical orders reserve inventory once and protect snapshots and owners
+  ✔ delivery requires explicit configuration and prevents role/version overrides (178.6784ms)
+  ✔ quote rejects changed price/address; repeated identical requests reserve once (462.2545ms)
+  ✔ competing buyers never oversell and timed closure recovers stock exactly once (154.3979ms)
+  ✔ reservation mode is blocked by default and production; closure redacts addresses (283.8093ms)
+✔ pending physical orders reserve inventory once and protect snapshots and owners (2181.0398ms)
+✔ private encryption authenticates its key and payload and exposes only authorized plain fields (3.3575ms)
+✔ legacy data converts in audited batches, repeats safely and restores only recorded rows (650.9115ms)
+▶ physical commerce preserves money, inventory, ownership and fulfilment facts
+  ✔ disabled gate, web, demo and foreign addresses cannot collect money (264.0207ms)
+  ✔ immutable exact quote, shipping allocation, encrypted address and idempotent checkout (470.4294ms)
+  ✔ concurrent buyers cannot oversell; closed reservations release once (276.7585ms)
+  ✔ quote changes require reconfirmation before stock is reserved (58.5644ms)
+  ✔ verified payment deducts stock once, keeps fulfilment separate and posts balanced money (242.0294ms)
+  ✔ uncertain prepay cannot repeat, query outages cannot release inventory (233.3039ms)
+  ✔ payment after cancellation becomes compensation without stock deduction (243.5753ms)
+  ✔ mismatched and duplicate verified money is refunded without second fulfilment (390.0288ms)
+  ✔ split shipments freeze destination, prevent over-shipping and sign only owned parcels (389.2414ms)
+  ✔ partial refunds allocate every cent once and stock returns only after channel success (2674.3315ms)
+  ✔ return requires approval and warehouse quality check; finance cannot invent receipt (828.3992ms)
+  ✔ refund failure preserves amounts and stock; verified retry is idempotent (496.212ms)
+  ✔ verified CLOSED refund can reissue with retained original history and one stock return (413.9082ms)
+  ✔ received partial shipment and unsent refund finish in either order (407.5213ms)
+  ✔ exchange zero money, stock atomicity, retry and in-transit protection (683.3375ms)
+  ✔ unpaid shipping and unauthorized address/refund operations are rejected (261.0432ms)
+  ✔ completed physical orders can close accounts without retaining destination copies (471.6347ms)
+  ✔ published cultural evidence, quality review, paired tools and net sales sorting (551.1083ms)
+  ✔ existing verified callback dispatcher routes physical orders to their workflow (153.1844ms)
+✔ physical commerce preserves money, inventory, ownership and fulfilment facts (10764.749ms)
+✔ production fails closed without required integrations or valid secrets (1.565ms)
+✔ explicitly disabled SMS permits admin-only deployment and cannot issue a code (0.7016ms)
+▶ shopping HTTP workflows protect ownership, defaults, prices, inventory and audit
+  ✔ product review, SKU changes and stock use roles, versions and audit (307.4078ms)
+  ✔ cart quantity is absolute and idempotent; clients cannot submit prices or other owners (339.6412ms)
+  ✔ price and inventory changes remain visible; inactive and archived items cannot be added (271.5278ms)
+  ✔ concurrent default address saves have exactly one default and enforce user ownership (363.4308ms)
+  ✔ account closure removes stored delivery information and shopping data (243.6964ms)
+✔ shopping HTTP workflows protect ownership, defaults, prices, inventory and audit (2739.1751ms)
+ℹ tests 94
+ℹ suites 0
+ℹ pass 94
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54576.4241

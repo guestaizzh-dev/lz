@@ -1,0 +1,102 @@
+[
+  {
+    "path": "services/api/src/booking-member-pricing.ts",
+    "sha256": "ed2a6f33256ece7893caf6125f37b3f7f7e374abcdf1fac5d809f9d6baeed1b3"
+  },
+  {
+    "path": "services/api/src/bookings.ts",
+    "sha256": "45b351c489eaa35ff5eb90be3e27a1e96f5fbd8cbabf1e284086767e194f2357"
+  },
+  {
+    "path": "services/api/src/booking-sales.ts",
+    "sha256": "24eeba571124b2ffcaf024dcb7287a5fca30c4ad9539c3e9551d0b5ac0b0f791"
+  },
+  {
+    "path": "services/api/src/points-accounting.ts",
+    "sha256": "9be75c6fc7c7769892a87049f00affdcb5b42e08e010d5b61be8d6d6bdc67d78"
+  },
+  {
+    "path": "services/api/src/points-redemptions.ts",
+    "sha256": "8f5f676713c39cfa641934b4055c10af772a27e998b5118d7aaa922b4fe48eed"
+  },
+  {
+    "path": "services/api/src/marketing.ts",
+    "sha256": "3efc1b2ed73cc38468a4c271bb43bc429e21ed9128823326c27ecc14b786c8f7"
+  },
+  {
+    "path": "services/api/src/forum.ts",
+    "sha256": "d4d4536aae9391c08819a73e93a3cf99d8fb811f3008684ff1e66869324db600"
+  },
+  {
+    "path": "services/api/src/practices.ts",
+    "sha256": "e33b9192b80f08bbcc65a15f680945c4db8d67c7759dcecf58f9e63993b368e6"
+  },
+  {
+    "path": "services/api/src/progression.ts",
+    "sha256": "e0740490979b694ca3d3b9611b5b4aebbb88ed9ffa79091e73cbc40e6c736135"
+  },
+  {
+    "path": "services/api/prisma/schema.prisma",
+    "sha256": "3365e00dec1b12fc2cf7012d3bda1751edc55a06ab7093870c68472aafd2966c"
+  },
+  {
+    "path": "services/api/src/domain-registry.json",
+    "sha256": "6db37d6b25284308772cb9f25a109fe87b2ab3a9c41dd4ba96df54deeaae01f2"
+  },
+  {
+    "path": "services/api/test/points-accounting.test.mjs",
+    "sha256": "d7bc4c457dae8c3b409a2d902e413b659b96f11927dccb6aa387f876062fdb34"
+  },
+  {
+    "path": "services/api/test/points-coupons.test.mjs",
+    "sha256": "470c5c2f6c24e02f508fa4867e7bcf0eaf0e4d30952ff786c942f5f9b225ef39"
+  },
+  {
+    "path": "apps/mobile/pages/profile/progression.uvue",
+    "sha256": "db44c0ed3d74b94c56dd4563f5eee64640d201b00c2f0dd6a9433870ae39e3a3"
+  },
+  {
+    "path": "apps/mobile/pages/marketing/points.uvue",
+    "sha256": "b93aa901b9c6e92bc0d1c115035cbb9c14b3fa76ac84e4e0f6fccb320764160e"
+  },
+  {
+    "path": "apps/mobile/pages/marketing/coupons.uvue",
+    "sha256": "a7d1e6321e2dbb029c832bb5baff2fc759de71844a01a1a405ed4073a201fc7e"
+  },
+  {
+    "path": "apps/mobile/pages/auth/login.uvue",
+    "sha256": "26f816db82e0119db8f9ffeb3326809afbb20ddb85c1700ef82112c053c9debe"
+  },
+  {
+    "path": "apps/mobile/pages/booking/purchase.uvue",
+    "sha256": "0cfa42736608bae869adea5b333aee5848e328425f7518943efcf82792af35ed"
+  },
+  {
+    "path": "apps/admin/src/pages/marketing/index.tsx",
+    "sha256": "98aa3af770e1b326beaecb6b4c6aa64620b2c1cbcca0ec7203116157d6fc0028"
+  },
+  {
+    "path": "apps/admin/src/pages/data-workbench/index.tsx",
+    "sha256": "941f7fef6882552d441d3dec29020788b37c99398cad352cae2eb9decbd890c7"
+  },
+  {
+    "path": "apps/admin/src/operations/workflows.ts",
+    "sha256": "516f9e71ecf9b809299658b3b3b95ff7d981511e5d42d7b2cd64562b89aa0120"
+  },
+  {
+    "path": "scripts/browser/points-coupons.cjs",
+    "sha256": "c7f48d69688fd33488956065e3c441b28d4748422f0add3b1480b729dbea7117"
+  },
+  {
+    "path": "docs/76-member-event-pricing.md",
+    "sha256": "ff2c921f5348a90c1ef6faa580b4598f4b3da07ab18ed2abb9948a8f28548d80"
+  },
+  {
+    "path": "docs/77-points-reversal-accounting.md",
+    "sha256": "ed1e61017f65cb3f9e54ec59f032c7496273096a0863c4619d460851feb2d769"
+  },
+  {
+    "path": "docs/78-r1-points-coupon-exchange.md",
+    "sha256": "a0ad3c2ef5675c2d64d26d1d571d8df24782c8b0763b98ae159c22aa41fe77f6"
+  }
+]

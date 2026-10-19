@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "/system/config",
+    "/memberships"
+  ],
+  "demoConfigShown": true,
+  "grantUserLoading": true,
+  "encryptedPhoneSearch": true,
+  "result": "研习·在读学员 · 199****1002",
+  "consoleEvents": [
+    "Initial expired access session returned 401; automatic refresh recovered and pages loaded."
+  ],
+  "scope": "Web admin only; no mobile device or actual compensation grant submitted"
+}

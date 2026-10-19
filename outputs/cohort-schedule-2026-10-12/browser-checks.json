@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Pro草稿按章保存开放日，刷新后保留第2天并显示北京时间",
+    "真实开放报名后安排只读，不能从后台再次修改",
+    "未报名用户可查看售前章节安排，未暴露课件正文",
+    "本期目录第1章可学、第2章待开放，独立购课完成状态不覆盖营期",
+    "点击未开放章节显示准确时间弹窗，无误导购买提示",
+    "完成开放章节后不提前生成全期完成记录",
+    "进入开放日后刷新目录，可打开第二章真实正文",
+    "两章完成后才出现本期研习完成记录入口"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

@@ -1,0 +1,4 @@
+export type BindRtc = (element: UniNativeViewElement, id: string) => void
+export type RtcCommand = (id: string, command: string) => void
+export type RtcState = (id: string) => string
+export type CloseRtc = (id: string) => void

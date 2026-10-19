@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "name": "线上健康",
+      "status": 200
+    },
+    {
+      "name": "后台页面",
+      "status": 200
+    },
+    {
+      "name": "匿名不能读取会员交易",
+      "status": 401
+    },
+    {
+      "name": "管理员登录",
+      "status": 200
+    },
+    {
+      "name": "管理员会话",
+      "status": 200
+    },
+    {
+      "name": "会员订单",
+      "status": 200
+    },
+    {
+      "name": "课程订单",
+      "status": 200
+    },
+    {
+      "name": "商品订单",
+      "status": 200
+    },
+    {
+      "name": "会员套餐",
+      "status": 200
+    },
+    {
+      "name": "首页",
+      "status": 200
+    },
+    {
+      "name": "公开有效配置",
+      "status": 200
+    }
+  ],
+  "passed": 11,
+  "realTransactionsCreated": false
+}

@@ -1,0 +1,9 @@
+async page=>{
+let checks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:5174/member-gifts');for(const name of ['签名库存与份额','领取与退货']){await page.getByRole('tab',{name,exact:true}).click();await page.getByRole('table').waitFor();checks++;}
+await page.getByRole('tab',{name:'签名库存与份额',exact:true}).click();await page.getByRole('button',{name:'预留实际签名库存',exact:true}).click();let dialog=page.getByRole('dialog');await dialog.getByLabel('正式签名规格与普通可用库存').waitFor();await dialog.getByLabel('礼遇名称',{exact:true}).fill('签名道学读本');await dialog.getByLabel('实际领取与履约说明').fill('会员有效期内可领取一份实际签名读本，普通配送包邮。');await page.screenshot({path:'outputs/m09-remaining/admin-member-gift-pool.png',fullPage:true,animations:'disabled'});checks++;await dialog.getByRole('button',{name:/^(Close|关闭)$/}).click();await dialog.waitFor({state:'hidden'});
+await page.getByRole('button',{name:'发布新售会员权益',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('研学优先范围').waitFor();await dialog.getByLabel('每期一份的签名礼遇').waitFor();checks++;await dialog.getByRole('button',{name:/^(Close|关闭)$/}).click();await dialog.waitFor({state:'hidden'});
+await page.goto('http://127.0.0.1:5174/events');await page.getByRole('button',{name:'创建活动',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByRole('switch',{name:'研学活动'}).click();await dialog.getByLabel('实际行程与参加说明').waitFor();checks++;await dialog.getByRole('button',{name:'关闭',exact:true}).click();await page.getByRole('dialog',{name:'放弃未保存的活动？'}).getByRole('button',{name:'确 定',exact:true}).click();await page.getByRole('dialog',{name:'创建活动',exact:true}).waitFor({state:'hidden'});
+await page.goto('http://127.0.0.1:5174/guide?workflow=member-gifts');await page.getByRole('heading',{name:'签名礼遇库存与研学优先',exact:true}).waitFor();checks++;
+if(errors.length)throw Error(errors.join(';'));return{checks,passed:checks,pageErrors:0,submittedBusinessData:false};
+}

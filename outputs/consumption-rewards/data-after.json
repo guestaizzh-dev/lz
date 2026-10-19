@@ -1,0 +1,922 @@
+{
+  "AccessRole": {
+    "count": 7,
+    "sha256": "cad54a8baad1a57d745db70634c76b5cf5570c74496bd57d3e3274a09243b4ad",
+    "preserved": true
+  },
+  "AdCampaign": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AdPlacement": {
+    "count": 4,
+    "sha256": "adcb8ad4d0476b3c3c132ef55499d66bd0b3e6056bcf480590b9eb53a5464ab3",
+    "preserved": true
+  },
+  "Address": {
+    "count": 3,
+    "sha256": "be8cd510f266e640a9b893486e4abc3af9530fb56e6fd2ce405ba090dd051c52",
+    "preserved": true
+  },
+  "AppleAccountBinding": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AppleOriginalPurchase": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AppleRefundReview": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AppleTransactionState": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Appointment": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AppointmentSlot": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Article": {
+    "count": 10,
+    "sha256": "6a707646fcb604eab12edff20451cbed7793351de88712bdd8111b853b7a8dcc",
+    "preserved": true
+  },
+  "ArticleBlock": {
+    "count": 45,
+    "sha256": "f3a72e18dddc0943a5c7feb91096ffaa304af25ae456a0210bd7104830bfa9ab",
+    "preserved": true
+  },
+  "ArticleRelease": {
+    "count": 7,
+    "sha256": "cc188f7c53163ad3c04f4fc7ba13210425049544dad458919facd309c2e72a2a",
+    "preserved": true
+  },
+  "Assignment": {
+    "count": 4,
+    "sha256": "f0aa17478e89c116f4c6bc9a1807ce4dac7b5e59699b00993ec4fc33dd65caba",
+    "preserved": true
+  },
+  "AttachmentBinding": {
+    "count": 2,
+    "sha256": "56eaedd597320270168a4e64bcf801bb1aae4a2240f93fd96cb482a96060bf8f",
+    "preserved": true
+  },
+  "AuditLog": {
+    "count": 329,
+    "sha256": "bdf303511e1e09f19d48e273bf74ae82643b11cb822334ad81d3279ec543ba59",
+    "preserved": true
+  },
+  "AuthIdentity": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "AuthSession": {
+    "count": 58,
+    "sha256": "afe686081733a6c1dfd619ef4a550f960977c0ed0bf11eaec249aa08ae38af7e",
+    "preserved": true
+  },
+  "BenefitDefinition": {
+    "count": 11,
+    "sha256": "6a27761c4a5cd499ccf02d543648b469ec5036ac692a5f629f4f46eb107db641",
+    "preserved": true
+  },
+  "BenefitGrant": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "BenefitScope": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "BenefitUsage": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CampaignEntry": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CartItem": {
+    "count": 2,
+    "sha256": "1365828ec6b462f99f3d5e8e4998c955da0ee238f3b568f60415e0bb4959f7b4",
+    "preserved": true
+  },
+  "ChannelProductMapping": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CharityApplication": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CharityOrder": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CharityProgram": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CharityRevenue": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CohortCertificate": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CohortLessonSchedule": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CohortRegistration": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CohortScheduleChange": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CohortStudyProgress": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Comment": {
+    "count": 5,
+    "sha256": "d50877d362016fe32b2656f77f8d55180ce9b95d61bccf4d67c7c983099ca92d",
+    "preserved": true
+  },
+  "CommissionLedger": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ConsentRecord": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ConsultRtcLease": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ConsumedRefresh": {
+    "count": 5,
+    "sha256": "b9feb861f3739e5121bb26eb1b60278568878debb300347a43852d3dfbb8851a",
+    "preserved": true
+  },
+  "ContentAuthorization": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ContentRelation": {
+    "count": 2,
+    "sha256": "4488588d4ec49c6c3fd0308bad74c51dd772b7b79fa477beb3df05984ce1268f",
+    "preserved": true
+  },
+  "CouponTemplate": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Course": {
+    "count": 8,
+    "sha256": "34427e524d483d540628b769fef98cbbb6427b22fbfb85d5271f20948612d4a1",
+    "preserved": true
+  },
+  "CourseCase": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CourseCertificate": {
+    "count": 2,
+    "sha256": "dfdeaef4f5d638323cd3d8e271a3abf177c3e5ce1804821c4805182bcce88f2a",
+    "preserved": true
+  },
+  "CourseChapter": {
+    "count": 15,
+    "sha256": "fd0ca3b1a412b16d53bb7dbba3ca19c4eff62936192637824958277a22b65481",
+    "preserved": true
+  },
+  "CourseCohort": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CourseCommissionRule": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "CourseRelease": {
+    "count": 5,
+    "sha256": "e11a8f937089e73395cbd9331ffffdccd94d76986719bd59dfcfe2d29236aa25",
+    "preserved": true
+  },
+  "CourseReview": {
+    "count": 2,
+    "sha256": "e7a41d7f564105703bb863a56a4b311d6cf692b3e559beb5b21e7fc8b2944744",
+    "preserved": true
+  },
+  "CourseStaff": {
+    "count": 4,
+    "sha256": "aff840dd0900b3cdc7e8a864e3161bd7503c8cf1200a96ac2fff59b822e09d6a",
+    "preserved": true
+  },
+  "CourseVersionChoice": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "DeliveryTemplate": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "DeliveryZone": {
+    "count": 3,
+    "sha256": "f1d80cac5ce224b9edc6183367cd31ffa5520b0b92b4ddff2b464c0223d6c655",
+    "preserved": true
+  },
+  "DeviceToken": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "DigitalDelivery": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "DigitalRelease": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "DigitalReleaseAsset": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Enrollment": {
+    "count": 5,
+    "sha256": "f802f79b34488fdc3838a0946c8b5489d306fa3f4765d1c70929d9f689394f51",
+    "preserved": true
+  },
+  "Event": {
+    "count": 5,
+    "sha256": "38668474a34176ee8776ea71f992bac836ff48bb5befa02e29d8a2b1db7a7372",
+    "preserved": true
+  },
+  "EventCheckin": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventFulfilment": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventRegistration": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventSession": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventStaff": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventTicketType": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "EventWaitlist": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Favorite": {
+    "count": 2,
+    "sha256": "5298dbbcf87d8ea74d8b99aa45bd32c1dc312b23f3585e26ec1800df3ecdb600",
+    "preserved": true
+  },
+  "FeatureConfig": {
+    "count": 3,
+    "sha256": "cbef950dec2cad9ebe6c5ed8a74c1677718865ca092e242be5524bec69b0de87",
+    "preserved": true
+  },
+  "Feedback": {
+    "count": 3,
+    "sha256": "c45df450222a7b743c62a23852b3dac71bad0fc7e2630deb781f7b7995c7b538",
+    "preserved": true
+  },
+  "FeedbackReply": {
+    "count": 4,
+    "sha256": "ddbca2e629163ec9f48da30c0a9b338b61a98d5190068b69d4f7488d3d32572c",
+    "preserved": true
+  },
+  "FinanceAccount": {
+    "count": 32,
+    "sha256": "e36e4cbc283a90c836c5b46e8e5908c73a08be6f0fc04c851626d355706598c2",
+    "preserved": true
+  },
+  "FinanceEntry": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "FinanceJournal": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ForumPinApplication": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ForumSection": {
+    "count": 7,
+    "sha256": "2533a655b7c8c0ebc0c1e52b9c573035450a96e63c19b5ebfcaf694d7dc20f67",
+    "preserved": true
+  },
+  "ForumThread": {
+    "count": 9,
+    "sha256": "f4c83940745e525674391fc0b0a5b5f97b350850c57689175a5063b99485d2f0",
+    "preserved": true
+  },
+  "GiftCreditAllocation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GiftCreditPack": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GiftLedger": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GiftTeacherContract": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GiftWallet": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GroupBuy": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GroupBuyMember": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "GrowthLedger": {
+    "count": 11,
+    "sha256": "1a5f7388ce217593a1431cdbf7e06ed2fe79d7c48885215bf69db529433f36c8",
+    "preserved": true
+  },
+  "IdempotencyRecord": {
+    "count": 20,
+    "sha256": "5ef9e63330ceb397d3db1066dbbe6fe796d6ae8627f38ad98b19cdfab3bb7ba2",
+    "preserved": true
+  },
+  "InventoryLedger": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "InventoryReservation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Lesson": {
+    "count": 12,
+    "sha256": "6865f2be0e675712de4a14dc13702e892c8ec794fae86a5cb517881564b1e78e",
+    "preserved": true
+  },
+  "LiveMicRequest": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "LivePoll": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "LiveReplay": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "LiveReservation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "LiveRoom": {
+    "count": 2,
+    "sha256": "71e4bc9eee346f88ea2ae4c53ba2bae8e093c87ed67d1a19eb3d86aef7528b45",
+    "preserved": true
+  },
+  "LiveRtcLease": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "LiveSession": {
+    "count": 2,
+    "sha256": "f718d84f5d8649370d81aaefdbf6e415ad5d4d38b288c70153387479fe90281f",
+    "preserved": true
+  },
+  "MediaAsset": {
+    "count": 4,
+    "sha256": "a7d4987345a4d075016b8d0b0dd292544ca88c2498439d70cef2af9f766a9ebb",
+    "preserved": true
+  },
+  "MediaUpload": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "MemberGiftAllocation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "MemberGiftClaim": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "MemberGiftPool": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Membership": {
+    "count": 2,
+    "sha256": "5ce498913a9066fc97c927fc4ed9a682b1b46d330955e00aa3de8bb3f9061cca",
+    "preserved": true
+  },
+  "MembershipPlan": {
+    "count": 9,
+    "sha256": "e0a4f8d2605d4a99270fe9d3fe69cbb65d665db861e0d47e66aecf59eb56f299",
+    "preserved": true
+  },
+  "MembershipPlanVersion": {
+    "count": 9,
+    "sha256": "2e67555d995b148b4ec975116a188ad8bdd8bf3312bdd68d74eddb9d534e0247",
+    "preserved": true
+  },
+  "ModerationAction": {
+    "count": 9,
+    "sha256": "ff7696464a11c136fdcb194588361fa87f2f3597c28bb042f4d3cabb9eebd99a",
+    "preserved": true
+  },
+  "Note": {
+    "count": 3,
+    "sha256": "090c54651997bad6b262ea4436dc948b851a4c140bd9eb94177b8996f78fcdd1",
+    "preserved": true
+  },
+  "NoteExport": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Notification": {
+    "count": 17,
+    "sha256": "8c3dcf869781752d58acbd5623c4c548073cb1a4fe33f349a4356af66d380de9",
+    "preserved": true
+  },
+  "NotificationDelivery": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "NotificationPreference": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "OfflineLicense": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "OperatingBankReceipt": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "OperatingFulfilment": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "OperatingService": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Order": {
+    "count": 2,
+    "sha256": "464e336c2af811d1bfdc0b0ba0fe530a88761416449c42bded95a1826fa533d0",
+    "preserved": true
+  },
+  "OrderItem": {
+    "count": 2,
+    "sha256": "f5de0fe7686e56aae3be3dbe60c6182b4a0c7ead2329a7a8f8e07cd938f9fc6b",
+    "preserved": true
+  },
+  "OtpChallenge": {
+    "count": 28,
+    "sha256": "6efec6d77af78df8d3e4a01d3c9bbb8b0172569dc72f8264ad3fdd8cb2edb026",
+    "preserved": true
+  },
+  "OutboxJob": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Partner": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PartnerContract": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PaymentAttempt": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PaymentTransaction": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PlanBenefit": {
+    "count": 9,
+    "sha256": "194d3ad804c8ee3fd462e7214f2094ee2ad1d127db6a2151e27a4dbd82688798",
+    "preserved": true
+  },
+  "PointsAccount": {
+    "count": 2,
+    "sha256": "08ee0a25ffb6116a4fba84d3c38f093943890000513a6876b4c0d526ec47eabb",
+    "preserved": true
+  },
+  "PointsLedger": {
+    "count": 3,
+    "sha256": "7f431025f088d68f6dd40551de04931016764b804924f8c6757da3b022da9848",
+    "preserved": true
+  },
+  "PointsRedemption": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PointsReservation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PointsReward": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PollOption": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PollResponse": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PollVote": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PracticeCheckin": {
+    "count": 2,
+    "sha256": "9ae0303f72344748b0a4de80380d48d0a9a980995934d5a202d5865d26c6c0da",
+    "preserved": true
+  },
+  "PracticeLog": {
+    "count": 3,
+    "sha256": "94744e190325dd6dcc99ad3da23122b617cc6d04c0bdebcd3a3e6c2d8895674c",
+    "preserved": true
+  },
+  "PracticeTask": {
+    "count": 2,
+    "sha256": "62af892c138e4d5738f7439b46c0a77265fabee756612381217f1f4f5a708099",
+    "preserved": true
+  },
+  "Product": {
+    "count": 8,
+    "sha256": "2a917627a079cc6d103eb5ca58f8d1898c9b14abff6fd93f3c79f751bf0cb4f8",
+    "preserved": true
+  },
+  "ProductSku": {
+    "count": 10,
+    "sha256": "559136645acad0eea4a772d9517caf41d6e412adc7f76493eb7407f1b0431e4c",
+    "preserved": true
+  },
+  "PromoterProfile": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Promotion": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "PromotionOffer": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ProviderCallback": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "RateLimit": {
+    "count": 28,
+    "sha256": "e6bfc21f7257123264a8197139e0d7487a7f8edbbce882b66934e783f0cf8eb3",
+    "preserved": true
+  },
+  "Reaction": {
+    "count": 6,
+    "sha256": "31a8b57ee00c0a725030367091972fd9236adf0eb01e380995e6d83b17ebcc5b",
+    "preserved": true
+  },
+  "ReadingEvent": {
+    "count": 4,
+    "sha256": "48725c52b62187d4cb5d59acc58f7070d0bd648cf1017b4c819290712701e536",
+    "preserved": true
+  },
+  "Reconciliation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Referral": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ReferralOrder": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Refund": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "RefundItem": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "RefundTransaction": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Report": {
+    "count": 2,
+    "sha256": "4959a9bc17f78603bc41e4e6449ae28c232858c5c194bcbbc6ce05c4d88cbe87",
+    "preserved": true
+  },
+  "Resource": {
+    "count": 45,
+    "sha256": "8a0d401738f4de7fd5a965e7e506956b12f399a4886e998b12a524a1491d7e26",
+    "preserved": true
+  },
+  "ResourceEvidence": {
+    "count": 2,
+    "sha256": "19673b588d566142593df5b92aefb690ed28049869814dbf369d14752bc34e12",
+    "preserved": true
+  },
+  "ResourceTag": {
+    "count": 17,
+    "sha256": "9d3c41a1f6cb0bd1587a3be6b2f3d35bf2a5ad72654484babb20f470269e35b6",
+    "preserved": true
+  },
+  "SaleOffer": {
+    "count": 15,
+    "sha256": "12fa13b016d65713da3c46bf131f213e99c0f764665b26c7a923d227390b51af",
+    "preserved": true
+  },
+  "ServiceDelivery": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ServiceOffering": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Settlement": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "SettlementItem": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "Shipment": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ShipmentItem": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "ShippingZone": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "SocialChallenge": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "SourceEvidence": {
+    "count": 2,
+    "sha256": "3159148f145dfb6472009f9f91b0d3018ba1f1124a4711a8cdff5f2d7b39610b",
+    "preserved": true
+  },
+  "StudyEvent": {
+    "count": 5,
+    "sha256": "f4940c8c4ee44932bf82f5e028428552cde1d92e30743b708b832e91032e3331",
+    "preserved": true
+  },
+  "StudyProgress": {
+    "count": 5,
+    "sha256": "65bf793423bbccb3b94f229c0b57e936957d000beecdbb4bf7fd79c54ab70b23",
+    "preserved": true
+  },
+  "Submission": {
+    "count": 3,
+    "sha256": "c85fdbece0d745ed7a849da3e795d5ff67ff3f778ad9547d0780681da0124c90",
+    "preserved": true
+  },
+  "Tag": {
+    "count": 2,
+    "sha256": "8616abf5ecb25d25a840d275eff8043392b126d02adf14ec8f10f21605342191",
+    "preserved": true
+  },
+  "Teacher": {
+    "count": 3,
+    "sha256": "9b25fd8e1d772326721518c10e10fb3ea1646c1596df8c21774d91d85184e49c",
+    "preserved": true
+  },
+  "TeacherAnswer": {
+    "count": 3,
+    "sha256": "febb03b0ea499fcc375cbc46a88d8fb8abeb68294210d50f4b5365301341ce9c",
+    "preserved": true
+  },
+  "TeacherQuestion": {
+    "count": 4,
+    "sha256": "b8ae70ce83893db43bdb9dc631974aa1d3dec1672dbecabd75769152520b1e0d",
+    "preserved": true
+  },
+  "TeacherReview": {
+    "count": 3,
+    "sha256": "ce8af89cff18ff29da17a47f068eee36ad32e582cbf3afa2226fba9516d6ed72",
+    "preserved": true
+  },
+  "TeacherStaff": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "TradeOrder": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "TradeOrderItem": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "User": {
+    "count": 15,
+    "sha256": "47547be2b723208372263d7af877ec999c7550197610b977d53bca65e7f9c310",
+    "preserved": true
+  },
+  "UserBlock": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "UserCoupon": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "UserRestriction": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "UserRole": {
+    "count": 7,
+    "sha256": "af5380fe9f4ef8b7a9d893ecbeb3dfa984ab91e97e1e16c0059e98557db7c5a4",
+    "preserved": true
+  },
+  "UserTag": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "VirtualGift": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "WithdrawalAllocation": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "WithdrawalRequest": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  },
+  "WritingCampaign": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "preserved": true
+  }
+}

@@ -1,0 +1,7 @@
+<template><image class="ink-backdrop" src="/static/editorial/quiet-mountains.png" mode="aspectFill"/></template>
+<style>
+.ink-backdrop{position:absolute;top:0;left:0;width:100%;height:240px;}
+/* #ifdef WEB */
+.ink-backdrop{pointer-events:none;}
+/* #endif */
+</style>

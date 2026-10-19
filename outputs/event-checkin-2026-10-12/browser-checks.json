@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "Pro从真实老师账号选择本场次工作人员并授予签到与撤销权限",
+    "App从本人报名出示实际二维码，刷新取得新的临时凭证",
+    "Pro粘贴真实凭证，核对脱敏联系人并记录第一位到场",
+    "获委派助教App工作台核对凭证，分别确认第二位到场",
+    "App弹窗填写误签到原因，保留原记录并更新有效到场人数",
+    "撤销后真实再次到场产生新签到事实，不覆盖历史"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

@@ -1,0 +1,122 @@
+Running tests in an isolated temporary database.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "academy_test_28616_1791709160584", schema "public" at "127.0.0.1:55432"
+
+26 migrations found in prisma/migrations
+
+Applying migration `20261006035656_catalog_foundation`
+Applying migration `20261006040323_admin_identity_audit`
+Applying migration `20261006041548_app_identity_private_data`
+Applying migration `20261006041655_note_source_version`
+Applying migration `20261006075056_learning_membership_media`
+Applying migration `20261006080308_teacher_version`
+Applying migration `20261006102000_shopping_cart_addresses`
+Applying migration `20261006111500_pending_orders`
+Applying migration `20261009090000_note_selection_ranges`
+Applying migration `20261009110000_domain_enum_extension`
+Applying migration `20261009120000_full_domain_foundation`
+Applying migration `20261009130000_forum_sections`
+Applying migration `20261009150000_course_completion_and_reviews`
+Applying migration `20261009170000_course_sales`
+Applying migration `20261009171000_course_finance_accounts`
+Applying migration `20261009190000_admin_permission_policies`
+Applying migration `20261009200000_admin_role_baselines`
+Applying migration `20261011050000_alipay_finance_account`
+Applying migration `20261011053000_course_version_choices`
+Applying migration `20261011060000_apple_course_receipts`
+Applying migration `20261011063000_membership_plan_matrix`
+Applying migration `20261011070000_apple_refund_reversal`
+Applying migration `20261011073000_membership_benefits`
+Applying migration `20261011080000_membership_orders`
+Applying migration `20261011083000_apple_membership_consents`
+Applying migration `20261011100000_product_sales`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261006035656_catalog_foundation/
+    └─ migration.sql
+  └─ 20261006040323_admin_identity_audit/
+    └─ migration.sql
+  └─ 20261006041548_app_identity_private_data/
+    └─ migration.sql
+  └─ 20261006041655_note_source_version/
+    └─ migration.sql
+  └─ 20261006075056_learning_membership_media/
+    └─ migration.sql
+  └─ 20261006080308_teacher_version/
+    └─ migration.sql
+  └─ 20261006102000_shopping_cart_addresses/
+    └─ migration.sql
+  └─ 20261006111500_pending_orders/
+    └─ migration.sql
+  └─ 20261009090000_note_selection_ranges/
+    └─ migration.sql
+  └─ 20261009110000_domain_enum_extension/
+    └─ migration.sql
+  └─ 20261009120000_full_domain_foundation/
+    └─ migration.sql
+  └─ 20261009130000_forum_sections/
+    └─ migration.sql
+  └─ 20261009150000_course_completion_and_reviews/
+    └─ migration.sql
+  └─ 20261009170000_course_sales/
+    └─ migration.sql
+  └─ 20261009171000_course_finance_accounts/
+    └─ migration.sql
+  └─ 20261009190000_admin_permission_policies/
+    └─ migration.sql
+  └─ 20261009200000_admin_role_baselines/
+    └─ migration.sql
+  └─ 20261011050000_alipay_finance_account/
+    └─ migration.sql
+  └─ 20261011053000_course_version_choices/
+    └─ migration.sql
+  └─ 20261011060000_apple_course_receipts/
+    └─ migration.sql
+  └─ 20261011063000_membership_plan_matrix/
+    └─ migration.sql
+  └─ 20261011070000_apple_refund_reversal/
+    └─ migration.sql
+  └─ 20261011073000_membership_benefits/
+    └─ migration.sql
+  └─ 20261011080000_membership_orders/
+    └─ migration.sql
+  └─ 20261011083000_apple_membership_consents/
+    └─ migration.sql
+  └─ 20261011100000_product_sales/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+▶ physical commerce preserves money, inventory, ownership and fulfilment facts
+  ✔ disabled gate, web, demo and foreign addresses cannot collect money (355.6839ms)
+  ✔ immutable exact quote, shipping allocation, encrypted address and idempotent checkout (244.1695ms)
+  ✔ concurrent buyers cannot oversell; closed reservations release once (176.7595ms)
+  ✔ quote changes require reconfirmation before stock is reserved (36.4362ms)
+  ✔ verified payment deducts stock once, keeps fulfilment separate and posts balanced money (181.273ms)
+  ✔ uncertain prepay cannot repeat, query outages cannot release inventory (154.1926ms)
+  ✔ payment after cancellation becomes compensation without stock deduction (215.6442ms)
+  ✔ mismatched and duplicate verified money is refunded without second fulfilment (261.5896ms)
+  ✔ verified cross-channel and unsolicited receipts remain durable compensations (555.2515ms)
+  ✔ split shipments freeze destination, prevent over-shipping and sign only owned parcels (318.7903ms)
+  ✔ partial refunds allocate every cent once and stock returns only after channel success (570.8612ms)
+  ✔ return requires approval and warehouse quality check; finance cannot invent receipt (443.0132ms)
+  ✔ refund failure preserves amounts and stock; verified retry is idempotent (350.1581ms)
+  ✔ verified CLOSED refund can reissue with retained original history and one stock return (271.6685ms)
+  ✔ received partial shipment and unsent refund finish in either order (298.7391ms)
+  ✔ exchange zero money, stock atomicity, retry and in-transit protection (457.2149ms)
+  ✔ unpaid shipping and unauthorized address/refund operations are rejected (189.7197ms)
+  ✔ completed physical orders can close accounts without retaining destination copies (424.2052ms)
+  ✔ published cultural evidence, quality review, paired tools and net sales sorting (436.5651ms)
+  ✔ existing verified callback dispatcher routes physical orders to their workflow (161.5274ms)
+✔ physical commerce preserves money, inventory, ownership and fulfilment facts (7040.5495ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8761.5244

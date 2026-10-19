@@ -1,0 +1,1746 @@
+
+--------------- HBuilderX(v5.26.2026091802) cli (v1.0.0.0)--------------
+cloud functions	
+
+  云开发
+
+  参数:
+
+	--prj   	项目名称或项目在列表中的编号
+
+	--provider	云服务提供商代号, tcb|aliyun|alipay 取值有[tcb|aliyun|alipay]
+
+	--name  	资源名称
+
+	--unimod	资源所属uni_module模块名称
+
+	--cloud 	获取云端资源，无值
+
+	--list  	获取资源列表
+	可为 cloudfunction、common、db、vf、action 或 space
+	此时如果填入参数unimod，则操作uni_module模块下资源
+
+	获取云函数列表
+	本地:cli cloud functions --list cloudfunction --prj projectname --provider aliyun [--unimod modname]
+	云端:cli cloud functions --list cloudfunction --prj projectname --provider aliyun --cloud [--unimod modname]
+
+	获取云函数公共模块列表
+	本地:cli cloud functions --list common --prj projectname --provider aliyun [--unimod modname]
+	云端:cli cloud functions --list common --prj projectname --provider aliyun --cloud [--unimod modname]
+
+	获取数据库集合Schema列表
+	本地:cli cloud functions --list db --prj projectname --provider aliyun [--unimod modname]
+	云端:cli cloud functions --list db --prj projectname --provider aliyun --cloud [--unimod modname]
+
+	获取数据库校验函数列表
+	本地:cli cloud functions --list vf --prj projectname --provider aliyun [--unimod modname]
+	云端:cli cloud functions --list vf --prj projectname --provider aliyun --cloud [--unimod modname]
+
+	获取action列表
+	本地:cli cloud functions --list action --prj projectname --provider aliyun [--unimod modname]
+	云端:cli cloud functions --list action --prj projectname --provider aliyun --cloud [--unimod modname]
+
+	获取云空间列表
+	cli cloud functions --list space --prj projectname --provider aliyun
+
+
+	--download	下载项目资源
+	可为 cloudfunction、common、db、vf、action 或 all
+	除aallcloudfunctions外此时如果填入参数unimod，则操作uni_module模块下资源
+	action不接收资源名称的参数
+
+	下载某个云函数
+	cli cloud functions --download cloudfunction --prj projectname --provider aliyun --name cloudfunctionname [--unimod modname]
+
+	下载某个云函数公共模块
+	cli cloud functions --download common --prj projectname --provider aliyun --name commonname [--unimod modname]
+
+	下载某个数据库集合Schema
+	cli cloud functions --download db --prj projectname --provider aliyun --name databasename [--unimod modname]
+
+	下载某个数据库校验函数
+	cli cloud functions --download vf --prj projectname --provider aliyun --name validateFunctionname [--unimod modname]
+
+	下载整个client db action
+	cli cloud functions --download action --prj projectname --provider aliyun [--unimod modname]
+
+	下载所有云函数、云函数公共模块及actions
+	cli cloud functions --download all --prj projectname --provider aliyun [--unimod modname]
+
+
+	--upload	上传项目资源
+	可为 cloudfunction、common、db、vf、action 或 all
+	除all外此时如果填入参数unimod，则操作uni_module模块下资源
+
+	上传某个云函数
+	cli cloud functions --upload cloudfunction --prj projectname --provider aliyun --name cloudfunctionname [--unimod modname]
+
+	上传某个云函数公共模块
+	cli cloud functions --upload common --prj projectname --provider aliyun --name commonname [--unimod modname]
+
+	上传某个数据库集合Schema
+	cli cloud functions --upload db --prj projectname --provider aliyun --name databasename [--unimod modname]
+
+	上传某个数据库校验函数
+	cli cloud functions --upload vf --prj projectname --provider aliyun --name validateFunctionname [--unimod modname]
+
+	上传某个action
+	cli cloud functions --upload action --prj projectname --provider aliyun --name cdbname [--unimod modname]
+
+	上传所有云函数、云函数公共模块及actions
+	cli cloud functions --upload allcloudfunctions --prj projectname --provider aliyun [--unimod modname]
+
+
+
+	--initdatabase	初始化数据库数
+
+	--assignspace	指定云空间
+
+	--run   	运行云函数 可为 cloudfunction、cloudobject 
+	运行项目中支付宝云服务空间云函数
+	cli cloud functions --run cloudfunction --prj projectname --provider alipay --name cloudfunctionname
+
+	运行项目中支付宝云服务空间云对象方法
+	cli cloud functions --run cloudobject --prj projectname --provider alipay --name cloudobjectname 
+
+
+	--create	创建云开发环境；可为 env、cloudfunction、cloudoobject、commonmodule
+	创建支付宝云服务空间环境
+	cli cloud functions --create env --prj projectname --provider alipay
+	创建云函数
+	cli cloud functions --create cloudfunction --prj projectname --provider alipay --name cfname [--unimod modname]
+	创建云对象
+	cli cloud functions --create cloudobject --prj projectname --provider alipay --name coname [--unimod modname]
+	创建云对象
+	cli cloud functions --create commonmodule --prj projectname --provider alipay --name commonname [--unimod modname]
+
+
+	--info  	获取项目云开发环境信息
+
+
+compile app-android	
+
+  通过 CLI 编译 Android 平台 UTS 单文件或单 uni_modules 模块
+
+  用法：./cli compile app-android --help
+        ./cli compile app-android --project demo --file src/uni_modules/demo/utssdk/app-android/index.uts
+        ./cli compile app-android --project demo --uni_module aa-bb
+        说明：--file 与 --uni_module 不能同时指定；--uni_module 可传绝对路径、相对路径，也可只传模块名（如 aa-bb，会自动拼接为项目源码根目录下的 uni_modules/aa-bb）
+
+  参数:
+
+	--help  	查看 UTS 编译 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--file  	要编译的 UTS 文件路径，支持绝对路径或相对项目目录的路径；与 --uni_module 互斥
+
+	--uni_module	要编译的 uni_modules 模块目录，支持绝对路径、相对项目目录路径或模块名简写；与 --file 互斥
+
+
+compile app-ios	
+
+  通过 CLI 编译 iOS 平台 UTS 单文件或单 uni_modules 模块
+
+  用法：./cli compile app-ios --help
+        ./cli compile app-ios --project demo --file src/uni_modules/demo/utssdk/app-ios/index.uts
+        ./cli compile app-ios --project demo --uni_module aa-bb
+        说明：--file 与 --uni_module 不能同时指定；--uni_module 可传绝对路径、相对路径，也可只传模块名（如 aa-bb，会自动拼接为项目源码根目录下的 uni_modules/aa-bb）
+
+  参数:
+
+	--help  	查看 UTS 编译 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--file  	要编译的 UTS 文件路径，支持绝对路径或相对项目目录的路径；与 --uni_module 互斥
+
+	--uni_module	要编译的 uni_modules 模块目录，支持绝对路径、相对项目目录路径或模块名简写；与 --file 互斥
+
+
+config get	
+
+  获取配置项
+
+  参数:
+
+	--key   	配置项的Key
+
+
+config set	
+
+  设置配置项
+
+  参数:
+
+	--key   	配置项的Key
+
+	--value 	需要设置配置项的值
+
+	--type  	配置项的值类型,不填默认为string 取值有[number|boolean|string]
+
+
+devices list	
+
+  通过 CLI 获取设备列表
+
+  用法：./cli devices list 
+  文档：https://hx.dcloud.net.cn/cli/devices-list
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--platform	要查询的设备类型 取值有[android|ios-iPhone|ios-simulator|mp-harmony|app-harmony] 默认值为:android
+
+
+help	
+  cli 工具帮助信息
+  cli(Command Line Interface)提供快捷操作HBuilderX各种功能的工具
+  用法：cli.exe open 启动HBuilderX
+	cli.exe app quit 关闭HBuilderX
+
+hosting delete	
+
+  删除云空间文件或文件夹
+
+  参数:
+
+	--space 	空间名称或id
+
+	--provider	云服务商名称,tcb|aliyun|alipay 取值有[tcb|aliyun|alipay]
+
+	--path  	云空间文件名或目录名，目录以/结尾
+
+
+hosting deploy	
+
+  前端网页托管
+
+  参数:
+
+	--prj   	项目名称或序号，可使用project list获得
+
+	--space 	空间名称或id
+
+	--provider	云服务商名称,tcb|aliyun|alipay 取值有[tcb|aliyun|alipay]
+
+	--source	以项目路径为基础的相对目录，如果没有这个参数则以项目根目录上传
+
+	--prefix	云端路径前缀，如果没有这个参数则上传目标为云空间根目录
+
+
+hosting list	
+
+  获取云空间文件列表
+
+  参数:
+
+	--space 	空间名称或id
+
+	--provider	云服务商名称,tcb|aliyun|alipay 取值有[tcb|aliyun|alipay]
+
+	--prefix	云端路径前缀，如果没有这个参数则目标为云空间根目录
+
+
+installPlugin	
+
+  安装指定插件
+
+  参数:
+
+	--name  	插件名
+
+	--force 	是否强制安装,取值有[true|false] 默认值为:false 取值有[true|false]
+
+
+launch app-android	
+
+  通过 CLI 运行到 Android App。文档：https://hx.dcloud.net.cn/cli/launch-app?id=launch-app-android
+
+  用法：./cli launch app-android --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--playground	基座类型；custom 时可通过 customType 选择本地基座或已安装基座 取值有[standard|custom] 默认值为:standard
+
+	--customType	自定义基座类型；local 为本地基座，device 为设备上已安装的基座（需 playground=custom） 取值有[local|device] 默认值为:local
+
+	--packageName	设备上已安装基座的 Android 包名（customType=device 时必填）
+
+	--localRepoPath	已安装基座关联的 Android 原生工程路径（customType=device 时可选）
+
+	--native-log	是否显示原生日志 取值有[true|false] 默认值为:false
+
+	--cleanCache	是否清理构建缓存（仅 uni-app x 项目生效） 取值有[true|false] 默认值为:false
+
+	--vaporRenderTarget	视图层编译目标，可选 bytecode 或 nativecode（仅 uni-app x 蒸汽模式生效） 取值有[bytecode|nativecode] 默认值为:bytecode
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log-format	运行时日志输出格式；formatted 为现有格式化日志，raw 为设备原始结构化日志 取值有[formatted|raw] 默认值为:formatted
+
+	--pagePath	启动页面路径
+
+	--pageQuery	启动页面查询参数，多个参数使用 & 连接
+
+
+launch app-harmony	
+
+  通过 CLI 运行到 Harmony App。文档：https://hx.dcloud.net.cn/cli/launch-app?id=launch-app-harmony
+
+  用法：cli launch app-harmony --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--native-log	是否显示原生日志 取值有[true|false] 默认值为:false
+
+	--cleanCache	缓存策略，可选 false（normal）、true（clean）或 mandatory 默认值为:false
+
+	--buildType	构建模式，可选 debug 或 release 取值有[debug|release] 默认值为:debug
+
+	--vaporRenderTarget	视图层编译目标，可选 bytecode 或 nativecode 取值有[bytecode|nativecode] 默认值为:bytecode
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log-format	运行时日志输出格式；formatted 为现有格式化日志，raw 为设备原始结构化日志 取值有[formatted|raw] 默认值为:formatted
+
+	--pagePath	启动页面路径
+
+	--pageQuery	启动页面查询参数，多个参数使用 & 连接
+
+
+launch app-ios	
+
+  通过 CLI 运行到 iOS App。文档：https://hx.dcloud.net.cn/cli/launch-app?id=launch-app-ios
+
+  用法：./cli launch app-ios  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--iosTarget	iOS 运行目标设备类型 取值有[device|simulator] 默认值为:device
+
+	--playground	基座类型；custom 时可通过 customType 选择本地基座或原生工程基座 取值有[standard|custom] 默认值为:standard
+
+	--customType	自定义基座类型；local 为本地基座，device 为原生工程基座（需 playground=custom） 取值有[local|device] 默认值为:local
+
+	--ipaPath	iOS 原生工程基座 IPA 或模拟器 App 路径（customType=device 时必填）
+
+	--native-log	是否显示原生日志 取值有[true|false] 默认值为:false
+
+	--cleanCache	是否清理构建缓存（仅 uni-app x 项目生效） 取值有[true|false] 默认值为:false
+
+	--vaporRenderTarget	视图层编译目标，可选 bytecode 或 nativecode（仅 uni-app x 蒸汽模式生效） 取值有[bytecode|nativecode] 默认值为:bytecode
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log-format	运行时日志输出格式；formatted 为现有格式化日志，raw 为设备原始结构化日志 取值有[formatted|raw] 默认值为:formatted
+
+	--peveloperCertificate	开发者证书文件，开发 uts 插件时需要
+
+	--provisioningProfile	配置描述文件，开发 uts 插件时需要
+
+	--privateKey	私钥密码，开发 uts 插件时需要
+
+	--pagePath	启动页面路径
+
+	--pageQuery	启动页面查询参数，多个参数使用 & 连接
+
+
+launch mp-360	
+
+  通过 CLI 运行到 360 小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-360
+
+  用法：./cli launch mp-360  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-alipay	
+
+  通过 CLI 运行到支付宝小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-alipay
+
+  用法：./cli launch mp-alipay  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log	是否回显运行时日志 取值有[true|false] 默认值为:false
+
+
+launch mp-baidu	
+
+  通过 CLI 运行到百度小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-baidu
+
+  用法：./cli launch mp-baidu  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log	是否回显运行时日志 取值有[true|false] 默认值为:false
+
+
+launch mp-harmony	
+
+  通过 CLI 运行到鸿蒙元服务（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-harmony
+
+  用法：cli launch mp-harmony --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--cleanCache	是否清理构建缓存 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-jd	
+
+  通过 CLI 运行到京东小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-jd
+
+  用法：./cli launch mp-jd  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-kuaishou	
+
+  通过 CLI 运行到快手小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-kuaishou
+
+  用法：./cli launch mp-kuaishou  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-lark	
+
+  通过 CLI 运行到飞书小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-lark
+
+  用法：./cli launch mp-lark  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-qq	
+
+  通过 CLI 运行到 QQ 小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-qq
+
+  用法：./cli launch mp-qq  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch mp-toutiao	
+
+  通过 CLI 运行到抖音小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-toutiao
+
+  用法：./cli launch mp-toutiao  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log	是否回显运行时日志 取值有[true|false] 默认值为:false
+
+
+launch mp-weixin	
+
+  通过 CLI 运行到微信小程序。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-weixin
+
+  用法：./cli launch mp-weixin  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--runtime-log	是否回显运行时日志 取值有[true|false] 默认值为:false
+
+
+launch mp-xhs	
+
+  通过 CLI 运行到小红书小程序（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-mp-xhs
+
+  用法：./cli launch mp-xhs  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch quickapp-webview-huawei	
+
+  通过 CLI 运行到华为快应用（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-quickapp-webview-huawei
+
+  用法：./cli launch quickapp-webview-huawei  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch quickapp-webview-union	
+
+  通过 CLI 运行到联盟快应用（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/launch-miniProgram?id=launch-quickapp-webview-union
+
+  用法：./cli launch quickapp-webview-union  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+
+launch web	
+
+  通过 CLI 运行到 Web 或手机 H5。文档：https://hx.dcloud.net.cn/cli/launch-web
+
+  用法：./cli launch web  --help
+
+  参数:
+
+	--help  	查看运行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--ui    	是否切换为界面运行模式；默认使用纯 CLI 运行，传入 --ui 后通过界面方式启动 取值有[true|false] 默认值为:false
+
+	--compile	是否以编译模式运行，仅编译代码 取值有[true|false] 默认值为:false
+
+	--browser	运行使用的浏览器类型；Linux CLI 暂不支持 Built，默认或传入 Built 时自动改用 Chrome 取值有[Built|Chrome|Firefox|Ie|Edge|Safari] 默认值为:Built
+
+	--continue-on-error	编译出错后是否继续运行 取值有[true|false] 默认值为:false
+
+	--pagePath	启动页面路径
+
+	--pageQuery	启动页面查询参数，多个参数使用 & 连接
+
+
+logcat app-android	
+
+  通过 CLI 查看运行到 Android App 的日志。文档：https://hx.dcloud.net.cn/cli/logcat-app?id=logcat-app-android
+
+  用法：./cli logcat app-android --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat app-harmony	
+
+  通过 CLI 查看运行到 Harmony App 的日志。文档：https://hx.dcloud.net.cn/cli/logcat-app?id=logcat-app-harmony
+
+  用法：./cli logcat app-harmony  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat app-ios	
+
+  通过 CLI 查看运行到 iOS App 的日志。文档：https://hx.dcloud.net.cn/cli/logcat-app?id=logcat-app-ios
+
+  用法：./cli logcat app-ios  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--iosTarget	iOS 日志目标设备类型 取值有[device|simulator] 默认值为:device
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-360	
+
+  通过 CLI 查看运行到 360 小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-360
+
+  用法：./cli logcat mp-360  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-alipay	
+
+  通过 CLI 查看运行到支付宝小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-alipay
+
+  用法：./cli logcat mp-alipay  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-baidu	
+
+  通过 CLI 查看运行到百度小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-baidu
+
+  用法：./cli logcat mp-baidu  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-harmony	
+
+  通过 CLI 查看运行到鸿蒙元服务的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-harmony
+
+  用法：./cli logcat mp-harmony  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	指定要使用的设备序列号；不指定时默认使用第一个设备，可通过 devices list 获取设备列表
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-jd	
+
+  通过 CLI 查看运行到京东小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-jd
+
+  用法：./cli logcat mp-jd  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-kuaishou	
+
+  通过 CLI 查看运行到快手小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-kuaishou
+
+  用法：./cli logcat mp-kuaishou  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-lark	
+
+  通过 CLI 查看运行到飞书小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-lark
+
+  用法：./cli logcat mp-lark  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-qq	
+
+  通过 CLI 查看运行到 QQ 小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-qq
+
+  用法：./cli logcat mp-qq  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-toutiao	
+
+  通过 CLI 查看运行到抖音小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-toutiao
+
+  用法：./cli logcat mp-toutiao  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-weixin	
+
+  通过 CLI 查看运行到微信小程序的日志。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-weixin
+
+  用法：./cli logcat mp-weixin  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat mp-xhs	
+
+  通过 CLI 查看运行到小红书小程序的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-mp-xhs
+
+  用法：./cli logcat mp-xhs  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat pack	
+
+  通过 CLI 查看 App 打包控制台日志。文档：https://hx.dcloud.net.cn/cli/logcat-pack
+
+  用法：./cli logcat pack
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+
+logcat quickapp-webview-huawei	
+
+  通过 CLI 查看运行到华为快应用的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-quickapp-webview-huawei
+
+  用法：./cli logcat quickapp-webview-huawei  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat quickapp-webview-union	
+
+  通过 CLI 查看运行到联盟快应用的日志（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/logcat-miniProgram?id=logcat-quickapp-webview-union
+
+  用法：./cli logcat quickapp-webview-union  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+
+logcat unicloud	
+
+  CLI 查看运行到uniCloud日志。文档：https://hx.dcloud.net.cn/cli/logcat-unicloud
+
+  参数:
+
+	--project	HBuilder X里导入的项目名称或绝对路径
+
+	--wait-for-stop	监听日志至uniCloud服务停止；默认：读取完日志即退出
+
+
+logcat web	
+
+  通过 CLI 查看运行到 Web 或手机 H5 的日志。文档：https://hx.dcloud.net.cn/cli/logcat-web
+
+  用法：./cli logcat web  --help
+
+  参数:
+
+	--help  	查看日志 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--mode  	日志输出模式 取值有[full|lastBuild|prevBuild] 默认值为:prevBuild
+
+	--browser	浏览器类型（已废弃） 取值有[Built|Chrome|Firefox|Ie|Edge|Safari]
+
+
+lsp getComponentList	
+
+  生成 easycom 组件路径列表
+
+  用法：./cli lsp getComponentList --projectPath /absolute/path/to/project，返回项目内可用的 easycom 数据列表( [{name:'',path:''}] )
+
+  参数:
+
+	--projectPath	项目根路径
+
+
+lsp getComponentsData	
+
+  生成组件 JSON 数据
+
+  用法：./cli lsp getComponentsData --filePath /absolute/path/to/file，返回指定文件的组件 JSON 数据
+
+  参数:
+
+	--filePath	需要生成数据的文件路径
+
+
+lsp goToDefined	
+
+  跳转到定义
+
+  用法：./cli lsp goToDefined --file /path/to/file.ts --project /absolute/path/to/project --position 10,5
+
+  参数:
+
+	--file  	文件路径
+
+	--position	位置 (行,列)
+
+	--project	项目路径
+
+
+lsp hover	
+
+  获取悬浮提示
+
+  用法：./cli lsp hover --file /path/to/file.ts --project /absolute/path/to/project --position 10,5
+
+  参数:
+
+	--file  	文件路径
+
+	--position	位置 (行,列)
+
+	--project	项目路径
+
+
+lsp lint	
+
+  获取诊断信息
+
+  用法：./cli lsp lint --file /path/to/file.ts --project /absolute/path/to/project
+
+  参数:
+
+	--file  	文件路径
+
+	--platform	指定要校验的平台(只起到过滤的作用)，使用逗号分隔：app-android,app-ios,app-harmony,mp-weixin,web
+
+	--project	项目路径
+
+
+lsp references	
+
+  查找引用
+
+  用法：./cli lsp references --file /path/to/file.ts --project /absolute/path/to/project --position 10,5
+
+  参数:
+
+	--file  	文件路径
+
+	--position	位置 (行,列)
+
+	--project	项目路径
+
+
+lsp signatureHelp	
+
+  获取签名帮助
+
+  用法：./cli lsp signatureHelp --file /path/to/file.ts --project /absolute/path/to/project --position 10,5
+
+  参数:
+
+	--file  	文件路径
+
+	--position	位置 (行,列)
+
+	--project	项目路径
+
+
+open file	
+  指定文件路径
+  参数:
+	--file  	打开指定路径文件
+
+pack	
+
+  App Android/iOS 云打包。文档：https://hx.dcloud.net.cn/cli/pack
+
+  用法：cli pack --help
+
+  参数:
+
+	--help  	查看打包 CLI 命令帮助
+
+	--config	配置文件的绝对路径，配置项参考 configure.json 参数 config 为文件路径，请填写一个有效的文件路径
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--platform	打包平台，默认值为 android。可选值：android、ios；多个平台用英文逗号分隔
+
+	--iscustom	是否使用自定义基座，仅值为 true 时启用 取值有[true|false]
+
+	--safemode	是否使用安心打包，仅值为 true 时启用；否则使用传统打包（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+	--dsyms 	是否生成 iOS 符号表（dSYM）文件，仅值为 true 时启用（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--isconfusion	是否启用代码混淆，仅值为 true 时启用（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--splashads	是否启用开屏广告，仅值为 true 时启用 取值有[true|false]
+
+	--rpads 	是否启用悬浮红包广告，仅值为 true 时启用（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--unimpads	是否启用激励视频广告，仅值为 true 时启用 取值有[true|false]
+
+	--ad.domestic	集成国内广告 SDK。可选值：gdt、gm、ks、bd、hw、sigmob、zy、bz、fl、yt、jt、wa、ms；多个 SDK 用英文逗号分隔
+
+	--ad.international	集成海外广告 SDK。可选值：pg、gg、unity、liftoff、inmobi、ironsource、mintegral、applovin；多个 SDK 用英文逗号分隔
+
+	--ad.content	集成三方内容场景变现 SDK。可选值：ks-content、gm-content；多个 SDK 用英文逗号分隔（仅适用于 uni-app 项目）
+
+	--android.packagename	Android 包名，打包 Android 时必填
+
+	--android.androidpacktype	Android 打包证书类型，默认值为 0。可选值：0 使用自有证书，1 使用公共证书，2 使用 DCloud 老版证书，3 使用云端证书（1、2 仅适用于 uni-app 项目）
+
+	--android.certalias	Android 自有证书别名，使用自有证书打包时填写
+
+	--android.certfile	Android 自有证书文件路径，使用自有证书打包时填写 参数 android.certfile 为文件路径，请填写一个有效的文件路径
+
+	--android.certpassword	Android 自有证书密码，使用自有证书打包时填写
+
+	--android.storepassword	Android 自有证书库密码，使用自有证书打包时填写
+
+	--android.channels	Android 渠道包。可选值：google、yyb、360、huawei、xiaomi、oppo、vivo；多个渠道用英文逗号分隔
+
+	--android.antiResignAppid	Android 防重签：绑定 appid，仅值为 true 时生效（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--android.antiResignPackageName	Android 防重签：绑定包名，仅值为 true 时生效（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--android.antiResignCertificate	Android 防重签：绑定签名，仅值为 true 时生效（仅适用于 uni-app 项目） 取值有[true|false]
+
+	--ios.bundle	iOS App ID，打包 iOS 时必填
+
+	--ios.supporteddevice	iOS 支持的设备类型，默认值为 iPhone。可选值：iPhone、iPad；多个设备类型用英文逗号分隔
+
+	--ios.channels	iOS 渠道包。可选值：phone、simulator；多个渠道用英文逗号分隔（仅 macOS 生效）
+
+	--ios.profile	iOS 自定义证书打包使用的 profile 文件路径 参数 ios.profile 为文件路径，请填写一个有效的文件路径
+
+	--ios.certfile	iOS 自定义证书打包使用的 p12 文件路径 参数 ios.certfile 为文件路径，请填写一个有效的文件路径
+
+	--ios.certpassword	iOS 自定义证书打包使用的证书密码
+
+	--ignoreWarnings	打包过程中遇到 warning 时仅输出提示，不中断流程 取值有[true|false]
+
+	--precheck	仅执行编译前预校验，并以树形 JSON 返回全部 error 和 warning（仅支持 uni-app x 项目） 取值有[true|false]
+
+	--skipPrecheck	跳过编译前预校验并直接继续打包（仅支持 uni-app x 项目） 取值有[true|false]
+
+	--async 	提交云打包成功后立即返回，不等待打包结果（仅支持 uni-app x 蒸汽模式） 取值有[true|false]
+
+	--json  	异步提交成功时以 JSON 格式输出服务端响应 取值有[true|false]
+
+
+pack app-harmony	
+
+  Harmony App 本地打包。文档：https://hx.dcloud.net.cn/cli/pack
+
+  用法：cli pack app-harmony --help
+        cli pack app-harmony --project D:/projects/demo-app
+        cli pack app-harmony --project demo-app
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+
+pack cancel	
+
+  取消 App 云打包任务。文档：https://hx.dcloud.net.cn/cli/pack
+
+  用法：cli pack cancel --help
+        cli pack cancel --project D:/projects/demo-app --platform app-android
+        cli pack cancel --project demo-app --platform app-ios
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+	--platform	要取消打包的平台类型，可选值：app-ios、app-android
+
+
+pack mp-harmony	
+
+  鸿蒙元服务打包（仅适用于 uni-app 项目）。文档：https://hx.dcloud.net.cn/cli/pack-app-harmony
+
+  用法：cli pack mp-harmony --help
+        cli pack mp-harmony --project D:/projects/demo-app
+        cli pack mp-harmony --project demo-app
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+
+pack status	
+
+  查询 App 云打包状态。文档：https://hx.dcloud.net.cn/cli/pack?id=pack-query
+
+  用法：cli pack status --help
+        cli pack status --project D:/projects/demo-app
+        cli pack status --project demo-app --ticket <ticket> --json
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+	--ticket	异步打包提交返回的任务 ticket；指定后精确查询该任务
+
+	--json  	按 ticket 查询时以 JSON 格式输出结果 取值有[true|false]
+
+
+project close	
+  关闭项目
+  参数:
+	--path  	项目绝对路径
+
+project create	
+
+  安装指定插件
+
+  参数:
+
+	--name  	项目名
+
+	--path  	项目存放的路径
+
+	--type  	项目类型 取值有[uni-app|uni-app-x|app-plus|wap2app|web|ideExtension]
+
+	--url   	wap站地址,只对wap2app项目生效
+
+
+project list	
+  列举所有项目
+
+project open	
+  导入项目
+  参数:
+	--path  	项目绝对路径
+
+publish app	
+
+  通过 CLI 本地打包原生 App，生成本地打包 App 资源。文档：https://hx.dcloud.net.cn/cli/publish-APP-appResource
+
+  用法：./cli publish app --help
+        ./cli publish app --type appResource --project xxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--platform	发行平台：APP
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	本地打包类型，固定为 appResource，用于生成本地打包 App 资源
+
+
+publish app 	
+
+  通过 CLI 制作原生 App 的 wgt 包。文档：https://hx.dcloud.net.cn/cli/publish-APP-wgt
+
+  用法：./cli publish app --help
+        ./cli publish app --type wgt --project xxx --name test.wgt --confuse true
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--platform	发行平台：APP
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	打包类型，固定为 wgt，用于制作应用 wgt 包
+
+	--name  	导出名称，不指定时默认为 AppID
+
+	--path  	导出路径，不指定时默认为项目根目录下的 unpackage/release
+
+	--confuse	是否对已配置的 js/nvue 文件进行原生混淆 取值有[true|false] 默认值为:false
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+publish app-android	
+
+  通过 CLI 本地打包 Android App，生成本地打包 App 资源。文档：https://hx.dcloud.net.cn/cli/publish-APP-appResource
+
+  用法：./cli publish app-android --help
+        ./cli publish app-android --type appResource --project xxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	本地打包类型，固定为 appResource，用于生成本地打包 App 资源
+
+
+publish app-android 	
+
+  通过 CLI 制作 Android App 的 wgt 包。文档：https://hx.dcloud.net.cn/cli/publish-APP-wgt
+
+  用法：./cli publish app-android --help
+        ./cli publish app-android --type wgt --project xxx --name test.wgt --confuse true
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	打包类型，固定为 wgt，用于制作应用 wgt 包
+
+	--name  	导出名称，不指定时默认为 AppID
+
+	--path  	导出路径，不指定时默认为项目根目录下的 unpackage/release
+
+	--confuse	是否对已配置的 js/nvue 文件进行原生混淆 取值有[true|false] 默认值为:false
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+publish app-harmony	
+
+  Harmony App 本地打包 App 资源。文档：https://hx.dcloud.net.cn/cli/publish-app-harmony
+
+  用法：./cli publish app-harmony --help
+        ./cli publish app-harmony --project demo-app --type appResource
+        cli publish app-harmony --project demo-app --type wgt
+
+  参数:
+
+	--help  	查看 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径或目录名
+
+	--type  	本地打包类型。可选值：appResource、wgt；appResource 用于生成本地打包 App 资源
+
+
+publish app-harmony 	
+
+  通过 CLI 制作 Harmony App 的 wgt 包。文档：https://hx.dcloud.net.cn/cli/publish-APP-wgt
+
+  用法：./cli publish app-harmony --help
+        ./cli publish app-harmony --type wgt --project xxx --name test.wgt --confuse true
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	打包类型，固定为 wgt，用于制作应用 wgt 包
+
+	--name  	导出名称，不指定时默认为 AppID
+
+	--path  	导出路径，不指定时默认为项目根目录下的 unpackage/release
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+publish app-ios	
+
+  通过 CLI 本地打包 iOS App，生成本地打包 App 资源。文档：https://hx.dcloud.net.cn/cli/publish-APP-appResource
+
+  用法：./cli publish app-ios --help
+        ./cli publish app-ios --type appResource --project xxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	本地打包类型，固定为 appResource，用于生成本地打包 App 资源
+
+
+publish app-ios 	
+
+  通过 CLI 制作 iOS App 的 wgt 包。文档：https://hx.dcloud.net.cn/cli/publish-APP-wgt
+
+  用法：./cli publish app-ios --help
+        ./cli publish app-ios --type wgt --project xxx --name test.wgt --confuse true
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--type  	打包类型，固定为 wgt，用于制作应用 wgt 包
+
+	--name  	导出名称，不指定时默认为 AppID
+
+	--path  	导出路径，不指定时默认为项目根目录下的 unpackage/release
+
+	--confuse	是否对已配置的 js/nvue 文件进行原生混淆 取值有[true|false] 默认值为:false
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+publish mp-alipay	
+
+  通过 CLI 发行支付宝小程序。文档：https://hx.dcloud.net.cn/cli/publish-mp-alipay
+
+  用法：./cli publish mp-alipay --help
+        ./cli publish mp-alipay --project xxx --name xxx --appid wxxxxxxxxxx --upload true --version 0.0.1 --privatekey /Users/xxx/Documents/xxxxxxxxx.json --description xxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--platform	发行平台：MP-ALIPAY
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--name  	发行名称，不指定时默认为项目名称
+
+	--appid 	小程序 appid
+
+	--subPackage	混合分包名称，subPackage 和 upload 只能填写其中一个
+
+	--upload	是否打包后上传到支付宝平台，subPackage 和 upload 只能填写其中一个 取值有[true|false] 默认值为:false
+
+	--version	要上传的小程序版本号
+
+	--privatekey	支付宝开发工具上传密钥文件
+
+	--description	上传的小程序版本描述
+
+
+publish mp-weixin	
+
+  通过 CLI 发行微信小程序。文档：https://hx.dcloud.net.cn/cli/publish-mp-weixin
+
+  用法：./cli publish mp-weixin --help
+        ./cli publish mp-weixin --project xxx --name xxx --appid wxxxxxxxxxx --upload true --version 0.0.1 --privatekey /Users/xxx/Documents/private.wxxxxxxxxxx.key --description xxxxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--platform	发行平台：MP-WEIXIN
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--name  	发行名称，不指定时默认为项目名称
+
+	--appid 	小程序 appid
+
+	--subPackage	混合分包名称，subPackage 和 upload 只能填写其中一个
+
+	--upload	是否打包后上传到微信平台，subPackage 和 upload 只能填写其中一个 取值有[true|false] 默认值为:false
+
+	--version	要上传的小程序版本号
+
+	--privatekey	微信小程序代码上传密钥文件
+
+	--description	上传的小程序版本描述
+
+	--robot 	指定微信 CI 机器人编号，取值范围为 1 到 30，默认为 1
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+publish web	
+
+  通过 CLI 发行到 Web。文档：https://hx.dcloud.net.cn/cli/publish-h5
+
+  用法：./cli publish web --help
+        ./cli publish web --project xxx --webTitle xxx --ssr true --webHosting true --provider aliyun --spaceId xxx-xxx-xxx-xxx-xxx
+
+  参数:
+
+	--help  	查看发行 CLI 命令帮助
+
+	--platform	发行平台：Web
+
+	--project	HBuilderX 中已导入项目的绝对路径
+
+	--webTitle	网站标题，发行类型为 H5 时可配置；不指定时默认为项目名称
+
+	--webDomain	网站域名，发行类型为 H5 时可配置
+
+	--ssr   	是否启用 SSR 发行，仅 Vue 3 项目生效 取值有[true|false] 默认值为:false
+
+	--ssrHost	SSR 发行时，如果网页托管服务商绑定了多个域名，需指定域名
+
+	--ssrProvider	SSR 发行时，如果项目绑定了多个云服务空间，需指定云函数上传的服务商。可选值：aliyun、alipay、tcb
+
+	--webHosting	是否启用前端网页托管 取值有[true|false] 默认值为:false
+
+	--provider	云服务商代号 取值有[aliyun|alipay|tcb] 默认值为:aliyun
+
+	--spaceId	云空间 ID
+
+	--sourceMap	是否生成 SourceMap 取值有[true|false] 默认值为:false
+
+
+report-bug	
+
+  cli上报bug
+
+  参数:
+
+	--modulelist	列举模块列表数据
+
+	--config	需要提供一个 JSON 配置文件，用于通过 CLI 提交 Bug。内容示例如下：
+			{
+				"title": "在这里填写 Bug 标题",
+				// Bug 标题，简要描述问题
+
+				"product": 6,
+				// 产品类型：4 = HBuilderX，6 = uni-app x
+
+				"step": "在这里填写问题复现步骤",
+				// 问题复现步骤，越详细越有助于定位问题
+
+				"wantResult": "在这里填写期望的正确结果",
+				// 期望的正确结果描述
+
+				"module": "填写模块 id",
+				// 问题所属模块，填写模块 id，可通过 --moduleList 获取可用值
+
+				"attachmentPath": "填写一个文件路径",
+				// 附件文件路径（HBuilderX 生效），填写一个文件地址
+
+				"runLog": "填写一个文件路径用于运行日志",
+				// 运行日志文件路径，必须指向一个文件
+
+				"phoneOsPlatform": [1, 2, 3],
+				// 运行平台（仅 uni-app x 生效）：
+				// 1 = Android，2 = iOS，3 = Web，4 = 微信，5 = 鸿蒙
+
+				"phoneOsVersion": "填写手机系统版本",
+				// 手机系统版本（uni-app x 生效）
+
+				"phoneBrand": "填写手机品牌",
+				// 手机品牌（uni-app x 生效）
+
+				"phoneModel": "填写手机型号",
+				// 手机型号（uni-app x 生效）
+
+				"isVaporMode": false,
+				// 是否启用蒸汽模式（uni-app x 生效）
+
+				"isVdomMode": false,
+				// 是否启用 VDOM 模式（uni-app x 生效）
+
+				// 当运行平台包含 iOS 或鸿蒙时，isVdomMode 与 isVaporMode 至少需要一个为 true
+				"sampleProjectGit": "填写示例项目 Git 地址",
+				// 示例项目的 Git 地址（uni-app x 生效）
+
+				"sampleProject": "填写本地示例项目路径",
+				// 本地示例项目路径（uni-app x 生效）
+
+				"projectPublic": true,
+				// 本地项目是否公开（uni-app x 生效）
+
+				"picPath": []
+				// 截图路径数组（uni-app x 生效）
+
+			}    参数 config 为文件路径，请填写一个有效的文件路径
+
+
+screencap app-android	
+
+  通过 CLI 对已运行到 Android 设备的项目截图
+
+  用法：./cli screencap app-android --project xxx --deviceId <udid> --saveFile <路径> [--fullPage true|false]
+
+  参数:
+
+	--help  	查看截图 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	设备序列号（udid），需与当前运行会话一致；不填写时使用该平台最近连接的一台设备
+
+	--saveFile	截图保存的完整文件路径，例如 .png 文件，必填
+
+	--fullPage	是否截取长图，true 表示长图，false 表示当前屏 取值有[true|false] 默认值为:true
+
+
+screencap app-harmony	
+
+  通过 CLI 对已运行到 Harmony 设备的项目截图
+
+  用法：./cli screencap app-harmony --project xxx --deviceId <udid> --saveFile <路径> [--fullPage true|false]
+
+  参数:
+
+	--help  	查看截图 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	设备序列号（udid），需与当前运行会话一致；不填写时使用该平台最近连接的一台设备
+
+	--saveFile	截图保存的完整文件路径，例如 .png 文件，必填
+
+	--fullPage	是否截取长图，true 表示长图，false 表示当前屏 取值有[true|false] 默认值为:true
+
+
+screencap app-ios	
+
+  通过 CLI 对已运行到 iOS 设备的项目截图
+
+  用法：./cli screencap app-ios --project xxx --deviceId <udid> --saveFile <路径> [--fullPage true|false]
+
+  参数:
+
+	--help  	查看截图 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--deviceId	设备序列号（udid），需与当前运行会话一致；不填写时使用该平台最近连接的一台设备
+
+	--saveFile	截图保存的完整文件路径，例如 .png 文件，必填
+
+	--fullPage	是否截取长图，true 表示长图，false 表示当前屏 取值有[true|false] 默认值为:true
+
+
+screencap web	
+
+  通过 CLI 对已运行的 Web 项目截图，仅支持 Chrome 或内置浏览器
+
+  用法：./cli screencap web --project xxx --saveFile <路径> [--browser Chrome|Built] [--fullPage true|false]
+
+  参数:
+
+	--help  	查看截图 CLI 命令帮助
+
+	--project	HBuilderX 中已导入项目的名称或绝对路径
+
+	--browser	浏览器类型，仅支持 Chrome 或 Built；不填写时默认使用当前正在运行的浏览器 取值有[Chrome|Built]
+
+	--saveFile	截图保存的完整文件路径，例如 .png 文件，必填
+
+	--fullPage	是否截取长图，true 表示长图，false 表示当前屏 取值有[true|false] 默认值为:true
+
+
+uni-agent	
+
+  通过 CLI 向 uni-agent 发起提问
+
+  用法：./cli.exe uni-agent --prompt "你的问题" --project "项目名称或项目绝对路径" --continue true --output-format stream --show-progress true --model-selection subscription --model-value 1x --reasoning-effort medium --timeout 600；执行时会先输出 HBuilderX Version: <version>
+
+  参数:
+
+	--prompt	要发送给 uni-agent 的问题内容
+
+	--project	指定提问使用的项目名称或项目绝对路径；若同名项目打开多个，请传绝对路径
+
+	--continue	继续当前项目最近一次 CLI 会话，在同一个 session 中继续对话 取值有[true|false] 默认值为:false
+
+	--yolo  	完全授权模式：自动执行所有 AI 建议的操作（如文件修改、命令运行） 取值有[true|false] 默认值为:false
+
+	--output-format	CLI 输出格式：text 只在结束后输出最终结果；stream 输出实时文本增量 默认值为:text
+
+	--show-progress	是否在 CLI 中打印思考过程与工具执行过程，默认关闭；仅在传入 --output-format stream 时生效 取值有[true|false] 默认值为:false
+
+	--model-selection	当前 CLI 会话使用的内置模型来源，需要与 --model-value 同时传入
+
+	--model-value	当前 CLI 会话使用的模型版本，需要与 --model-selection 同时传入
+
+	--reasoning-effort	当前 CLI 会话使用的推理强度
+
+	--timeout	CLI 等待本轮回复的超时时间，单位秒 默认值为:600
+
+
+uniCloud.synchronouDependencies	
+
+  上传Schema扩展Js的配置
+
+  参数:
+
+	--path  	项目的绝对路径
+
+	--provider	云服务提供商代号，可选aliyun、tcb、alipay
+
+	--spaceId	云空间的序号或id
+
+	--appId 	项目的appId
+
+	--prj   	项目名
+
+
+uni_modules	
+
+  uni_modules插件处理
+
+  参数:
+
+	--help  	uni_modules命令帮助
+
+	--download	插件下载，使用方法：--download [插件ID]
+
+	--upgrade	插件更新，使用方法：--upgrade [插件ID]
+
+	--list  	显示已安装的uni_modules插件列表
+
+	--project	项目的绝对路径
+
+	--version	指定下载插件的版本，不设置此参数则下载最新版
+
+	--extType	指定下载插件的类型。source：源码授权版，encrypt：普通授权版
+
+	--force 	设置此参数后，将会强制执行文件覆盖操作
+
+
+unicloud test	
+
+  运行 uniCloud 自动化测试
+
+  参数:
+
+	--prj   	项目
+
+	--provider	服务商 取值有[aliyun|tcb|alipay|dcloud]
+
+	--functionName	云函数名称
+
+	--file  	测试文件
+
+	--mode  	测试方式
+
+	--coverage	生成覆盖率报告
+
+	--space 	集成测试服务空间
+
+
+update	
+
+  检查更新并将 HBuilderX 更新到最新版本
+
+  参数:
+
+
+user info	
+  当前登录用户信息
+
+user login	
+  用户登录
+  参数:
+	--username	用户名
+	--password	密码
+	--global	[true|false]是否国际区账号登录,值为 true 时生效，不填写默认为false
+
+user logout	
+  当前用户登出
+
+version	
+  HBuilderX 当前版本号
+
+

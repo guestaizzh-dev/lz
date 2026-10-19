@@ -1,0 +1,101 @@
+$ max setup && tsc --noEmit && max build
+info  - [你知道吗？] 全局数据存储，在 React 之外修改数据怎么办？试试一键上手 valtio，详见 https://umijs.org/docs/max/valtio
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - generate files
+info  - Preparing...
+info  - [你知道吗？] 如果想检测未使用的文件和导出，可尝试新出的 deadCode 配置项，详见 https://umijs.org/docs/api/config#deadcode
+info  - [plugin: @umijs/plugins/dist/react-query] [reactQuery] use local package, version: 5.101.2
+info  - Umi v4.7.22
+info  - Preparing...
+[webpackbar] i Compiling Webpack
+[webpackbar] √ Webpack: Compiled successfully in 12.67s
+info  - Memory Usage: 1073.07 MB (RSS: 1457.89 MB)
+
+info  - File sizes after gzip:
+
+  488.59 kB  dist\umi.33cd4e86.js
+  466.64 kB  dist\213.f2aa69b1.async.js
+  163.11 kB  dist\656.8f4496ed.async.js
+  102.6 kB   dist\159.7191c1e9.async.js
+  35.88 kB   dist\957.85d6a370.async.js
+  34.98 kB   dist\256.5194c491.async.js
+  31.02 kB   dist\60.bab3f54e.async.js
+  29.61 kB   dist\979.0c33c291.async.js
+  15.72 kB   dist\501.71efad12.async.js
+  14.83 kB   dist\644.01e36111.async.js
+  12.41 kB   dist\944.365541c5.async.js
+  8.49 kB    dist\p__memberships__index.4498a4cb.async.js
+  8.27 kB    dist\p__table-list__index.3605d93d.async.js
+  8.08 kB    dist\p__courses__index.e5095dd1.async.js
+  7.78 kB    dist\p__products__index.bf63faca.async.js
+  7.76 kB    dist\p__data-workbench__index.a350f22e.async.js
+  6.83 kB    dist\232.14c8b480.async.js
+  6.03 kB    dist\p__product-orders__index.8d526a87.async.js
+  6.01 kB    dist\p__system__config__index.fc7f1da7.async.js
+  5.95 kB    dist\p__teaching__index.2f3a61e9.async.js
+  5.74 kB    dist\p__course-orders__index.b4e6c542.async.js
+  5.5 kB     dist\p__membership-orders__index.ef6654e3.async.js
+  4.72 kB    dist\p__forum__index.e00c5867.async.js
+  4.7 kB     dist\301.4db1ef21.async.js
+  4.7 kB     dist\p__user__login__index.1549c2ea.async.js
+  4.65 kB    dist\p__events__index.f6980264.async.js
+  4.28 kB    dist\p__system__users__index.7bcb3d1f.async.js
+  3.98 kB    dist\p__dashboard__analysis__index.9831b1a9.async.js
+  3.88 kB    dist\p__practices__index.1adf5011.async.js
+  3.5 kB     dist\291.0a052deb.async.js
+  3.38 kB    dist\916.5404cfa1.async.js
+  3.33 kB    dist\t__plugin-layout__Layout.218704d4.async.js
+  3.13 kB    dist\p__system__audit__index.2b6cbe33.async.js
+  3.04 kB    dist\p__system__access__index.37a17e42.async.js
+  2.67 kB    dist\p__questions__index.dc840091.async.js
+  2.46 kB    dist\p__feedback__index.b363d62f.async.js
+  2.46 kB    dist\p__course-reviews__index.dd1a94a7.async.js
+  2.27 kB    dist\p__delivery__index.f6e28202.async.js
+  2.21 kB    dist\p__media__index.3ae8572c.async.js
+  2.07 kB    dist\p__comments__index.4846d2dc.async.js
+  1.89 kB    dist\p__orders__index.02dfb250.async.js
+  1.78 kB    dist\p__live-discovery__index.52900bd5.async.js
+  1.29 kB    dist\scripts\loading.js
+  766 B      dist\p__workspace__index.0a6f1ae2.async.js
+  751 B      dist\umi.ac69d059.css
+  372 B      dist\t__plugin-layout__Layout.e2ec6e92.chunk.css
+  354 B      dist\p__exception__404__index.feb1970a.async.js
+  346 B      dist\p__exception__403__index.2b4fdad3.async.js
+  331 B      dist\p__exception__500__index.4e999fd6.async.js
+  221 B      dist\506.1fb3a61e.async.js
+
+event - Build user\index.html
+event - Build user\login\index.html
+event - Build dashboard\index.html
+event - Build dashboard\analysis\index.html
+event - Build content\index.html
+event - Build content\articles\index.html
+event - Build content\live\index.html
+event - Build content\comments\index.html
+event - Build content\course-reviews\index.html
+event - Build content\courses\index.html
+event - Build list\table-list\index.html
+event - Build memberships\index.html
+event - Build products\index.html
+event - Build delivery\index.html
+event - Build membership-orders\index.html
+event - Build course-orders\index.html
+event - Build orders\index.html
+event - Build legacy-orders\index.html
+event - Build data\index.html
+event - Build forum\index.html
+event - Build feedback\index.html
+event - Build practices\index.html
+event - Build questions\index.html
+event - Build teaching\index.html
+event - Build events\index.html
+event - Build media\index.html
+event - Build system\index.html
+event - Build system\users\index.html
+event - Build system\access\index.html
+event - Build system\config\index.html
+event - Build system\audit\index.html
+event - Build exception\403\index.html
+event - Build exception\500\index.html
+event - Build index.html
+event - Build 404.html

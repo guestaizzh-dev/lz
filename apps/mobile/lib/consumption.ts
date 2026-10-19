@@ -1,0 +1,2 @@
+export const consumptionStates:{[key:string]:string}={WAIT_DELIVERY:'等待实际交付',OBSERVATION:'观察期内',HELD:'退款或履约核查中',SETTLED:'已结算',REVERSED:'已冲回'};
+export function consumptionOrderPath(order:{id:string;kind:string}){const paths:{[key:string]:string}={COURSE:'course/purchase?orderId=',MEMBERSHIP:'membership/purchase?orderId=',PHYSICAL:'shop/order-detail?id=',CONSULTATION:'booking/purchase?orderId=',EVENT:'booking/purchase?orderId=',COHORT:'cohort/purchase?orderId='};return paths[order.kind]?paths[order.kind]+encodeURIComponent(order.id):'';}

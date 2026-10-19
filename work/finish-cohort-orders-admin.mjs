@@ -1,0 +1,14 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+const path='apps/admin/src/pages/cohort-orders/index.tsx';let text=readFileSync(path,'utf8');
+const edits=[
+  ["{key:'state',label:'状态'", "{key:'current',label:'最新安排',children:formatChinaTime(selected.currentSchedule.startsAt)+' 至 '+formatChinaTime(selected.currentSchedule.endsAt)+(selected.currentSchedule.cancelled?' · 已取消':selected.currentSchedule.schedulePending?' · 待学员确认':'')},{key:'change',label:'变更说明',children:selected.currentSchedule.changeReason??'无变更'},{key:'state',label:'状态'"],
+  ['<Typography.Text type="secondary">{formatChinaTime(r.createdAt)}</Typography.Text>', '<Typography.Text type="secondary">{formatChinaTime(r.createdAt)}</Typography.Text>{r.reasonCode===\'COHORT_CANCEL_REMAINDER\'&&<Typography.Paragraph>营期取消补退余额，本次不重复释放席位。</Typography.Paragraph>}{r.assessmentSnapshot&&<><Typography.Paragraph type="secondary">已打开 {r.assessmentSnapshot.openedLessons} 讲 / 完成 {r.assessmentSnapshot.completedLessons} 讲；提交 {r.assessmentSnapshot.submittedAssignments} 次作业 / 点评 {r.assessmentSnapshot.reviewedAssignments} 次；打卡 {r.assessmentSnapshot.checkinDays} 次。学习数量不直接折算扣费。</Typography.Paragraph>{r.assessmentSnapshot.deductionAmount&&<Typography.Paragraph>保留款 {moneyText(r.assessmentSnapshot.deductionAmount)}；{r.assessmentSnapshot.withdrawalScope}</Typography.Paragraph>}</>}{r.acceptedAt&&<Typography.Paragraph>本人确认于 {formatChinaTime(r.acceptedAt)}</Typography.Paragraph>}'],
+  ["r.state==='REQUESTED'?", "r.state==='REQUESTED'&&!selected.currentSchedule.cancelled?"],
+  ["onClick={()=>{form.resetFields();setAction({refund:r,kind:'APPROVE'});}}", "onClick={()=>begin(r,'APPROVE')}"],
+  ['>审核通过并原路退款</Button>', ">{r.reasonCode==='COHORT_DISPUTE'?'提出退款方案':'审核通过并原路退款'}</Button>"],
+  ["onClick={()=>{form.resetFields();setAction({refund:r,kind:'REJECT'});}}", "onClick={()=>begin(r,'REJECT')}"],
+  ["onClick={()=>{form.resetFields();setAction({refund:r,kind:'RETRY'});}}", "onClick={()=>begin(r,'RETRY')}"],
+  ['<Typography.Paragraph>开营前整单退出退回原实付。审核与退款期间暂停本期交付，渠道成功后释放席位；拒绝恢复原报名。其他课程与营期保持独立。</Typography.Paragraph>', "<Typography.Paragraph>{action?.refund.reasonCode==='COHORT_DISPUTE'?'根据实际交付核查金额与依据；保存后等待学员本人确认，财务不能代其同意。接受后终止本期剩余交付；拒绝恢复原期限，不延长安排。':'开营前整单退出退回原实付。申请期间暂停本期交付，渠道成功后释放席位；拒绝恢复原报名。整期取消自动全额退款。'}</Typography.Paragraph>"],
+  ['<Form form={form} layout="vertical"><Form.Item name="reason"', "<Form form={form} layout=\"vertical\">{action?.kind==='APPROVE'&&action.refund.reasonCode==='COHORT_DISPUTE'&&<Form.Item name=\"approvedAmount\" label=\"拟原路退款（元）\" rules={[{required:true}]} extra={'原实付 '+moneyText(action.refund.requestedAmount)+'；不得按学习次数直接折算扣款'}><MoneyInput min={1} max={Number(action.refund.requestedAmount)} disabled={busy}/></Form.Item>}<Form.Item name=\"reason\""],
+];
+for(const [before,after] of edits){if(!text.includes(before))throw Error('Missing match: '+before);text=text.replace(before,after);}writeFileSync(path,text);

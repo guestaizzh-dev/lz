@@ -2,7 +2,7 @@ import { api, setSession } from '@/api';
 import type { Actor, Session } from '@/api';
 
 function toCurrentUser(user: Actor): API.CurrentUser {
-  return { userid: user.id, name: user.nickname, roles: user.roles,
+  return { userid: user.id, name: user.nickname, roles: user.roles, permissions:user.permissions,
     access: user.roles.includes('ADMIN') ? 'admin' : 'user' };
 }
 export async function currentUser(_options?: Record<string, unknown>) {

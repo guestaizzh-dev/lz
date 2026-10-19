@@ -4,6 +4,7 @@
 declare namespace API {
   type CurrentUser = {
     roles?: string[];
+    permissions?: string[];
     name?: string;
     avatar?: string;
     userid?: string;

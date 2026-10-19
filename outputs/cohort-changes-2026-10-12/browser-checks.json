@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Pro整体延期，预览北京时间与学员通知原因后保存",
+    "App延期消息直达原营期，显示新旧安排并要求确认",
+    "App确认最新安排后恢复本期入口",
+    "App拒绝第二次延期并退出，释放一次席位且保留退出时安排",
+    "Pro取消整期，关闭报名并释放已报名席位",
+    "App取消通知直达原营期，保留原因和原安排并关闭报名",
+    "我的训练营区分整期取消与本人退出，历史仍可打开"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

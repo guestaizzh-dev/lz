@@ -1,8 +1,10 @@
+import {phoneLookup} from '../dist/private-data.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomInt, randomUUID } from 'node:crypto';
 import { createApp } from '../dist/main.js';
 import { Database } from '../dist/database.js';
+import { decryptPrivate } from '../dist/private-data.js';
 import { passwordHash } from '../dist/auth.js';
 import { clearProducts } from './fixture-cleanup.mjs';
 
@@ -32,6 +34,15 @@ test('shopping HTTP workflows protect ownership, defaults, prices, inventory and
       const shown=(await call('/catalog/products/'+product.id)).body;assert.equal(shown.skus[0].available,10);assert.equal(shown.skus[0].price,1200);assert.equal(shown.skus[0].reserved,undefined);assert.equal(shown.checkoutEnabled,false);
       const audits=await call('/admin/products/'+product.id+'/audit',operator);assert.equal(audits.status,200);assert.ok(audits.body.some(row=>row.action==='sku.create'));assert.ok(audits.body.some(row=>row.action==='product.publish'));
     });
+    await t.test('service SKUs require a canonical offering and remain unpublished until appointment fulfilment',async()=>{
+      const draft=await call('/admin/products',operator,'POST',{...productBody,type:'SERVICE'});assert.equal(draft.status,201);products.push(draft.body.id);
+      const body={title:'预约服务',price:1000,stock:0,active:true,reason:'统一绑定验证'};
+      assert.equal((await call('/admin/products/'+draft.body.id+'/skus',operator,'POST',body)).status,400);
+      assert.equal((await call('/admin/products/'+draft.body.id+'/skus',operator,'POST',{...body,serviceOfferingId:randomUUID()})).status,400);
+      assert.equal((await call('/admin/products/service-offerings',operator)).status,200);
+      assert.equal((await call('/admin/products/'+draft.body.id+'/transition',operator,'POST',{action:'submit',expectedVersion:draft.body.version,reason:'服务链尚未就绪'})).status,400);
+      const ledger=await db.inventoryLedger.findMany({where:{skuId:sku.id}});assert.equal(ledger[0].stockAfter,10n);assert.equal(ledger[0].stockDelta,10n);assert.equal(ledger[0].reason,'MANUAL_ADJUSTMENT');
+    });
     await t.test('cart quantity is absolute and idempotent; clients cannot submit prices or other owners',async()=>{
       assert.equal((await call('/shopping/cart')).status,401);
       const writes=await Promise.all([call('/shopping/cart/'+sku.id,a,'PUT',{quantity:2}),call('/shopping/cart/'+sku.id,a,'PUT',{quantity:2})]);assert.deepEqual(writes.map(row=>row.status),[200,200]);assert.equal(writes[0].body.id,writes[1].body.id);
@@ -58,6 +69,7 @@ test('shopping HTTP workflows protect ownership, defaults, prices, inventory and
       assert.equal((await call('/shopping/addresses')).status,401);
       const result=await Promise.all([call('/shopping/addresses',a,'POST',addressBody),call('/shopping/addresses',a,'POST',{...addressBody,detail:'另一测试地址'})]);assert.deepEqual(result.map(row=>row.status),[201,201]);
       let addresses=(await call('/shopping/addresses',a)).body;assert.equal(addresses.length,2);assert.equal(addresses.filter(row=>row.isDefault).length,1);
+      const stored=await db.address.findUniqueOrThrow({where:{id:addresses[0].id}});assert.equal(stored.recipient,'');assert.equal(stored.phone,'');assert.equal(stored.detail,'');assert.equal(decryptPrivate(stored.phoneCipher),addressBody.phone);assert.equal(addresses[0].recipient,addressBody.recipient);assert.equal('phoneCipher' in addresses[0],false);
       assert.equal((await call('/shopping/addresses',b)).body.length,0);
       assert.equal((await call('/shopping/addresses/'+addresses[0].id,b,'PATCH',addressBody)).status,404);
       assert.equal((await call('/shopping/addresses/'+addresses[0].id,b,'DELETE')).status,404);
@@ -76,11 +88,12 @@ test('shopping HTTP workflows protect ownership, defaults, prices, inventory and
   } finally {
     const skuIds=(await db.productSku.findMany({where:{productId:{in:products}},select:{id:true}})).map(row=>row.id);
     await clearProducts(db, products);
+    await db.inventoryLedger.deleteMany({where:{skuId:{in:skuIds}}});
     await db.product.deleteMany({where:{id:{in:products}}});
     await db.auditLog.deleteMany({where:{OR:[{actorId:{in:users}},{resourceId:{in:[...products,...skuIds]}}]}});
     await db.authSession.deleteMany({where:{userId:{in:users}}});
-    await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{phone:{in:phones}}});
-    await db.rateLimit.deleteMany({where:{OR:phones.flatMap(phone=>[{key:'sms-phone-minute:'+phone},{key:'sms-phone-day:'+phone}])}});
+    await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{OR:[{phone:{in:phones}},{phoneHash:{in:phones.map(phoneLookup)}}]}});
+    await db.rateLimit.deleteMany({where:{OR:phones.flatMap(phone=>[{key:'sms-phone-minute:'+phoneLookup(phone)},{key:'sms-phone-day:'+phoneLookup(phone)}])}});
     await app.close();await db.$disconnect();
   }
 });

@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-12",
+  "scope": "static code, requirements and recorded evidence review; no fresh runtime acceptance",
+  "tasks": 110,
+  "states": {
+    "已完成": 5,
+    "待验收": 1,
+    "阻塞": 16,
+    "实现完成·待验证": 13,
+    "进行中": 11,
+    "待执行": 64
+  },
+  "commercialBaseline": {
+    "completed": 38,
+    "total": 131,
+    "percentage": 29,
+    "newAcceptance": false
+  },
+  "prismaBusinessModels": 154,
+  "migrationDirectories": 29,
+  "configuredMobilePages": 51,
+  "historicalDatabaseTablesIncludingMetadata": 155,
+  "recordedBrowserChecks": {
+    "count": 9,
+    "status": "passed",
+    "errors": []
+  },
+  "commercialReviewSha256": "c24a94ff6fb6e1735cc85b57a0412a249858dd2d77d1cfd46edf771958222d04",
+  "nextTask": "A03: cohort registration, entitlement and learning context before scheduling and teaching",
+  "deploymentPerformed": false,
+  "testsRerun": false
+}

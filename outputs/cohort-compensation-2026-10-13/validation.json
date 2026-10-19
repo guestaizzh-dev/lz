@@ -1,0 +1,86 @@
+{
+  "stage": "cohort-schedule-and-compensation-53",
+  "date": "2026-10-13",
+  "status": "local-validation-passed",
+  "apiTests": [
+    {
+      "log": "api-tests.log",
+      "tests": 72,
+      "passed": 72
+    },
+    {
+      "log": "related-tests.log",
+      "tests": 108,
+      "passed": 108
+    }
+  ],
+  "totalTests": 180,
+  "browserFlows": 9,
+  "builds": {
+    "api": true,
+    "adminTypes": true,
+    "adminProduction": true,
+    "appWeb": true,
+    "appCompiler": "HBuilderX 5.26 VDOM"
+  },
+  "localDatabase": {
+    "migration": 40,
+    "tableCount": 161,
+    "models": 160,
+    "dataPreserved": true,
+    "before": {
+      "migrations": 39,
+      "tables": 161,
+      "users": 15,
+      "courses": 8,
+      "orders": 0,
+      "cohorts": 0,
+      "registrations": 0,
+      "ordinary_enrollment_digest": "8a76f782528d4f96394cbff0bb314804",
+      "cohort_identity_digest": "d751713988987e9331980363e24189ce",
+      "assignments_digest": "fea4ff89e177f99e928b2550fe706c5d",
+      "tasks_digest": "c51546ff8e1c8e9eb1502b625fd1e37e",
+      "staff_digest": "3aaaf517f547dad7da36321fdef08cc7",
+      "submissions": 3,
+      "checkins": 2,
+      "schedules": 0
+    },
+    "after": {
+      "migrations": 40,
+      "tables": 161,
+      "users": 15,
+      "courses": 8,
+      "orders": 0,
+      "cohorts": 0,
+      "registrations": 0,
+      "ordinary_enrollment_digest": "8a76f782528d4f96394cbff0bb314804",
+      "cohort_identity_digest": "d751713988987e9331980363e24189ce",
+      "assignments_digest": "fea4ff89e177f99e928b2550fe706c5d",
+      "tasks_digest": "c51546ff8e1c8e9eb1502b625fd1e37e",
+      "staff_digest": "3aaaf517f547dad7da36321fdef08cc7",
+      "submissions": 3,
+      "checkins": 2,
+      "schedules": 0
+    }
+  },
+  "planStatuses": {
+    "已完成": 5,
+    "待验收": 1,
+    "阻塞": 16,
+    "实现完成·待验证": 13,
+    "进行中": 12,
+    "待执行": 63
+  },
+  "snapshot25Unchanged": true,
+  "commercialReadiness": {
+    "completed": 38,
+    "total": 131,
+    "percentage": 29,
+    "changed": false
+  },
+  "deployed": false,
+  "newApk": false,
+  "nativeAcceptance": false,
+  "realPaymentEvidence": false,
+  "next": "A05 paid actual fulfilment and revenue/settlement/points; iOS cohort and A01/M07/A07/A08 follow"
+}

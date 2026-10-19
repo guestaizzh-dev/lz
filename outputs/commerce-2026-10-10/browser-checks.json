@@ -1,0 +1,11 @@
+{
+  "origin": "https://academy.43-160-229-173.sslip.io",
+  "release": "20261011-commerce-01",
+  "course": "道德经入门：图文音频视频研习",
+  "versionDrawer": "passed",
+  "withdrawalModal": "passed",
+  "requiredReasonValidation": "passed",
+  "productionDeliveryMutation": false,
+  "screenshot": "admin-version-delivery.png",
+  "nativeAcceptance": "not performed"
+}

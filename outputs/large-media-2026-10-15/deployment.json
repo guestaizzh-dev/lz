@@ -1,0 +1,8 @@
+{
+  "tag": "20261015-large-media-01",
+  "previous": "/opt/daoxue-academy/releases/20261015-durable-learning-02",
+  "release": "/opt/daoxue-academy/releases/20261015-large-media-01",
+  "businessTablesVerified": 21,
+  "migration": "20261015120000_large_media_ingest",
+  "adminUpdated": true
+}

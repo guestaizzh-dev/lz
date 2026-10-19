@@ -1,0 +1,1304 @@
+{
+  "queries": 144,
+  "fullCrud": 58,
+  "controlled": 85,
+  "userEdit": 1,
+  "entities": [
+    {
+      "key": "app_user",
+      "read": true,
+      "create": false,
+      "update": true,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "auth_identity",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "auth_session",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "consumed_refresh",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "otp_challenge",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "rate_limit",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "access_role",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "user_role",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "tag",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "user_tag",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "consent_record",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "media_asset",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "resource",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "resource_tag",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "source_evidence",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "resource_evidence",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "content_relation",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "article",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "article_release",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "article_block",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "reaction",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "reading_event",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "private_note",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "note_export",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "practice_log",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "teacher",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "teacher_staff",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "teacher_question",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "teacher_answer",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "service_offering",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "appointment_slot",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "appointment",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "course",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "course_chapter",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "course_release",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "lesson",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "course_cohort",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "course_staff",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "enrollment",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "study_progress",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "study_event",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "assignment",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "submission",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": true,
+      "mode": "workflow"
+    },
+    {
+      "key": "teacher_review",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "practice_task",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "practice_checkin",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "offline_license",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "forum_section",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "forum_thread",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "comment",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "user_block",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "report",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "moderation_action",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "user_restriction",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "content_authorization",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "writing_campaign",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "campaign_entry",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "live_room",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "live_session",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "live_reservation",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "live_replay",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "live_mic_request",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "live_poll",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "poll_option",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "poll_vote",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "virtual_gift",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "gift_wallet",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "gift_ledger",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "product",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "product_sku",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "digital_release",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "digital_release_asset",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "sale_offer",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "channel_product_mapping",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "cart_item",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": true,
+      "mode": "crud"
+    },
+    {
+      "key": "address",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": true,
+      "mode": "workflow"
+    },
+    {
+      "key": "delivery_template",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "delivery_zone",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "trade_order",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "order_item",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "inventory_reservation",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "inventory_ledger",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "payment_attempt",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "payment_transaction",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "provider_callback",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "refund",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "refund_item",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "shipment",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "shipment_item",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "digital_delivery",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "membership_plan",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "membership_plan_version",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "benefit_definition",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "plan_benefit",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "membership_period",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "benefit_usage",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "growth_ledger",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "points_account",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "points_ledger",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "points_reservation",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "points_reward",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "points_redemption",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "event",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "event_session",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "event_ticket_type",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "event_registration",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "event_checkin",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "event_staff",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "event_waitlist",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "coupon_template",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "user_coupon",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "promotion",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "promotion_offer",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "group_buy",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "group_buy_member",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "referral",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "commission_ledger",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "withdrawal_request",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "partner",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "partner_contract",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "settlement",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "settlement_item",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "finance_journal",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "finance_entry",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "reconciliation",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "operating_service",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "ad_placement",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "ad_campaign",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "notification",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "device_token",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "notification_delivery",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "feedback",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "feedback_reply",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "audit_log",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "outbox_job",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "idempotency_record",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "feature_config",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "attachment_binding",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "benefit_scope",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "refund_transaction",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "withdrawal_allocation",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "finance_account",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": true,
+      "ownerOnly": false,
+      "mode": "crud"
+    },
+    {
+      "key": "benefit_grant",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    },
+    {
+      "key": "gift_credit_allocation",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false,
+      "ownerOnly": false,
+      "mode": "workflow"
+    }
+  ]
+}

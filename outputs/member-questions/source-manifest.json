@@ -1,0 +1,142 @@
+[
+  {
+    "path": "services/api/src/apple-refund-reviews.ts",
+    "sha256": "e5f575a1e25bc9cd350172b12d0095b3dd451c35ec68facd080fbd75b3cc294d"
+  },
+  {
+    "path": "services/api/src/apple-refund-state.ts",
+    "sha256": "27357c758d3ada838ec30d949f0d0dcda8302457eff98839ea5b9558945dcfe6"
+  },
+  {
+    "path": "services/api/src/course-member-benefits.ts",
+    "sha256": "9801fa74000ca20be58370d56e4beb9bd2ca0380288a698e404a56294d373607"
+  },
+  {
+    "path": "services/api/src/course-sales.ts",
+    "sha256": "56ea2ca937d1316dcae2132a278ce085968eb2bcd43e7dbff6cfb488542508b5"
+  },
+  {
+    "path": "services/api/src/member-pricing.ts",
+    "sha256": "fd83adda35e840ce534ba977829d996935917f05993edba9f2db5bfe20a7c3c0"
+  },
+  {
+    "path": "services/api/src/learning.ts",
+    "sha256": "10a9ceee0f880b6e7f01f26b9f19abb0ca0a48dc0d487b6fb23f8d21857d3aed"
+  },
+  {
+    "path": "services/api/src/course-versions.ts",
+    "sha256": "8a9e41e54c44070993009e8bba2297fdf7290f37efbd641307d36b27081fe58a"
+  },
+  {
+    "path": "services/api/src/apple-commerce.ts",
+    "sha256": "f0b4236a9ef0dd4131bfd10913b19f7bccbbef99c1c3df094ecde00785df73a9"
+  },
+  {
+    "path": "services/api/src/questions.ts",
+    "sha256": "ddcab685984822688957cdc978ea49c9ea2a2f6c12514dc3930ca822f11c5198"
+  },
+  {
+    "path": "services/api/src/membership-benefits.ts",
+    "sha256": "9d8b2cd626fc5fbb0d274708a436c3b42663334341cdadda6bfd1a2396ef1bc9"
+  },
+  {
+    "path": "services/api/src/message-target.ts",
+    "sha256": "019e623ebe2caea091de0d137505565cc3ccb7ed8804961c0f9e2e4e568ac89c"
+  },
+  {
+    "path": "services/api/prisma/schema.prisma",
+    "sha256": "29508c91c72a958a7cfca8a88de35b5fe947e353c04be2a19f044e22b0cf55d1"
+  },
+  {
+    "path": "services/api/prisma/migrations/20261017090000_apple_refund_reviews/migration.sql",
+    "sha256": "b5e4d51c0168e03b9f145d3ce28d0ed3bd9f18ea0d140241f08da47c0e126069"
+  },
+  {
+    "path": "services/api/prisma/migrations/20261017100000_course_member_benefits/migration.sql",
+    "sha256": "79f1b5b05cff6fd5f377f1f09e50ba6c2d0eb8444b3fb6600f2bcfc8d2388498"
+  },
+  {
+    "path": "services/api/prisma/migrations/20261017110000_member_questions/migration.sql",
+    "sha256": "0d497c51895853d891a472b754fe8f1a6dbc8f406fe751af9c719ac6d9fcac33"
+  },
+  {
+    "path": "apps/admin/src/pages/memberships/Benefits.tsx",
+    "sha256": "86db05a53dd98b313c5326e9fc039bd7df4c88f31da5521cab2f991860733374"
+  },
+  {
+    "path": "apps/admin/src/pages/memberships/CourseBenefits.tsx",
+    "sha256": "ffb8d9c0ceefb04f502f761033a818e7878216336ab0adbd45a58a9e2e1f737e"
+  },
+  {
+    "path": "apps/admin/src/pages/memberships/QuestionBenefits.tsx",
+    "sha256": "defd838a0b5ebe4a7117682a3b231ebe5646269c0c2111bc90a2a3582823d1fb"
+  },
+  {
+    "path": "apps/admin/src/pages/questions/index.tsx",
+    "sha256": "9c58d641b7c7edd23c594b8a490bd85cc64c7c5fb1707f600c42d7ce45943779"
+  },
+  {
+    "path": "apps/admin/src/pages/courses/index.tsx",
+    "sha256": "9bb3b39d677e39eea3e63a39b686e9dcfb402ec375cd14a32bede890c5fb45a1"
+  },
+  {
+    "path": "apps/admin/src/operations/workflows.ts",
+    "sha256": "acde1a51d0b8884ef2c8b5e4c6e9660fdf1ad7c0693b7bcd3caeebb4a0cf169d"
+  },
+  {
+    "path": "apps/mobile/components/TeacherQuestions.uvue",
+    "sha256": "f4a8b565a47aaef8c08bd049626d05ec34d9683b920904873495b9002bd3cd47"
+  },
+  {
+    "path": "apps/mobile/pages/teacher/questions.uvue",
+    "sha256": "eed02158339ae284707504308dde4180128d5d6f9811771e30c49b2a10a44ac9"
+  },
+  {
+    "path": "apps/mobile/pages/profile/index.uvue",
+    "sha256": "06664cd2c74d34af1e9eed3eb5adc30242b33c65ab8e2870e21c4f63f53f3687"
+  },
+  {
+    "path": "apps/mobile/pages/auth/login.uvue",
+    "sha256": "9cbb32e9f8986f7733a7537f7a084fd7324ca4dab864f5d7b340c8922001edbb"
+  },
+  {
+    "path": "apps/mobile/pages/course/detail.uvue",
+    "sha256": "cc56c5d4539b395dcd1ddf13536e3c6a04d30776418961dd1da85ddcca1e651d"
+  },
+  {
+    "path": "apps/mobile/pages/course/purchase.uvue",
+    "sha256": "213b38ad1221d98021986544d8852f7d2cf229e475659a613a5ecaccf5165bdb"
+  },
+  {
+    "path": "apps/mobile/pages/course/library.uvue",
+    "sha256": "f5ad273d6172d8a6eee374ac18b10b040dd0fe62089dd8ffbf422ddda854f8a7"
+  },
+  {
+    "path": "apps/mobile/lib/learning.ts",
+    "sha256": "3e94d70d7085e6eef3d8fb0acaca0120b55c6deb27299e236c1f52b5cc33feec"
+  },
+  {
+    "path": "apps/mobile/lib/course-sales.ts",
+    "sha256": "268c1bffe4da4ee609ead33d4243de12658ed329b17ff0fe1d5938a4caa6b3b5"
+  },
+  {
+    "path": "apps/mobile/pages.json",
+    "sha256": "6adf5e849b031e55e5c7cd7e27edaf6aa3c5bc7e03097c456283d31b2b539aee"
+  },
+  {
+    "path": "services/api/test/course-member-benefits.test.mjs",
+    "sha256": "b2917a8a5d97328b9749db5e8c6899ac971a3d6308be14d19ff679b713e39229"
+  },
+  {
+    "path": "services/api/test/member-questions.test.mjs",
+    "sha256": "77a96007a63e701ae5fd9fb29e0e4145bd3ed2982ce932750cffe56f0c0b92b1"
+  },
+  {
+    "path": "scripts/browser/course-member-benefits.cjs",
+    "sha256": "f88c1a397dd98c84d2c80f5bcf457c3ac10e603529591f0c6e91b110bc10118b"
+  },
+  {
+    "path": "scripts/browser/member-questions.cjs",
+    "sha256": "92b98b6081b21f30ff6d3db9c139efa07f24699dbbd82b567af885cfe9d8c98e"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "从报名进入真实验证码登录后，返回原营期继续报名",
+    "已持有普通课程权限的学员可报名，并显示等待开营",
+    "同一课程可继续报名第二期，保留两期记录",
+    "本期播放器使用独立进度，不继承普通课程的已读状态",
+    "完成本期章节后获得带营期名称的独立研习记录",
+    "Pro学员名单显示实际本期完成进度",
+    "取消第二期后，第一期记录和独立购课保持有效",
+    "结营后学习入口关闭，历史研习完成记录仍可查看"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "commercialEvidence": false
+}

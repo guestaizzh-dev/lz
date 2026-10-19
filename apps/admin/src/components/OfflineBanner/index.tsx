@@ -28,14 +28,7 @@ const OfflineBanner: React.FC = () => {
       type="warning"
       showIcon
       closable={false}
-      style={{
-        position: 'fixed',
-        top: 8,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10,
-        maxWidth: 480,
-      }}
+      className="academy-offline-banner"
       title={getIntl().formatMessage({
         id: 'app.network.offline',
         defaultMessage:

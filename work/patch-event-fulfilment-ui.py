@@ -1,0 +1,18 @@
+from pathlib import Path
+p=Path('apps/admin/src/pages/event-workbench/index.tsx');s=p.read_text(encoding='utf-8')
+s="import Fulfilment, {outcomes, type FulfilmentFact} from './Fulfilment';\n"+s
+s=s.replace('state:string;checkins:Arrival[]','state:string;canFulfil:boolean;fulfilment:FulfilmentFact|null;checkins:Arrival[]')
+s=s.replace("const canWrite=access.canEvents?", "const [fulfilling,setFulfilling]=useState<Registration>();\n  const canWrite=access.canEvents?")
+s=s.replace("{title:'签到记录',render:","{title:'履约结果',render:(_,r)=><Space direction=\"vertical\"><Typography.Text>{r.fulfilment?outcomes[r.fulfilment.outcome]:'未记录'}</Typography.Text><Button type=\"link\" onClick={()=>setFulfilling(r)}>履约记录</Button></Space>},{title:'签到记录',render:")
+s=s.replace('    <Typography.Paragraph type="secondary">签到从开始前1小时至活动结束开放；全部到场表示已签到，正式履约结算与积分仍由后续流程处理。', '    {fulfilling&&<Fulfilment id={fulfilling.id} name={fulfilling.name} checkedCount={fulfilling.checkins.filter(c=>!c.revokedAt).length} quantity={fulfilling.quantity} canWrite={!!access.canEventsEdit&&fulfilling.canFulfil} base={base} onClose={()=>setFulfilling(undefined)} onSaved={()=>table.current?.reload()}/>}\n    <Typography.Paragraph type="secondary">签到从开始前1小时至活动结束开放；全部到场表示已签到，活动结束后由运营记录实际交付。')
+p.write_text(s,encoding='utf-8')
+p=Path('services/api/src/event-operations.ts');s=p.read_text(encoding='utf-8')
+s=s.replace("await this.access(req,id,'CHECKIN',tx);const tickets=", "await this.access(req,id,'CHECKIN',tx);const session=await tx.eventSession.findUniqueOrThrow({where:{id}});const tickets=")
+s=s.replace('quantity:row.quantity,fulfilment:',"quantity:row.quantity,canFulfil:session.endsAt<=new Date()&&session.state!=='CANCELLED'&&['CONFIRMED','COMPLETED'].includes(row.state)&&row.acceptedScheduleVersion>=session.scheduleVersion&&!row.orderItemId&&!row.benefitUsageId,fulfilment:")
+p.write_text(s,encoding='utf-8')
+p=Path('apps/mobile/lib/bookings.ts');s=p.read_text(encoding='utf-8');s=s.replace('checkedCount:number;originalStartsAt', 'checkedCount:number;fulfilment?:{revision:number;outcome:string;deliveredCount:number;publicSummary:string;createdAt:string}|null;originalStartsAt');s+='\nexport const fulfilmentOutcomes:Record<string,string>={COMPLETED:\'服务已完成\',PARTIAL:\'部分完成\',NOT_DELIVERED:\'到场未交付\',NO_SHOW:\'未到场\'};\n';p.write_text(s,encoding='utf-8')
+p=Path('apps/mobile/pages/booking/mine.uvue');s=p.read_text(encoding='utf-8')
+s=s.replace('(bookingStates[b.state]??b.state)', "(b.kind==='registration'&&b.state==='COMPLETED'?'已签到':(bookingStates[b.state]??b.state))")
+s=s.replace('<button v-if="b.schedulePending&&', '<view v-if="b.fulfilment" class="schedule-change"><text class="section-heading">{{fulfilmentOutcomes[b.fulfilment!.outcome]}} · {{b.fulfilment!.deliveredCount}} / {{b.quantity}}人</text><text class="body-copy" :user-select="true">{{b.fulfilment!.publicSummary}}</text><text class="meta">{{formatChinaTime(b.fulfilment!.createdAt)}} · 第{{b.fulfilment!.revision}}次记录</text></view><text v-else-if="b.kind===\'registration\'&amp;&amp;new Date(b.endsAt).valueOf()&lt;=serverNow&amp;&amp;[\'CONFIRMED\',\'COMPLETED\'].includes(b.state)" class="meta">活动已结束，等待书院记录实际履约结果</text><button v-if="b.schedulePending&&')
+s=s.replace("import {bookingStates}","import {bookingStates,fulfilmentOutcomes}")
+p.write_text(s,encoding='utf-8')

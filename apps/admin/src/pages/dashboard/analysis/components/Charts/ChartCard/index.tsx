@@ -87,6 +87,10 @@ const ChartCardContent: React.FC<
 const ChartCard: React.FC<ChartCardProps> = (props) => {
   const { styles } = useStyles();
   const {
+    title: _title,
+    avatar: _avatar,
+    footer: _footer,
+    children: _children,
     loading = false,
     total: _total,
     contentHeight: _contentHeight,

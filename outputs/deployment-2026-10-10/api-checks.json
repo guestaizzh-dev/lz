@@ -1,0 +1,87 @@
+{
+  "url": "https://academy.43-160-229-173.sslip.io",
+  "checkedAt": "2026-10-10T10:28:55.341Z",
+  "passed": 16,
+  "checks": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/login",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/admin/auth/session",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/overview",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/access",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/users",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/config",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/audit",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/articles",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/configuration",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/config",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/config/site/history",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/admin/users",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/auth/sms",
+      "method": "POST",
+      "status": 503
+    },
+    {
+      "path": "/admin/auth/logout",
+      "test": "untrusted-origin-rejected",
+      "status": 403
+    },
+    {
+      "path": "/admin/auth/logout",
+      "method": "POST",
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+export type GiftPack={id:string;title:string;credits:string;price:string;quoteHash:string;version?:number;mapping?:{id:string;version:number;productId:string}};
+export type GiftOrder={id:string;orderNo:string;state:string;amount:string;paidAmount:string;refundedAmount:string;createdAt:string;expiresAt:string;channel:string;pack:{title:string;credits:string};canPay:boolean;canRefund:boolean;refundableCredits:string;refunds:{id:string;state:string;version:number;amount:string;reason:string;reviewNote:string|null}[]};
+export type GiftItem={id:string;title:string;code:string;creditCost:string;version:number};
+export const giftState=(state:string)=>({COMPLETED:'已入账',CLOSED:'已关闭',PENDING:'待支付',REQUESTED:'退款待审核',REFUNDING:'原路退款中',SUCCEEDED:'已退款',FAILED:'退款待核查',REJECTED:'未通过',REVERSED:'Apple撤回退款',CANCELLED:'已取消'} as Record<string,string>)[state]??'待核查';
+export const giftLedgerLabel=(kind:string)=>({PURCHASE:'购买入账',GIVE:'直播赠礼',REFUND_HOLD:'申请退款 · 余额冻结',REFUND_RESTORE:'退款撤回 · 余额恢复',APPLE_REFUND:'Apple退款 · 余额撤销'} as Record<string,string>)[kind]??'余额调整';

@@ -1,0 +1,39 @@
+{
+  "localOnly": true,
+  "migrations": 46,
+  "before": {
+    "User": 15,
+    "Article": 10,
+    "Teacher": 3,
+    "Course": 8,
+    "Product": 8,
+    "Event": 5,
+    "Note": 3,
+    "PracticeLog": 3,
+    "TradeOrder": 0,
+    "Enrollment": 5,
+    "ForumThread": 9,
+    "Feedback": 3,
+    "Membership": 2,
+    "Notification": 17,
+    "DeviceToken": 0
+  },
+  "after": {
+    "User": 15,
+    "Article": 10,
+    "Teacher": 3,
+    "Course": 8,
+    "Product": 8,
+    "Event": 5,
+    "Note": 3,
+    "PracticeLog": 3,
+    "TradeOrder": 0,
+    "Enrollment": 5,
+    "ForumThread": 9,
+    "Feedback": 3,
+    "Membership": 2,
+    "Notification": 17,
+    "DeviceToken": 0
+  },
+  "countsPreserved": true
+}

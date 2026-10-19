@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "App原预约按冻结规则已过取消截止，未展示非法取消按钮",
+    "Pro真实延期服务，App展示原时间/新安排/原因并实际确认",
+    "第二次延期使原确认失效，App可拒绝新安排且原记录保留",
+    "Pro活动表单保存了所选有效负责人",
+    "Pro真实创建两个票种并保存共用场次容量",
+    "Pro实际延期活动并隐藏未确认学员的签到动作",
+    "App查看活动新地点与原时间并真实确认",
+    "Pro取消整个场次，App同步取消状态/原因并移除非法动作",
+    "持久消息实际送达，可从消息跳转查看取消记录"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "paymentAdapters": false,
+  "commercialEvidence": false
+}

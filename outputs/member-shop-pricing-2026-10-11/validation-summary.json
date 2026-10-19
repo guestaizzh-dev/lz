@@ -1,0 +1,31 @@
+{
+  "release": "20261012-member-shop-01",
+  "backendTests": {
+    "passed": 274,
+    "failed": 0
+  },
+  "adminBuild": "passed",
+  "adminTypecheck": "passed",
+  "appWebBuild": "passed",
+  "isolatedBrowserChecks": 9,
+  "httpsChecks": 15,
+  "migrations": 28,
+  "dataPreserved": true,
+  "productionPaymentTransactionsCreated": false,
+  "nativePackageUpdated": false,
+  "commercialAccepted": 38,
+  "commercialTotal": 131,
+  "taskStateCounts": {
+    "已完成": 5,
+    "待验收": 1,
+    "阻塞": 17,
+    "实现完成·待验证": 12,
+    "进行中": 5,
+    "待执行": 70
+  },
+  "remainingM06": [
+    "course pricing",
+    "early course access",
+    "iOS product price mapping"
+  ]
+}

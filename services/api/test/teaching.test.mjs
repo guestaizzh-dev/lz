@@ -1,3 +1,4 @@
+import {phoneLookup} from '../dist/private-data.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomInt,randomUUID} from 'node:crypto';
@@ -116,7 +117,7 @@ test('course teaching: ownership, publication, submissions, review and private m
   }finally{
     try {
     await db.idempotencyRecord.deleteMany({where:{userId:{in:users}}});await clearCourses(db,courses);await db.enrollment.deleteMany({where:{userId:{in:users}}});await db.course.deleteMany({where:{id:{in:courses}}});await db.teacher.deleteMany({where:{id:{in:teachers}}});await db.resource.deleteMany({where:{id:{in:[...courses,...teachers]}}});
-    await db.auditLog.deleteMany({where:{actorId:{in:users}}});await db.mediaAsset.deleteMany({where:{id:{in:assets}}});await db.authSession.deleteMany({where:{userId:{in:users}}});await db.userRole.deleteMany({where:{userId:{in:users}}});await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{phone:{in:phones}}});
+    await db.auditLog.deleteMany({where:{actorId:{in:users}}});await db.mediaAsset.deleteMany({where:{id:{in:assets}}});await db.authSession.deleteMany({where:{userId:{in:users}}});await db.userRole.deleteMany({where:{userId:{in:users}}});await db.user.deleteMany({where:{id:{in:users}}});await db.otpChallenge.deleteMany({where:{OR:[{phone:{in:phones}},{phoneHash:{in:phones.map(phoneLookup)}}]}});
     } finally {await db.$disconnect();await app.close();await rm(directory,{recursive:true,force:true});}
   }
 });

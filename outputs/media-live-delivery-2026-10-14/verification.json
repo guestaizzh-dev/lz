@@ -1,0 +1,37 @@
+{
+  "apiRelatedRegression": {
+    "passed": 73,
+    "failed": 0,
+    "evidence": "api-tests-final.log"
+  },
+  "latestLiveMediaRegression": {
+    "passed": 29,
+    "failed": 0,
+    "evidence": "live-recovery-tests.log"
+  },
+  "uniqueRelatedTestCoverage": 74,
+  "regressionGroupsOverlap": true,
+  "browser": {
+    "passed": 23,
+    "failed": 0,
+    "evidence": "browser-checks.json",
+    "renewalTimingAccelerated": true,
+    "actualMp4WavDecoded": true,
+    "zegoAdapterSimulated": true
+  },
+  "builds": {
+    "api": "passed",
+    "antDesignProTypecheckAndBuild": "passed",
+    "hbuilderxWeb": "passed"
+  },
+  "localMigration": 43,
+  "dataPreservation": {
+    "passed": true,
+    "tables": 12,
+    "evidence": "local-data-preservation.json"
+  },
+  "cloudRecording": "deferred-by-user",
+  "productionDeployedThisBatch": false,
+  "nativePackageUpdated": false,
+  "commercialAccepted": "38/131"
+}

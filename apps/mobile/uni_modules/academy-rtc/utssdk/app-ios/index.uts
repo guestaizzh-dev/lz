@@ -1,0 +1,4 @@
+export function bindRtc(element: UniNativeViewElement, id: string): void { element.bindIOSView(AcademyRtc.create(id)) }
+export function rtcCommand(id: string, command: string): void { AcademyRtc.command(id, command) }
+export function rtcState(id: string): string { return AcademyRtc.state(id) }
+export function closeRtc(id: string): void { AcademyRtc.close(id) }

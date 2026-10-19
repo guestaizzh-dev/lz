@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-10-14T06:33:35.805Z",
+  "checks": [
+    "项目受控开播台通过正式ZEGO Web SDK实际推流（摄像头使用浏览器测试设备）",
+    "后端通过ZEGO真实DescribeRTCStreamState确认活跃流并切换直播状态",
+    "44像素播放器按钮完整显示，续签后保留开启声音引导",
+    "App Web真实OTP登录、准入、静音自动解码及点击开启声音",
+    "结束本场后真实播放器在下一短期续签时清理视频并退出房间"
+  ],
+  "decoded": {
+    "width": 640,
+    "height": 480,
+    "frames": 1
+  },
+  "isolatedDatabase": true,
+  "providerAdapterSimulated": false,
+  "actualRtc": true,
+  "hostCameraTestDevice": true,
+  "appNativeAcceptance": false,
+  "publicCallbackAcceptance": false,
+  "cloudRecording": false
+}

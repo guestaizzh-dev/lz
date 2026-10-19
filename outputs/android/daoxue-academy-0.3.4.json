@@ -1,0 +1,16 @@
+{
+  "apk": "daoxue-academy-0.3.4.apk",
+  "bytes": 34583447,
+  "sha256": "d7c790bca29723a7ff164e7eb36d23a1a9745ff9cf7dcf1138c96f629dca6309",
+  "package": "cn.daoxue.academy",
+  "versionName": "0.3.4",
+  "versionCode": 9,
+  "minSdkVersion": 23,
+  "architecture": "arm64-v8a",
+  "apiBase": "https://academy.43-160-229-173.sslip.io/api/v1",
+  "certificateSha256": "81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248",
+  "sameCertificateAs033": true,
+  "nativeBuild": "Android uni-app x vapor bytecode cloud release",
+  "phoneInstalled": false,
+  "phoneBlocker": "ADB empty; Windows USB device descriptor request failed (Code 43)"
+}

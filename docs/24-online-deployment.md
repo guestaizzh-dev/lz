@@ -1,0 +1,73 @@
+# 后端与后台线上部署记录
+
+2026-10-11最新会员续办：member-sales-02已部署，219项后端全量、42HTTPS及6项实际浏览器检查通过，API/Pro/App Web构建通过。Android会员购买/续期/排队、未来整段退款及退款期间内容/配额暂停、订单/注销/看板联动和表格宽度修复已实现；原规范数据和会员日期/版本保留。iOS、部分消费退款/奖励及退款取消后的交付恢复仍未完成，商用保持38/131（29.0%），50%未达到。见[31会员交易续办报告](31-membership-purchase-and-refund.md)。
+
+2026-10-10 Apple与会员基础续办：长期课程Apple映射、持久归属、已验证恢复/全额撤销和会员九组合管理已实现并部署20261011-membership-01；196项后端、后台/App Web构建及29项实际HTTPS通过。九个配置中8个启用，保留旧停用套餐及会员历史；真实Apple/原生及会员购买仍未验收。C07退款撤回续办中，商用仍38/131（29.0%）。见[29续办报告](29-apple-and-membership-foundation.md)。
+
+2026-10-10续办最新线上版本：`20261011-commerce-01`，API/database健康、edge运行。支付宝/购买交互/课程版本及停止交付补偿增量上线，迁移19个、表152张（含元数据），原规范样例与管理员保留；22项HTTPS与后台版本弹窗浏览器核查通过。正式支付保持关闭，手机端未验收。备份/迁移/回退边界详见[28录播续办报告](28-course-commerce-hardening.md)。
+
+2026-10-10最新增量：当前版本为20261011-foundation-04，171项后端与19项线上HTTPS验证通过；规范演示展示开启但不可真实收款，私人字段在备份后兼容加密，业务数据数量保留。真实后台会员选择器冲突已修复，发布与恢复细节见[27最新交付](27-foundation-hardening.md)。下方20261010-1008为初次上线历史记录。
+
+2026-10-10，目标`ubuntu@43.160.229.173`。按用户最终要求，使用指定管理员与现有完整规范测试数据。
+
+## 地址与运行
+
+- 后台：https://academy.43-160-229-173.sslip.io/user/login
+- API：https://academy.43-160-229-173.sslip.io/api/v1 ，`/health`实查200。
+- 公网443提供HTTPS，80跳转及证书验证；无公开数据库/API直连端口。
+- 管理员`admin`，密码为用户明确指定值；本机忽略文件`.runtime/online-admin-access.json`保存访问资料。
+- `/opt/daoxue-academy/current`链接到`releases/20261010-1008`；私有配置`production.env`权限600，`current/infra/.env`为链接。
+- Compose项目`daoxue`，使用`compose.yaml`和`compose.shared-edge.yaml`，镜像`daoxue-api:20261010-1008`。
+- `daoxue-api-1`、`daoxue-database-1`、`daoxue-edge-1`运行，API与数据库健康，迁移退出0；自动重启、日志10MB×3。
+- PostgreSQL17.10，数据库`academy_manual_20261010`。API为`academy_app`，迁移为`academy_owner`；卷`daoxue_database`、`daoxue_media`持久化。
+- 保留platform/chronic-care等原服务。原`platform-nginx`按书院独立域名转发到edge，诊断端口只绑定`127.0.0.1:18081`。
+- sslip.io域名解析到目标IP。可信证书实签并验证通过，到期2027-01-08；后续可替换自有域名并同步证书和允许来源。
+
+## 数据和验证
+
+用原生`pg_dump`一致性快照和`pg_restore --exit-on-error --no-owner --no-acl`将本机`daoxue_dev`完整导入独立线上库，保留ID、关联关系、业务状态和配置，完成后切换服务。此前初始化库`academy`保留。
+
+- 151表逐表核对，包括150业务表与Prisma记录，业务数据数量无差异；17项迁移完成。
+- 15用户、10文章、8课程、8商品，会员、作业、学习、社区、订单、配置及审核记录完整复制。
+- 4个私有媒体文件同步并逐个核对字节数和SHA256；公共封面SVG保持`/static/art/`路径。
+- 保留源数据加密密钥；设置指定管理员密码，只失效旧登录会话和未使用验证码，新增部署审计。登录、限流、审计记录随后随验证增加。
+- 样例内容及授权/交易/直播的测试属性保留。
+
+最终线上API专项16项通过：登录、Secure/HttpOnly Cookie、40项权限、健康、概览、账号、配置与历史、审计、文章，以及未登录401、非法来源403、短信关闭503和退出。
+
+真实浏览器登录、概览、课程、商品、账号及配置通过，无失败响应。课程/商品各8行；账号列表排除已删除账号显示14用户，数据库仍保留15条。证据在`outputs/deployment-2026-10-10/`：`api-checks.json`、`import-verification.json`、`browser-summary.json`和截图。
+
+## 部署修正
+
+- API与迁移共用明确镜像标签，修复迁移镜像缺失。
+- edge固定地址改为`172.30.89.254`并同步TRUST_PROXY，修复原地址与数据库动态地址冲突。共享入口当前`172.18.0.3`，若改变须同步`nginx.shared-edge.conf`。
+- Linux镜像补CA/OpenSSL，Prisma生成与后端编译通过。
+- SPA回退与相对跳转修复登录HTTP降级和尾斜杠；部署公共封面。
+- 后台独立部署不填写不存在的App Web落地页，API继续提供分享摘要。
+- 显式`SMS_ENABLED=false`允许部署后台能力，短信请求503；默认或开启时仍要求真实配置。其余生产门禁保留，新增回归2项通过。
+- 数据库名称可配置，备份读取实际数据库名。
+
+## 维护与恢复
+
+`academy-backup.timer`已启用，每日北京时间04:30备份当前库与媒体到`/opt/daoxue-academy/backups`。初始及数据导入后备份实跑成功，dump、媒体tar.gz、SHA256生成，归档解析与校验通过。
+
+现有`certbot.timer`续期；专用钩子`/etc/letsencrypt/renewal-hooks/deploy/daoxue-academy.sh`只处理书院证书，复制到挂载目录并校验/重载Nginx，实跑通过。
+
+```bash
+cd /opt/daoxue-academy/current/infra
+sudo docker compose ps
+sudo docker compose logs --tail 100 api
+sudo systemctl status academy-backup.timer
+sudo systemctl start academy-backup.service
+curl -f https://academy.43-160-229-173.sslip.io/api/v1/health
+```
+
+首个线上版本无上一版业务镜像。数据切换前配置`production.env.bak-before-data-import`指向独立初始化库；如需回退，先备份当前库/配置，恢复该文件，再运行`docker compose up -d --no-build`。新库数据保留，禁止覆盖或删除当前卷。
+
+公共入口原配置备份`/opt/platform/docker/nginx.conf.bak-daoxue-20261010`。撤除入口只移除书院server块；整体恢复须确认无其他后续变更，校验`nginx -t`后重载。
+
+备份尚未异地保存或完整灾难恢复演练。真实短信、支付、COS/VOD、直播、iOS内购未开通。测试手机号的本地固定验证码不适用于生产环境。本次未更改App本机联调地址、重新打包或手机验收；部署成功不等于七板块全部正式业务完成。
+
+## 2026-10-11 member-sales-03增量上线
+
+当前发布`/opt/daoxue-academy/releases/20261011-member-sales-03`；后端healthy，后台HTTPS正常。新增Apple会员映射/购买确认/恢复撤销和渠道CLOSED退款取消，正式开关保持关闭；234后端全量及末次14发布专项、45HTTPS、4实际浏览器通过。数据库/媒体备份academy-20261011T074219Z-c3IILj校验成功；25迁移、155表，原规范样例/所有套餐及会员字段完整保留，未生成正式交易或改变admin/admin123。详细证据和未完成正式验收见32，未操作其他项目服务。

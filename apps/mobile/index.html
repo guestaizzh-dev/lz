@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8" />
+		<link rel="icon" type="image/png" href="/static/brand/app-icon-72.png" />
 		<script>
 			var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
 				CSS.supports('top: constant(a)'))
@@ -10,6 +11,11 @@
 				(coverSupport ? ', viewport-fit=cover' : '') + '" />')
 		</script>
 		<title></title>
+		<style>
+			/* App styles are isolated per component; reset Web button decoration here. */
+			uni-button::after { border: 0; }
+			uni-button[disabled] { opacity: .5; }
+		</style>
 		<!--preload-links-->
 		<!--app-context-->
 	</head>

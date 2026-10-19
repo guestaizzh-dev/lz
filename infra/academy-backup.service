@@ -1,0 +1,10 @@
+[Unit]
+Description=Daoxue academy database and private media backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/daoxue-academy/current/infra
+ExecStart=/bin/bash /opt/daoxue-academy/current/infra/backup.sh /opt/daoxue-academy/backups
+UMask=0077

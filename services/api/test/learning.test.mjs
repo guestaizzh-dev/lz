@@ -1,7 +1,8 @@
+import {phoneLookup} from '../dist/private-data.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../dist/main.js';
@@ -25,7 +26,7 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
   async function admin(role) {
     const user = await db.user.create({ data: { username: prefix + role, nickname: prefix, roles: [role], tags: [], passwordHash: await passwordHash(password) } }); users.push(user.id);
     const res = await call('/admin/auth/login', null, 'POST', { username: user.username, password }); assert.equal(res.status, 200);
-    return { cookie: res.cookies.map(c => c.split(';')[0]).join('; '), csrfToken: res.body.csrfToken };
+    return { id:user.id, cookie: res.cookies.map(c => c.split(';')[0]).join('; '), csrfToken: res.body.csrfToken };
   }
   async function login() {
     const phone = '198' + String(randomInt(0, 100000000)).padStart(8, '0'); phones.push(phone);
@@ -62,7 +63,8 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
       assert.equal((await call(`/admin/courses/${course.id}`, operator, 'PATCH', { ...draft([]), expectedVersion: course.version })).status, 409);
     });
     await t.test('membership expiration and independent course access are separate', async () => {
-      const planResult = await call('/admin/memberships/plans', root, 'POST', { title: prefix, tier: 2, days: 30, price: 100, description: '测试套餐', active: true }); assert.equal(planResult.status, 201); const plan = planResult.body; plans.push(plan.id);
+      const existing=await db.membershipPlan.findUnique({where:{tier_days:{tier:2,days:30}}});
+      const planResult = await call('/admin/memberships/plans', root, 'POST', { title: prefix, tier: 2, days: 30, price: 100, description: '测试套餐', active: true,...(existing?{expectedVersion:existing.version}:{}) }); assert.equal(planResult.status, 201); const plan = planResult.body; if(!existing)plans.push(plan.id);
       const grant = await call('/admin/memberships/grant', root, 'POST', { userId: b.user.id, planId: plan.id, reason: '测试补偿' }); assert.equal(grant.status, 201);
       assert.equal((await call('/learning/lessons/' + privateLesson.id, b)).status, 200);
       const next = await call('/admin/memberships/grant', root, 'POST', { userId: b.user.id, planId: plan.id, reason: '续期测试' }); assert.equal(next.body.startsAt, grant.body.endsAt);
@@ -82,10 +84,17 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
         assert.equal(await db.auditLog.count({ where: { resourceId: grant.body.id, action: 'membership.revoke' } }), 1);
         assert.equal((await call('/learning/lessons/' + privateLesson.id, b)).status, 403);
         assert.equal((await call('/catalog/articles/' + article.id, b)).body.blocks.length, 0);
-      } finally { await clearArticles(db, [article.id]); await db.article.delete({ where: { id: article.id } }); }
+  } finally { await clearArticles(db, [article.id]); await db.article.delete({ where: { id: article.id } }); }
       assert.equal((await call(`/admin/courses/${course.id}/grant`, operator, 'POST', { userId: a.user.id, reason: '测试' })).status, 403);
       assert.equal((await call(`/admin/courses/${course.id}/grant`, root, 'POST', { userId: a.user.id, reason: '补偿授权测试' })).status, 201);
+      if(existing)await call('/admin/memberships/plans',root,'POST',{title:existing.title,tier:existing.tier,days:existing.days,price:existing.price,description:existing.description,active:existing.active,expectedVersion:plan.version});
       assert.equal((await call('/learning/lessons/' + privateLesson.id, a)).status, 200);
+    });
+    await t.test('entitlement user selector is distinct from account management and searches encrypted phones',async()=>{
+      const phone=phones[0];
+      const result=await call('/admin/entitlements/users?size=50&q='+phone,root);assert.equal(result.status,200);assert.ok(Array.isArray(result.body));assert.equal(result.body.length,1);assert.equal(result.body[0].id,a.user.id);assert.match(result.body[0].phone,/^198\*{4}\d{4}$/);assert.equal(result.body[0].phoneCipher,undefined);
+      const managed=await call('/admin/users?size=50',root);assert.equal(managed.status,200);assert.ok(Array.isArray(managed.body.items));assert.ok(managed.body.total>=users.length);
+      assert.equal((await call('/admin/entitlements/users',operator)).status,403);
     });
     await t.test('progress events are idempotent, user bound and completion is monotonic', async () => {
       const body = { eventId: randomUUID(), positionSeconds: 0, elapsedSeconds: 0, completed: true };
@@ -111,8 +120,7 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
     await t.test('free enrollment is concurrent safe; media credentials enforce entitlement and range', async () => {
       // Container header fixture tests delivery bytes, not media decoding.
       const bytes = Buffer.concat([Buffer.from([0,0,0,16]), Buffer.from('ftypisom'), randomBytes(16)]);
-      const data = new FormData(); data.append('file', new Blob([bytes], { type: 'video/mp4' }), 'qa.mp4');
-      const uploaded = await fetch(base + '/api/v1/admin/media', { method: 'POST', headers: { Origin: origin, Cookie: operator.cookie, 'X-CSRF-Token': operator.csrfToken }, body: data }); assert.equal(uploaded.status, 201); media = await uploaded.json(); mediaIds.push(media.id); assert.equal('storageKey' in media, false);
+      const storageKey=randomUUID();await writeFile(join(mediaDir,storageKey),bytes);media=await db.mediaAsset.create({data:{storageKey,name:'Range权限测试',mime:'video/mp4',bytes:bytes.length,uploaderId:operator.id,status:'READY',visibility:'PRIVATE'}});mediaIds.push(media.id);
       const created = await call('/admin/courses', operator, 'POST', { ...draft([{ title: '媒体', format: 'VIDEO', body: '', mediaId: media.id, durationSeconds: 30, trial: false, required: true }]), price: 0 }); assert.equal(created.status, 201); courses.push(created.body.id);
       const free = await publish(created.body); const curriculum = (await call('/learning/courses/' + free.id)).body; const lessonId = curriculum.lessons[0].id;
       assert.equal((await call(`/learning/lessons/${lessonId}/media`, null, 'POST', {})).status, 403);
@@ -125,6 +133,36 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
       assert.equal((await fetch(base + '/api/v1' + token.path)).status, 403);
       assert.equal((await fetch(base + '/api/v1' + token.path + 'tampered')).status, 401);
       assert.ok(await db.auditLog.count({ where: { resource: 'course', resourceId: course.id, action: 'course.publish' } }) >= 2);
+    });
+    await t.test('library keyset covers more than 100 courses, counts all pages and retains expired archived purchases',async()=>{
+      const baseline=(await call('/learning/library',a)).body.stats;
+      const ids=Array.from({length:105},()=>randomUUID());courses.push(...ids);
+      await db.course.createMany({data:ids.map((id,index)=>({id,teacherId:teacher.id,title:prefix+'分页'+index,subtitle:'测试',description:'仅分页测试',category:'经典研习',format:'VIDEO',price:100,cover:'/static/art/books.svg',status:'PUBLISHED'}))});
+      const released=ids.map(courseId=>({id:randomUUID(),courseId,version:1,title:prefix+'课程快照'}));
+      await db.courseRelease.createMany({data:released});
+      await db.lesson.createMany({data:released.map(r=>({releaseId:r.id,sourceId:randomUUID(),position:1,title:'文字课件',format:'TEXT',body:'仅测试',durationSeconds:0,trial:false,required:true}))});
+      await db.enrollment.createMany({data:released.map(r=>({userId:a.user.id,courseId:r.courseId,releaseId:r.id,source:'MANUAL'}))});
+      const first=(await call('/learning/library?size=13',a)).body;assert.equal(first.items.length,13);assert.equal(first.stats.totalCourses,baseline.totalCourses+105);
+      const seen=new Set();let cursor=null;
+      do{
+        const result=await call('/learning/library?size=13'+(cursor?'&cursor='+cursor:''),a);assert.equal(result.status,200,JSON.stringify(result.body));
+        assert.equal(result.body.stats.totalCourses,baseline.totalCourses+105);
+        for(const item of result.body.items){assert.ok(!seen.has(item.course.id));seen.add(item.course.id);}
+        cursor=result.body.nextCursor;
+      }while(cursor);
+      assert.equal(seen.size,baseline.totalCourses+105);assert.ok(ids.every(id=>seen.has(id)));
+      assert.equal((await call('/learning/library?cursor=bad',a)).status,400);
+      assert.equal((await call('/learning/library?size=51',a)).status,400);
+      await db.enrollment.updateMany({where:{userId:a.user.id,courseId:ids[0]},data:{startsAt:new Date(Date.now()-86400000),expiresAt:new Date(Date.now()-1000)}});
+      await db.course.update({where:{id:ids[0]},data:{status:'ARCHIVED'}});
+      const expired=await call('/learning/library?filter=EXPIRED',a);assert.equal(expired.status,200);
+      const history=expired.body.items.find(item=>item.course.id===ids[0]);assert.ok(history);assert.equal(history.access,'EXPIRED');assert.equal(history.course.title,prefix+'课程快照');assert.equal(history.lessons[0].accessible,false);assert.equal('body' in history.lessons[0],false);
+      assert.equal((await call('/learning/courses/'+ids[0],a)).status,404);
+      assert.equal(expired.body.stats.expiredCourses,baseline.expiredCourses+1);assert.equal(expired.body.stats.availableCourses,baseline.availableCourses+104);
+      assert.equal((await call('/learning/library?filter=STUDYING',b)).body.items.length,0);
+      assert.equal((await call('/learning/library?filter=COMPLETED',a)).body.stats.finishedCourses,baseline.finishedCourses);
+      await db.enrollment.updateMany({where:{userId:a.user.id,courseId:ids[1]},data:{startsAt:new Date(Date.now()+86400000)}});
+      let futureCursor=null,future;do{const page=(await call('/learning/library?size=50'+(futureCursor?'&cursor='+futureCursor:''),a)).body;future??=page.items.find(item=>item.course.id===ids[1]);futureCursor=page.nextCursor;}while(futureCursor&&!future);assert.equal(future.access,'UPCOMING');assert.equal(future.lessons[0].accessible,false);assert.equal((await call('/learning/library?filter=EXPIRED',a)).body.stats.expiredCourses,baseline.expiredCourses+1);
     });
   } finally {
     await app.close();
@@ -140,8 +178,8 @@ test('learning delivery: actual HTTP, PostgreSQL, media, membership and immutabl
     await db.authSession.deleteMany({ where: { userId: { in: users } } });
     await db.auditLog.deleteMany({ where: { actorId: { in: users } } });
     await db.user.deleteMany({ where: { id: { in: users } } });
-    await db.otpChallenge.deleteMany({ where: { phone: { in: phones } } });
-    await db.rateLimit.deleteMany({ where: { OR: [{ key: { contains: prefix } }, { key: { contains: ip } }, ...phones.map(phone => ({ key: { endsWith: ':' + phone } }))] } });
+    await db.otpChallenge.deleteMany({ where: { OR: [{phone: {in: phones}}, {phoneHash: {in: phones.map(phoneLookup)}}] } });
+    await db.rateLimit.deleteMany({ where: { OR: [{ key: { contains: prefix } }, { key: { contains: ip } }, ...phones.map(phone => ({ key: { endsWith: ':' + phoneLookup(phone) } }))] } });
     await db.$disconnect(); await rm(mediaDir, { recursive: true, force: true });
   }
 });

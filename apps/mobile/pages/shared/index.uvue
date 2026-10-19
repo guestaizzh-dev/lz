@@ -1,0 +1,66 @@
+<template>
+<view class="page">
+<PageHead :title="error?'分享内容':'打开分享'"/>
+<scroll-view class="page-scroll" direction="vertical"><view class="content center">
+<ContentState :loading="loading" :error="error" @retry="load"/>
+</view></scroll-view>
+</view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import {request} from '../../lib/api';
+
+const loading=ref(true),error=ref('');
+let code='';
+
+async function load(){
+  loading.value=true;
+  error.value='';
+  try{
+    const result=await request<{resourceType:string,resourceId:string}>('/share/links/'+encodeURIComponent(code)+'/resolve');
+
+    // 跳转到对应的详情页
+    const typeMap:Record<string,string>={
+      'ARTICLE':'article/detail',
+      'COURSE':'course/detail',
+      'TEACHER':'teacher/detail',
+      'PRODUCT':'product/detail',
+      'EVENT':'event/detail', 'LIVE':'live/detail', 'THREAD':'community/detail'
+    };
+
+    const page=typeMap[result.resourceType];
+    if(page){
+      uni.redirectTo({
+        url:'/pages/'+page+'?id='+result.resourceId,
+        fail:()=>{
+          loading.value=false;error.value='无法打开页面';
+        }
+      });
+    }else{
+      loading.value=false;error.value='不支持的资源类型';
+    }
+  }catch(e){
+    loading.value=false;
+    error.value=(e as Error).message;
+  }
+}
+
+onLoad(options=>{
+  code=options?.code??'';
+  if(!code){
+    error.value='分享链接无效';
+    loading.value=false;
+    return;
+  }
+  load();
+});
+</script>
+<style>
+@import '../../styles/app.css';
+.center{
+  align-items:center;
+  justify-content:center;
+  min-height:400px;
+}
+</style>

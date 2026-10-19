@@ -109,6 +109,7 @@ model Note {
   releaseId String?
   rangeStart Int?
   rangeEnd Int?
+  ranges Json?
   deletedAt DateTime? @db.Timestamptz(6)
 }
 
@@ -141,6 +142,8 @@ model ConsumedRefresh {
   createdAt DateTime @default(now())
   id String @unique @default(dbgenerated("gen_random_uuid()::text"))
   expiresAt DateTime @default(now()) @db.Timestamptz(6)
+  requestHash String?
+  resultCipher String?
 }
 
 model AuditLog {
@@ -249,6 +252,9 @@ model Article {
 }
 
 model Course {
+  memberDiscountEligible Boolean @default(false)
+  earlyAccessAt DateTime? @db.Timestamptz(6)
+  publicOpenAt DateTime? @db.Timestamptz(6)
   id String @id @default(uuid())
   version Int @default(1)
   publishedReleaseId String?
@@ -289,6 +295,7 @@ enum LessonFormat {
 }
 
 model CourseChapter {
+  eventSessionId String?
   id String @id @default(uuid())
   courseId String
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -297,6 +304,7 @@ model CourseChapter {
   format LessonFormat
   body String @default("")
   mediaId String?
+  liveSessionId String?
   durationSeconds Int @default(0)
   trial Boolean @default(false)
   required Boolean @default(true)
@@ -306,9 +314,11 @@ model CourseChapter {
   version Int @default(1)
   stableKey String @default(dbgenerated("gen_random_uuid()::text"))
   archivedAt DateTime? @db.Timestamptz(6)
+  subtitleText String @default("")
 }
 
 model CourseRelease {
+  memberPolicySnapshot Json @default("{}")
   id String @id @default(uuid())
   courseId String
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -323,6 +333,27 @@ model CourseRelease {
   accessDays Int?
   refundPolicySnapshot Json @default("{}")
   completionPolicySnapshot Json @default("{}")
+  withdrawnAt DateTime? @db.Timestamptz(6)
+  withdrawalReason String?
+  replacementReleaseId String?
+  deliveryVersion Int @default(1)
+}
+
+model CourseVersionChoice {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  userId String
+  enrollmentId String
+  grantKey String
+  courseId String
+  fromReleaseId String
+  toReleaseId String
+  requestKey String
+  requestHash String
+  action String
+  consentSnapshot Json
+  @@unique([userId, requestKey])
+  @@index([enrollmentId, createdAt])
 }
 
 model Lesson {
@@ -344,6 +375,7 @@ model Lesson {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   liveSessionId String?
   eventSessionId String?
+  subtitleText String @default("")
 }
 
 model Enrollment {
@@ -359,6 +391,7 @@ model Enrollment {
   revokedAt DateTime?
   createdAt DateTime @default(now())
   @@unique([userId, courseId])
+  @@unique([id, userId, courseId])
   updatedAt DateTime @default(now()) @db.Timestamptz(6)
   version Int @default(1)
   cohortId String?
@@ -367,6 +400,7 @@ model Enrollment {
   startsAt DateTime @default(now()) @db.Timestamptz(6)
   grantActorId String?
   grantReason String?
+  startedAt DateTime? @db.Timestamptz(6)
 }
 
 model MembershipPlan {
@@ -426,6 +460,7 @@ model StudyProgress {
 }
 
 model StudyEvent {
+  offlineRegistrationId String?
   id String @id
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -435,6 +470,7 @@ model StudyEvent {
   result Json
   createdAt DateTime @default(now())
   receivedAt DateTime @default(now()) @db.Timestamptz(6)
+  cohortRegistrationId String?
 }
 
 model MediaAsset {
@@ -456,6 +492,30 @@ model MediaAsset {
   failureCode String?
 }
 
+model MediaUpload {
+  id String @id @default(uuid())
+  uploaderId String
+  purpose String @default("COURSE")
+  forumSectionId String?
+  fingerprint String
+  name String
+  mime String
+  bytes Int
+  receivedBytes Int @default(0)
+  state String @default("UPLOADING")
+  assetId String? @unique
+  attempts Int @default(0)
+  leaseUntil DateTime? @db.Timestamptz(6)
+  leaseToken String?
+  failure String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  expiresAt DateTime @db.Timestamptz(6)
+  @@index([uploaderId, fingerprint, state])
+  @@index([state, leaseUntil])
+  @@index([purpose, expiresAt])
+}
+
 model Product {
   id String @id @default(uuid())
   version Int @default(1)
@@ -469,6 +529,7 @@ model Product {
   culturalOrigin String
   status PublishStatus @default(DRAFT)
   featured Boolean @default(false)
+  memberDiscountEligible Boolean @default(false)
   isDemo Boolean @default(false)
   skus ProductSku[]
   createdAt DateTime @default(now())
@@ -510,6 +571,10 @@ enum OrderStatus {
 }
 
 model DeliveryZone {
+  priorityFee Int?
+  priorityDescription String?
+  priorityUntil DateTime? @db.Timestamptz(6)
+  priorityProofAssetId String?
   province String @id
   fee Int
   surcharge Int @default(0)
@@ -598,6 +663,8 @@ model Event {
   title String
   description String
   category String
+  studyTour Boolean @default(false)
+  studyTourBrief String @default("")
   cover String
   location String
   startsAt DateTime
@@ -628,6 +695,24 @@ model AuthIdentity {
   subjectHash String
   unionSubjectHash String?
   verifiedAt DateTime @db.Timestamptz(6)
+  refreshCipher String?
+}
+
+model SocialChallenge {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  provider String
+  appScope String
+  stateHash String
+  userId String?
+  sessionId String?
+  codeHash String? @unique
+  subjectHash String?
+  refreshCipher String?
+  verifiedAt DateTime? @db.Timestamptz(6)
+  finishedAt DateTime? @db.Timestamptz(6)
+  expiresAt DateTime @db.Timestamptz(6)
+  @@index([expiresAt])
 }
 
 model AccessRole {
@@ -681,6 +766,59 @@ model ConsentRecord {
   accepted Boolean
   actedAt DateTime @db.Timestamptz(6)
   source String
+}
+
+model MemberGiftPool {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  skuId String
+  offerId String @unique
+  title String
+  description String
+  proofAssetId String
+  creatorId String
+  capacity Int
+  allocated Int @default(0)
+  claimed Int @default(0)
+  released Int @default(0)
+  state String @default("OPEN")
+}
+
+model MemberGiftAllocation {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  poolId String
+  userId String
+  sourceKey String @unique
+  orderItemId String? @unique
+  membershipId String? @unique
+  expiresAt DateTime @db.Timestamptz(6)
+  state String @default("HELD")
+}
+
+model MemberGiftClaim {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  allocationId String
+  userId String
+  orderId String @unique
+  usageId String @unique
+  requestKey String
+  requestHash String
+  state String @default("FULFILLING")
+  returnPreviousState String?
+  returnReason String?
+  returnInstructionsCipher String?
+  returnCarrier String?
+  returnTrackingNo String?
+  returnProofAssetId String?
+  @@unique([userId,requestKey])
 }
 
 model Resource {
@@ -759,6 +897,7 @@ model ArticleRelease {
   sourceSnapshot Json
   authorSnapshot Json
   reviewerId String
+  templateCode String @default("PLAIN")
   publishedAt DateTime @db.Timestamptz(6)
 }
 
@@ -877,6 +1016,8 @@ model AppointmentSlot {
   confirmed Int @default(0)
   state String @default("OPEN")
   teacherId String
+  scheduleVersion Int @default(1)
+  changeReason String?
 }
 
 model Appointment {
@@ -895,6 +1036,8 @@ model Appointment {
   confirmedAt DateTime? @db.Timestamptz(6)
   completedAt DateTime? @db.Timestamptz(6)
   cancelReason String?
+  acceptedScheduleVersion Int @default(1)
+  scheduleSnapshot Json?
 }
 
 model CourseCohort {
@@ -912,6 +1055,83 @@ model CourseCohort {
   reserved Int @default(0)
   confirmed Int @default(0)
   state String
+  scheduleFrozenAt DateTime? @db.Timestamptz(6)
+  scheduleVersion Int @default(1)
+  changeReason String?
+}
+
+model CohortScheduleChange {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  cohortId String
+  scheduleVersion Int
+  action String
+  beforeSnapshot Json
+  afterSnapshot Json
+  reason String
+  actorId String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([cohortId, scheduleVersion])
+}
+
+model CohortLessonSchedule {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  cohortId String
+  courseId String
+  releaseId String
+  lessonId String
+  opensOnDay Int @default(1)
+  @@unique([cohortId, lessonId])
+}
+
+model CohortRegistration {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId String
+  cohortId String
+  courseId String
+  releaseId String
+  source String @default("COHORT_FREE")
+  orderItemId String? @unique
+  suspendedAt DateTime? @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  version Int @default(1)
+  legacyEnrollmentSnapshot Json?
+  acceptedScheduleVersion Int @default(1)
+  originalScheduleSnapshot Json?
+  scheduleSnapshot Json?
+  @@unique([userId, cohortId])
+  @@index([userId, createdAt, id])
+  @@index([cohortId, revokedAt])
+}
+
+model CohortStudyProgress {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  registrationId String
+  userId String
+  releaseId String
+  lessonId String
+  positionSeconds Int @default(0)
+  watchedSeconds Int @default(0)
+  completedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  lastEventAt DateTime? @db.Timestamptz(6)
+  @@unique([registrationId, lessonId])
+  @@index([userId, updatedAt])
+}
+
+model CohortCertificate {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  registrationId String @unique
+  userId String
+  courseId String
+  releaseId String
+  cohortTitle String
+  courseTitle String
+  lessonCount Int
+  completedAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model CourseStaff {
@@ -934,6 +1154,7 @@ model Assignment {
   courseId String
   lessonId String?
   cohortId String?
+  scheduleStartsAt DateTime? @db.Timestamptz(6)
   title String
   instructions Json
   dueAt DateTime? @db.Timestamptz(6)
@@ -977,6 +1198,7 @@ model PracticeTask {
   courseId String
   lessonId String?
   cohortId String?
+  scheduleStartsAt DateTime? @db.Timestamptz(6)
   title String
   instructions Json
   frequency String
@@ -1013,6 +1235,8 @@ model OfflineLicense {
   licenseHash String @unique
   expiresAt DateTime @db.Timestamptz(6)
   revokedAt DateTime? @db.Timestamptz(6)
+  @@index([userId, deviceId, lessonId])
+  @@index([userId, expiresAt])
 }
 
 model ForumSection {
@@ -1059,6 +1283,10 @@ model Comment {
   body String
   reviewState String
   deletedAt DateTime? @db.Timestamptz(6)
+  liveSessionId String?
+  requestKey String?
+  @@unique([liveSessionId, authorId, requestKey])
+  @@index([liveSessionId, createdAt, id])
 }
 
 model UserBlock {
@@ -1145,6 +1373,9 @@ model WritingCampaign {
 }
 
 model CampaignEntry {
+  featuredFrom DateTime? @db.Timestamptz(6)
+  featuredUntil DateTime? @db.Timestamptz(6)
+  qualityScore Int?
   id String @id @default(dbgenerated("gen_random_uuid()::text"))
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @db.Timestamptz(6)
@@ -1190,6 +1421,13 @@ model LiveSession {
   eventSessionId String?
   accessRuleSnapshot Json
   pushSecretRef String?
+  providerEventAt DateTime? @db.Timestamptz(6)
+  providerSequence String?
+  providerStreamSid String?
+  disconnectedAt DateTime? @db.Timestamptz(6)
+  providerCheckedAt DateTime? @db.Timestamptz(6)
+  @@index([roomId, scheduledAt])
+  @@index([state, providerCheckedAt])
 }
 
 model LiveReservation {
@@ -1201,6 +1439,42 @@ model LiveReservation {
   userId String
   cancelledAt DateTime? @db.Timestamptz(6)
   reminderSentAt DateTime? @db.Timestamptz(6)
+  @@unique([sessionId, userId], map: "domain_LiveReservation_0")
+}
+
+model LiveRtcLease {
+  id String @id @default(uuid())
+  sessionId String
+  authSessionId String
+  userId String
+  rtcUserId String
+  role String
+  keyHash String @unique
+  expiresAt DateTime @db.Timestamptz(6)
+  absoluteExpiresAt DateTime @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  kickedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  @@index([kickedAt, expiresAt])
+  @@index([sessionId, userId])
+}
+
+model ConsultRtcLease {
+  id String @id @default(uuid())
+  appointmentId String
+  authSessionId String
+  userId String
+  rtcUserId String
+  role String
+  keyHash String @unique
+  expiresAt DateTime @db.Timestamptz(6)
+  absoluteExpiresAt DateTime @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  kickedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@index([appointmentId, userId])
+  @@index([kickedAt, expiresAt])
 }
 
 model LiveReplay {
@@ -1210,10 +1484,13 @@ model LiveReplay {
   version Int @default(1)
   sessionId String @unique
   assetId String
+  durationSeconds Int?
   reviewState String
   accessRuleSnapshot Json
   publishedAt DateTime? @db.Timestamptz(6)
   reviewerId String?
+  subtitleText String @default("")
+  notes String @default("")
 }
 
 model LiveMicRequest {
@@ -1242,6 +1519,19 @@ model LivePoll {
   closesAt DateTime @db.Timestamptz(6)
   resultVisibility String
   state String
+  kind String @default("POLL")
+  questions Json @default("[]")
+  @@index([sessionId, createdAt])
+}
+
+model PollResponse {
+  id String @id @default(uuid())
+  pollId String
+  userId String
+  answersCipher String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([pollId, userId])
+  @@index([userId])
 }
 
 model PollOption {
@@ -1279,6 +1569,7 @@ model GiftWallet {
   version Int @default(1)
   userId String @unique
   balance BigInt @default(0)
+  systemHold Boolean @default(false)
 }
 
 model GiftLedger {
@@ -1296,6 +1587,29 @@ model GiftLedger {
   balanceAfter BigInt
   paymentTransactionId String?
   refundTransactionId String?
+  requestHash String?
+  snapshot Json @default("{}")
+}
+
+model GiftCreditPack {
+  id String @id @default(uuid())
+  title String
+  credits BigInt
+  price BigInt
+  active Boolean @default(false)
+  version Int @default(1)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model GiftTeacherContract {
+  id String @id @default(uuid())
+  teacherId String @unique
+  contractId String
+  enabled Boolean @default(false)
+  version Int @default(1)
+  updatedBy String
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
 }
 
 model DigitalRelease {
@@ -1329,6 +1643,7 @@ model SaleOffer {
   serviceOfferingId String?
   eventTicketId String?
   giftId String?
+  giftPackId String?
   operatingServiceId String?
   currency String @default("CNY") @db.Char(3)
   price BigInt
@@ -1353,6 +1668,49 @@ model ChannelProductMapping {
   priceMinor BigInt?
   minorExponent Int @default(2)
   active Boolean @default(false)
+  activatedAt DateTime? @db.Timestamptz(6)
+  deactivatedAt DateTime? @db.Timestamptz(6)
+}
+
+model AppleAccountBinding {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId String
+  appScope String
+  accountToken String @unique @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([userId, appScope])
+}
+
+model AppleOriginalPurchase {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  bindingId String
+  appScope String
+  originalTransactionId String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([appScope, originalTransactionId])
+}
+
+model AppleTransactionState {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  appScope String
+  transactionId String
+  originalTransactionId String
+  accountToken String
+  originalPurchaseId String?
+  mappingId String?
+  mappingSnapshot Json?
+  paymentId String? @unique
+  facts Json
+  latestSignedAt DateTime @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  state String @default("PENDING")
+  issueCode String?
+  queryFailureCode String?
+  lastCheckedAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([appScope, transactionId])
+  @@index([state, lastCheckedAt])
 }
 
 model DeliveryTemplate {
@@ -1549,6 +1907,9 @@ model Refund {
   succeededAt DateTime? @db.Timestamptz(6)
   failureCode String?
   channelRequestKey String? @unique
+  returnAddressCipher String?
+  assessmentSnapshot Json?
+  acceptedAt DateTime? @db.Timestamptz(6)
 }
 
 model RefundItem {
@@ -1656,6 +2017,40 @@ model BenefitUsage {
   grantId String?
 }
 
+model ConsumptionReward {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  userId String
+  orderId String @unique
+  ruleSnapshot Json
+  peakAmount BigInt @default(0)
+  currentAmount BigInt @default(0)
+  points BigInt @default(0)
+  growth Int @default(0)
+  state String @default("WAIT_DELIVERY")
+  eligibleAt DateTime? @db.Timestamptz(6)
+  pendingRefund Boolean @default(false)
+  sourceHash String @default("")
+  sourceSnapshot Json @default("{}")
+  @@index([userId, createdAt])
+}
+
+model ConsumptionAward {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  userId String
+  rewardId String
+  eventKey String @unique
+  amount BigInt
+  points BigInt
+  growth Int
+  businessDay DateTime @db.Date
+  ruleSnapshot Json
+  @@index([userId, businessDay])
+}
+
 model GrowthLedger {
   id String @id @default(dbgenerated("gen_random_uuid()::text"))
   createdAt DateTime @default(now()) @db.Timestamptz(6)
@@ -1677,6 +2072,7 @@ model PointsAccount {
   userId String @unique
   balance BigInt @default(0)
   reserved BigInt @default(0)
+  debt BigInt @default(0)
 }
 
 model PointsLedger {
@@ -1692,6 +2088,8 @@ model PointsLedger {
   businessDay DateTime @db.Date
   reversalOfId String? @unique
   balanceAfter BigInt
+  debtDelta BigInt @default(0)
+  debtAfter BigInt @default(0)
 }
 
 model PointsReservation {
@@ -1735,11 +2133,18 @@ model PointsRedemption {
   pointsCost BigInt
   rewardSnapshot Json
   state String
-  orderId String?
+  orderId String? @unique
   userCouponId String?
   benefitUsageId String?
   businessDay DateTime @db.Date
   completedAt DateTime? @db.Timestamptz(6)
+  appointmentId String? @unique
+  returnCarrier String?
+  returnTrackingNo String?
+  returnProofAssetId String?
+  returnInstructionsCipher String?
+  returnReason String?
+  returnPreviousState String?
 }
 
 model EventSession {
@@ -1758,6 +2163,8 @@ model EventSession {
   publicOpenAt DateTime @db.Timestamptz(6)
   memberOpenAt DateTime? @db.Timestamptz(6)
   rescheduledFromId String?
+  scheduleVersion Int @default(1)
+  changeReason String?
 }
 
 model EventTicketType {
@@ -1775,6 +2182,7 @@ model EventTicketType {
 }
 
 model EventRegistration {
+  courseReleaseId String?
   id String @id @default(dbgenerated("gen_random_uuid()::text"))
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @db.Timestamptz(6)
@@ -1787,9 +2195,13 @@ model EventRegistration {
   attendeeSnapshotCipher String
   state String
   checkinHash String @unique
+  checkinExpiresAt DateTime? @db.Timestamptz(6)
+  prioritySnapshot Json?
   benefitUsageId String?
   confirmedAt DateTime? @db.Timestamptz(6)
   cancelledAt DateTime? @db.Timestamptz(6)
+  acceptedScheduleVersion Int @default(1)
+  scheduleSnapshot Json?
 }
 
 model EventCheckin {
@@ -1800,6 +2212,30 @@ model EventCheckin {
   actorId String
   requestKey String @unique
   checkedAt DateTime @db.Timestamptz(6)
+  revokedAt DateTime? @db.Timestamptz(6)
+  revokedBy String?
+  revokeReason String?
+}
+
+model EventFulfilment {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  registrationId String
+  sessionId String
+  revision Int
+  requestKey String @unique
+  requestHash String
+  actorId String
+  outcome String
+  quantity Int
+  attendanceCount Int
+  deliveredCount Int
+  evidence String
+  publicSummary String
+  reason String
+  scheduleSnapshot Json
+  attendanceSnapshot Json
+  @@unique([registrationId, revision])
 }
 
 model EventStaff {
@@ -1827,6 +2263,7 @@ model EventWaitlist {
 }
 
 model CouponTemplate {
+  claimPolicy String @default("PUBLIC")
   id String @id @default(dbgenerated("gen_random_uuid()::text"))
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @db.Timestamptz(6)
@@ -1890,6 +2327,7 @@ model PromotionOffer {
   capacity Int?
   reserved Int @default(0)
   sold Int @default(0)
+  released Int @default(0)
   perUserLimit Int
 }
 
@@ -1930,6 +2368,116 @@ model Referral {
   firstValidAt DateTime @db.Timestamptz(6)
   expiresAt DateTime @db.Timestamptz(6)
   approvalSnapshot Json
+}
+
+model PromoterProfile {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  userId String @unique
+  code String @unique
+  state String @default("PENDING")
+  statement String
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  proofAssetId String?
+  reviewNote String?
+}
+
+model CourseCommissionRule {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  courseId String @unique
+  rateBasisPoints Int @default(1000)
+  active Boolean @default(false)
+}
+
+model CharityProgram {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  title String
+  kind String
+  releaseId String?
+  membershipVersionId String?
+  price BigInt
+  capacity Int
+  claimed Int @default(0)
+  startsAt DateTime @db.Timestamptz(6)
+  endsAt DateTime @db.Timestamptz(6)
+  qualificationUntil DateTime @db.Timestamptz(6)
+  qualificationSummary String
+  eligibility String
+  qualificationProofId String
+  contractId String
+  state String @default("DRAFT")
+  creatorId String
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  reviewNote String?
+}
+
+model CharityApplication {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  programId String
+  userId String
+  statementCipher String
+  state String @default("PENDING")
+  reviewerId String?
+  reviewNote String?
+  claimedAt DateTime? @db.Timestamptz(6)
+  grantId String?
+  @@unique([programId,userId])
+}
+
+model CharityOrder {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  orderItemId String @unique
+  applicationId String
+  programId String
+  contractId String
+  termsSnapshot Json
+  state String @default("HELD")
+  deliveredAt DateTime? @db.Timestamptz(6)
+}
+
+model CharityRevenue {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  orderItemId String
+  contractId String
+  eventKey String @unique
+  amount BigInt
+  rateBasisPoints Int
+  delta BigInt
+  availableAt DateTime @db.Timestamptz(6)
+  proofAssetId String
+  feeAmount BigInt
+  reviewerId String
+  reversalOfId String?
+}
+
+model ReferralOrder {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  orderItemId String @unique
+  referralId String
+  promoterId String
+  rateBasisPoints Int
+  approvalSnapshot Json
+  deliveredAt DateTime? @db.Timestamptz(6)
+  feeVerifiedAt DateTime? @db.Timestamptz(6)
+  feeAmount BigInt?
+  feeProofAssetId String?
+  feeReviewerId String?
 }
 
 model CommissionLedger {
@@ -2088,6 +2636,49 @@ model OperatingService {
   state String
 }
 
+model OperatingBankReceipt {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  orderId String
+  kind String
+  refundId String?
+  amount BigInt
+  transferredAt DateTime @db.Timestamptz(6)
+  bankTransferId String
+  proofAssetId String
+  requestKey String
+  proposerId String
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  state String @default("PENDING")
+  note String
+  reviewNote String?
+  paymentId String? @unique
+  refundTransactionId String? @unique
+  @@unique([proposerId,requestKey])
+  @@index([orderId,createdAt])
+}
+
+model OperatingFulfilment {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  serviceId String
+  deliveredAt DateTime @db.Timestamptz(6)
+  proofAssetId String
+  note String
+  requestKey String
+  proposerId String
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  state String @default("PENDING")
+  reviewNote String?
+  @@unique([serviceId,requestKey])
+}
+
 model AdPlacement {
   id String @id @default(dbgenerated("gen_random_uuid()::text"))
   createdAt DateTime @default(now()) @db.Timestamptz(6)
@@ -2113,6 +2704,12 @@ model AdCampaign {
   endsAt DateTime @db.Timestamptz(6)
   state String
   metrics Json @default("{}")
+  creativeTitle String @default("")
+  creativeSummary String @default("")
+  creatorId String?
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  reviewNote String?
 }
 
 model Notification {
@@ -2129,8 +2726,20 @@ model Notification {
   orderId String?
   appointmentId String?
   registrationId String?
+  cohortId String?
   readAt DateTime? @db.Timestamptz(6)
   expiresAt DateTime? @db.Timestamptz(6)
+  @@unique([userId, eventKey], map: "domain_Notification_0")
+}
+
+model NotificationPreference {
+  userId String @id
+  version Int @default(1)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  pushEnabled Boolean @default(false)
+  transactions Boolean @default(true)
+  learning Boolean @default(true)
+  community Boolean @default(true)
 }
 
 model DeviceToken {
@@ -2142,6 +2751,8 @@ model DeviceToken {
   platform String
   provider String
   tokenCipher String
+  sessionId String?
+  boundAt DateTime @default(now()) @db.Timestamptz(6)
   tokenHash String @unique
   deviceId String
   enabled Boolean @default(false)
@@ -2156,6 +2767,7 @@ model NotificationDelivery {
   version Int @default(1)
   notificationId String
   deviceTokenId String?
+  deviceVersion Int @default(1)
   channel String
   deliveryKey String @unique
   state String
@@ -2333,7 +2945,166 @@ model GiftCreditAllocation {
   credits BigInt
   allocatedPaidMinor BigInt
   allocatedFeeMinor BigInt
+  partnerAmountMinor BigInt @default(0)
   currency String @db.Char(3)
   contractId String?
   reversalOfId String? @unique
+}
+
+model ServiceDelivery {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  orderId String
+  orderItemId String
+  revision Int
+  requestKey String @unique
+  requestHash String
+  state String @default("PENDING")
+  outcome String
+  deliveredUnits Int
+  totalUnits Int
+  recognizedAmount BigInt
+  publicSummary String
+  evidenceCipher String
+  proofAssetId String
+  proofHash String
+  contextSnapshot Json
+  proposerId String
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  reviewNote String?
+  reason String
+  journalId String? @unique
+  @@unique([orderItemId, revision])
+  @@index([orderId, createdAt])
+}
+
+model CourseCertificate {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId String
+  courseId String
+  releaseId String
+  courseTitle String
+  lessonCount Int
+  completedAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([userId, releaseId])
+}
+
+model CourseReview {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId String
+  courseId String
+  releaseId String
+  rating Int
+  body String
+  reviewState String @default("PENDING")
+  version Int @default(1)
+  reviewerId String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  @@unique([userId, courseId])
+  @@index([courseId, reviewState, createdAt])
+}
+
+model ForumPinApplication {
+ id String @id @default(dbgenerated("gen_random_uuid()::text"))
+ createdAt DateTime @default(now()) @db.Timestamptz(6)
+ updatedAt DateTime @default(now()) @db.Timestamptz(6)
+ version Int @default(1)
+ userId String
+ threadId String
+ requestKey String
+ usageId String @unique
+ state String
+ pinDays Int
+ reviewerId String?
+ reviewNote String?
+ pinnedUntil DateTime? @db.Timestamptz(6)
+ @@unique([userId,requestKey])
+ @@index([state,createdAt])
+}
+model CourseCase {
+ id String @id @default(dbgenerated("gen_random_uuid()::text"))
+ createdAt DateTime @default(now()) @db.Timestamptz(6)
+ updatedAt DateTime @default(now()) @db.Timestamptz(6)
+ version Int @default(1)
+ authorizationId String @unique
+ userId String
+ releaseId String
+ title String
+ textCipher String
+ state String
+ teacherId String?
+ teacherComment String?
+ reviewerId String?
+ reviewNote String?
+ requestKey String
+ publishedAt DateTime? @db.Timestamptz(6)
+ withdrawnAt DateTime? @db.Timestamptz(6)
+ @@unique([userId,requestKey])
+ @@index([releaseId,state])
+}
+model AppleRefundReview {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  receiptId String
+  paymentId String
+  cycleHash String
+  amount BigInt
+  currency String @default("CNY")
+  proofAssetId String
+  proofHash String
+  reference String
+  note String
+  submittedBy String
+  requestKey String
+  requestHash String
+  state String @default("PENDING")
+  reviewedBy String?
+  reviewedAt DateTime? @db.Timestamptz(6)
+  reviewNote String?
+  refundId String? @unique
+  @@unique([submittedBy, requestKey])
+  @@index([receiptId, createdAt])
+}
+
+model OfflineCourseSession {
+  sessionId String @id
+  courseId String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  actorId String
+  @@index([courseId])
+}
+model OfflineStudyProgress {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  registrationId String
+  userId String
+  releaseId String
+  lessonId String
+  positionSeconds Int @default(0)
+  watchedSeconds Int @default(0)
+  completedAt DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  lastEventAt DateTime? @db.Timestamptz(6)
+  @@unique([registrationId, lessonId])
+  @@index([userId, updatedAt])
+}
+model OfflineCourseCertificate {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  registrationId String @unique
+  userId String
+  courseId String
+  releaseId String
+  courseTitle String
+  lessonCount Int
+  completedAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  sourceSnapshot Json
 }

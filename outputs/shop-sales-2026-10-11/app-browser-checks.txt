@@ -1,0 +1,20 @@
+### Result
+{"checks":["Actual HTTPS catalog, recent/popular controls and 390px product cards","Cultural copy distinguishes unverified description from approved evidence","Readable actual return rules, SKU and purchase entry","Guest checkout redirects to login"],"errors":[],"responses":[{"url":"https://academy.43-160-229-173.sslip.io/api/v1/catalog/products?size=20&sort=recent","status":200},{"url":"https://academy.43-160-229-173.sslip.io/api/v1/catalog/products?size=20&sort=popular","status":200},{"url":"https://academy.43-160-229-173.sslip.io/api/v1/catalog/products/e6eac98d-a545-4e82-8e78-17e2a44ec098","status":200}],"scope":"Local App Web with actual HTTPS public responses and local-only CORS allowance; no phone, purchase or production business facts created"}
+### Ran Playwright code
+```js
+await (async page => {
+ const origin='https://academy.43-160-229-173.sslip.io',local='http://127.0.0.1:9082',checks=[],responses=[],errors=[];
+ page.on('pageerror',e=>errors.push(e.message));await page.setViewportSize({width:390,height:844});
+ await page.route(origin+'/api/v1/**',async route=>{const r=route.request();if(r.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':local,'access-control-allow-methods':'GET','access-control-allow-headers':'content-type'}});if(r.method()!=='GET')return route.continue();const res=await route.fetch({headers:{...r.headers(),origin}});responses.push({url:r.url(),status:res.status()});await route.fulfill({response:res,headers:{...res.headers(),'access-control-allow-origin':local}});});
+ const products=await (await page.request.get(origin+'/api/v1/catalog/products?size=50')).json(),p=products.items.find(p=>p.type==='PHYSICAL'&&!p.title.includes('售罄'));await page.goto(local+'/#/pages/shop/index');await page.reload();await page.getByText(p.title,{exact:true}).waitFor();await page.getByText('热销',{exact:true}).click();await page.getByText(p.title,{exact:true}).waitFor();await page.screenshot({path:'outputs/shop-sales-2026-10-11/app-shop.png',animations:'disabled'});checks.push('Actual HTTPS catalog, recent/popular controls and 390px product cards');
+ await page.goto(local+'/#/pages/product/detail?id='+p.id);await page.getByText(p.title,{exact:true}).waitFor();await page.getByText('文化溯源',{exact:true}).click();await page.getByText('以上为商品文化介绍，尚无审核通过的公开证据。',{exact:true}).waitFor();checks.push('Cultural copy distinguishes unverified description from approved evidence');
+ await page.getByText('售后说明',{exact:true}).click();await page.getByText(/签收后7日内/).waitFor();await page.screenshot({path:'outputs/shop-sales-2026-10-11/app-product-policy.png',animations:'disabled'});checks.push('Readable actual return rules, SKU and purchase entry');
+ await page.getByText('确认规格与配送',{exact:true}).click();await page.getByText('手机号验证码登录',{exact:true}).waitFor();checks.push('Guest checkout redirects to login');
+ if(errors.length)throw Error(errors.join(';'));if(responses.some(r=>r.status>=400))throw Error('Public request failure');return {checks,errors,responses,scope:'Local App Web with actual HTTPS public responses and local-only CORS allowance; no phone, purchase or production business facts created'};
+})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:9082/#/pages/auth/login
+- Page Title: 道学书院
+### Events
+- New console entries: .playwright-cli\console-2026-10-11T08-47-59-510Z.log#L6-L7

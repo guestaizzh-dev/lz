@@ -1,0 +1,7 @@
+<template><view class="delivery-result"><text class="section-heading">{{labels[delivery.outcome]??'履约结果已更新'}}</text><text class="body-copy" :user-select="true">{{delivery.publicSummary}}</text><text class="meta">已提供 {{delivery.deliveredUnits}} / {{delivery.totalUnits}} {{delivery.unitLabel}}</text><text class="meta">书院核对于 {{formatChinaTime(delivery.reviewedAt??'')}} · 第{{delivery.revision}}版</text><text v-if="delivery.outcome==='NOT_DELIVERED'" class="footer-note">未交付已核实，请以下方原路退款记录及渠道结果为准。</text><text v-else-if="canDispute&&(delivery.outcome==='PARTIAL'||delivery.outcome==='NO_SHOW')" class="footer-note">如对实际服务有异议，可以申请服务核查与协商退款。</text></view></template>
+<script setup lang="ts">
+import type {ServiceDeliveryResult} from '../lib/service-delivery';import {formatChinaTime} from '../lib/date-time';
+defineProps<{delivery:ServiceDeliveryResult;canDispute?:boolean}>();
+const labels:Record<string,string>={COMPLETED:'本次服务已完整交付',PARTIAL:'本次服务为部分交付',NOT_DELIVERED:'本次服务未交付',NO_SHOW:'本次记录为未到场'};
+</script>
+<style>@import '../styles/app.css';.delivery-result{margin-top:20px;padding-top:18px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}</style>

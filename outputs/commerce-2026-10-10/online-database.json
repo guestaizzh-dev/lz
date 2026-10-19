@@ -1,0 +1,13 @@
+{
+  "users": 15,
+  "articles": 10,
+  "courses": 8,
+  "products": 8,
+  "addresses": 3,
+  "oldOrders": 2,
+  "versionChoices": 0,
+  "withdrawnReleases": 0,
+  "alipayPostingAccounts": 1,
+  "tables": 152,
+  "migrations": 19
+}

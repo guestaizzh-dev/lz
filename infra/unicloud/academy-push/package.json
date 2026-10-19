@@ -1,0 +1,9 @@
+{
+  "name": "academy-push",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-push": {}
+  }
+}

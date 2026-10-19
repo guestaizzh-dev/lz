@@ -1,0 +1,78 @@
+{
+  "User": {
+    "count": 15,
+    "digest": "18ff01ea09f8cc1589857bbe418c433c"
+  },
+  "Article": {
+    "count": 10,
+    "digest": "f836420b262eb40ebd733783998ea35a"
+  },
+  "Teacher": {
+    "count": 3,
+    "digest": "6f38950b7f49e3e0eb9b255fb4a5b41e"
+  },
+  "Course": {
+    "count": 9,
+    "digest": "e039b1d43fa29bbd10aa08216228528b"
+  },
+  "Product": {
+    "count": 8,
+    "digest": "17d2c66443b8780234f6b7f44c6bdbb4"
+  },
+  "Address": {
+    "count": 3,
+    "digest": "e8edac907162764ad55e833ee021c36d"
+  },
+  "Order": {
+    "count": 2,
+    "digest": "aa9f9584735e6661f61940f950ebc57f"
+  },
+  "Membership": {
+    "count": 2,
+    "digest": "7f4741c776d6ef7fe50a51ceceab76d9"
+  },
+  "MembershipPlan": {
+    "count": 9,
+    "digest": "b303751532817798c18ab9217351ad2e"
+  },
+  "MembershipPlanVersion": {
+    "count": 9,
+    "digest": "9c1e73edbec8a494b8eb7476d52bac79"
+  },
+  "PlanBenefit": {
+    "count": 9,
+    "digest": "a50a777700104432672833554440e773"
+  },
+  "BenefitUsage": {
+    "count": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "TradeOrder": {
+    "count": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "TradeOrderItem": {
+    "count": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "PaymentTransaction": {
+    "count": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "Refund": {
+    "count": 0,
+    "digest": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "Enrollment": {
+    "count": 5,
+    "digest": "5f66c4dd00f54f7af2f715034d7e382a"
+  },
+  "StudyProgress": {
+    "count": 5,
+    "digest": "4ecf828625ba2195496693aaedc0c55a"
+  },
+  "CourseCertificate": {
+    "count": 2,
+    "digest": "840061e549d5232f1bc92cab7c7c92f0"
+  }
+}

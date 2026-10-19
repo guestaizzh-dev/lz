@@ -1,44 +1,25 @@
 <template>
-<view class="page">
-<PageHead title="确认订单"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<ContentState v-if="!item" :loading="!error" :error="error" @retry="load"/>
-<view v-else>
-<view v-if="type==='product'" class="address-preview" @click="openPage('shop/addresses')"><text class="item-title">{{address?address!.recipient+'　'+address!.phone:'添加收货地址'}}</text><text class="meta">{{address?addressText(address!):'请选择用于商品配送的地址'}}</text></view>
-<view class="order-item row">
-<ArtImage :src="item!.cover" :kind="artwork(item!.cover)" :width="83" :height="88"/>
-<view class="order-copy grow">
-<text class="item-title">{{item!.title}}</text>
-<text class="meta">{{type==='product'?(sku?.title??'规格已停用或未配置'):'课程订单'}}</text>
-<text class="price">¥{{money(unitPrice)}}</text>
-</view>
-</view>
-<view class="menu-row">
-<text class="menu-label">数量</text>
-<text class="menu-value">{{quantity}}</text>
-</view>
-<view class="menu-row">
-<text class="menu-label">商品金额</text>
-<text class="menu-value">¥{{money(unitPrice*quantity)}}</text>
-</view>
-<view v-if="type==='product'" class="menu-row">
-<text class="menu-label">配送与运费</text>
-<text class="menu-value">暂未开放</text>
-</view>
-<view class="notice-strip">
-<text class="order-notice">交易暂未开放</text>
-<text class="footer-note">{{type==='product'?'配送计费、订单与支付正在接入。':'课程支付尚未接入。'}}当前无法创建订单或收取费用。</text>
-<text v-if="type==='product'&&sku&&sku!.available<quantity" class="footer-note">该规格当前库存不足，请返回调整数量。</text>
-</view>
-</view>
-</view>
-</scroll-view>
-<view v-if="item" class="bottom-bar">
-<text class="total">金额参考：¥{{money(unitPrice*quantity)}}</text>
-<button class="bar-primary" disabled>暂未开放下单</button>
-</view>
-</view>
+<view class="page"><PageHead title="确认订单"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
+<ContentState v-if="loading" :loading="true"/>
+<view v-else><view class="checkout-address" @click="chooseAddress"><text class="item-title">{{address?address!.recipient+'　'+address!.phone:'选择收货地址 ›'}}</text><text class="meta">{{address?addressText(address!):'先添加用于本次配送的收货地址'}}</text><text class="footer-note">更换地址 ›</text></view>
+<text v-if="error" class="form-feedback">{{error}}</text><button v-if="error" class="text-button" @click="openPage('shop/orders')">查看我的商品订单</button><button v-if="error&&shippingMode==='PRIORITY'" class="secondary-button" @click="chooseShipping('STANDARD')">改用普通配送重新核算</button><button v-if="error" class="secondary-button" @click="load">重新核算订单</button>
+<template v-if="quote"><view v-for="line in quote!.items" :key="line.skuId" class="checkout-line row"><ArtImage :src="line.cover" :kind="artwork(line.cover)" :width="72" :height="78"/><view class="grow checkout-copy"><text class="item-title">{{line.title}}</text><text class="meta">{{line.skuTitle}}　× {{line.quantity}}</text><text class="price">¥{{money(line.subtotal)}}</text></view></view>
+<view v-if="quote!.priorityAvailable" class="checkout-section"><text class="section-heading">配送方式</text><button class="secondary-button" :disabled="busy" @click="chooseShipping('STANDARD')">{{shippingMode==='STANDARD'?'✓ ':''}}普通配送</button><button class="secondary-button" :disabled="busy" @click="chooseShipping('PRIORITY')">{{shippingMode==='PRIORITY'?'✓ ':''}}优先配送 · 另加 ¥{{money(quote!.priorityOptionFee??0)}}</button><text class="footer-note">{{quote!.priorityDescription}}</text></view><view class="menu-row"><text class="menu-label">商品金额</text><text class="menu-value">¥{{money(quote!.subtotal)}}</text></view><view class="menu-row"><text class="menu-label">配送费</text><text class="menu-value">{{quote!.shipping===0?'免配送费':'¥'+money(quote!.shipping)}}</text></view>
+<view v-if="quote!.discount>0" class="menu-row"><text class="menu-label">商品优惠（已择优）</text><text class="menu-value">−¥{{money(quote!.discount)}}</text></view>
+<text v-if="quote!.shippingDiscount>0" class="footer-note">会员已减免基础配送费 ¥{{money(quote!.shippingDiscount)}}，特殊地区附加配送费另计。</text><text v-if="quote!.shippingSurcharge>0" class="footer-note">配送费含本地区附加费用 ¥{{money(quote!.shippingSurcharge)}}。</text>
+<view v-if="quote!.paymentEnabled" class="checkout-section"><text class="section-heading">支付方式</text><view v-for="choice in quote!.channels.filter(c=>c.enabled)" :key="choice.channel" class="menu-row" @click="channel=choice.channel"><text class="menu-label">{{choice.label}}</text><text class="menu-value">{{channel===choice.channel?'已选择':'选择'}}</text></view></view>
+<ConsumptionReward :eligible="Number(quote?.total??0)>0"/><view class="checkout-section"><text class="section-heading">配送与售后</text><text class="body-copy" :user-select="true">{{quote!.refundPolicy}}</text><view class="consent-row row" @click="agreed=!agreed"><text class="consent-mark">{{agreed?'☑':'□'}}</text><text class="meta grow">我已确认商品规格、数量、收货信息和售后规则</text></view></view><text v-if="!quote!.paymentEnabled" class="footer-note">{{quote!.unavailableReason}}</text></template>
+</view></view></scroll-view><BottomBar v-if="quote"><text class="checkout-total">合计 ¥{{money(quote!.total)}}</text><button class="bar-primary" :disabled="busy||!agreed||!quote!.paymentEnabled" @click="submit">{{busy?'正在确认…':quote!.paymentEnabled?'确认下单':'收款尚未开放'}}</button></BottomBar></view>
 </template>
-<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {artwork,openPage} from '../../lib/presentation';import {currentUser} from '../../lib/session';import {addressText} from '../../lib/shopping';import type {ProductSku,Address} from '../../lib/shopping';const type=ref('course'),quantity=ref(1),item=ref<{title:string;cover:string;price:number;skus?:ProductSku[]}|null>(null),address=ref<Address|null>(null),error=ref('');let id='',skuId='';const sku=computed(()=>item.value?.skus?.find(row=>row.id===skuId)??null),unitPrice=computed(()=>sku.value?.price??item.value?.price??0);async function load(){error.value='';address.value=null;try{item.value=await request('/catalog/'+(type.value==='product'?'products':'courses')+'/'+encodeURIComponent(id));if(type.value==='product'&&currentUser.value){const addresses=await request<Address[]>('/shopping/addresses');address.value=addresses.find(row=>row.isDefault)??addresses[0]??null;}}catch(e){item.value=null;error.value=(e as Error).message;}}onLoad(options=>{id=options?.id??'';skuId=options?.skuId??'';type.value=options?.type==='product'?'product':'course';quantity.value=type.value==='product'?Math.min(99,Math.max(1,parseInt(options?.quantity??'1')||1)):1;});onShow(()=>{if(id)load();});</script>
-<style>@import '../../styles/app.css';.address-preview{padding:16px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.order-item{border-style:solid;border-width:0;padding:16px 0;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.order-copy{padding-left:14px;}.price{margin-top:10px;}.order-notice{font-family:AcademySerif;color:#17292D;font-size:16px;line-height:24px;}.total{color:#B95543;font-size:13px;margin-right:12px;line-height:19px;}.bar-primary{opacity:0.6;}</style>
+<script setup lang="ts">
+import ConsumptionReward from '../../components/ConsumptionReward.uvue';
+import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import BottomBar from '../../components/BottomBar.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {artwork,openPage} from '../../lib/presentation';import {studyEventId} from '../../lib/learning';import {purchasePlatform} from '../../lib/course-sales';import {addressText} from '../../lib/shopping';import type {Address} from '../../lib/shopping';import type {ProductQuote,ProductOrder} from '../../lib/product-sales';
+const addresses=ref<Address[]>([]),address=ref<Address|null>(null),quote=ref<ProductQuote|null>(null),loading=ref(false),busy=ref(false),error=ref(''),agreed=ref(false),channel=ref('WECHAT_APP'),shippingMode=ref('STANDARD');let pending:Record<string,unknown>|null=null;let items:{skuId:string;quantity:number}[]=[],key=studyEventId(),generation=0,owner='';
+async function load(){if(busy.value||needLogin())return;const turn=++generation,newOwner=currentUser.value?.id??'';if(owner!==newOwner){shippingMode.value='STANDARD';address.value=null;quote.value=null;key=studyEventId();owner=newOwner;pending=null;}loading.value=true;error.value='';try{const list=await request<Address[]>('/shopping/addresses');if(turn!==generation)return;addresses.value=list;address.value=list.find(a=>a.id===address.value?.id)??list.find(a=>a.isDefault)??list[0]??null;if(!address.value){quote.value=null;return;}if(!items.length)throw new Error('未选择商品，请返回商品或购物车重新选择');const next=await request<ProductQuote>('/commerce/products/quote',{method:'POST',data:{shippingMode:shippingMode.value,addressId:address.value.id,platform:purchasePlatform(),items}});if(turn!==generation)return;if(quote.value?.quoteHash!==next.quoteHash){agreed.value=false;if(!pending)key=studyEventId();}quote.value=next;if(!next.channels.some(c=>c.channel===channel.value&&c.enabled))channel.value=next.channels.find(c=>c.enabled)?.channel??'WECHAT_APP';}catch(e){if(turn===generation){quote.value=null;error.value=(e as Error).message;}}finally{if(turn===generation)loading.value=false;}}
+async function chooseShipping(value:string){if(busy.value||pending)return;shippingMode.value=value;await load();}
+function chooseAddress(){if(busy.value)return;if(pending){uni.showToast({title:'请先核查前次提交的订单',icon:'none'});return;}if(!addresses.value.length){openPage('shop/addresses');return;}uni.showActionSheet({itemList:[...addresses.value.map(a=>a.recipient+' '+a.phone.slice(-4)+' · '+a.province+a.city),'添加或管理地址'],success:result=>{if(result.tapIndex===addresses.value.length){openPage('shop/addresses');return;}address.value=addresses.value[result.tapIndex]??null;void load();}});}
+async function submit(){if(busy.value||!quote.value||!address.value||!agreed.value||needLogin())return;busy.value=true;error.value='';pending=pending??{shippingMode:shippingMode.value,addressId:address.value.id,platform:purchasePlatform(),items,quoteHash:quote.value.quoteHash,requestKey:key,channel:channel.value};try{const row=await request<ProductOrder>('/commerce/product-orders',{method:'POST',data:pending});pending=null;uni.redirectTo({url:'/pages/shop/order-detail?id='+encodeURIComponent(row.id)});}catch(e){try{const existing=await request<ProductOrder>('/commerce/product-orders/request/'+key);pending=null;uni.redirectTo({url:'/pages/shop/order-detail?id='+existing.id});}catch{const status=(e as Error&{status:number}).status;if(status>=400&&status<500){pending=null;error.value=(e as Error).message;}else error.value=(e as Error).message+'；请先查看商品订单或重试同一次提交，勿重复下单。';agreed.value=false;}}finally{busy.value=false;}}
+
+onLoad(o=>{if(o?.type!=='product'&&!o?.items){uni.redirectTo({url:'/pages/course/purchase?courseId='+encodeURIComponent(o?.id??'')});return;}try{items=o?.items?(JSON.parse((decodeURIComponent(o.items??'')??'[]'))??[]) as {skuId:string;quantity:number}[]:[{skuId:o?.skuId??'',quantity:Math.max(1,Math.min(99,parseInt(o?.quantity??'1')||1))}];}catch{items=[];}});onShow(()=>void load());onUnload(()=>{generation++;});
+</script>
+<style>@import '../../styles/app.css';.checkout-address{padding:18px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.checkout-line{padding:18px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.checkout-copy{padding-left:14px;}.checkout-section{padding:20px 0;}.checkout-total{color:#B95543;font-size:15px;line-height:24px;margin-right:12px;}.consent-row{padding:18px 0;}.consent-mark{font-size:22px;color:#31564F;margin-right:10px;}</style>

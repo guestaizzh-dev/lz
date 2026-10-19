@@ -1,5 +1,9 @@
+import {productPromotionHints} from './product-promotions.js';
+import { validateEvidencePublication } from './evidence.js';
+import { encryptPrivate, personalAddress } from './private-data.js';
+import { demoContentVisible, publicContentScope } from './public-content.js';
 import { BadRequestException, Body, ConflictException, Controller, Delete, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min, IsUUID } from 'class-validator';
 import { Database } from './database.js';
 import { AdminGuard, UserGuard, requireRoles } from './auth.js';
 import type { AuthRequest } from './auth.js';
@@ -17,6 +21,7 @@ class AddressDto {
 }
 class QuantityDto { @IsInt() @Min(1) @Max(99) quantity!: number; }
 class SkuDto {
+  @IsOptional() @IsUUID() serviceOfferingId?:string|null;
   @IsString() @Length(1, 80) @Matches(/\S/) title!: string;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsInt() @Min(0) @Max(1000000) stock!: number;
@@ -34,11 +39,12 @@ class ProductDto {
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsString() @Length(1, 3000) @Matches(/\S/) culturalOrigin!: string;
   @IsBoolean() featured!: boolean;
+  @IsOptional() @IsBoolean() memberDiscountEligible?: boolean;
 }
 class ProductEditDto extends ProductDto { @IsInt() @Min(1) expectedVersion!: number; }
 type Tx = Prisma.TransactionClient;
-const publicScope = () => ({ status:'PUBLISHED' as const, ...(process.env.NODE_ENV==='production'?{isDemo:false}:{}) });
-export const publicSku = (row: { id:string;title:string;price:number;stock:number;reserved:number;active:boolean;version:number }) => ({id:row.id,title:row.title,price:row.price,available:row.stock-row.reserved,active:row.active,version:row.version});
+
+export const publicSku = (row: { id:string;title:string;price:number;stock:number;reserved:number;active:boolean;version:number;serviceOfferingId?:string|null }) => ({id:row.id,title:row.title,price:row.price,available:row.stock-row.reserved,active:row.active,version:row.version,serviceOfferingId:row.serviceOfferingId??null});
 
 @Injectable()
 export class ShoppingService {
@@ -47,7 +53,7 @@ export class ShoppingService {
     const rows=await tx.$queryRaw<{id:string}[]>`SELECT id FROM "User" WHERE id=${userId} AND status='ACTIVE' FOR UPDATE`;
     if(!rows.length)throw new UnauthorizedException('请重新登录');
   }
-  addresses(userId:string) { return this.db.address.findMany({where:{userId},orderBy:[{isDefault:'desc'},{updatedAt:'desc'}],take:20}); }
+  async addresses(userId:string) { return (await this.db.address.findMany({where:{userId},orderBy:[{isDefault:'desc'},{updatedAt:'desc'}],take:20})).map(personalAddress); }
   async address(userId:string,dto:AddressDto,id?:string) {
     return this.db.$transaction(async tx=>{
       await this.lockUser(tx,userId);
@@ -56,10 +62,11 @@ export class ShoppingService {
       const count=await tx.address.count({where:{userId}});
       if(!id&&count>=20)throw new BadRequestException('最多保存20个地址');
       const data={...dto,recipient:dto.recipient.trim(),province:dto.province.trim(),city:dto.city.trim(),district:dto.district.trim(),detail:dto.detail.trim(),isDefault:dto.isDefault||count===0};
+      const encrypted={...data,recipient:'',phone:'',detail:'',recipientCipher:encryptPrivate(data.recipient),phoneCipher:encryptPrivate(data.phone),detailCipher:encryptPrivate(data.detail)};
       if(data.isDefault)await tx.address.updateMany({where:{userId,isDefault:true},data:{isDefault:false}});
-      const result=id?await tx.address.update({where:{id},data}):await tx.address.create({data:{...data,userId}});
+      const result=id?await tx.address.update({where:{id},data:encrypted}):await tx.address.create({data:{...encrypted,userId}});
       if(!await tx.address.count({where:{userId,isDefault:true}}))await tx.address.update({where:{id:result.id},data:{isDefault:true}});
-      return tx.address.findUniqueOrThrow({where:{id:result.id}});
+      return personalAddress(await tx.address.findUniqueOrThrow({where:{id:result.id}}));
     });
   }
   async removeAddress(userId:string,id:string) {
@@ -75,19 +82,20 @@ export class ShoppingService {
   }
   async cart(userId:string) {
     const rows=await this.db.cartItem.findMany({where:{userId},include:{sku:{include:{product:true}}},orderBy:[{updatedAt:'desc'},{id:'desc'}],take:100});
+    const showDemo = await demoContentVisible(this.db),promotions=await productPromotionHints(this.db,rows.map(r=>r.skuId));
     const items=rows.map(({sku,...row})=>{
-      const visible=sku.product.status==='PUBLISHED'&&(process.env.NODE_ENV!=='production'||!sku.product.isDemo);
-      const available=visible&&sku.product.type==='PHYSICAL'&&sku.active&&sku.stock-sku.reserved>=row.quantity;
-      return {id:row.id,quantity:row.quantity,skuId:row.skuId,sku:publicSku(sku),product:{id:sku.product.id,title:sku.product.title,cover:sku.product.cover,type:sku.product.type},available,subtotal:sku.price*row.quantity,unavailableReason:!visible?'商品已下架':sku.product.type!=='PHYSICAL'?'该商品不支持购物车':!sku.active?'规格已停用':!available?'库存不足':null};
+      const visible=sku.product.status==='PUBLISHED'&&(showDemo||!sku.product.isDemo);
+      const count=sku.stock-sku.reserved+Math.max(0,...promotions.filter(p=>p.skuId===sku.id).map(p=>p.remaining)),available=visible&&sku.product.type==='PHYSICAL'&&sku.active&&count>=row.quantity;
+      return {id:row.id,quantity:row.quantity,skuId:row.skuId,sku:{...publicSku(sku),available:count},product:{id:sku.product.id,title:sku.product.title,cover:sku.product.cover,type:sku.product.type},available,subtotal:sku.price*row.quantity,unavailableReason:!visible?'商品已下架':sku.product.type!=='PHYSICAL'?'该商品不支持购物车':!sku.active?'规格已停用':!available?'库存不足':null};
     });
     return {items,total:items.filter(row=>row.available).reduce((sum,row)=>sum+row.subtotal,0),checkoutEnabled:false};
   }
   async setCart(userId:string,skuId:string,quantity:number) {
     return this.db.$transaction(async tx=>{
       await this.lockUser(tx,userId);
-      const sku=await tx.productSku.findFirst({where:{id:skuId,active:true,product:{...publicScope(),type:'PHYSICAL'}},include:{product:true}});
+      const sku=await tx.productSku.findFirst({where:{id:skuId,active:true,product:{...await publicContentScope(this.db),type:'PHYSICAL'}},include:{product:true}});
       if(!sku)throw new NotFoundException('该商品规格不可购买');
-      if(sku.stock-sku.reserved<quantity)throw new ConflictException('当前库存不足，请调整数量');
+      const hints=await productPromotionHints(tx,[sku.id]);if(sku.stock-sku.reserved+Math.max(0,...hints.map(p=>p.remaining))<quantity)throw new ConflictException('当前库存不足，请调整数量');
       const existing=await tx.cartItem.findUnique({where:{userId_skuId:{userId,skuId}}});
       if(!existing&&await tx.cartItem.count({where:{userId}})>=100)throw new BadRequestException('购物车最多100个规格');
       // Cart is a wish to purchase; inventory is reserved only by the order transaction.
@@ -119,9 +127,18 @@ export class ShoppingService {
     return this.db.$transaction(async tx=>{
       const products=await tx.$queryRaw<{id:string}[]>`SELECT id FROM "Product" WHERE id=${productId} FOR UPDATE`;
       if(!products.length)throw new NotFoundException('商品不存在');
+      const product=await tx.product.findUniqueOrThrow({where:{id:productId}});
+      if(dto.serviceOfferingId){
+        const offering=await tx.serviceOffering.findUnique({where:{id:dto.serviceOfferingId}}),teacher=offering?await tx.teacher.findFirst({where:{id:offering.teacherId,...await publicContentScope(tx)}}):null;
+        if(product.type!=='SERVICE'||!offering?.active||!teacher)throw new BadRequestException('服务规格须绑定有效的统一服务及已发布名师');
+      }
+      if(product.type==='SERVICE'&&dto.stock!==0)throw new BadRequestException('服务库存来自统一时段，商品库存请保持为0');
+      if(product.type==='SERVICE'&&dto.active&&!dto.serviceOfferingId)throw new BadRequestException('启用服务规格前请选择统一服务，不能另建时段库存');
       if(!id&&await tx.productSku.count({where:{productId}})>=50)throw new BadRequestException('每商品最多50个规格');
+      const before=id?await tx.productSku.findFirst({where:{id,productId}}):null;
       if(id){const updated=await tx.productSku.updateMany({where:{id,productId,version:(dto as SkuEditDto).expectedVersion,reserved:{lte:dto.stock}},data:{...data,version:{increment:1}}});if(!updated.count)throw new ConflictException('规格版本已变化或库存小于预占数量');}
       const row=id?await tx.productSku.findUniqueOrThrow({where:{id}}):await tx.productSku.create({data:{...data,productId}});
+      if(!before||before.stock!==row.stock)await tx.inventoryLedger.create({data:{skuId:row.id,stockDelta:BigInt(row.stock-(before?.stock??0)),reservedDelta:0n,reason:'MANUAL_ADJUSTMENT',eventKey:'product.manual:'+row.id+':'+row.version,actorId:req.actor.id,stockAfter:BigInt(row.stock),reservedAfter:BigInt(row.reserved)}});
       await tx.auditLog.create({data:{actorId:req.actor.id,action:id?'sku.edit':'sku.create',resource:'productSku',resourceId:row.id,changes:{...data,reason:reason.trim(),version:row.version,productId}}});
       return row;
     });
@@ -135,7 +152,15 @@ export class ShoppingService {
       await tx.$queryRaw`SELECT id FROM "Product" WHERE id=${id} FOR UPDATE`;
       const row=await tx.product.findUnique({where:{id},include:{skus:true}});
       if(!row||row.version!==dto.expectedVersion||!(from as readonly string[]).includes(row.status))throw new ConflictException('商品状态或版本已变化');
-      if(['submit','publish'].includes(dto.action)&&(row.type!=='PHYSICAL'||!row.skus.some(sku=>sku.active)))throw new BadRequestException('请配置实物可售规格；数字和服务履约尚未开放');
+      if(['submit','publish'].includes(dto.action)){
+        await validateEvidencePublication(tx,id);
+        if(row.type==='DIGITAL'||!row.skus.some(sku=>sku.active))throw new BadRequestException('请配置可售规格；数字交付尚未开放');
+        if(row.type==='SERVICE')for(const sku of row.skus.filter(s=>s.active)){
+          const service=sku.serviceOfferingId?await tx.serviceOffering.findUnique({where:{id:sku.serviceOfferingId}}):null;
+          const offers=service?await tx.saleOffer.findMany({where:{serviceOfferingId:service.id,active:true,AND:[{OR:[{validFrom:null},{validFrom:{lte:new Date()}}]},{OR:[{validUntil:null},{validUntil:{gt:new Date()}}]}]}}):[];
+          if(!service?.active||!await tx.teacher.findFirst({where:{id:service.teacherId,...await publicContentScope(tx)}})||offers.length!==1||offers[0]!.price!==BigInt(sku.price))throw new BadRequestException('服务商品须绑定开放的统一服务且价格一致；实际收费由预约订单开关控制');
+        }
+      }
       const result=await tx.product.update({where:{id},data:{status:to,version:{increment:1}}});
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'product.'+dto.action,resource:'product',resourceId:id,changes:{reason:dto.reason.trim(),version:result.version}}});
       return result;
@@ -157,6 +182,7 @@ export class ShoppingController {
 export class ShoppingAdminController {
   constructor(private readonly shopping:ShoppingService,private readonly db:Database){}
   @Get('products') products(@Req() req:AuthRequest,@Query() query:TableQuery){requireRoles(req,['OPERATOR','MODERATOR']);return this.shopping.products(query);}
+  @Get('products/service-offerings') async offerings(@Req() req:AuthRequest){requireRoles(req,['OPERATOR','MODERATOR']);return this.db.serviceOffering.findMany({where:{active:true},select:{id:true,title:true,teacherId:true,mode:true,durationMinutes:true},orderBy:{title:'asc'},take:100});}
   @Get('products/:id') async detail(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['OPERATOR','MODERATOR']);const row=await this.db.product.findUnique({where:{id},include:{skus:{orderBy:{id:'asc'}}}});if(!row)throw new NotFoundException('商品不存在');return row;}
   @Post('products') product(@Req() req:AuthRequest,@Body() dto:ProductDto){return this.shopping.saveProduct(req,dto);}
   @Patch('products/:id') editProduct(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ProductEditDto){return this.shopping.saveProduct(req,dto,id);}

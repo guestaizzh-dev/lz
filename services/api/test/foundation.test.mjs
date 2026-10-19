@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID, randomInt } from 'node:crypto';
 import { createApp } from '../dist/main.js';
 import { Database } from '../dist/database.js';
+import {decryptPrivate, phoneLookup} from '../dist/private-data.js';
 import { passwordHash } from '../dist/auth.js';
 import { clearArticles, clearCourses } from './fixture-cleanup.mjs';
 
@@ -68,6 +69,7 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
     await t.test('OTP is phone bound, single use, rate limited and safe under simultaneous login', async () => {
       const phone = newPhone();
       const challenge = await request('/auth/sms', { method: 'POST', body: { phone } }); assert.equal(challenge.status, 201);
+      const storedChallenge=await db.otpChallenge.findUniqueOrThrow({where:{id:challenge.body.challengeId}});assert.equal(storedChallenge.phone,'');assert.equal(storedChallenge.phoneHash,phoneLookup(phone));assert.equal(await db.rateLimit.findUnique({where:{key:'sms-phone-minute:'+phone}}),null);
       assert.equal((await request('/auth/sms', { method: 'POST', body: { phone } })).status, 429);
       const body = { phone, challengeId: challenge.body.challengeId, code: '123456' };
       assert.equal((await request('/auth/login', { method: 'POST', body: { ...body, phone: newPhone() } })).status, 401);
@@ -79,6 +81,19 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
       assert.equal((await appRequest('/admin/articles', appA)).status, 403);
       assert.equal((await request('/auth/login', { method: 'POST', body })).status, 401);
       appB = await appLogin();
+    });
+    await t.test('legacy and encrypted phone login keep identity and never return private ciphers',async()=>{
+      const phone=newPhone();
+      const legacy=await db.user.create({data:{phone,nickname:'旧账号',roles:['USER'],tags:[]}});users.push(legacy.id);
+      async function signIn(){
+        await db.rateLimit.deleteMany({where:{key:'sms-phone-minute:'+phoneLookup(phone)}});
+        const otp=await request('/auth/sms',{method:'POST',body:{phone}});
+        return request('/auth/login',{method:'POST',body:{phone,challengeId:otp.body.challengeId,code:'123456'}});
+      }
+      const first=await signIn();assert.equal(first.status,200);assert.equal(first.body.user.id,legacy.id);assert.equal(first.body.user.phoneCipher,undefined);assert.equal(first.body.user.phone,undefined);
+      const stored=await db.user.findUniqueOrThrow({where:{id:legacy.id}});assert.equal(stored.phone,null);assert.equal(stored.phoneHash,phoneLookup(phone));assert.equal(decryptPrivate(stored.phoneCipher),phone);
+      const second=await signIn();assert.equal(second.status,200);assert.equal(second.body.user.id,legacy.id);
+      assert.equal(await db.user.count({where:{phoneHash:phoneLookup(phone)}}),1);
     });
     await t.test('expired OTP and maximum attempts cannot be bypassed', async () => {
       const phone = newPhone(); const challenge = await request('/auth/sms', { method: 'POST', body: { phone } });
@@ -133,7 +148,7 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
     await t.test('missing SMS configuration fails closed and production forbids test codes', async () => {
       const code = process.env.DEV_OTP_CODE; delete process.env.DEV_OTP_CODE;
       const phone = newPhone();
-      try { assert.equal((await request('/auth/sms', { method: 'POST', body: { phone } })).status, 503); assert.ok((await db.otpChallenge.findFirstOrThrow({ where: { phone } })).consumedAt); }
+      try { assert.equal((await request('/auth/sms', { method: 'POST', body: { phone } })).status, 503); assert.ok((await db.otpChallenge.findFirstOrThrow({ where: { phoneHash: phoneLookup(phone) } })).consumedAt); }
       finally { process.env.DEV_OTP_CODE = code; }
       const env = process.env.NODE_ENV;
       try { process.env.NODE_ENV = 'production'; await assert.rejects(createApp(false), /forbids DEV_OTP_CODE/); }
@@ -227,13 +242,15 @@ test('real PostgreSQL: publication, permissions, sessions and isolation', async 
     await db.course.deleteMany({ where: { id: { in: courseIds } } });
     await db.event.deleteMany({ where: { id: { in: eventIds } } });
     await db.teacher.deleteMany({ where: { id: { in: teacherIds } } });
+    const sessions = await db.authSession.findMany({where: {userId: {in: users}}, select: {id: true}});
+    await db.consumedRefresh.deleteMany({where: {sessionId: {in: sessions.map(session => session.id)}}});
     await db.authSession.deleteMany({ where: { userId: { in: users } } });
     await db.note.deleteMany({ where: { userId: { in: users } } });
     await db.favorite.deleteMany({ where: { userId: { in: users } } });
     await db.practiceLog.deleteMany({ where: { userId: { in: users } } });
     await db.user.deleteMany({ where: { id: { in: users } } });
-    await db.otpChallenge.deleteMany({ where: { phone: { in: testPhones } } });
-    await db.rateLimit.deleteMany({ where: { OR: [{ key: { contains: prefix } }, { key: { contains: testIp } }, ...testPhones.map(phone => ({ key: { endsWith: ':' + phone } }))] } });
+    await db.otpChallenge.deleteMany({ where: { OR: [{phone: {in: testPhones}}, {phoneHash: {in: testPhones.map(phoneLookup)}}] } });
+    await db.rateLimit.deleteMany({ where: { OR: [{ key: { contains: prefix } }, { key: { contains: testIp } }, ...testPhones.map(phone => ({ key: { endsWith: ':' + phoneLookup(phone) } }))] } });
     await db.$disconnect();
   }
 });

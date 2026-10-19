@@ -7,8 +7,8 @@
 <AppIcon name="magnifying-glass" :size="16"/>
 <input class="search-input" placeholder="搜索名师" v-model="query" @confirm="load()"/>
 </view>
-<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load()"/>
-<view v-else>
+<ContentState v-if="loading&&!items.length||error" :loading="loading" :error="error" @retry="retry()"/>
+<view v-if="!error&&(!loading||items.length)">
 <view v-for="teacher in items" :key="teacher.id" class="teacher-card" @click="openPage('teacher/detail?id='+teacher.id)">
 <view class="row">
 <TeacherAvatar :portrait="teacher.portrait" :demo="teacher.isDemo" :size="58"/>
@@ -23,12 +23,14 @@
 </view>
 <ContentState v-if="!items.length" title="暂无相关名师"/>
 <button v-if="nextCursor" class="retry" @click="load(true)">更多名师</button>
+<SponsoredContent surface="TEACHER_LIST"/>
 </view>
 </view>
 </scroll-view>
 </view>
 </template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {Teacher} from '../../lib/api';import {openPage} from '../../lib/presentation';const query=ref('');const {items,loading,error,nextCursor,load}=useCatalog<Teacher>('teachers',()=>({category:'全部',q:query.value}));onLoad(()=>load());
+import SponsoredContent from '../../components/SponsoredContent.uvue';
+import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {Teacher} from '../../lib/api';import {openPage} from '../../lib/presentation';const query=ref('');const {items,loading,error,nextCursor,load,retry}=useCatalog<Teacher>('teachers',()=>({category:'全部',q:query.value}));let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());
 </script>
 <style>@import '../../styles/app.css';.teacher-card{border-style:solid;border-width:0;padding:16px 0;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.teacher-copy{padding-left:13px;}</style>

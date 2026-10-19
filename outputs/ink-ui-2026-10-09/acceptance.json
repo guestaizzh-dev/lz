@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-09",
+  "design": "清墨书院",
+  "scope": "App and official Ant Design Pro theme",
+  "referenceUrls": [
+    "https://www.huaxiazhigu.com/lzdxsy/",
+    "https://www.huaxiazhigu.com/about_36/"
+  ],
+  "originalWordReviewed": true,
+  "palette": {
+    "paper": "#F5F3ED",
+    "surface": "#FCFBF7",
+    "ink": "#253B36",
+    "accent": "#31564F",
+    "secondary": "#626F68",
+    "seal": "#985044"
+  },
+  "builds": {
+    "web": {
+      "success": true,
+      "warnings": 0,
+      "log": "app-web-build.log"
+    },
+    "androidSteamBytecode": {
+      "success": true,
+      "pages": 31,
+      "warnings": 0,
+      "log": "app-android-build.log"
+    },
+    "admin": {
+      "success": true,
+      "log": "admin-build.log"
+    }
+  },
+  "apiTests": {
+    "passed": 109,
+    "failed": 0,
+    "log": "api-tests.log"
+  },
+  "webGuestAcceptance": {
+    "narrow": {
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "heroWidth": 280
+    },
+    "reading": {
+      "fontSize": "21px",
+      "fontFamily": "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "documentWidth": 390,
+      "viewport": 390
+    },
+    "flows": [
+      "all main tabs",
+      "search to article",
+      "reading font control",
+      "course category filter and detail",
+      "shop to product detail",
+      "profile guest state"
+    ],
+    "authenticatedActions": false,
+    "finalConsoleErrors": 0,
+    "finalConsoleWarnings": 0
+  },
+  "additionalScreens": [
+    "teacher list and detail",
+    "community not open",
+    "events empty",
+    "membership"
+  ],
+  "authenticatedAdminVisualAcceptance": {
+    "status": "awaiting explicit permission",
+    "reason": "Automatic approval review rejected login; no bypass performed"
+  },
+  "android": {
+    "version": "0.3.2",
+    "versionCode": 7,
+    "cloudBuild": "pending",
+    "installed": false,
+    "installationCancelledByUserRollback": true,
+    "cancelResult": "Cannot cancel: already building in cloud. Package will not be installed."
+  },
+  "iosVerified": false,
+  "deployment": "local development only",
+  "gitCommitted": false,
+  "sourceHashes": {
+    "styles\\app.css": "77963dd0650913033d7b48aa24e9d7642516bf9f8e0f7735912fa23dedfff1d7",
+    "pages\\index\\index.uvue": "e88fbf1acf09045a22b29bf84ac68b7e6d7b4d06a719f3827ed7921f3ea91908",
+    "static\\fonts\\AcademyCalligraphy.ttf": "d1965d8a84b479113336a2210cfdf82bca4a879a457458b54487fecd183c3b8c"
+  },
+  "screenshots": [
+    "admin-login.png",
+    "app-academy.png",
+    "app-community-state.png",
+    "app-course.png",
+    "app-discover.png",
+    "app-events-state.png",
+    "app-home-320.png",
+    "app-home-430.png",
+    "app-home.png",
+    "app-login.png",
+    "app-membership.png",
+    "app-product.png",
+    "app-profile.png",
+    "app-reading-large.png",
+    "app-reading.png",
+    "app-search.png",
+    "app-shop.png",
+    "app-teacher-detail.png",
+    "app-teachers.png"
+  ],
+  "whiteSpaceCheckPassed": true,
+  "status": "rejected by user; UI reverted",
+  "currentImplementation": false
+}

@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "App真实OTP登录返回原订单，按服务端时间展示占位、北京时间和冻结取消规则",
+    "App待支付订单取消经实际API释放原席位，不伪造渠道付款",
+    "App从已确认报名进入付费订单，明确已支付待履约，不混淆签到或完成",
+    "App弹窗提交退票并显示审核进度，名额保留且暂停签到",
+    "Pro官方模板订单检索/详情、已验证收款及售前规则可见，联系手机号不外泄",
+    "Pro财务真实提交审核意见，生成持久退款任务；审批不等于退款成功",
+    "持久任务用隔离渠道事实确认退款，App查询更新退款状态与一次席位释放",
+    "App付费场次进入真实购买说明；Web未接原生支付，明确禁收款而非模拟成功"
+  ],
+  "errors": [],
+  "status": "passed",
+  "isolatedDatabase": true,
+  "adminSessionInjection": true,
+  "appRealOtp": true,
+  "businessResponsesMocked": false,
+  "paymentAdapterSimulated": true,
+  "commercialEvidence": false
+}

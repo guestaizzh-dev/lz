@@ -1,0 +1,17 @@
+{
+  "apk": "daoxue-academy-0.3.7.apk",
+  "bytes": 39528219,
+  "sha256": "bdf6e8d209fcd9da2b0a77adcbac4d82b408469b04d07f31c78862679a82a6d3",
+  "package": "cn.daoxue.academy",
+  "versionName": "0.3.7",
+  "versionCode": 12,
+  "minSdkVersion": 23,
+  "architecture": "arm64-v8a",
+  "apiBase": "https://academy.43-160-229-173.sslip.io/api/v1",
+  "certificateSha256": "81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248",
+  "sameCertificateAs036": true,
+  "nativeBuild": "Android uni-app x vapor bytecode cloud release",
+  "nativeSecureStoreCompiled": true,
+  "phoneInstalled": false,
+  "phoneBlocker": "User requested APK delivery; native restart acceptance pending"
+}

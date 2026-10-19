@@ -5,9 +5,9 @@
 <text class="item-title">{{item.title}}</text>
 <text v-if="item.isDemo" class="evidence-demo">演示来源 · 不作为真实资质证明</text>
 <text class="meta">{{[item.author,item.edition].filter(Boolean).join(' · ')}}</text>
-<text class="article-summary" :user-select="true">{{item.rightsHolder?'权利人：'+item.rightsHolder+'\n':''}}{{item.licenseScope??''}}</text>
+<text class="evidence-body" :user-select="true">{{item.rightsHolder?'权利人：'+item.rightsHolder+'\n':''}}{{item.licenseScope??''}}</text>
 <text v-if="item.validUntil" class="meta">有效至 {{formatChinaDate(item.validUntil)}}</text>
-<button v-if="item.sourceUrl" class="text-button evidence-link" @click="copy(item.sourceUrl)">复制公开来源链接</button>
+<button v-if="item.sourceUrl" class="evidence-copy" @click="copy(item.sourceUrl)">复制公开来源链接</button>
 </view>
 </view>
 </template>
@@ -17,6 +17,4 @@ import type {PublicEvidence} from '../lib/api';
 defineProps<{items:PublicEvidence[];title?:string}>();
 function copy(url:string){uni.setClipboardData({data:url});}
 </script>
-<style>
-.evidence-panel{margin-top:24px;padding-top:20px;border-top-style:solid;border-top-width:1px;border-top-color:#DFD9CF;}.evidence-item{padding:16px 0;}.evidence-demo{font-size:12px;line-height:20px;color:#8A6A41;margin:6px 0;}.evidence-link{align-self:flex-start;margin-top:8px;min-height:44px;}
-</style>
+<style>@import '../styles/app.css';.evidence-panel{margin-top:28px;padding-top:22px;border-top-style:solid;border-top-width:1px;border-top-color:#E4DFD4;}.evidence-item{padding-top:16px;}.evidence-demo{font-size:11px;line-height:18px;color:#8A6A41;margin-top:6px;}.evidence-body{font-family:AcademySans;font-size:14px;line-height:24px;color:#4A5B5F;margin-top:6px;}.evidence-copy{align-self:flex-start;margin-top:12px;min-height:40px;padding:8px 16px;border-style:solid;border-width:1px;border-color:#B7C2BE;border-radius:20px;background-color:transparent;color:#245564;font-family:AcademySans;font-size:13px;line-height:20px;}</style>

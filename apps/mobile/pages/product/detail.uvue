@@ -17,12 +17,14 @@
 <text class="menu-value">{{selected?.title??'尚未配置可售规格'}}</text>
 </view>
 <view v-if="product!.skus?.length" class="sku-options"><button v-for="item in product!.skus" :key="item.id" :class="['sku-button',skuId===item.id?'sku-selected':'']" @click="choose(item.id)">{{item.title}}</button></view>
-<text v-if="selected&&product!.type!=='SERVICE'" class="meta">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
+<text v-if="selected&&product!.type!=='SERVICE'" :class="['stock-note',selected!.available>0?'':'stock-out']">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
 <view v-if="product!.type!=='SERVICE'" class="menu-row">
 <text class="menu-label product-label">数量</text>
-<view class="quantity-action icon-control"><AppIcon name="minus" :size="15"/><button class="icon-hit-target" aria-label="减少数量" :disabled="quantity<=1" @click="quantity=Math.max(1,quantity-1)"></button></view>
-<text class="quantity">{{quantity}}</text>
-<view class="quantity-action icon-control"><AppIcon name="plus" :size="15"/><button class="icon-hit-target" aria-label="增加数量" :disabled="!selected||quantity>=selected!.available||quantity>=99" @click="quantity=Math.min(99,selected?.available??1,quantity+1)"></button></view>
+<view class="stepper">
+<button class="stepper-button" :class="quantity<=1?'is-disabled':''" aria-label="减少数量" @click="dec"><AppIcon name="minus" :size="14"/></button>
+<text class="stepper-value">{{quantity}}</text>
+<button class="stepper-button" :class="canAdd?'':'is-disabled'" aria-label="增加数量" @click="inc"><AppIcon name="plus" :size="14"/></button>
+</view>
 </view>
 <view class="detail-tabs">
 <view v-for="item in ['商品详情','文化溯源','售后说明']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
@@ -37,9 +39,9 @@
 </view>
 </view>
 </scroll-view>
-<BottomBar v-if="product"><button v-if="product!.type==='SERVICE'" class="bar-primary" :disabled="!selected?.serviceOfferingId" @click="serviceBook">选择服务时段</button>
-<button v-if="product!.type!=='SERVICE'" class="bar-secondary" :disabled="busy||!selected||selected!.available<quantity||product!.type!=='PHYSICAL'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
-<button v-if="product!.type!=='SERVICE'" class="bar-primary" :disabled="!selected||selected!.available<quantity||product!.type!=='PHYSICAL'" @click="buy()">确认规格与配送</button>
+<BottomBar v-if="product"><button v-if="product!.type==='SERVICE'" class="bar-primary" :class="selected?.serviceOfferingId?'':'is-disabled'" @click="serviceBook">选择服务时段</button>
+<button v-if="product!.type!=='SERVICE'" class="bar-secondary" :class="canBuy&&!busy?'':'is-disabled'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
+<button v-if="product!.type!=='SERVICE'" class="bar-primary" :class="canBuy?'':'is-disabled'" @click="buy()">确认规格与配送</button>
 </BottomBar>
 </view>
 </template>
@@ -49,7 +51,7 @@ import SourceEvidence from '../../components/SourceEvidence.uvue';
 import RelatedContent from '../../components/RelatedContent.uvue';
 import BottomBar from '../../components/BottomBar.uvue';
 import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Product} from '../../lib/api';import {viewWidth,artwork,openPage,shareContent,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';
-const width=viewWidth(),product=ref<Product|null>(null),error=ref(''),quantity=ref(1),tab=ref('商品详情'),skuId=ref(''),busy=ref(false);const selected=computed(()=>product.value?.skus?.find(item=>item.id===skuId.value)??null);let id='';async function load(){error.value='';try{product.value=await request<Product>('/catalog/products/'+encodeURIComponent(id));if(!product.value.skus?.some(item=>item.id===skuId.value))skuId.value=product.value.skus?.[0]?.id??'';}catch(e){product.value=null;error.value=(e as Error).message;}}function choose(value:string){skuId.value=value;quantity.value=1;}
+const width=viewWidth(),product=ref<Product|null>(null),error=ref(''),quantity=ref(1),tab=ref('商品详情'),skuId=ref(''),busy=ref(false);const selected=computed(()=>product.value?.skus?.find(item=>item.id===skuId.value)??null);const canAdd=computed(()=>!!selected.value&&quantity.value<selected.value.available&&quantity.value<99),canBuy=computed(()=>!!selected.value&&product.value?.type==='PHYSICAL'&&selected.value.available>=quantity.value);function dec(){quantity.value=Math.max(1,quantity.value-1);}function inc(){if(canAdd.value)quantity.value=quantity.value+1;}let id='';async function load(){error.value='';try{product.value=await request<Product>('/catalog/products/'+encodeURIComponent(id));if(!product.value.skus?.some(item=>item.id===skuId.value))skuId.value=product.value.skus?.[0]?.id??'';}catch(e){product.value=null;error.value=(e as Error).message;}}function choose(value:string){skuId.value=value;quantity.value=1;}
 function copySource(url:string){uni.setClipboardData({data:url});}
 async function share(){
   if(!product.value)return;
@@ -73,9 +75,9 @@ async function share(){
   }catch(e){
     uni.showToast({title:'生成分享链接失败',icon:'none'});
   }
-}async function cart(){if(busy.value||needLogin()||!selected.value)return;busy.value=true;try{await request('/shopping/cart/'+selected.value.id,{method:'PUT',data:{quantity:quantity.value}});uni.showToast({title:'购物车数量已更新',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function serviceBook(){if(!selected.value?.serviceOfferingId)return;openPage('booking/confirm?offeringId='+selected.value.serviceOfferingId+'&skuId='+selected.value.id);}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
+}async function cart(){const sku=selected.value;if(busy.value||needLogin()||!sku||!canBuy.value){if(sku&&!canBuy.value)uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}busy.value=true;try{await request('/shopping/cart/'+sku.id,{method:'PUT',data:{quantity:quantity.value}});uni.showToast({title:'购物车数量已更新',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function serviceBook(){if(!selected.value?.serviceOfferingId)return;openPage('booking/confirm?offeringId='+selected.value.serviceOfferingId+'&skuId='+selected.value.id);}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}if(!canBuy.value){uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
 
 const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
 onShow(()=>{relatedRef.value?.refresh();});
 </script>
-<style>@import '../../styles/app.css';.product-price{margin:16px 0 10px;}.product-label{margin-left:0;}.quantity-action{border-style:solid;border-width:0;width:36px;height:40px;align-items:center;justify-content:center;padding:0;margin:0;background-color:transparent;border-width:0;}.quantity{font-size:14px;color:#17292D;padding:0 12px;line-height:21px;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:12px;}.sku-button{font-size:12px;line-height:22px;color:#637276;background-color:#FAF8F2;min-height:44px;border-radius:3px;border-style:solid;border-width:1px;border-color:#D8D4CA;padding:10px 14px;margin:0 8px 8px 0;}.sku-selected{color:#245564;background-color:#E5ECE9;border-color:#245564;}.product-promotion{padding:16px;margin-top:16px;background-color:#EEE9DF;border-radius:4px;}</style>
+<style>@import '../../styles/app.css';.product-price{margin:18px 0 10px;}.product-label{margin-left:0;}.stepper{flex-direction:row;align-items:center;border-style:solid;border-width:1px;border-color:#DCD6CB;border-radius:23px;overflow:hidden;}.stepper-button{width:40px;height:40px;min-height:40px;padding:0;margin:0;background-color:transparent;border-width:0;align-items:center;justify-content:center;}.stepper-value{min-width:34px;text-align:center;font-size:14px;color:#17292D;line-height:20px;}.stock-note{font-family:AcademySans;font-size:12px;line-height:20px;color:#6B7578;margin-top:8px;}.stock-out{color:#B95543;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.sku-button{font-size:14px;line-height:24px;color:#344C54;background-color:#FAF8F2;min-height:44px;border-radius:6px;border-style:solid;border-width:1px;border-color:#DCD6CB;padding:10px 16px;margin:0 8px 8px 0;}.sku-selected{color:#245564;background-color:#E7EEE9;border-color:#245564;font-weight:600;}.product-promotion{padding:16px;margin-top:16px;background-color:#EDE8DE;border-radius:8px;}</style>

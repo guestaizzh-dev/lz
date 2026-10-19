@@ -8,7 +8,7 @@
 <ContentState v-if="error||loading" :loading="loading" :error="error" @retry="search(failedAppend)"/>
 <view v-for="item in items" :key="item.id" class="result" @click="openContent(item)"><text class="tag">{{typeNames[item.type]}}{{item.visibility==='MEMBER'?' · 会员专享':''}}{{item.isDemo?' · 示例':''}}</text><text class="item-title">{{item.title}}</text><text class="article-summary">{{item.summary}}</text><text class="meta">{{item.tags.join(' · ')}}</text></view>
 <ContentState v-if="!loading&&!error&&!items.length" title="没有找到相关内容" description="试试更短的关键词，或切换标签和类型。"/>
-<button v-if="hasMore" class="retry" :disabled="loading" @click="search(true)">加载更多</button>
+<button v-if="hasMore" :class="['retry',loading?'is-disabled':'']" @click="search(true)">加载更多</button>
 </view></scroll-view></view>
 </template>
 <script setup lang="ts">
@@ -20,4 +20,4 @@ let failedAppend=false;
 async function search(append=false){if(append&&loading.value)return;const seq=++sequence;const next=append?page+1:1;failedAppend=append;loading.value=true;error.value='';if(!append)items.value=[];try{if(!append)appliedQuery='?q='+encodeURIComponent(keyword.value.trim())+'&sort='+sort.value+(type.value?'&type='+type.value:'')+(tag.value?'&tag='+encodeURIComponent(tag.value):'');const query=appliedQuery+'&page='+next;const r=await request<{items:DiscoveryItem[];total:number;hasMore:boolean}>('/discovery/search'+query);if(seq!==sequence)return;items.value=append?[...items.value,...r.items]:r.items;total.value=r.total;hasMore.value=r.hasMore;page=next;}catch(e){if(seq===sequence)error.value=(e as Error).message;}finally{if(seq===sequence)loading.value=false;}}
 onLoad(async options=>{keyword.value=options?.q??'';search();try{tags.value=await request('/discovery/tags');}catch{}});
 </script>
-<style>@import '../../styles/app.css';.filter-row{flex-direction:row;margin-bottom:12px;}.filter,.filter-active{font-size:12px;line-height:24px;padding:4px 10px;color:#637276;flex-shrink:0;}.filter-active{color:#245564;background-color:#EEE9DF;border-radius:3px;}.result{padding:20px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;}</style>
+<style>@import '../../styles/app.css';.filter-row{flex-direction:row;margin-bottom:12px;}.filter,.filter-active{font-size:13px;line-height:20px;padding:7px 12px;margin-right:8px;border-radius:16px;border-style:solid;border-width:1px;border-color:transparent;color:#6B7578;flex-shrink:0;}.filter-active{color:#245564;background-color:#E9EFEB;border-color:#B7C6C0;font-weight:600;}.result{padding:20px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#E4DFD4;}</style>

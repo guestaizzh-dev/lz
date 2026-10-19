@@ -23,7 +23,7 @@
 <view v-if="!error&&(!loading||articles.length)">
 <ArticleRow v-for="article in articles" :key="article.id" :article="article"/>
 <ContentState v-if="!articles.length" title="没有找到相关内容" description="换个关键词，或看看其他分类。"/>
-<button v-if="nextCursor" class="retry" :disabled="loadingMore" @click="load(true)">更多文章</button>
+<button v-if="nextCursor" :class="['retry',loadingMore?'is-disabled':'']" @click="load(true)">更多文章</button>
 </view>
 </view>
 </scroll-view>

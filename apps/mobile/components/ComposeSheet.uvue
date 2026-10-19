@@ -1,13 +1,13 @@
 <template>
 <view v-if="visible" class="compose-mask" :style="{bottom:keyboardBottom+'px'}" @click="close">
 <view class="compose-sheet" :style="{paddingBottom:Math.max(16,safeBottom)+'px',maxHeight:Math.max(0,windowHeight-keyboardBottom)+'px'}" @click.stop="">
-<view class="compose-head"><view class="compose-heading"><text class="compose-title">{{title}}</text><text v-if="subtitle" class="compose-subtitle">{{subtitle}}</text></view><button class="compose-close" aria-label="关闭编辑器" :disabled="saving" @click="close"><AppIcon name="x" :size="20"/></button></view>
+<view class="compose-head"><view class="compose-heading"><text class="compose-title">{{title}}</text><text v-if="subtitle" class="compose-subtitle">{{subtitle}}</text></view><button class="compose-close" :class="saving?'is-disabled':''" aria-label="关闭编辑器" @click="close"><AppIcon name="x" :size="20"/></button></view>
 <scroll-view direction="vertical" class="compose-body" :style="{maxHeight:Math.max(72,windowHeight-keyboardBottom-180)+'px'}"><slot/>
 <scroll-view v-if="quote" direction="vertical" class="compose-quote"><text class="compose-quote-text" :user-select="true">{{quote}}</text></scroll-view>
 <textarea :class="['compose-input',inputFocused?'compose-input-focused':'']" :value="modelValue" :maxlength="maxlength??10000" :placeholder="placeholder??'写下你的想法…'" :focus="focused" :adjust-position="false" :disabled="saving" @focus="inputFocused=true" @blur="inputFocused=false" @input="emit('update:modelValue',$event.detail.value)"/>
 </scroll-view>
 <text v-if="error" class="compose-error">{{error}}</text>
-<view class="compose-footer"><text class="compose-count">{{modelValue.length}} / {{maxlength??10000}}</text><button :class="['compose-submit',saving||disabled?'compose-submit-disabled':'']" :disabled="saving||disabled" @click="emit('submit')">{{saving?'保存中…':submitLabel??'保存'}}</button></view>
+<view class="compose-footer"><text class="compose-count">{{modelValue.length}} / {{maxlength??10000}}</text><button :class="['compose-submit',saving||disabled?'compose-submit-disabled':'']" @click="submit">{{saving?'保存中…':submitLabel??'保存'}}</button></view>
 </view></view>
 </template>
 <script setup lang="ts">
@@ -19,6 +19,7 @@ const windowHeight=ref(uni.getWindowInfo().windowHeight);onResize(options=>{wind
 const focused=ref(false),inputFocused=ref(false),keyboardBottom=ref(0);let initialHeight=uni.getWindowInfo().windowHeight;
 watch(()=>props.visible,visible=>{focused.value=false;if(visible){initialHeight=uni.getWindowInfo().windowHeight;windowHeight.value=initialHeight;nextTick(()=>focused.value=true);}else keyboardBottom.value=0;},{immediate:true});
 function close(){if(!props.saving)emit('close');}
+function submit(){if(!props.saving&&!props.disabled)emit('submit');}
 // #ifdef APP
 function keyboard(event:{height:number}){windowHeight.value=uni.getWindowInfo().windowHeight;keyboardBottom.value=Math.max(0,event.height-Math.max(0,initialHeight-uni.getWindowInfo().windowHeight));}
 const keyboardListener=uni.onKeyboardHeightChange(keyboard);onUnmounted(()=>uni.offKeyboardHeightChange(keyboardListener));

@@ -29,7 +29,7 @@
 <view v-if="!error&&(!loading||courses.length)">
 <CourseRow v-for="course in visible" :key="course.id" :course="course"/>
 <ContentState v-if="!visible.length" title="这一类课程正在筹备" description="试试其他分类，开启一段新的研习。"/>
-<button v-if="nextCursor" class="retry" :disabled="loadingMore" @click="load(true)">更多课程</button>
+<button v-if="nextCursor" :class="['retry',loadingMore?'is-disabled':'']" @click="load(true)">更多课程</button>
 </view>
 </view>
 </scroll-view>

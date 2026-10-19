@@ -32,7 +32,9 @@ function perform<T>(path: string, options: RequestOptions = {}): Promise<T> {
           const detail = data?.message;
           const message = Array.isArray(detail) ? detail.join('；') : detail ?? '操作暂时无法完成';
           const smsNotice = response.statusCode === 503 && path === '/auth/sms' && ['短信登录尚未开通，请联系书院', '短信服务暂不可用，请稍后再试', '预览测试账号不可用'].includes(message);
-          const error = new Error(response.statusCode >= 500 && !smsNotice ? '服务暂时繁忙，请稍后重试' : /^Cannot (GET|POST|PUT|PATCH|DELETE)\b/.test(message) ? '内容暂时无法打开，请返回上一页重新进入' : message);
+          // Never surface Nest/class-validator contract text such as "property X should not exist".
+          const contractError = /property \w+ should not exist|^[A-Za-z]\w* (must|should) /.test(message);
+          const error = new Error(response.statusCode >= 500 && !smsNotice ? '服务暂时繁忙，请稍后重试' : contractError ? '这项内容暂时无法使用，请稍后重试' : /^Cannot (GET|POST|PUT|PATCH|DELETE)\b/.test(message) ? '内容暂时无法打开，请稍后重试' : message);
           (error as Error & { status: number }).status = response.statusCode; reject(error);
         }
       },

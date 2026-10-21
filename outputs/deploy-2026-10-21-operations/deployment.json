@@ -1,0 +1,21 @@
+{
+  "release": "20261021-operations-simplification-01",
+  "apiSourceCommit": "5dc041d1a5e6b09244cd6ac6d05616e53139d61c",
+  "adminGuideCommit": "18414bd",
+  "host": "43.160.229.173",
+  "apiHealthy": true,
+  "databaseMigrations": 74,
+  "publicTablesIncludingMigrations": 192,
+  "originalBusinessTablesCountPreserved": 16,
+  "databaseAndMediaBackupSha256Verified": true,
+  "environmentChangedNames": [
+    "API_IMAGE_TAG"
+  ],
+  "productionRecordingReady": true,
+  "otherProjectServicesChanged": false,
+  "diskAvailableGB": 5.3,
+  "commercialAcceptance": "38/131 unchanged",
+  "phoneAcceptance": false,
+  "iosAcceptance": false,
+  "rollbackPolicy": "After activating new API, use forward repair; do not restore old Prisma client/database over nullable-proof or administrator-confirmed business facts."
+}

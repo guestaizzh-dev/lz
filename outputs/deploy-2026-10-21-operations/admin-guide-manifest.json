@@ -1,0 +1,7 @@
+{
+  "commit": "18414bd223467024fa3adb45cea7ebf9e3e0261f",
+  "sha256": "cfda7b32607d5b95c9e295b170d534c01ddcede7fc051751ec1d9603930a3a79",
+  "indexSha256": "975d23ca5ab9b138d3212c8dac467b4d018a400438654053296854625e66134a",
+  "reason": "Align remaining finance guide copy with implemented administrator policy",
+  "retainsOldHashedAssets": true
+}

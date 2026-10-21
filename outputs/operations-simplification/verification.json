@@ -1,0 +1,26 @@
+{
+  "apiFinal": {
+    "passed": 21,
+    "failed": 0,
+    "files": [
+      "operations-simplification.test.mjs",
+      "content.test.mjs"
+    ]
+  },
+  "linkedPrevious": {
+    "passed": 45,
+    "failed": 0
+  },
+  "browser": {
+    "passedGroups": 8,
+    "jsErrors": 0
+  },
+  "largeMedia": {
+    "realFileMB": 235,
+    "resumeTranscodeRangePassed": true
+  },
+  "adminBuild": true,
+  "appWebBuild": true,
+  "androidVaporPageCount": 74,
+  "nativeAcceptance": false
+}

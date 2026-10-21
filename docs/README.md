@@ -2,7 +2,7 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新直播API、后台与官方Linux录制器已于2026-10-21上线，见[24部署记录](24-online-deployment.md)和[86直播交互](86-live-ui-and-interaction-polish.md)；未重新打包App。一眼看懂业务与技术见[87总体链路与架构图](87-project-business-and-architecture-map.md)。
+最新运营简化已上线：分类、图片上传、管理员直接发布/履约、九组导航和操作指南，见[88运营简化](88-admin-operations-simplification.md)与[24部署记录](24-online-deployment.md)。App动态分类同步实现，Android0.3.14云打包中。业务与技术总览见[87总体链路与架构图](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 
@@ -19,9 +19,9 @@
 
 | 项 | 值 |
 | --- | --- |
-| 线上版本 | `20261021-live-recording-01`，73次迁移，191张表（含迁移表） |
+| 线上版本 | `20261021-operations-simplification-01`，74次迁移，192张表（含迁移表） |
 | 线上地址 | https://academy.43-160-229-173.sslip.io（后台 `/user/login`） |
-| 安装包 | 最近留存Android0.3.13/code18；本次只部署API/后台/服务端录制，未新打包，85/86的App源码更新不自动进入旧包 |
+| 安装包 | Android0.3.14/code19已编译，云打包中；旧安装包不会自动获得App源码更新 |
 | 演示账号 | 学员 `19900001002` / 验证码 `123456`（预览入口 10-25 到期）；后台 admin 口令见 `.runtime/online-admin-access.json` |
 | 商用完成度 | 38/131（29.0%），卡在收款、短信、上架、云媒体、推送、版权六道真实门禁 |
 | 代码规模 | 后端 104 模块、App 76 页、后台 86 页 |

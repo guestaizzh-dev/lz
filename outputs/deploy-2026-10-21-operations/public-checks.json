@@ -1,0 +1,87 @@
+{
+  "release": "20261021-operations-simplification-01",
+  "checks": [
+    {
+      "path": "/api/v1/health",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/catalog/home",
+      "status": 200
+    },
+    {
+      "path": "/user/login",
+      "status": 200
+    },
+    {
+      "path": "/content/live",
+      "status": 200
+    },
+    {
+      "path": "/guide?workflow=daily-operations",
+      "status": 200
+    },
+    {
+      "path": "/categories",
+      "status": 200
+    },
+    {
+      "path": "/courses",
+      "status": 200
+    },
+    {
+      "path": "/products",
+      "status": 200
+    },
+    {
+      "path": "/events",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/live/player/client.js",
+      "sha256Matched": true
+    },
+    {
+      "path": "/api/v1/live/player/client.css",
+      "sha256Matched": true
+    },
+    {
+      "path": "/",
+      "sha256Matched": true
+    },
+    {
+      "path": "/api/v1/admin/live/broadcasts",
+      "status": 200,
+      "recordingReady": true,
+      "broadcasts": 1
+    },
+    {
+      "categories": "ARTICLE",
+      "publicAndAdmin": true,
+      "count": 4
+    },
+    {
+      "categories": "COURSE",
+      "publicAndAdmin": true,
+      "count": 4
+    },
+    {
+      "categories": "PRODUCT",
+      "publicAndAdmin": true,
+      "count": 5
+    },
+    {
+      "categories": "EVENT",
+      "publicAndAdmin": true,
+      "count": 5
+    },
+    {
+      "path": "/api/v1/admin/images",
+      "status": 200
+    }
+  ],
+  "adminLogin": true,
+  "temporarySessionLoggedOut": true,
+  "businessRowsCreated": false,
+  "newNativePackage": "tracked separately"
+}

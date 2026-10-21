@@ -44,12 +44,16 @@ export class Categories {
       return {success:true,count:dto.items.length};
     });
   }
-  async decorate<T>(scope: Scope, value: T, display=false): Promise<T> {
-    const rows=await this.db.catalogCategory.findMany({where:{scope},select:{code:true,label:true}});
+  async decorate<T>(scope: Scope, value: T, display=false, loaded?:{code:string;label:string}[]): Promise<T> {
+    const rows=loaded??await this.db.catalogCategory.findMany({where:{scope},select:{code:true,label:true}});
     const label=(item: any)=>item&&typeof item==='object'&&typeof item.category==='string'?{...item,categoryLabel:rows.find(row=>row.code===item.category)?.label??item.category,...(display?{categoryCode:item.category,category:rows.find(row=>row.code===item.category)?.label??item.category}:{})}:item;
     if(Array.isArray(value))return value.map(label) as T;
     if(value&&typeof value==='object'&&'items' in value)return {...value,items:(value as any).items.map(label)};
     return label(value);
+  }
+  async decorateHome<T extends {articles:unknown[];courses:unknown[];products:unknown[];events:unknown[]}>(data:T){
+    const rows=await this.db.catalogCategory.findMany({where:{scope:{in:['ARTICLE','COURSE','PRODUCT','EVENT']}},select:{scope:true,code:true,label:true}}),[articles,courses,products,events]=await Promise.all([this.decorate('ARTICLE',data.articles,true,rows.filter(r=>r.scope==='ARTICLE')),this.decorate('COURSE',data.courses,true,rows.filter(r=>r.scope==='COURSE')),this.decorate('PRODUCT',data.products,true,rows.filter(r=>r.scope==='PRODUCT')),this.decorate('EVENT',data.events,true,rows.filter(r=>r.scope==='EVENT'))]);
+    return{...data,articles,courses,products,events};
   }
   async list(scope: Scope, admin = false, current?:string) {
     const items = await this.db.catalogCategory.findMany({ where: { scope, ...(!admin ? {OR:[{enabled:true},...(current?[{code:current}]:[])]} : {}) }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] });

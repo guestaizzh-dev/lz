@@ -1,0 +1,30 @@
+{
+  "apk": "daoxue-academy-0.3.16.apk",
+  "bytes": 50010398,
+  "sha256": "9d66d9665b4ed8bf7c977c963eb503aa932455852a3d1ad4efde3eff73309669",
+  "package": "cn.daoxue.academy",
+  "versionName": "0.3.16",
+  "versionCode": 21,
+  "minSdkVersion": 23,
+  "architecture": "arm64-v8a",
+  "apiBase": "https://academy.43-160-229-173.sslip.io/api/v1",
+  "certificateSha256": "81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248",
+  "sameCertificateAs0310": true,
+  "nativeBuild": "Android uni-app x vapor bytecode cloud release",
+  "nativeSecureStoreCompiled": true,
+  "systemPush": false,
+  "inAppMessages": true,
+  "previewOnly": true,
+  "phoneInstalled": false,
+  "phoneBlocker": "No phone acceptance requested",
+  "sourceFilesCompared": 501,
+  "authorizedPreviewOverrides": [
+    "lib/notifications.ts",
+    "pages/profile/settings.uvue"
+  ],
+  "jarSignatureVerified": true,
+  "nativeRTCCompiled": true,
+  "nativeOfflineCompiled": true,
+  "invalidNativeSelectors": 0,
+  "phoneAcceptance": false
+}

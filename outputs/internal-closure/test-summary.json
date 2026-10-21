@@ -1,0 +1,19 @@
+{
+  "backendFull": {
+    "tests": 820,
+    "passed": 820,
+    "failed": 0,
+    "isolatedDatabase": true
+  },
+  "boundaryRegression": {
+    "tests": 68,
+    "passed": 68
+  },
+  "homeRegression": {
+    "tests": 37,
+    "passed": 37
+  },
+  "browserFlows": 9,
+  "browserRuntimeErrors": 0,
+  "commercialAcceptance": false
+}

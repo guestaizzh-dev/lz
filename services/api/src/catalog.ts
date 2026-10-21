@@ -54,14 +54,14 @@ export class CatalogService {
     return { take: query.size + 1, ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}), orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }] };
   }
   async home() {
-    const settings = this.config ? (await this.config.current('catalog')).value : configDefaults.catalog;
+    const [settings,scope]=await Promise.all([this.config?this.config.current('catalog').then(r=>r.value):Promise.resolve(configDefaults.catalog),this.publicScope()]);
     const [articles, courses, products, events] = await Promise.all([
-      this.db.article.findMany({ where: await this.publicScope(), select: articlePreview, orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: settings.homeArticles }),
-      this.db.course.findMany({ where: { ...await this.publicScope(), teacher: await this.publicScope() }, include: { teacher: { select: teacherPreview } }, orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }], take: settings.homeCourses }),
-      this.db.product.findMany({ where: await this.publicScope(), orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }], take: settings.homeProducts }),
-      this.db.event.findMany({ where: await this.publicScope(), orderBy: { startsAt: 'asc' }, take: settings.homeEvents }),
+      this.db.article.findMany({ where: scope, select: articlePreview, orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: settings.homeArticles }),
+      this.db.course.findMany({ where: { ...scope, teacher: scope }, include: { teacher: { select: teacherPreview } }, orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }], take: settings.homeCourses }),
+      this.db.product.findMany({ where: scope, orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }], take: settings.homeProducts }),
+      this.db.event.findMany({ where: scope, orderBy: { startsAt: 'asc' }, take: settings.homeEvents }),
     ]);
-    return { articles, courses: await this.courseCards(courses), products, events, development: process.env.NODE_ENV !== 'production', demoContentVisible: !(await this.publicScope()).isDemo };
+    return { articles, courses: await this.courseCards(courses), products, events, development: process.env.NODE_ENV !== 'production', demoContentVisible: !scope.isDemo };
   }
   async articles(query: CatalogQuery = new CatalogQuery()) {
     return page(await this.db.article.findMany({ where: await this.scope(query), select: articlePreview, ...this.pagination(query) }), query.size);
@@ -148,7 +148,7 @@ export class CatalogService {
 @Controller('catalog')
 export class CatalogController {
   constructor(private readonly catalog: CatalogService, private readonly categories:Categories) {}
-  @Get('home') async home() {const data=await this.catalog.home();return {...data,articles:await this.categories.decorate('ARTICLE',data.articles,true),courses:await this.categories.decorate('COURSE',data.courses,true),products:await this.categories.decorate('PRODUCT',data.products,true),events:await this.categories.decorate('EVENT',data.events,true)};}
+  @Get('home') async home() {return this.categories.decorateHome(await this.catalog.home());}
   @Get('articles') articles(@Query() query: CatalogQuery) { return this.catalog.articles(query).then(value=>this.categories.decorate('ARTICLE',value,true)); }
   @Get('articles/:id') @UseGuards(OptionalUserGuard) article(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { return this.catalog.article(id, req.actor?.id).then(value=>this.categories.decorate('ARTICLE',value,true)); }
   @Get('courses') courses(@Query() query: CatalogQuery) { return this.catalog.courses(query).then(value=>this.categories.decorate('COURSE',value,true)); }

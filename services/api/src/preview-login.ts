@@ -8,7 +8,10 @@ export function previewLoginConfig(env: NodeJS.ProcessEnv = process.env) {
   const expiresAt = new Date(env.PREVIEW_LOGIN_EXPIRES_AT ?? '');
   if (!userId || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(userId) || !code || !/^\d{6}$/.test(code)) throw new Error('Preview login requires a pinned user ID and six-digit code');
   if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() > Date.now() + 7 * 86400_000) throw new Error('Preview login requires an expiry within seven days');
-  if (env.SMS_ENABLED !== 'false' || ['PRODUCT_SALES_ENABLED', 'COURSE_WECHAT_ENABLED', 'COURSE_ALIPAY_ENABLED', 'MEMBERSHIP_SALES_ENABLED', 'APPLE_IAP_ENABLED', 'APPLE_MEMBERSHIP_SALES_ENABLED'].some(name => env[name] === 'true')) throw new Error('Preview login requires SMS and real payments to remain disabled');
+  // 预览登录只允许在“无真实渠道”下存在；销售开关必须与模拟收款同时开启。
+  if (env.SMS_ENABLED !== 'false' || ['COURSE_WECHAT_ENABLED', 'COURSE_ALIPAY_ENABLED', 'APPLE_IAP_ENABLED', 'APPLE_MEMBERSHIP_SALES_ENABLED'].some(name => env[name] === 'true')) throw new Error('Preview login requires SMS and real payment channels to remain disabled');
+  const simulatedSales = ['PRODUCT_SALES_ENABLED', 'MEMBERSHIP_SALES_ENABLED', 'BOOKING_SALES_ENABLED', 'COHORT_SALES_ENABLED'].some(name => env[name] === 'true');
+  if (simulatedSales && env.PAYMENT_SIMULATION_ENABLED !== 'true') throw new Error('Preview login requires simulated payments when sales are enabled');
   return expiresAt > new Date() ? { userId, code, expiresAt } : null;
 }
 

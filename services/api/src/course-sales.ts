@@ -24,7 +24,7 @@ import { ModuleRef } from '@nestjs/core';
 const hash=(value:unknown)=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const safe=(value:unknown)=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?v.toString():v));
 const now=()=>new Date();
-class QuoteQuery { @IsOptional() @IsUUID() groupOfferId?:string; @IsOptional() @IsUUID() groupId?:string; @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; @IsOptional() @IsIn(['WECHAT_APP','ALIPAY_APP']) channel:AppPaymentChannel='WECHAT_APP'; }
+class QuoteQuery { @IsOptional() @IsUUID() groupOfferId?:string; @IsOptional() @IsUUID() groupId?:string; @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; @IsOptional() @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel:AppPaymentChannel='WECHAT_APP'; }
 class CheckoutDto extends QuoteQuery { @IsUUID() courseId!:string; @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; }
 class OrderPage {
   @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1;
@@ -426,3 +426,4 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   @Post(':id/refresh') refresh(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['FINANCE','SUPPORT']);return this.sales.adminRefresh(id);}
   @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:RefundReviewDto){return this.sales.reviewRefund(id,req,dto);}
 }
+

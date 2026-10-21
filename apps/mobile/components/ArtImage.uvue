@@ -24,7 +24,7 @@ const sheetStyle = computed(() => {
 });
 </script>
 <style>
-.art-window { position: relative; overflow: hidden; flex-shrink: 0; background-color: #E8E3D9; }
+.art-window { position: relative; overflow: hidden; flex-shrink: 0; background-color: #EFE9DC; }
 .art-sheet { position: absolute; }
 .art-original { width: 100%; height: 100%; }
 </style>

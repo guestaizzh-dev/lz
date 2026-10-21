@@ -29,7 +29,7 @@ class MediaQuery extends TableQuery {
   @IsOptional() @IsIn(['UPLOADING','PROCESSING','REVIEW','READY','REJECTED','DELETED']) assetStatus?:string;
 }
 type FileUpload = { buffer: Buffer; originalname: string; mimetype: string; size: number };
-type Ticket = {offlineRegistrationId?:string;referralProofKind?:string;referralProofId?:string;giftContractId?:string;giftSettlementId?:string; uploadId?:string; threadVersion?:number; forumMedia?:boolean; evidenceId?:string; evidenceVersion?:number; evidenceResourceId?:string; evidenceScope?:string; articleId?:string; articleVersion?:number; articleBlockId?:string; articlePreview?:boolean; replayReviewId?:string; replayVersion?:number; liveSessionId?:string; lessonId?: string; cohortId?:string; submissionId?: string; checkinId?:string; threadId?:string; assetId?: string; userId?: string; sessionId?: string; sessionKind?: string; expires: number };
+type Ticket = {offlineRegistrationId?:string;referralProofKind?:string;referralProofId?:string;giftContractId?:string;giftSettlementId?:string; uploadId?:string; threadVersion?:number; forumMedia?:boolean; evidenceId?:string; evidenceVersion?:number; evidenceResourceId?:string; evidenceScope?:string; articleId?:string; articleVersion?:number; articleBlockId?:string; articlePreview?:boolean; replayReviewId?:string; replayVersion?:number; liveSessionId?:string; digitalDeliveryId?:string; lessonId?: string; cohortId?:string; submissionId?: string; checkinId?:string; threadId?:string; assetId?: string; userId?: string; sessionId?: string; sessionKind?: string; expires: number };
 @Injectable()
 export class MediaService {
   // Single-process local delivery: restarting invalidates tickets; object storage/CDN replaces this for scaled deployment.
@@ -205,6 +205,17 @@ export class MediaService {
     const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');
     return {path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url'),expiresAt:new Date(payload.expires).toISOString(),subtitles:subtitleCues(replay.subtitleText,replay.durationSeconds),notes:replay.notes};
   }
+  async digitalFile(deliveryId:string,assetId:string,req:AuthRequest){
+    const delivery=await this.db.digitalDelivery.findFirst({where:{id:deliveryId,userId:req.actor.id,revokedAt:null}});
+    if(!delivery||delivery.startsAt>new Date()||(delivery.expiresAt&&delivery.expiresAt<=new Date()))throw new ForbiddenException('数字资料已失效或已过期');
+    if(!await this.db.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId}}))throw new NotFoundException('数字资料不存在');
+    const asset=await this.db.mediaAsset.findFirst({where:{id:assetId,status:'READY',visibility:'PRIVATE'}});
+    if(!asset)throw new NotFoundException('数字资料暂时不可用');
+    try{await stat(resolve(this.root,asset.storageKey));}catch{throw new NotFoundException('数字资料暂时不可用');}
+    const payload:Ticket={digitalDeliveryId:deliveryId,assetId,userId:req.actor.id,sessionId:req.authSessionId,sessionKind:'APP',expires:Date.now()+10*60000};
+    const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');
+    return{path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url'),mime:asset.mime,name:asset.name,expiresAt:new Date(payload.expires).toISOString()};
+  }
   async stream(token: string, req: Request, res: Response) {
     if (!token || token.length > 1000) throw new UnauthorizedException('播放凭证无效');
     const [encoded, signature, extra] = token.split('.');
@@ -212,7 +223,7 @@ export class MediaService {
     if (!signature || extra || signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) throw new UnauthorizedException('播放凭证无效');
     let ticket: Ticket;
     try { ticket = JSON.parse(Buffer.from(encoded!, 'base64url').toString()); } catch { throw new UnauthorizedException('播放凭证无效'); }
-    if ((!ticket.referralProofId && !ticket.giftContractId && !ticket.giftSettlementId && !ticket.evidenceId && !ticket.articleId && !ticket.replayReviewId && !ticket.liveSessionId && !ticket.lessonId && !ticket.submissionId && !ticket.checkinId && !ticket.threadId && !ticket.uploadId) || !Number.isFinite(ticket.expires) || ticket.expires <= Date.now()) throw new UnauthorizedException('媒体凭证已过期，请重新打开');
+    if ((!ticket.referralProofId && !ticket.giftContractId && !ticket.giftSettlementId && !ticket.evidenceId && !ticket.articleId && !ticket.replayReviewId && !ticket.liveSessionId && !ticket.lessonId && !ticket.submissionId && !ticket.checkinId && !ticket.threadId && !ticket.uploadId && !ticket.digitalDeliveryId) || !Number.isFinite(ticket.expires) || ticket.expires <= Date.now()) throw new UnauthorizedException('媒体凭证已过期，请重新打开');
     let assetId: string | null = null;
     if (ticket.userId) {
       const session = await this.db.authSession.findFirst({ where: { id: ticket.sessionId ?? '', userId: ticket.userId, kind: ticket.sessionKind ?? 'APP', revokedAt: null, expiresAt: { gt: new Date() }, user: { status: 'ACTIVE' } }, include: { user: true } });
@@ -229,6 +240,12 @@ export class MediaService {
         assetId = ticket.assetId ?? null;
       }
       if(ticket.checkinId){await this.practices.checkinAccess(ticket.checkinId,session.user);if(!await this.db.attachmentBinding.findFirst({where:{checkinId:ticket.checkinId,assetId:ticket.assetId??''}}))throw new NotFoundException('实践图片不存在');assetId=ticket.assetId??null;}
+      if(ticket.digitalDeliveryId){
+        const delivery=await this.db.digitalDelivery.findFirst({where:{id:ticket.digitalDeliveryId,userId:session.user.id,revokedAt:null}});
+        if(!delivery||delivery.startsAt>new Date()||(delivery.expiresAt&&delivery.expiresAt<=new Date()))throw new ForbiddenException('数字资料已失效或已过期');
+        if(!await this.db.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId:ticket.assetId??''}}))throw new NotFoundException('数字资料不存在');
+        assetId=ticket.assetId??null;
+      }
       if(ticket.threadId&&ticket.sessionKind==='ADMIN')requireRoles({actor:session.user} as AuthRequest,['OPERATOR','MODERATOR']);
     }
     if(ticket.referralProofId){if(ticket.sessionKind!=='ADMIN'||!ticket.userId||!ticket.referralProofKind)throw new UnauthorizedException();const bound=await this.referralProof(ticket.referralProofKind,ticket.referralProofId);if(!bound||bound!==ticket.assetId)throw new NotFoundException('凭证已变化');assetId=bound;}
@@ -331,3 +348,4 @@ export class MediaController {
   @Post('admin/live/sessions/:id/replay/review/preview') @UseGuards(AdminGuard) replayPreview(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.replayReviewTicket(id,req);}
   @Post('live/sessions/:id/replay-ticket') @UseGuards(UserGuard) replay(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.replayTicket(id,req);}
 }
+

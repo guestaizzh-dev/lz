@@ -463,16 +463,16 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarBackgroundColor": "#F5F3ED",
-    "backgroundColor": "#F5F3ED",
+    "navigationBarBackgroundColor": "#F5F0E6",
+    "backgroundColor": "#F5F0E6",
     "navigationBarTitleText": "道学书院",
     "disableScroll": true
   },
   "tabBar": {
-    "color": "#788084",
-    "selectedColor": "#245564",
-    "backgroundColor": "#FAF8F2",
-    "borderStyle": "white",
+    "color": "#7C878A",
+    "selectedColor": "#235663",
+    "backgroundColor": "#FCF9F2",
+    "borderStyle": "black",
     "height": "60px",
     "fontSize": "11px",
     "iconWidth": "24px",

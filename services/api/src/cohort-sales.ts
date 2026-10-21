@@ -14,7 +14,7 @@ import {serviceDeliverySummary} from './service-accounting.js';
 import type {WechatTransaction,WechatRefund} from './wechat-pay.js';
 
 class QuoteDto { @IsUUID() cohortId!:string; @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; }
-class CheckoutDto extends QuoteDto { @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; @IsIn(['WECHAT_APP','ALIPAY_APP']) channel!:AppPaymentChannel; }
+class CheckoutDto extends QuoteDto { @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel!:AppPaymentChannel; }
 class PageQuery {
   @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1;
   @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(50) size=20;
@@ -231,3 +231,4 @@ export class CohortOrdersAdminController {
   @Post(':id/refresh') refresh(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['OPERATOR','FINANCE','SUPPORT']);return this.sales.adminRefresh(id,req);}
   @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ReviewDto){return this.sales.reviewRefund(id,req,dto);}
 }
+

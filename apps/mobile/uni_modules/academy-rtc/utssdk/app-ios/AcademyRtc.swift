@@ -50,7 +50,8 @@ private final class CallView: UIView, ZegoEventHandler {
     private func reconcile(_ data:[String:Any]){
         let desired=Array((data["playStreamIds"] as? [String] ?? []).prefix(2)),engine=ZegoExpressEngine.shared()
         for stream in Array(players.keys) where !desired.contains(stream){engine.stopPlayingStream(stream);players.removeValue(forKey:stream)?.removeFromSuperview()}
-        for stream in desired where players[stream]==nil{let view=UIView();players[stream]=view;remote.addArrangedSubview(view);engine.startPlayingStream(stream,canvas:ZegoCanvas(view:view))}
+        for stream in desired where players[stream]==nil{let view=UIView();players[stream]=view;remote.addArrangedSubview(view);let canvas=ZegoCanvas(view:view);canvas.viewMode=(data["canvasFit"] as? String)=="cover" ? .aspectFill : .aspectFit;engine.startPlayingStream(stream,canvas:canvas)}
+        for (stream,view) in players{let canvas=ZegoCanvas(view:view);canvas.viewMode=(data["canvasFit"] as? String)=="cover" ? .aspectFill : .aspectFit;_ = engine.updatePlayingCanvas(stream,canvas:canvas)}
         let next=(data["publishConsent"] as? Bool ?? false) ? (data["publishStreamId"] as? String ?? "") : ""
         if next != published{stopCapture();if !next.isEmpty{let video=data["video"] as? Bool ?? true;engine.muteMicrophone(false);engine.enableCamera(video);local.isHidden = !video;engine.startPreview(ZegoCanvas(view:local));engine.startPublishingStream(next);published=next}}
         if !published.isEmpty{let video=data["video"] as? Bool ?? true;engine.enableCamera(video);local.isHidden = !video;if video{engine.startPreview(ZegoCanvas(view:local))}else{engine.stopPreview()}}

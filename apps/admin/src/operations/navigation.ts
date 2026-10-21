@@ -35,8 +35,7 @@ export const navigation: NavigationGroup[] = [
     { path: '/content/course-reviews', title: '课程评价审核', summary: '审核课程评价与反馈', access: 'canCourseReviews' },
   ] },
   { id: 'live', title: '直播管理', entries: [
-    { path: '/content/live', title: '直播间与场次', summary: '建立直播间、安排主播、管理场次与人工回放', access: 'canLive', keywords: '开播 直播展示管理 场次管理' },
-    { path: '/live-host', title: '我的直播', summary: '主播查看本人安排，在电脑上开播或结束本场', access: 'canTeaching', keywords: '摄像头 麦克风' },
+    { path: '/content/live', title: '直播管理', summary: '管理员发布预告、直接开播、自动录制并生成会员回放', access: 'canAdmin', keywords: '开播 直播预告 录制 回放' },
   ] },
   { id: 'shop', title: '商城运营', entries: [
     { path: '/products', title: '商品与库存', summary: '商品资料、SKU、售价、库存与上架审核', access: 'canProducts' },
@@ -82,7 +81,7 @@ export function visibleNavigation(permissions: AdminAccess): NavigationGroup[] {
 }
 
 export function pageEntry(path: string) {
-  return navigation.flatMap(group => group.entries).find(entry => entry.path === path);
+  return [...navigation.flatMap(group => group.entries),{path:'/content/live/history',title:'历史课程直播',summary:'原有课程与老师直播安排',access:'canLive'} as NavigationEntry,{path:'/live-host/assigned',title:'历史授权开播',summary:'本人被委派的历史场次',access:'canTeaching'} as NavigationEntry].find(entry => entry.path === (path==='/live-host'?'/content/live':path));
 }
 
 export function canOpenPage(path: string, permissions: AdminAccess) {

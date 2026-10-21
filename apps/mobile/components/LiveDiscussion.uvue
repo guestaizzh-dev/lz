@@ -1,17 +1,35 @@
-<template><view class="live-discussion">
+<template><view :class="['live-discussion',immersive?'discussion-immersive':'']">
+<template v-if="immersive&&!clean">
+  <button v-if="notice" class="room-mic-notice" @click="emit('mic')">{{notice}}</button>
+  <view v-if="!clean" class="room-chat-stream">
+    <view v-for="item in recent" :key="item.id" class="room-chat-row" @longpress="messageActions(item)"><text class="room-chat-name">{{item.author?.nickname??'同窗'}}{{item.mine?' · 我':''}}</text><text class="room-chat-copy">{{item.body}}<text v-if="item.reviewState!=='APPROVED'" class="room-chat-pending"> · {{item.reviewState==='PENDING'?'待审核':'未通过'}}</text></text></view>
+    <view v-if="!recent.length" class="room-chat-row"><text class="room-chat-name">书院提示</text><text class="room-chat-copy">{{loading?'正在载入发言…':error?'消息暂未连接，可点下方重试':'文明交流，共同研习'}}</text></view>
+    <button v-if="error" class="room-chat-retry" @click="load()">重试消息</button>
+    <button v-else-if="items.length" class="room-chat-history" @click="historyOpen=true">查看全部发言 ›</button>
+  </view>
+  <view class="room-dock" :style="{paddingBottom:Math.max(12,safeBottom)+'px'}">
+    <button class="room-comment-input" aria-label="发送直播评论" @click="begin"><image class="room-dock-icon" src="/static/icons/chat-circle-white.png"/><text class="room-input-copy">说点什么…</text></button>
+    <view class="room-dock-action" @click="emit('mic')"><image class="room-dock-icon" src="/static/icons/microphone-white.png"/><text class="room-dock-label">连麦</text></view>
+    <view class="room-dock-action" @click="emit('courses')"><image class="room-dock-icon" src="/static/icons/book-open-white.png"/><text class="room-dock-label">课程</text></view>
+    <view class="room-dock-action" @click="emit('more')"><image class="room-dock-icon" src="/static/icons/dots-three-white.png"/><text class="room-dock-label">更多</text></view>
+  </view>
+</template>
+<view v-if="!immersive">
   <view class="discussion-head"><text class="section-heading">同窗共研</text><text class="meta">{{connected?'实时共研':'稍候自动更新'}}</text></view>
   <ContentState v-if="error" :error="error" @retry="load"/>
   <view v-if="!items.length&&!error" class="discussion-empty"><text>{{loading?'正在载入研习心得…':'还没有发言，写下你的研习所得。'}}</text></view>
   <button v-if="cursor" class="secondary-button" :disabled="loading" @click="older">查看更早发言</button>
-  <view v-for="item in items" :key="item.id" class="discussion-message">
-    <view class="discussion-meta"><text>{{item.author?.nickname??'同窗'}}{{item.mine?' · 我':''}}</text><text>{{formatChinaTime(item.createdAt)}}</text></view>
+  <view v-for="item in items" :key="item.id" :class="['discussion-message',immersive?'discussion-message-dark':'']">
+    <view class="discussion-meta"><text :class="['discussion-author',immersive?'discussion-meta-light':'']">{{item.author?.nickname??'同窗'}}{{item.mine?' · 我':''}}</text><text :class="['discussion-time',immersive?'discussion-meta-light':'']">{{formatChinaTime(item.createdAt)}}</text></view>
     <text v-if="item.quoteSnapshot" class="discussion-quote" :user-select="true">{{item.quoteSnapshot}}</text>
-    <text class="discussion-body" :user-select="true">{{item.body}}</text>
-    <view class="discussion-tail"><text v-if="item.reviewState!=='APPROVED'" class="meta">{{item.reviewState==='PENDING'?'待审核 · 仅你可见':'审核未通过 · 仅你可见'}}</text><button v-if="item.reviewState==='APPROVED'&&!item.mine" class="discussion-report" @click="report(item)">举报</button></view>
+    <text :class="['discussion-body',immersive?'discussion-body-light':'']" :user-select="true">{{item.body}}</text>
+    <view class="discussion-tail"><text v-if="item.reviewState!=='APPROVED'" class="meta">{{item.reviewState==='PENDING'?'待审核 · 仅你可见':'审核未通过 · 仅你可见'}}</text><button v-if="item.reviewState==='APPROVED'&&!item.mine" class="discussion-report discussion-report-link" @click="report(item)">举报</button></view>
   </view>
   <text v-if="reason" class="footer-note">{{reason}}</text>
   <button class="secondary-button" :disabled="!canPost" @click="visible=true">写下研习心得</button>
-  <ComposeSheet :visible="visible" title="直播共研" subtitle="发言经审核后向同窗公开" v-model="body" :quote="quote?.text" :maxlength="1000" :saving="saving" :error="editorError" :disabled="!body.trim()||!canPost" submitLabel="提交发言" @close="visible=false" @submit="submit">
+</view>
+<LiveRoomSheet :visible="historyOpen" title="共研消息" :dark="immersive" @close="historyOpen=false"><button v-if="error" class="text-button" @click="load()">重新连接消息</button><button v-if="cursor" class="secondary-button" :disabled="loading" @click="older">查看更早发言</button><view v-for="item in items" :key="item.id" :class="['discussion-message',immersive?'discussion-message-dark':'']"><view class="discussion-meta"><text :class="['discussion-author',immersive?'discussion-meta-light':'']">{{item.author?.nickname??'同窗'}}</text><text :class="['discussion-time',immersive?'discussion-meta-light':'']">{{formatChinaTime(item.createdAt)}}</text></view><text v-if="item.quoteSnapshot" class="discussion-quote" :user-select="true">{{item.quoteSnapshot}}</text><text :class="['discussion-body',immersive?'discussion-body-light':'']" :user-select="true">{{item.body}}</text><text v-if="item.reviewState!=='APPROVED'" class="meta">{{item.reviewState==='PENDING'?'待审核 · 仅你可见':'审核未通过 · 仅你可见'}}</text><button v-if="item.reviewState==='APPROVED'&&!item.mine" class="discussion-report discussion-report-link" @click="report(item)">举报</button></view><text v-if="!items.length" class="body-copy">{{loading?'正在连接…':reason||'还没有发言，欢迎写下你的感悟。'}}</text></LiveRoomSheet>
+  <ComposeSheet :visible="visible" :compact="immersive" :dark="immersive" :title="immersive?'说点什么':'直播共研'" subtitle="发言经审核后公开，待审内容仅你可见" v-model="body" :quote="quote?.text" :maxlength="1000" :saving="saving" :error="editorError" :disabled="!body.trim()||!canPost" submitLabel="发送" @close="visible=false" @submit="submit">
     <view class="quote-tools"><button class="discussion-report" @click="chooseQuote">{{quote?'更换引用':'引用经典'}}</button><button v-if="quote" class="discussion-report" @click="quote=null">取消引用</button></view>
     <view v-if="choosing" class="quote-picker"><input v-model="query" placeholder="搜索经典篇名" maxlength="100" class="quote-search" @confirm="findQuotes"/><button class="discussion-report" @click="findQuotes">{{quoteLoading?'搜索中…':'搜索'}}</button><scroll-view direction="vertical" class="quote-results">
       <view v-for="article in articles" :key="article.id"><text class="quote-article">{{article.title}}</text><button v-for="block in article.blocks" :key="block.key" class="quote-option" @click="selectQuote(article,block)">{{block.text}}</button></view>
@@ -20,16 +38,20 @@
   </ComposeSheet>
 </view></template>
 <script setup lang="ts">
-import {ref,watch,onUnmounted} from 'vue';
-import ContentState from './ContentState.uvue';import ComposeSheet from './ComposeSheet.uvue';
+import {ref,computed,watch,onUnmounted} from 'vue';
+import LiveRoomSheet from './LiveRoomSheet.uvue';import ContentState from './ContentState.uvue';import ComposeSheet from './ComposeSheet.uvue';
 import {request,apiBase} from '../lib/api';import {formatChinaTime} from '../lib/date-time';import {studyEventId} from '../lib/learning';import {currentUser} from '../lib/session';
 type Author={id:string;nickname:string};type Message={id:string;body:string;quoteSnapshot:string|null;reviewState:string;createdAt:string;mine:boolean;author:Author|null};
 type MessagePage={items:Message[];nextCursor:string|null;canPost:boolean;reason:string};type QuoteBlock={key:string;text:string};type QuoteArticle={id:string;title:string;blocks:QuoteBlock[]};type Quote={articleId:string;blockKey:string;text:string};
-const props=defineProps<{sessionId:string;leaseKey:string}>();
+const props=defineProps<{sessionId:string;leaseKey:string;immersive?:boolean;clean?:boolean;notice?:string}>();
+const emit=defineEmits<{mic:[];courses:[];more:[]}>(),historyOpen=ref(false),safeBottom=uni.getWindowInfo().safeAreaInsets?.bottom??0;
+const recent=computed(()=>items.value.slice(-4));
+function messageActions(item:Message){const labels=['复制发言','写下感悟'];if(!item.mine&&item.reviewState==='APPROVED')labels.push('举报发言');uni.showActionSheet({itemList:labels,success:r=>{if(r.tapIndex===0)uni.setClipboardData({data:item.body});else if(r.tapIndex===1)begin();else report(item);}});}
+function begin(){if(!canPost.value){uni.showToast({title:reason.value||'暂时不能发言，请稍后重试',icon:'none'});return;}visible.value=true;}
 const items=ref<Message[]>([]),cursor=ref<string|null>(null),loading=ref(false),error=ref(''),canPost=ref(false),reason=ref(''),visible=ref(false),body=ref(''),saving=ref(false),editorError=ref(''),quote=ref<Quote|null>(null),choosing=ref(false),query=ref(''),articles=ref<QuoteArticle[]>([]),connected=ref(false);
 const quoteLoading=ref(false);
 let socket:ReturnType<typeof uni.connectSocket>|null=null,refreshTimer:ReturnType<typeof setInterval>|null=null,retry:ReturnType<typeof setTimeout>|null=null,alive=true,serial=0,requestKey='',sentPayload='',lastRefresh=0,pages=1,quoteRequest=0,identity='';
-async function load(append=false){if(loading.value||!alive||!props.sessionId)return;loading.value=true;error.value='';const version=serial,owner=currentUser.value?.id;
+async function load(append=false){if(loading.value||!alive||!props.sessionId)return;loading.value=true;error.value='';const version=serial,owner=currentUser.value?.id;const guard=setTimeout(()=>{if(version===serial)loading.value=false;},8000);
   try{let next=append?cursor.value:null,result:MessagePage|null=null,rows:Message[]=[],count=0;const boundary=items.value[0];let reached=!boundary;
     // Refresh every expanded page so removed or blocked messages cannot remain in the visible history.
     for(let page=0;page<(append?1:pages)||(!append&&!reached);page++){
@@ -41,7 +63,7 @@ async function load(append=false){if(loading.value||!alive||!props.sessionId)ret
     }
     if(!result)return;items.value=append?[...rows.filter(m=>!items.value.some(old=>old.id===m.id)),...items.value]:rows;
     pages=append?pages+count:count;cursor.value=next;canPost.value=result.canPost;reason.value=result.reason;
-  }catch(e){if(alive&&version===serial){error.value=(e as Error).message;canPost.value=false;}}finally{if(version===serial)loading.value=false;}}
+  }catch(e){if(alive&&version===serial){error.value=(e as Error).message;canPost.value=false;}}finally{clearTimeout(guard);if(version===serial)loading.value=false;}}
 function older(){load(true);}
 function resetSocket(){const old=socket;socket=null;old?.close({code:1000,reason:'离开直播'});connected.value=false;if(retry)clearTimeout(retry);retry=null;}
 function disconnect(){resetSocket();if(refreshTimer)clearInterval(refreshTimer);refreshTimer=null;}
@@ -61,13 +83,21 @@ async function submit(){if(saving.value||!body.value.trim()||!canPost.value)retu
   try{await request('/live/sessions/'+session+'/messages',{method:'POST',data:{...payload,requestKey}});if(!alive||owner!==currentUser.value?.id||session!==props.sessionId)return;body.value='';quote.value=null;visible.value=false;choosing.value=false;requestKey='';await load();uni.showToast({title:'发言已提交审核',icon:'none'});}catch(e){if(alive&&owner===currentUser.value?.id&&session===props.sessionId)editorError.value=(e as Error).message;}finally{if(owner===currentUser.value?.id&&session===props.sessionId)saving.value=false;}}
 function report(item:Message){const reasons=['SPAM','INAPPROPRIATE','MISLEADING','COPYRIGHT','OTHER'];uni.showActionSheet({itemList:['广告骚扰','不当内容','误导信息','版权问题','其他问题'],success:async r=>{try{await request('/live/sessions/'+props.sessionId+'/messages/'+item.id+'/reports',{method:'POST',data:{reason:reasons[r.tapIndex],description:''}});uni.showToast({title:'已提交书院核查',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}});}
 watch(()=>props.sessionId+'|'+props.leaseKey+'|'+(currentUser.value?.id??''),()=>{
-  const next=props.sessionId+'|'+(currentUser.value?.id??'');serial++;quoteRequest++;loading.value=false;quoteLoading.value=false;disconnect();
+  historyOpen.value=false;const next=props.sessionId+'|'+(currentUser.value?.id??'');serial++;quoteRequest++;loading.value=false;quoteLoading.value=false;disconnect();
   if(next!==identity){identity=next;items.value=[];cursor.value=null;pages=1;canPost.value=false;reason.value='';visible.value=false;body.value='';quote.value=null;articles.value=[];choosing.value=false;requestKey='';sentPayload='';saving.value=false;editorError.value='';}
   void load();refreshTimer=setInterval(()=>{if(alive)load();},10000);connect();
 },{immediate:true});
+function dismiss(){if(visible.value){if(!saving.value)visible.value=false;return true;}if(historyOpen.value){historyOpen.value=false;return true;}return false;}
+defineExpose({dismiss});
 onUnmounted(()=>{alive=false;serial++;quoteRequest++;disconnect();});
 </script>
 <style>
 @import '../styles/app.css';
-.live-discussion{margin-top:24px;}.discussion-head,.discussion-meta,.discussion-tail,.quote-tools{flex-direction:row;align-items:center;justify-content:space-between;}.discussion-head{margin-bottom:10px;}.discussion-empty{padding:18px 14px;background-color:#EEE9DF;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:23px;color:#7A7366;}.discussion-message{padding:15px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#DFD9CF;}.discussion-meta{font-size:12px;color:#7A7366;margin-bottom:8px;}.discussion-body{font-size:15px;line-height:26px;color:#17292D;}.discussion-quote{padding:10px 12px;background-color:#EEE9DF;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;font-size:13px;line-height:23px;color:#637276;margin-bottom:10px;}.discussion-report{background-color:transparent;color:#637276;font-size:12px;padding:8px 0;margin:0;min-height:44px;border-width:0;}.quote-picker{margin-bottom:12px;}.quote-search{height:40px;background-color:#EEE9DF;padding:0 10px;border-radius:6px;}.quote-results{height:200px;}.quote-article{font-family:AcademySerif;color:#245564;font-size:15px;margin:10px 0;}.quote-option{font-size:13px;line-height:23px;text-align:left;color:#637276;padding:10px;background-color:#F4F0E7;margin:0 0 8px;border-radius:6px;border-width:0;}
+.live-discussion{margin-top:24px;}.discussion-head,.discussion-meta,.discussion-tail,.quote-tools{flex-direction:row;align-items:center;justify-content:space-between;}.discussion-head{margin-bottom:10px;}.discussion-empty{padding:18px 14px;background-color:#EFE9DC;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:23px;color:#6A7578;}.discussion-message{padding:15px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#E3DCCF;}.discussion-meta{font-size:12px;color:#6A7578;margin-bottom:8px;}.discussion-body{font-size:15px;line-height:26px;color:#182B31;}.discussion-quote{padding:10px 12px;background-color:#EFE9DC;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;font-size:13px;line-height:23px;color:#6A7578;margin-bottom:10px;}.discussion-report{background-color:transparent;color:#6A7578;font-size:12px;padding:8px 0;margin:0;min-height:44px;border-width:0;}.quote-picker{margin-bottom:12px;}.quote-search{height:40px;background-color:#EFE9DC;padding:0 10px;border-radius:6px;}.quote-results{height:200px;}.quote-article{font-family:AcademySerif;color:#235663;font-size:15px;margin:10px 0;}.quote-option{font-size:13px;line-height:23px;text-align:left;color:#6A7578;padding:10px;background-color:#F5F0E6;margin:0 0 8px;border-radius:6px;border-width:0;}
+
+.discussion-immersive{position:absolute;left:0;right:0;bottom:0;margin-top:0;padding:0 14px;}.room-chat-stream{max-width:86%;margin-bottom:14px;}.room-chat-row{align-self:flex-start;max-height:78px;overflow:hidden;flex-direction:row;align-items:flex-start;background-color:rgba(0,0,0,0.42);border-radius:16px;padding:6px 10px;margin-top:6px;max-width:100%;}.room-chat-name{font-family:AcademySans;font-size:13px;line-height:21px;color:#D6BB84;margin-right:8px;flex-shrink:0;max-width:88px;}.room-chat-copy{font-family:AcademySans;font-size:13px;line-height:21px;color:#FFFFFF;flex-shrink:1;}.room-chat-pending{color:#D2D4D2;font-size:11px;}.room-mic-notice{align-self:flex-start;max-width:100%;margin:0 0 6px;padding:7px 12px;border-radius:18px;border-width:1px;border-style:solid;border-color:rgba(255,255,255,0.25);background-color:rgba(0,0,0,0.28);color:#F1EBDD;font-size:12px;line-height:20px;}.room-dock{flex-direction:row;align-items:flex-end;padding-top:8px;}.room-comment-input{flex:1;min-width:0;height:46px;flex-direction:row;align-items:center;justify-content:flex-start;padding:0 14px;margin:0 6px 0 0;background-color:rgba(24,25,26,0.72);border-radius:24px;border-width:1px;border-style:solid;border-color:rgba(255,255,255,0.2);}.room-input-copy{font-family:AcademySans;font-size:14px;white-space:nowrap;color:#DBDBD5;margin-left:8px;line-height:20px;}.room-dock-icon{width:24px;height:24px;flex-shrink:0;}.room-dock-action{width:44px;min-height:52px;flex-direction:column;align-items:center;justify-content:center;margin:0 0 0 2px;padding:0;background-color:transparent;border-width:0;}.room-dock-label{font-family:AcademySans;color:#FFFFFF;font-size:10px;line-height:16px;margin-top:4px;text-align:center;}
+.discussion-author{flex:1;min-width:0;margin-right:12px;font-size:12px;line-height:20px;color:#6A7578;}.discussion-time{flex-shrink:0;font-size:11px;line-height:20px;color:#6A7578;}.discussion-meta-light{color:#A9B4B7;}.discussion-message-dark{border-bottom-color:#343A3D;}.discussion-report-link{align-self:flex-end;margin-left:auto;color:#8B989D;font-size:12px;}.discussion-body-light{color:#F3F4F1;}.room-chat-history,.room-chat-retry{align-self:flex-start;margin:4px 0 0;padding:8px 6px;min-height:40px;line-height:22px;font-family:AcademySans;font-size:11px;color:#D6DBD8;border-width:0;background-color:transparent;}.room-chat-retry{color:#E4C993;}
+/* #ifdef WEB */
+.room-comment-input{display:flex;box-sizing:border-box;}.room-input-copy{display:block;flex-shrink:0;}.room-chat-copy{overflow-wrap:anywhere;}.room-comment-input:focus-visible,.room-chat-history:focus-visible{outline:2px solid #D6BB84;outline-offset:3px;}.room-chat-row{cursor:default;}.room-dock-action{cursor:pointer;}
+/* #endif */
 </style>

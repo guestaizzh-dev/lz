@@ -62,16 +62,16 @@
 	@font-face { font-family: AcademyCalligraphy; src: url('/static/fonts/AcademyCalligraphy.ttf'); font-display: swap; }
 	@font-face { font-family: AcademySerif; src: url('/static/fonts/AcademySerif.ttf'); font-weight: 500; font-display: swap; }
 	@font-face { font-family: AcademySans; src: url('/static/fonts/AcademySans.otf'); font-weight: 400; font-display: swap; }
-	page, body, uni-page-body { background-color:#F4F0E7; font-family: AcademySans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+	page, body, uni-page-body { background-color:#F5F0E6; font-family: AcademySans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
 	uni-button::after { border: none; }
 	uni-button, uni-input, uni-textarea { box-sizing:border-box; }
 	uni-button { transition:background-color 140ms ease,opacity 140ms ease,box-shadow 140ms ease; }
-	uni-button:focus-visible, a:focus-visible, [role="tab"]:focus-visible { outline:2px solid #245564;outline-offset:3px; }
-	uni-input:focus-within, uni-textarea:focus-within { outline:2px solid #245564;outline-offset:2px; }
+	uni-button:focus-visible, a:focus-visible, [role="tab"]:focus-visible { outline:2px solid #235663;outline-offset:3px; }
+	uni-input:focus-within, uni-textarea:focus-within { outline:2px solid #235663;outline-offset:2px; }
 	uni-input input:focus, uni-textarea textarea:focus { outline:none; }
-	uni-input input, uni-textarea textarea { caret-color:#245564; }
+	uni-input input, uni-textarea textarea { caret-color:#235663; }
 	uni-button[disabled], uni-button[aria-disabled="true"] { opacity:0.5;cursor:not-allowed; }
-	.primary-button[disabled], .bar-primary[disabled], .compose-submit[disabled] { background-color:#245564!important;color:#FAF8F2!important; }
+	.primary-button[disabled], .bar-primary[disabled], .compose-submit[disabled] { background-color:#235663!important;color:#FCF9F2!important; }
 	@media (hover:hover) and (pointer:fine) {
 		uni-button:not([disabled]):not([aria-disabled="true"]):hover { opacity:0.86; }
 	}

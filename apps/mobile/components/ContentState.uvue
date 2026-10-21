@@ -15,14 +15,14 @@ withDefaults(defineProps<{ loading?: boolean; error?: string; title?: string; de
 const emit = defineEmits<{ retry: []; action: [] }>();
 </script>
 <style>
-.content-state { padding: 32px 16px; align-items: center; }
-.state-mark { width: 60px; height: 60px; border-radius: 30px; background-color: #EAE5DC; align-items: center; justify-content: center; margin-bottom: 16px; }
-.state-title { font-family: AcademySerif; color: #17292D; font-size: 17px; line-height:27px;text-align:center;}
-.state-copy { font-family:AcademySans;margin-top: 8px; color: #637276; font-size: 13px; line-height: 24px; text-align: center; }
-.state-mark-error { background-color:#F0E1DB; }
-.state-copy-error { color:#914A3E; }
-.state-mark-loading { background-color:#E1E9E5; }
-.state-retry {border-style:solid;border-width:0; background-color: #245564; color: #F4F0E7; border-radius: 22px; font-family:AcademySans;font-size: 14px; min-height:44px;padding: 11px 22px; margin:20px 0 0;line-height:22px;}
+.content-state { padding: 40px 20px; align-items: center; }
+.state-mark { width: 64px; height: 64px; border-radius: 32px; background-color: #EFE9DC; align-items: center; justify-content: center; margin-bottom: 18px; }
+.state-title { font-family: AcademySerif; color: #182B31; font-size: 18px; line-height:28px;text-align:center;font-weight:600;}
+.state-copy { font-family:AcademySans;margin-top: 8px; color: #6A7578; font-size: 13px; line-height: 23px; text-align: center; }
+.state-mark-error { background-color:#F3E2DB; }
+.state-copy-error { color:#8F4A3C; }
+.state-mark-loading { background-color:#E6EDE9; }
+.state-retry {border-style:solid;border-width:0; background-color: #235663; color: #FCF9F2; border-radius: 24px; font-family:AcademySans;font-size: 14px; min-height:46px;padding: 12px 24px; margin:24px 0 0;line-height:22px;}
 /* #ifdef WEB */
 .state-copy { max-width:34em;overflow-wrap:anywhere; }
 @media (prefers-reduced-motion:no-preference) {

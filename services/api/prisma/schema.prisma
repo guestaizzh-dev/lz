@@ -1397,7 +1397,9 @@ model LiveRoom {
   updatedAt DateTime @default(now()) @db.Timestamptz(6)
   version Int @default(1)
   resourceKind String @default("LIVE")
-  teacherId String
+  teacherId String?
+  managedByAdmin Boolean @default(false)
+  cover String @default("")
   provider String
   providerRoomId String
   categoryCode String
@@ -1491,6 +1493,23 @@ model LiveReplay {
   reviewerId String?
   subtitleText String @default("")
   notes String @default("")
+}
+
+model LiveRecording {
+  id String @id @default(uuid())
+  sessionId String @unique
+  state String @default("WAITING")
+  attempts Int @default(0)
+  retries Int @default(0)
+  leaseToken String?
+  leaseUntil DateTime? @db.Timestamptz(6)
+  startedAt DateTime? @db.Timestamptz(6)
+  stoppedAt DateTime? @db.Timestamptz(6)
+  assetId String?
+  failure String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  @@index([state, leaseUntil])
 }
 
 model LiveMicRequest {

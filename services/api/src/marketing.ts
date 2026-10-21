@@ -20,7 +20,7 @@ class CouponDto {
   @IsInt() @Min(1) @Max(1000000) totalLimit!:number;
   @IsInt() @Min(1) @Max(20) perUserLimit!:number;
   @IsOptional() @IsInt() @Min(1) @Max(366) validDays?:number;
-  @IsArray() @ArrayMaxSize(2) @ArrayUnique() @IsIn(['WECHAT_APP','ALIPAY_APP'],{each:true}) allowedChannels!:string[];
+  @IsArray() @ArrayMaxSize(3) @ArrayUnique() @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED'],{each:true}) allowedChannels!:string[];
   @IsArray() @ArrayMaxSize(100) @ArrayUnique() @IsUUID(undefined,{each:true}) courseIds!:string[];
   @IsBoolean() active!:boolean;
   @IsString() @Length(2,500) @Matches(/\S/) reason!:string;
@@ -95,3 +95,4 @@ export function couponDiscount(amount:bigint,terms:Terms){
   @Post('coupons') create(@Req() req:AuthRequest,@Body() dto:CouponDto){requireRoles(req,['OPERATOR']);return this.service.createCoupon(req.actor.id,dto);}
   @Post('coupons/:id/state') state(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest,@Body() dto:CouponStateDto){requireRoles(req,['OPERATOR']);return this.service.couponState(id,req.actor.id,dto);}
 }
+

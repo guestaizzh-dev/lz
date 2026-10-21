@@ -127,7 +127,7 @@ export class LiveDiscoveryAdminController {
     requireRoles(req, ['MODERATOR']);
     const room = await this.db.liveRoom.findUnique({ where: { id } });
     if (!room) throw new NotFoundException('请先在数据工作台建立直播间');
-    if (dto.state === 'PUBLISHED') {
+    if (dto.state === 'PUBLISHED' && room.teacherId) {
       const teacher = await this.db.teacher.findFirst({ where: { id: room.teacherId, ...await publicContentScope(this.db) } });
       if (!teacher) throw new BadRequestException('请先发布主讲老师档案');
     }

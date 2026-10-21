@@ -1,1 +1,38 @@
-[hidden]{display:none!important}*{box-sizing:border-box}html,body{margin:0;background:#1e302e;color:#f4f0e7;font:14px/1.6 system-ui,sans-serif}main{max-width:1080px;margin:auto}#stage{position:relative;aspect-ratio:16/9;background:radial-gradient(ellipse at bottom,#324641,#162826 78%);overflow:hidden}#video{width:100%;height:100%}#video video{width:100%;height:100%;object-fit:contain}#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}#empty span{font:22px/1.6 Georgia,"Songti SC",serif;letter-spacing:5px;color:#d1c5a7}#status{background:#20332ee0;border-radius:4px;padding:8px 14px;max-width:92%;text-align:center}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}button{font:inherit;color:#eee6d4;background:#314740;border:1px solid #64776a;border-radius:5px;padding:8px 14px;min-height:44px;cursor:pointer;touch-action:manipulation}button:disabled{opacity:.5;cursor:wait}button[hidden]{display:none}#start{background:#c6ae80;color:#1e302e}#stop{border-color:#b9756b;color:#f7d6cb}#hint{font-size:12px;line-height:18px;color:#c1c8bc;margin:0;padding:0 14px 12px}button:focus-visible{outline:2px solid #e6c592;outline-offset:3px}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#04080a;color:#f4f0e7;font:14px/1.6 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:1080px;margin:auto;padding:0}
+#stage{position:relative;aspect-ratio:16/9;background:radial-gradient(ellipse at 50% 118%,#12262b,#04080a 72%);overflow:hidden}
+#video{width:100%;height:100%;background:#04080a}
+#video video{width:100%;height:100%;object-fit:contain;background:#04080a}
+#video:not(.fit-contain) video{object-fit:cover}#video.fit-contain video{object-fit:contain}
+#guests{position:absolute;right:18px;top:56px;width:min(28%,220px);z-index:2}.guest-video{position:relative;aspect-ratio:3/4;background:#152325;border:1px solid #ffffff44;border-radius:10px;overflow:hidden}.guest-video video{height:100%;width:100%;object-fit:cover}.guest-video>span{position:absolute;left:0;bottom:0;right:0;text-align:center;padding:6px;background:#080e10aa;font-size:11px;color:#eee6d4}
+
+
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
+#empty span{font:20px/1.6 Georgia,"Songti SC",serif;letter-spacing:6px;color:#c6ae80}
+#status{background:rgba(4,8,10,.62);border:1px solid rgba(198,174,128,.18);border-radius:6px;padding:7px 14px;max-width:92%;text-align:center;font-size:13px;color:#d7d2c5}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}
+button{font:inherit;color:#e8e3d6;background:#122226;border:1px solid #24393f;border-radius:7px;padding:9px 15px;min-height:44px;cursor:pointer;touch-action:manipulation;transition:.15s}
+button:hover{background:#183036;border-color:#31505a}
+button:disabled{opacity:.5;cursor:wait}
+button[hidden]{display:none}
+#start{background:linear-gradient(180deg,#d8c193,#b99a63);color:#1a130a;border:0;font-weight:600}
+#stop{border-color:#7d3a2d;color:#f7d6cb}
+#hint{font-size:12px;line-height:18px;color:#8b9fa3;margin:0;padding:0 14px 12px}
+button:focus-visible{outline:2px solid #e6c592;outline-offset:3px}
+/* 嵌入开播台时只保留画面本身，控制由外层提供 */
+body.embedded main{max-width:none;height:100%}
+body.embedded #stage{height:100%;aspect-ratio:auto}
+body.embedded .toolbar,body.embedded #hint{display:none!important}
+/* Embedded viewers still need a user gesture for browser audio and retry. */
+body.embedded .toolbar:has(#sound:not([hidden])),body.embedded .toolbar:has(#retry:not([hidden])){position:absolute;left:0;right:0;top:45%;bottom:auto;display:flex!important;justify-content:center;pointer-events:none}
+body.embedded .toolbar button{display:none;pointer-events:auto}body.embedded .toolbar #sound:not([hidden]),body.embedded .toolbar #retry:not([hidden]){display:block}
+
+
+
+
+body.embedded .toolbar button{box-shadow:0 4px 24px #0006;border-radius:24px;background:#1b2328ed;border-color:#ffffff44;padding:10px 22px}body.embedded #sound{color:#f4e5c5}
+
+/* The App owns waiting/error copy; avoid two overlapping messages over the same picture. */
+body.embedded.viewer #empty{display:none}

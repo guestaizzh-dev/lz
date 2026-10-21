@@ -45,6 +45,26 @@ class ReportDto {
 @Injectable()
 export class LiveChatService {
   constructor(private readonly db:Database,private readonly live:LiveService,private readonly content:ContentService,private readonly forum:ForumService){}
+  async hostMessages(id:string,req:AuthRequest,q:MessageQuery){
+    const s=await this.live.session(id);await this.live.hostAllowed(s,req.actor.id);
+    const page=await this.adminMessages(id,q);
+    return {...page,items:page.items.filter(r=>!r.deletedAt).map(r=>({id:r.id,body:r.body,quoteSnapshot:r.quoteSnapshot,reviewState:r.reviewState,version:r.version,createdAt:r.createdAt,authorName:r.authorName,host:r.authorId===s.hostUserId})),canPost:s.state==='LIVE',sessionState:s.state};
+  }
+  async hostSend(id:string,req:AuthRequest,dto:MessageDto){
+    if(dto.articleId||dto.blockKey)throw new BadRequestException('主播发言请直接输入文字');
+    const result=await this.db.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${id} FOR UPDATE`;
+      const s=await this.live.session(id,tx);await this.live.hostAllowed(s,req.actor.id,tx);
+      const body=dto.body.trim();
+      const prior=await tx.comment.findUnique({where:{liveSessionId_authorId_requestKey:{liveSessionId:id,authorId:req.actor.id,requestKey:dto.requestKey}}});
+      if(prior){if(prior.body!==body)throw new ConflictException('提交编号已用于其他发言');return {id:prior.id,reviewState:prior.reviewState};}
+      if(s.state!=='LIVE')throw new ConflictException('本场尚未开播或已经结束，不能发言');
+      if(await tx.comment.count({where:{liveSessionId:id,authorId:req.actor.id,createdAt:{gte:new Date(Date.now()-60000)}}})>=12)throw new BadRequestException('发言过于频繁，请稍候再试');
+      const row=await tx.comment.create({data:{resourceId:s.roomId,liveSessionId:id,authorId:req.actor.id,requestKey:dto.requestKey,body,reviewState:'APPROVED'}});
+      await tx.auditLog.create({data:{actorId:req.actor.id,action:'live.host.message',resource:'live',resourceId:id,changes:{messageId:row.id}}});
+      return {id:row.id,reviewState:row.reviewState};
+    });liveEvents.emit('change',id);return result;
+  }
   async canRead(id:string,userId:string,store:Prisma.TransactionClient=this.db){
     const s=await this.live.access(id,userId,store);
     if(!['LIVE','ENDED','REPLAY_READY'].includes(s.state))throw new ConflictException('本场讨论尚未开放');
@@ -142,6 +162,12 @@ export class LiveChatService {
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'live.user.unmute',resource:'live',resourceId:roomId,changes:{restrictionId:id,reason:dto.reason.trim()}}});
     });liveEvents.emit('room',roomId);return {success:true};
   }
+}
+@Controller('admin/live-host/:id/messages') @UseGuards(AdminGuard)
+export class LiveChatHostController {
+  constructor(private readonly chat:LiveChatService){}
+  @Get() list(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest,@Query() q:MessageQuery){return this.chat.hostMessages(id,req,q);}
+  @Post() send(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest,@Body() dto:MessageDto){return this.chat.hostSend(id,req,dto);}
 }
 @Controller('live/sessions/:id') @UseGuards(UserGuard)
 export class LiveChatController {

@@ -1,5 +1,22 @@
 # Android 0.3.5 与线上测试交付
 
+## 2026-10-20 当前代码重新打包：Android 0.3.11
+
+- 按用户要求重新生成Android0.3.11/code16，原包名`cn.daoxue.academy`、生产HTTPS及原云签名。484份当前App文件核对通过，仅两个已授权的无推送预览覆盖文件与正式源码不同；副本位于`.runtime/android-preview-0311`。
+- **与上个包的实际源码差异只有`manifest.json`版本号**，见`outputs/android-preview-0311/source-diff.json`。其他目录的后端/后台修改不会随APK上线，本次没有发布服务端，不能将重新打包当作服务端改动交付。
+- 首次本机构建因Windows VirtualAlloc errno1455/Go内存不足失败，未提交云端。重启构建器，以`GOMEMLIMIT=384MiB`、`GOMAXPROCS=2`、`NODE_OPTIONS=--max-old-space-size=2048`约束构建进程后，74页面蒸汽字节码编译通过。保留首次失败与重试日志，未修改系统分页配置或终止其他应用。
+- 云任务`4d6ea0c0-cc5d-11f1-94fc-1d7fe2424d1f`最终OK。安装包：`outputs/android/daoxue-academy-0.3.11.apk`，49,918,326字节，SHA256：`64e90fecd677badf9c1acebf69e69b4c1fcda0414287d210df56a75b70c60bff`。
+- ZIP完整性、包名/版本/API23、生产地址、三类原生模块、无推送API/个推资源及预览提示字节码、与0.3.10证书一致性和JAR签名验证通过，可覆盖更新。证据在`outputs/android-preview-0311/`，APK同名JSON含结构化信息。
+- 延续已授权无系统推送的独立预览方案，站内消息和正式推送实现保持；6类原生后代选择器警告仍在，见`native-style-warnings.txt`。未安装手机或进行视觉验收，商用38/131状态保持。
+
+## 2026-10-19 当前代码重新打包：Android 0.3.10
+
+- 按用户“已修改很多内容，重新打包预览”的要求，从当前`apps/mobile`重新复制生成`.runtime/android-preview-0310`，包含81/82的最新UI及验证码提示修订；没有复用0.3.9的源码副本。`source-manifest.json`记录484份当前文件及打包副本摘要，仅两个已授权推送预览覆盖文件不同。
+- 版本0.3.10/code15、原包名`cn.daoxue.academy`，74页面uni-app x蒸汽字节码编译通过。DCloud任务`e3348380-cc30-11f1-8f36-4fc67107ae8f`最终OK，APK已下载：`outputs/android/daoxue-academy-0.3.10.apk`，49,918,332字节，SHA256：`06afa8e1348667e4d66ebf57a136d56f1c33dc4139699173f03c579a755d8fb0`。
+- ZIP完整性、AndroidManifest包名/版本/API23、生产HTTPS地址、三类原生模块、预览设置字节码、无推送API/个推资源及JAR签名验证通过。证书SHA256与0.3.9一致：`81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248`，可覆盖更新。元数据在APK同名JSON，证据在`outputs/android-preview-0310/`。
+- 沿用户已确认的独立预览方案，不含系统推送SDK，站内消息保持；正式推送源码保持。`scripts/prepare-android-preview.mjs`已从manifest读取版本生成独立目录，拒绝覆盖已有副本。线上健康接口200，本次未部署后端/后台、未更改线上数据、未安装手机。
+- 编译有6类后代选择器兼容警告，详见`native-style-warnings.txt`：`.card-ink`下4类文字规则、搜索`.result .item-title`、论坛`.forum-tags .pill`；原生会忽略对应规则。未将编译通过宣称为手机视觉验收，也未为消除警告擅自重做本次用户UI。当前A07/原生验收与商用38/131保持原状态。
+
 ### 2026-10-19 预览验证码登录恢复
 
 - 用户反馈发送验证码只显示“服务暂时繁忙”。实际线上`SMS_ENABLED=false`且无真实短信配置；指定预览登录原有效期`2026-10-18T10:30:21.738772Z`已过期，接口503被App的通用服务错误提示隐藏。这是配置有效期问题，并非手机网络或短信发送成功。

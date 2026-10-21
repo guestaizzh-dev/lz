@@ -6,7 +6,7 @@
 
 <text class="detail-title">安心研习，尊重隐私。</text>
 <text class="footer-note">开发环境说明 · 生效日期：2026 年 10 月 6 日。正式服务的经营主体、联系渠道、完整协议及 SDK 清单将在上线前核实并公示。</text>
-<view v-if="currentUser" class="section"><view class="row between"><text class="section-heading">个性化内容推荐</text><switch :checked="personalized" :disabled="saving" color="#245564" @change="changePreference"/></view><text class="body-copy">依据兴趣、阅读、收藏、点赞及有效购买推荐，退款后撤销对应购买信号。关闭后仅展示公开精选，不影响购课和学习。</text><text v-if="preferenceError" class="hint">{{preferenceError}}</text></view><view v-for="section in sections" :key="section.title" class="section">
+<view v-if="currentUser" class="section"><view class="row between"><text class="section-heading">个性化内容推荐</text><switch :checked="personalized" :disabled="saving" color="#235663" @change="changePreference"/></view><text class="body-copy">依据兴趣、阅读、收藏、点赞及有效购买推荐，退款后撤销对应购买信号。关闭后仅展示公开精选，不影响购课和学习。</text><text v-if="preferenceError" class="hint">{{preferenceError}}</text></view><view v-for="section in sections" :key="section.title" class="section">
 <text class="section-heading">{{section.title}}</text>
 <text class="body-copy" :user-select="true">{{section.text}}</text>
 </view>

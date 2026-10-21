@@ -30,7 +30,7 @@ export default {
   'menu.questions':'名师问答',
   'menu.content.comments':'文章评论审核',
   'menu.content.course-reviews':'课程评价审核',
-  'menu.content.live':'直播间与场次',
+  'menu.content.live':'直播管理',
   'menu.teaching': '教学与作业',
   'menu.data': '高级数据维护',
   'menu.delivery': '配送计费',

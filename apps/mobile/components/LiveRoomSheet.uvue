@@ -1,0 +1,14 @@
+<template><view v-if="visible" :class="['room-sheet-mask',dark?'room-sheet-dark':'']" @click="emit('close')"><view :class="['room-sheet',dark?'sheet-surface-dark':'']" :style="{paddingBottom:Math.max(16,safeBottom)+'px'}" @click.stop=""><view class="sheet-handle"/><view class="sheet-head"><text :class="['sheet-title',dark?'sheet-title-dark':'']">{{title}}</text><button class="sheet-close" aria-label="关闭面板" @click="emit('close')"><image v-if="dark" class="sheet-close-icon" src="/static/icons/x-white.png"/><AppIcon v-else name="x" :size="20"/></button></view><scroll-view direction="vertical" class="sheet-body" :style="{maxHeight:Math.max(160,height*0.62-90)+'px'}"><slot/></scroll-view></view></view></template>
+<script setup lang="ts">
+import AppIcon from './AppIcon.uvue';
+defineProps<{visible:boolean;title:string;dark?:boolean}>();const emit=defineEmits<{close:[]}>();
+const safeBottom=uni.getWindowInfo().safeAreaInsets?.bottom??0,height=ref(uni.getWindowInfo().windowHeight);
+onResize(e=>{height.value=e.size.windowHeight;});
+</script>
+<style>
+.room-sheet-mask{position:fixed;left:0;right:0;top:0;bottom:0;z-index:300;background-color:rgba(0,0,0,0.46);justify-content:flex-end;}.room-sheet{background-color:#FCF9F2;border-top-left-radius:22px;border-top-right-radius:22px;padding:8px 20px 20px;}.sheet-handle{align-self:center;width:34px;height:4px;border-radius:2px;background-color:#D6D0C5;margin-bottom:4px;}.sheet-head{flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:8px;}.sheet-title{font-family:AcademySans;font-size:18px;line-height:28px;font-weight:600;color:#182B31;}.sheet-close{width:44px;height:44px;align-items:center;justify-content:center;margin:0;padding:0;background-color:transparent;border-width:0;}.sheet-body{min-height:0;flex-shrink:1;}
+.sheet-surface-dark{background-color:#191D20;border-top-width:1px;border-top-style:solid;border-top-color:#343A3D;}.sheet-title-dark{color:#F5F4EF;}.sheet-close-icon{width:20px;height:20px;}
+/* #ifdef WEB */
+.room-sheet-mask{overscroll-behavior:contain;}.room-sheet{width:100%;max-width:640px;align-self:center;box-sizing:border-box;}.sheet-close:focus-visible{outline:2px solid #CDB57D;outline-offset:2px;}
+/* #endif */
+</style>

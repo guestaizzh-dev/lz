@@ -33,7 +33,7 @@ class ConfirmationDto extends QuoteDto {
 class CheckoutDto extends QuoteDto {
   @IsUUID() requestKey!:string;
   @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string;
-  @IsIn(['WECHAT_APP','ALIPAY_APP']) channel!:AppPaymentChannel;
+  @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel!:AppPaymentChannel;
   @IsString() @Length(1,50) @Matches(/\S/) name!:string;
   @IsString() @Matches(/^1[3-9]\d{9}$/) phone!:string;
   @IsBoolean() contactConsent!:boolean;
@@ -501,3 +501,4 @@ export class BookingOrdersAdminController {
   @Post(':id/refresh') refresh(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['FINANCE','SUPPORT','OPERATOR']);return this.sales.adminRefresh(id,req);}
   @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ReviewDto){return this.sales.reviewRefund(id,req,dto);}
 }
+

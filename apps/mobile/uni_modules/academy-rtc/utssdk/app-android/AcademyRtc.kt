@@ -105,7 +105,8 @@ object AcademyRtc {
             val sdk=engine?:return
             val desired=data.getJSONArray("playStreamIds");val ids=(0 until desired.length()).map{desired.getString(it)}.take(2)
             for(stream in players.keys.toList())if(stream !in ids){sdk.stopPlayingStream(stream);remote.removeView(players.remove(stream))}
-            for(stream in ids)if(!players.containsKey(stream)){val texture=TextureView(context);players[stream]=texture;remote.addView(texture,LinearLayout.LayoutParams(-1,0,1f));sdk.startPlayingStream(stream,ZegoCanvas(texture))}
+            for(stream in ids)if(!players.containsKey(stream)){val texture=TextureView(context);players[stream]=texture;remote.addView(texture,LinearLayout.LayoutParams(-1,0,1f));sdk.startPlayingStream(stream,ZegoCanvas(texture).apply { viewMode=if(data.optString("canvasFit")=="cover") ZegoViewMode.ASPECT_FILL else ZegoViewMode.ASPECT_FIT })}
+            for((stream,texture) in players)sdk.updatePlayingCanvas(stream,ZegoCanvas(texture).apply { viewMode=if(data.optString("canvasFit")=="cover") ZegoViewMode.ASPECT_FILL else ZegoViewMode.ASPECT_FIT })
             val next=if(data.optBoolean("publishConsent"))data.optString("publishStreamId") else ""
             if(next!=published) { stopCapture();if(next.isNotEmpty() && permission(data.optBoolean("video",true))){sdk.muteMicrophone(false);sdk.enableCamera(data.optBoolean("video",true));local.visibility=if(data.optBoolean("video",true))View.VISIBLE else View.GONE;sdk.startPreview(ZegoCanvas(local));sdk.startPublishingStream(next);published=next} }
             if(published.isNotEmpty() && permission(data.optBoolean("video",true))) {

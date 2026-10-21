@@ -1,2 +1,2 @@
 <template><view class="scroll-divider"><view class="scroll-end"/><view class="scroll-thread"/><view class="scroll-end"/></view></template>
-<style>.scroll-divider{flex-direction:row;align-items:center;height:8px;margin-top:14px;opacity:0.65;}.scroll-end{width:2px;height:7px;border-radius:1px;background-color:#B8B1A2;}.scroll-thread{flex:1;height:1px;background-color:#D8D4CA;}</style>
+<style>.scroll-divider{flex-direction:row;align-items:center;height:8px;margin-top:14px;opacity:0.65;}.scroll-end{width:2px;height:7px;border-radius:1px;background-color:#B8B1A2;}.scroll-thread{flex:1;height:1px;background-color:#D3C9B8;}</style>

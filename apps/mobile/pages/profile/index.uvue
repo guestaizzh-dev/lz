@@ -32,7 +32,17 @@
 </view>
 </view>
 <view v-if="currentUser?.roles.some(r=>['ADMIN','OPERATOR','TEACHER'].includes(r))" class="menu-row" @click="openPage('booking/workbench')"><text class="item-title grow">现场工作台</text><text class="meta">获委派场次与到场核销 ›</text></view><view class="menu-group">
-<view v-for="item in menus" :key="item.label" class="menu-row" @click="open(item.path,item.auth)">
+<text class="menu-group-title">研习与书院</text>
+<view v-for="item in menus.slice(0,11)" :key="item.label" class="menu-row" @click="open(item.path,item.auth)">
+<AppIcon :name="item.icon" :size="20"/>
+<text class="menu-label">{{item.label}}</text>
+<text class="menu-value">{{item.caption}}</text>
+<AppIcon name="arrow-right" :size="13"/>
+</view>
+</view>
+<view class="menu-group">
+<text class="menu-group-title">订单与服务</text>
+<view v-for="item in menus.slice(11)" :key="item.label" class="menu-row" @click="open(item.path,item.auth)">
 <AppIcon :name="item.icon" :size="20"/>
 <text class="menu-label">{{item.label}}</text>
 <text class="menu-value">{{item.caption}}</text>
@@ -51,5 +61,5 @@ import {assetUrl} from '../../lib/api';import AppIcon from '../../components/App
 const menus=[{label:'公益研习',icon:'leaf',caption:'公益课程与会员',path:'marketing/charity',auth:false},{label:'课程推广',icon:'medal',caption:'邀请与佣金',path:'marketing/referrals',auth:true},{label:'书院共创',icon:'leaf',caption:'征文 · 置顶 · 案例授权',path:'marketing/community',auth:false},{label:'优惠券',icon:'medal',caption:'领券与使用记录',path:'marketing/coupons',auth:false},{label:'我的问答',icon:'chat-circle',caption:'提问与老师答复',path:'teacher/questions',auth:true},{label:'学习档案',icon:'book-open',caption:'我的课程',path:'course/library',auth:true},{label:'离线课件',icon:'book-open',caption:'本机下载',path:'course/downloads',auth:true},{label:'研习笔记',icon:'note-pencil',caption:'私人记录',path:'profile/library?kind=notes',auth:true},{label:'研习日志',icon:'leaf',caption:'记录日常',path:'profile/library?kind=practice',auth:true},{label:'阅读历史',icon:'clock-clockwise',caption:'浏览记录',path:'reading-history/reading-history',auth:true},{label:'收藏',icon:'star',caption:'',path:'profile/library?kind=favorites',auth:true},{label:'购课订单',icon:'book-open',caption:'付款与退课',path:'course/orders',auth:true},{label:'会员订单',icon:'crown',caption:'期限与售后',path:'membership/orders',auth:true},{label:'商品订单',icon:'package',caption:'查看全部',path:'shop/orders',auth:true},{label:'礼物余额',icon:'package',caption:'充值与退款',path:'profile/gifts',auth:true},{label:'积分',icon:'medal',caption:'',path:'profile/progression',auth:true},{label:'我的训练营',icon:'book-open',caption:'按期共学',path:'cohort/index',auth:true},{label:'在线咨询',icon:'headphones',caption:'本次预约双方',path:'booking/consultations',auth:true},{label:'我的预约',icon:'calendar-blank',caption:'咨询与报名',path:'booking/mine',auth:true},{label:'活动',icon:'calendar-blank',caption:'书院活动',path:'event/index',auth:false},{label:'消息',icon:'chat-circle',caption:'',path:'profile/messages',auth:true},{label:'客服',icon:'headphones',caption:'服务与反馈',path:'profile/feedback',auth:false},{label:'设置',icon:'gear',caption:'账号与安全',path:'profile/settings',auth:false}];
 function profile(){if(!currentUser.value)openPage('auth/login');else openPage('profile/edit');}function open(path:string,auth:boolean){if(auth&&needLogin())return;openPage(path);}
 </script>
-<style>@import '../../styles/app.css';.profile-head{padding:17px 0 20px;}.profile-photo{width:54px;height:54px;border-radius:27px;}.member-strip{background-color:#E4D1B5;border-radius:8px;padding:12px 12px;}.member-mark{width:44px;height:42px;background-color:#17292D;border-radius:6px;margin-right:12px;align-items:center;justify-content:center;}.member-strip-title{font-family:AcademySerif;color:#17292D;font-size:15px;line-height:22px;}.member-strip-copy{font-size:11px;color:#655B4D;margin-top:3px;line-height:16px;}.member-open{background-color:#245564;border-radius:20px;padding:8px 14px;}.member-open-label{font-size:12px;color:#F4F0E7;line-height:17px;}.menu-group{margin-top:12px;}</style>
+<style>@import '../../styles/app.css';.profile-head{padding:17px 0 20px;}.profile-photo{width:54px;height:54px;border-radius:27px;}.member-strip{background-color:#E4D1B5;border-radius:12px;padding:14px 12px;}.member-mark{width:44px;height:42px;background-color:#182B31;border-radius:8px;margin-right:12px;align-items:center;justify-content:center;}.member-strip-title{font-family:AcademySerif;color:#182B31;font-size:15px;line-height:22px;font-weight:600;}.member-strip-copy{font-size:11px;color:#655B4D;margin-top:3px;line-height:16px;}.member-open{background-color:#235663;border-radius:20px;padding:8px 14px;}.member-open-label{font-size:12px;color:#F5F0E6;line-height:17px;}.menu-group{margin-top:18px;}.menu-group-title{font-family:AcademySans;font-size:10px;line-height:18px;letter-spacing:2px;color:#A67C46;margin-bottom:2px;}</style>
 

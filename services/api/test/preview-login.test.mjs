@@ -28,7 +28,8 @@ test('preview OTP is bound to one existing ordinary account and an expiring swit
   try {
     await t.test('configuration refuses malformed, unbounded and real-payment combinations', () => {
       const config = { ...process.env };
-      for (const changes of [{ PREVIEW_LOGIN_ENABLED: 'yes' }, { PREVIEW_LOGIN_USER_ID: '' }, { PREVIEW_LOGIN_CODE: 'x' }, { PREVIEW_LOGIN_EXPIRES_AT: 'bad' }, { PREVIEW_LOGIN_EXPIRES_AT: new Date(Date.now() + 8 * 86400_000).toISOString() }, { SMS_ENABLED: 'true' }, { PRODUCT_SALES_ENABLED: 'true' }, { COURSE_WECHAT_ENABLED: 'true' }, { COURSE_ALIPAY_ENABLED: 'true' }, { MEMBERSHIP_SALES_ENABLED: 'true' }, { APPLE_IAP_ENABLED: 'true' }]) assert.throws(() => previewLoginConfig({ ...config, ...changes }));
+      for (const changes of [{ PREVIEW_LOGIN_ENABLED: 'yes' }, { PREVIEW_LOGIN_USER_ID: '' }, { PREVIEW_LOGIN_CODE: 'x' }, { PREVIEW_LOGIN_EXPIRES_AT: 'bad' }, { PREVIEW_LOGIN_EXPIRES_AT: new Date(Date.now() + 8 * 86400_000).toISOString() }, { SMS_ENABLED: 'true' }, { PRODUCT_SALES_ENABLED: 'true', PAYMENT_SIMULATION_ENABLED: 'false' }, { COURSE_WECHAT_ENABLED: 'true' }, { COURSE_ALIPAY_ENABLED: 'true' }, { MEMBERSHIP_SALES_ENABLED: 'true', PAYMENT_SIMULATION_ENABLED: 'false' }, { APPLE_IAP_ENABLED: 'true' }]) assert.throws(() => previewLoginConfig({ ...config, ...changes }));
+      assert.ok(previewLoginConfig({ ...config, PRODUCT_SALES_ENABLED: 'true', PAYMENT_SIMULATION_ENABLED: 'true' }));
       assert.equal(previewLoginConfig({ ...config, PREVIEW_LOGIN_ENABLED: 'false' }), null);
       assert.equal(previewLoginConfig({ ...config, PREVIEW_LOGIN_EXPIRES_AT: new Date(Date.now() - 1).toISOString() }), null);
     });

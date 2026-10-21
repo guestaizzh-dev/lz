@@ -6,35 +6,40 @@
 <ContentState v-if="loading||error||!course" :loading="loading" :error="error" @retry="load"/>
 <view v-else>
 <view class="course-cover" @click="play()">
-<ArtImage :src="course!.cover" kind="study" :width="width" :height="186"/>
-<view class="cover-shade">
-<text class="cover-title">{{course!.title}}</text>
-<text class="cover-subtitle">{{course!.subtitle}}</text>
-<view class="cover-tag">
-<AppIcon :name="courseIcon(course!)" :size="16"/>
-<text class="cover-tag-text">{{courseType(course!)}}</text>
+<ArtImage :src="course!.cover" kind="study" :width="width" :height="196"/>
+<view class="cover-top"><view class="pill pill-gold">{{courseType(course!)}}</view><view v-if="course!.isDemo" class="pill pill-muted cover-demo">示例课程</view></view>
+<view class="cover-play-layer"><view class="cover-play"><AppIcon name="play" :size="20"/></view></view>
 </view>
-</view>
-</view>
-<text class="detail-title">{{course!.title}}</text>
+<view class="course-title-block">
+<text class="eyebrow">课程 · {{course!.category}}</text>
+<text class="detail-title course-title">{{course!.title}}</text>
 <text class="course-subtitle">{{course!.subtitle}}</text>
 <view class="row course-metadata">
 <AppIcon :name="courseIcon(course!)" :size="15"/>
-<text class="course-metadata-text">{{curriculum?.lessons.length?contentLabel(curriculum!.lessons):courseType(course!)}}　｜　{{course!.chaptersCount}}讲{{course!.durationMinutes>0?'　｜　'+course!.durationMinutes+'分钟':''}}</text>
+<text class="course-metadata-text">{{curriculum?.lessons.length?contentLabel(curriculum!.lessons):courseType(course!)}}</text>
+<view class="meta-dot"/>
+<text class="course-metadata-text">{{course!.chaptersCount}}讲</text>
+<view v-if="course!.durationMinutes>0" class="meta-dot"/>
+<text v-if="course!.durationMinutes>0" class="course-metadata-text">{{course!.durationMinutes}}分钟</text>
 </view>
-<view class="notice-strip row between">
-<text v-if="course!.format==='COHORT'" class="section-heading">按营期报名</text><text v-else class="price">¥{{money(course!.price)}}</text>
-<text class="tag">{{course!.isDemo?'示例课程':course!.format==='COHORT'?'费用以本期为准':'课程价格'}}</text>
-<text class="tag" @click="openPage('membership/index')">会员权益 ›</text>
 </view>
-<view v-if="curriculum?.releaseWindow?.publicOpenAt" class="notice-strip"><text class="meta">会员提前开放：{{formatChinaTime(curriculum!.releaseWindow!.earlyAccessAt)}}（北京）</text><text class="meta">公开开放：{{formatChinaTime(curriculum!.releaseWindow!.publicOpenAt)}}（北京）</text><text v-if="curriculum!.releaseWindow!.phase!=='PUBLIC'" class="body-copy">{{curriculum!.access!=='TRIAL'?'你可按当前权益提前研习。':curriculum!.releaseWindow!.lockedReason??'提前学习仍须具备本课程内容权限，可先试听。'}}</text></view>
-<view class="teacher-row row" @click="openPage('teacher/detail?id='+course!.teacher.id)">
-<TeacherAvatar :portrait="course!.teacher.portrait" :demo="course!.teacher.isDemo" :size="45"/>
+<view class="course-buy">
+<view class="grow"><text class="eyebrow">课程价格</text><view class="row course-price-row"><text class="course-price">{{course!.format==='COHORT'?'按营期':('¥'+money(course!.price))}}</text><text class="course-price-note">{{course!.isDemo?'示例内容 · 不收款':'一次购买 · 长期研习'}}</text></view></view>
+<text class="course-member" @click.stop="openPage('membership/index')">会员权益 ›</text>
+</view>
+<view v-if="curriculum?.releaseWindow?.publicOpenAt" class="course-window">
+<text class="eyebrow">开放时间</text>
+<view class="course-window-row"><text class="course-window-label">会员提前</text><text class="course-window-value">{{formatChinaTime(curriculum!.releaseWindow!.earlyAccessAt)}}</text></view>
+<view class="course-window-row"><text class="course-window-label">公开开放</text><text class="course-window-value">{{formatChinaTime(curriculum!.releaseWindow!.publicOpenAt)}}</text></view>
+<text v-if="curriculum!.releaseWindow!.phase!=='PUBLIC'" class="course-window-hint">{{curriculum!.access!=='TRIAL'?'你可按当前权益提前研习。':curriculum!.releaseWindow!.lockedReason??'提前学习仍须具备本课程内容权限，可先试听。'}}</text>
+</view>
+<view class="teacher-row" @click="openPage('teacher/detail?id='+course!.teacher.id)">
+<TeacherAvatar :portrait="course!.teacher.portrait" :demo="course!.teacher.isDemo" :size="48"/>
 <view class="teacher-copy grow">
-<text class="item-title">{{course!.teacher.name}}</text>
-<text class="meta">{{course!.teacher.title}}</text>
+<text class="teacher-name-text">{{course!.teacher.name}}</text>
+<text class="teacher-title-text">{{course!.teacher.title}}</text>
 </view>
-<AppIcon name="arrow-right" :size="15"/>
+<view class="teacher-go"><AppIcon name="arrow-right" :size="15"/></view>
 </view>
 <view class="detail-tabs">
 <view v-for="item in ['介绍','目录','评价']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
@@ -47,7 +52,7 @@
 
 <view class="section">
 <text class="section-heading">研习方向</text>
-<text class="body-copy" :user-select="true">{{course!.tags.join(' · ')}}</text>
+<view class="course-tags"><text v-for="tag in course!.tags" :key="tag" class="course-tag">{{tag}}</text></view>
 </view>
 </view>
 <view v-else-if="tab==='目录'"><LessonRow v-for="item in curriculum?.lessons??[]" :key="item.id" :lesson="item" @select="playLesson($event)"/><ContentState v-if="!curriculum?.lessons.length" title="课程目录尚未发布" description="章节上传后，将在这里展示试听和完整课程目录。"/></view>
@@ -60,7 +65,7 @@
 </view></scroll-view>
 <BottomBar v-if="course&&!loading&&!error">
 <button v-if="curriculum?.access==='TRIAL'&&curriculum?.lessons.some(l=>l.trial)" class="bar-secondary" @click="play()">试听</button>
-<button v-if="course!.format==='COHORT'&&curriculum?.access==='TRIAL'" class="bar-primary" @click="chooseCohort">选择报名营期</button><button v-else class="bar-primary" :disabled="enrolling||!curriculum" @click="buy()">{{curriculum?.access!=='TRIAL'&&curriculum?'继续学习':course!.price===0?'加入研习':'查看购课说明'}}</button>
+<button v-if="course!.format==='COHORT'&&curriculum?.access==='TRIAL'" class="bar-primary" @click="chooseCohort">选择报名营期</button><button v-else class="bar-primary" :class="enrolling||!curriculum?'is-disabled':''" @click="buy()">{{curriculum?.access!=='TRIAL'&&curriculum?'继续学习':course!.price===0?'加入研习':'查看购课说明'}}</button>
 </BottomBar>
 </view>
 </template>
@@ -82,7 +87,7 @@ async function load(){
 }
 function playLesson(item:LessonSummary){if(loading.value||error.value)return;openPage('course/player?id='+id+'&lessonId='+item.id);}
 function play(){if(loading.value||error.value)return;if(course.value?.format==='COHORT'&&curriculum.value?.access==='TRIAL'){chooseCohort();return;}openPage('course/player?id='+id);}
-async function buy(){if(loading.value||error.value||enrolling.value||needLogin())return;if(curriculum.value&&curriculum.value.access!=='TRIAL'){play();return;}if(course.value?.price===0){enrolling.value=true;const session=sessionGeneration();try{await request('/learning/courses/'+id+'/enroll',{method:'POST'});if(alive&&visible&&session===sessionGeneration())play();}catch(e){if(alive&&visible&&session===sessionGeneration())uni.showToast({title:(e as Error).message,icon:'none'});}finally{enrolling.value=false;}return;}openPage('course/purchase?courseId='+id);}
+async function buy(){if(loading.value||error.value||enrolling.value||needLogin()||!curriculum.value)return;if(curriculum.value&&curriculum.value.access!=='TRIAL'){play();return;}if(course.value?.price===0){enrolling.value=true;const session=sessionGeneration();try{await request('/learning/courses/'+id+'/enroll',{method:'POST'});if(alive&&visible&&session===sessionGeneration())play();}catch(e){if(alive&&visible&&session===sessionGeneration())uni.showToast({title:(e as Error).message,icon:'none'});}finally{enrolling.value=false;}return;}openPage('course/purchase?courseId='+id);}
 
 async function share(){
   if(!course.value)return;
@@ -113,4 +118,33 @@ onShow(()=>{relatedRef.value?.refresh();});
 const cohortsRef=ref<InstanceType<typeof CohortLinks>|null>(null);
 onShow(()=>{cohortsRef.value?.refresh();});
 </script>
-<style>@import '../../styles/app.css';.course-cover{position:relative;overflow:hidden;border-radius:4px;}.cover-shade{position:absolute;left:0;top:0;right:0;bottom:0;background-color:rgba(23,41,45,0.32);padding:28px 20px;}.cover-title{font-family:AcademySerif;color:#FAF8F2;font-size:24px;line-height:35px;}.cover-subtitle{font-family:AcademySerif;color:#FAF8F2;font-size:13px;margin-top:8px;line-height:19px;}.cover-tag{flex-direction:row;align-items:center;align-self:flex-start;border-radius:12px;background-color:#E6D6BD;padding:4px 10px;margin-top:18px;}.cover-tag-text{font-size:10px;color:#17292D;margin-left:4px;line-height:15px;}.course-subtitle{font-family:AcademySerif;font-size:14px;line-height:25px;color:#344C54;margin-top:3px;}.course-metadata{margin-top:12px;}.course-metadata-text{font-size:11px;color:#637276;margin-left:5px;line-height:16px;}.teacher-row{padding:20px 0 0;}.teacher-copy{padding-left:12px;}.trial-text{color:#245564;font-size:13px;margin-left:6px;line-height:19px;}</style>
+<style>@import '../../styles/app.css';
+.course-cover{position:relative;border-radius:12px;overflow:hidden;}
+.cover-top{position:absolute;left:12px;top:12px;right:12px;flex-direction:row;justify-content:space-between;align-items:flex-start;}
+.cover-demo{margin-left:8px;}
+.cover-play-layer{position:absolute;left:0;top:0;right:0;bottom:0;align-items:center;justify-content:center;}
+.cover-play{width:56px;height:56px;border-radius:28px;background-color:rgba(252,249,242,0.92);align-items:center;justify-content:center;padding-left:3px;}
+.course-title-block{padding:20px 0 4px;}
+.course-title{margin-top:8px;line-height:35px;}
+.course-subtitle{font-family:AcademySerif;font-size:14px;line-height:24px;color:#344C54;margin-top:6px;}
+.course-metadata{margin-top:12px;flex-wrap:wrap;}
+.course-metadata-text{font-size:12px;color:#6A7578;margin-left:5px;line-height:18px;}
+.meta-dot{width:3px;height:3px;border-radius:2px;background-color:#A67C46;margin-left:10px;}
+.course-buy{flex-direction:row;align-items:center;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:16px;margin-top:18px;}
+.course-price-row{margin-top:6px;align-items:flex-end;flex-wrap:wrap;}
+.course-price{font-family:AcademySerif;font-size:28px;line-height:34px;color:#B4533F;font-weight:600;}
+.course-price-note{font-size:11px;color:#6A7578;margin-left:10px;line-height:18px;}
+.course-member{font-size:12px;color:#235663;line-height:18px;padding:10px 0 10px 12px;}
+.course-window{background-color:#EFE9DC;border-radius:12px;padding:16px;margin-top:14px;}
+.course-window-row{flex-direction:row;justify-content:space-between;align-items:center;margin-top:8px;}
+.course-window-label{font-size:12px;color:#6A7578;line-height:18px;}
+.course-window-value{font-size:12px;color:#182B31;line-height:18px;}
+.course-window-hint{font-size:12px;line-height:20px;color:#6A7578;margin-top:10px;}
+.teacher-row{flex-direction:row;align-items:center;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:14px;margin-top:14px;}
+.teacher-copy{padding-left:12px;}
+.teacher-name-text{font-family:AcademySerif;font-size:17px;line-height:25px;color:#182B31;font-weight:600;}
+.teacher-title-text{font-size:12px;line-height:19px;color:#6A7578;margin-top:2px;}
+.teacher-go{width:28px;align-items:flex-end;}
+.course-tags{flex-direction:row;flex-wrap:wrap;margin-top:12px;}
+.course-tag{font-size:12px;color:#235663;background-color:#E6EDE9;border-radius:10px;padding:4px 10px;margin:0 8px 8px 0;line-height:18px;}
+</style>

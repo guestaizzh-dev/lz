@@ -2,4 +2,4 @@
 <script setup lang="ts">
 import {request} from '../lib/api';import {openPage} from '../lib/presentation';import {formatChinaDate} from '../lib/date-time';import type {Cohort} from '../lib/cohorts';const props=defineProps<{courseId:string}>(),items=ref<Cohort[]>([]),error=ref('');let generation=0;async function load(){if(!props.courseId)return;const run=++generation;try{const r=await request<Cohort[]>('/cohorts/courses/'+props.courseId);if(run===generation){items.value=r;error.value='';}}catch(e){if(run===generation)error.value=(e as Error).message;}}watch(()=>props.courseId,()=>{items.value=[];load();},{immediate:true});
 defineExpose({refresh:load});
-</script><style>@import '../styles/app.css';.cohort-link{border-width:0;border-style:solid;white-space:normal;text-align:left;padding:14px 0;margin:0;background-color:transparent;border-bottom:1px solid #DFD9CF;line-height:25px;}</style>
+</script><style>@import '../styles/app.css';.cohort-link{border-width:0;border-style:solid;white-space:normal;text-align:left;padding:14px 0;margin:0;background-color:transparent;border-bottom:1px solid #E3DCCF;line-height:25px;}</style>

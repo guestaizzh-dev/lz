@@ -3,13 +3,16 @@
 <PageHead title="活动与预约"/>
 <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
 <view class="content">
+<text class="intro event-intro">在书院相见，按场次预约。线下研习、雅集与实践活动都在这里。</text>
 <ContentState v-if="loading&&!items.length||error" :loading="loading" :error="error" @retry="retry()"/>
 <view v-if="!error&&(!loading||items.length)">
-<view v-for="event in items" :key="event.id" class="event-card" @click="openPage('event/detail?id='+event.id)">
-<ArtImage :src="event.cover" kind="room" :width="width" :height="150"/>
+<view v-for="event in items" :key="event.id" class="event-card" hover-class="row-pressed" @click="openPage('event/detail?id='+event.id)">
+<ArtImage :src="event.cover" kind="room" :width="width" :height="160"/>
+<view class="event-copy">
+<view class="row between"><view class="pill pill-gold">线下活动</view><text class="event-date">{{formatChinaDate(event.startsAt)}}</text></view>
 <text class="item-title event-title">{{event.title}}</text>
-<text class="meta">{{formatChinaDate(event.startsAt)}} · {{event.location}}</text>
-<text class="price">{{event.price?'¥'+money(event.price):'免费活动'}}</text>
+<view class="row between event-foot"><text class="event-location">{{event.location}}</text><text class="event-price">{{event.price?'¥'+money(event.price):'免费活动'}}</text></view>
+</view>
 </view>
 <ContentState v-if="!items.length" title="暂无活动安排" description="书院的线下研习、雅集和实践活动，将在这里公布。"/>
 <button v-if="nextCursor" class="retry" @click="load(true)">更多活动</button>
@@ -20,4 +23,4 @@
 </template>
 <script setup lang="ts">
 import {formatChinaDate} from '../../lib/date-time';import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {AcademyEvent} from '../../lib/api';import {money} from '../../lib/api';import {openPage,viewWidth} from '../../lib/presentation';const width=viewWidth();const {items,loading,error,nextCursor,load,retry}=useCatalog<AcademyEvent>('events',()=>({category:'全部'}));onLoad(()=>load());</script>
-<style>@import '../../styles/app.css';.event-card{border-style:solid;border-width:0;padding-bottom:18px;margin-bottom:18px;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.event-title{margin-top:12px;}.price{margin-top:8px;}</style>
+<style>@import '../../styles/app.css';.event-intro{padding:2px 0 14px;}.event-card{background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;overflow:hidden;margin-bottom:14px;}.event-copy{padding:14px;}.event-date{font-size:11px;line-height:18px;color:#6A7578;}.event-title{margin-top:10px;font-size:19px;line-height:28px;}.event-foot{margin-top:10px;}.event-location{flex:1;min-width:0;padding-right:12px;font-size:12px;line-height:20px;color:#6A7578;}.event-price{font-family:AcademySerif;font-size:20px;line-height:28px;color:#B4533F;font-weight:600;}</style>

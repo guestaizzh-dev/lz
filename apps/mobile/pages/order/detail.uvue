@@ -22,4 +22,4 @@ function copy(){if(order.value)uni.setClipboardData({data:order.value.id});}
 function cancel(){if(cancelling.value||!order.value)return;uni.showModal({title:'取消这笔订单？',content:'取消后将释放预占库存，本次没有扣款。',confirmText:'取消订单',success:async result=>{if(!result.confirm||cancelling.value)return;cancelling.value=true;try{order.value=await request<Order>('/orders/'+id+'/cancel',{method:'POST'});uni.showToast({title:'订单已取消',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{cancelling.value=false;}}});}
 onLoad(options=>{id=options?.id??'';});onShow(load);
 </script>
-<style>@import '../../styles/app.css';.order-heading{padding:12px 0 20px;}.order-section{padding:18px 0;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}.order-item{padding:14px 0;}.order-item-info{margin-top:8px;}</style>
+<style>@import '../../styles/app.css';.order-heading{padding:12px 0 20px;}.order-section{padding:18px 0;border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;}.order-item{padding:14px 0;}.order-item-info{margin-top:8px;}</style>

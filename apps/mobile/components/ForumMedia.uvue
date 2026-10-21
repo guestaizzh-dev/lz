@@ -1,7 +1,7 @@
 <template>
 <view class="forum-media">
   <video v-if="type==='video'&&url" :id="playerId" class="forum-video" :src="url" :initial-time="position" :controls="true" @timeupdate="position=$event.detail.currentTime" @play="started" @pause="playing=false" @ended="playing=false" @loadedmetadata="restoreVideo" @error="failed"/>
-  <view v-if="type==='audio'" class="forum-audio"><view class="row between"><view class="row"><AppIcon name="headphones" :size="22"/><text class="audio-title">音频心得</text></view><text class="meta">{{duration(position)}} / {{duration(seconds)}}</text></view><slider :value="dragging?dragPosition:position" :max="Math.max(1,seconds)" activeColor="#31564F" :disabled="!url||loading" @changing="dragging=true;dragPosition=$event.detail.value" @change="seek($event.detail.value)"/><button class="audio-action" :disabled="!url||loading" @click="toggle">{{playing?'暂停音频':'播放音频'}}</button></view>
+  <view v-if="type==='audio'" class="forum-audio"><view class="row between"><view class="row"><AppIcon name="headphones" :size="22"/><text class="audio-title">音频心得</text></view><text class="meta">{{duration(position)}} / {{duration(seconds)}}</text></view><slider :value="dragging?dragPosition:position" :max="Math.max(1,seconds)" activeColor="#235663" :disabled="!url||loading" @changing="dragging=true;dragPosition=$event.detail.value" @change="seek($event.detail.value)"/><button class="audio-action" :disabled="!url||loading" @click="toggle">{{playing?'暂停音频':'播放音频'}}</button></view>
   <text v-if="loading&&!url" class="meta">正在准备{{type==='video'?'视频':'音频'}}…</text><text v-if="error" class="media-error">{{error}}</text><button v-if="error" class="media-retry" :disabled="loading" @click="load">重新加载</button>
 </view>
 </template>
@@ -42,6 +42,6 @@ watch(()=>currentUser.value?.id,()=>{sequence++;stop();audio?.destroy();audio=nu
 onMounted(()=>void load());onShow(()=>{visible=true;if(!url.value&&!loading.value)void load();});onHide(()=>{visible=false;sequence++;stop();audio?.destroy();audio=null;url.value='';clearTimer();loading.value=false;});onUnmounted(()=>{visible=false;sequence++;stop();audio?.destroy();clearTimer();});
 </script>
 <style>
-.meta{font-size:13px;line-height:22px;color:#637276;}.row{flex-direction:row;align-items:center;flex-wrap:wrap;}.between{justify-content:space-between;}
-.forum-media{margin-top:16px;margin-bottom:16px;}.forum-video{width:100%;height:210px;border-radius:8px;background-color:#17292D;}.forum-audio{padding:16px;background-color:#EEE9DF;border-radius:8px;}.audio-title{font-size:15px;line-height:24px;color:#245564;margin-left:10px;}.audio-action,.media-retry{min-height:44px;line-height:24px;font-size:14px;color:#245564;background-color:transparent;border-width:0;margin:0;padding:10px 12px;}.media-error{font-size:13px;line-height:24px;color:#B95543;margin-top:10px;}
+.meta{font-size:13px;line-height:22px;color:#6A7578;}.row{flex-direction:row;align-items:center;flex-wrap:wrap;}.between{justify-content:space-between;}
+.forum-media{margin-top:16px;margin-bottom:16px;}.forum-video{width:100%;height:210px;border-radius:8px;background-color:#182B31;}.forum-audio{padding:16px;background-color:#EFE9DC;border-radius:8px;}.audio-title{font-size:15px;line-height:24px;color:#235663;margin-left:10px;}.audio-action,.media-retry{min-height:44px;line-height:24px;font-size:14px;color:#235663;background-color:transparent;border-width:0;margin:0;padding:10px 12px;}.media-error{font-size:13px;line-height:24px;color:#B4533F;margin-top:10px;}
 </style>

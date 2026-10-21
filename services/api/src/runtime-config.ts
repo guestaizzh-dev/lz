@@ -8,7 +8,7 @@ export function validateProductionConfig(env:NodeJS.ProcessEnv){
   socialLoginConfig('WECHAT',env);socialLoginConfig('APPLE',env);
   offlineSigningConfig(env);
   pushConfiguration(env);
-  for(const key of ['RTC_NATIVE_PUBLISH_READY','OFFLINE_NATIVE_PLAYBACK_READY','GIFT_SALES_ENABLED','APPLE_GIFT_SALES_ENABLED','ZEGO_RTC_ENABLED','ZEGO_ROOM_TOKEN_AUTH_ENABLED','ZEGO_ALLOW_UNVERIFIED_TOKEN_AUTH'])if(env[key]!==undefined&&!['true','false'].includes(env[key]!))throw new Error(key+' must be true or false');
+  for(const key of ['RTC_NATIVE_PUBLISH_READY','OFFLINE_NATIVE_PLAYBACK_READY','GIFT_SALES_ENABLED','APPLE_GIFT_SALES_ENABLED','ZEGO_LOCAL_RECORDING_ENABLED','ZEGO_RTC_ENABLED','ZEGO_ROOM_TOKEN_AUTH_ENABLED','ZEGO_ALLOW_UNVERIFIED_TOKEN_AUTH'])if(env[key]!==undefined&&!['true','false'].includes(env[key]!))throw new Error(key+' must be true or false');
   if(env.ZEGO_RTC_ENABLED==='true'){
     const id=Number(env.ZEGO_APP_ID);
     if(!Number.isInteger(id)||id<=0||id>0xffffffff||Buffer.byteLength(env.ZEGO_SERVER_SECRET??'')!==32||!(env.ZEGO_CALLBACK_SECRET??'').length||!/^wss:\/\/[a-z0-9.-]+\.(zego\.im|zego\.com|zegocloud\.com)(\/[^?#]*)?$/i.test(env.ZEGO_RTC_SERVER??''))throw new Error('ZEGO RTC requires AppID, server address and server-only secrets');

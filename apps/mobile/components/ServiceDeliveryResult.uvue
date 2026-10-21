@@ -4,4 +4,4 @@ import type {ServiceDeliveryResult} from '../lib/service-delivery';import {forma
 defineProps<{delivery:ServiceDeliveryResult;canDispute?:boolean}>();
 const labels:Record<string,string>={COMPLETED:'本次服务已完整交付',PARTIAL:'本次服务为部分交付',NOT_DELIVERED:'本次服务未交付',NO_SHOW:'本次记录为未到场'};
 </script>
-<style>@import '../styles/app.css';.delivery-result{margin-top:20px;padding-top:18px;border-top-width:1px;border-top-style:solid;border-top-color:#DFD9CF;}</style>
+<style>@import '../styles/app.css';.delivery-result{margin-top:20px;padding-top:18px;border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;}</style>

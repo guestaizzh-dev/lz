@@ -9,4 +9,4 @@ let failedAppend=false;
 async function load(append=false){if(owner!==(currentUser.value?.id??'')){owner=currentUser.value?.id??'';items.value=[];hasMore.value=false;}if(needLogin()||loading.value)return;failedAppend=append;loading.value=true;error.value='';try{const next=append?page+1:1;const data=await request<{items:History[];hasMore:boolean}>('/me/reading-history?page='+next);items.value=append?[...items.value,...data.items]:data.items;page=next;hasMore.value=data.hasMore;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
 onShow(()=>load());
 </script>
-<style>@import '../../styles/app.css';.history-item{padding:20px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;}</style>
+<style>@import '../../styles/app.css';.history-item{padding:20px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#E3DCCF;}</style>

@@ -1,23 +1,27 @@
-<template><view class="rtc-panel">
+<template><view :class="['rtc-panel',immersive?'rtc-panel-immersive':'']">
 <!-- #ifdef APP-ANDROID || APP-IOS -->
 <native-view :style="{height:height+'px',width:'100%'}" @init="bind"/>
 <!-- #endif -->
-<view class="rtc-status"><text class="rtc-state">{{statusLabel}}</text><text v-if="error" class="rtc-error">{{error}}</text></view>
+<view v-if="immersive&&controlsVisible" class="rtc-controls-mask" @click="emit('closeControls')"/>
+<view v-if="!immersive||controlsVisible" :class="['rtc-controls',immersive?'rtc-controls-immersive':'']">
+<view v-if="immersive" class="rtc-sheet-head"><text class="rtc-label">连麦与设备</text><button class="rtc-button" @click="emit('closeControls')">完成</button></view>
+<scroll-view direction="vertical" :style="immersive?{height:Math.floor(height*0.5)+'px'}:{}"><view class="rtc-status"><text class="rtc-state">{{statusLabel}}</text><text v-if="error" class="rtc-error">{{error}}</text></view>
 <view class="rtc-actions"><button v-if="host||mode==='CONSULTATION'||own?.state==='APPROVED'" class="rtc-button" :disabled="busy" @click="startSpeaking">{{consent?'重新检查连接':own?.state==='APPROVED'?'接受邀请 · 开始连麦':mode==='CONSULTATION'?'进入音视频咨询':'开始推流'}}</button><button v-if="consent" class="rtc-button" @click="mute">{{muted?'开启麦克风':'关闭麦克风'}}</button><button v-if="host||mode==='CONSULTATION'||own?.state==='CONNECTED'" class="rtc-button" @click="camera">{{video?'关闭摄像头':'使用摄像头'}}</button><button v-if="!host&&mode==='LIVE'&&!own" class="rtc-button" :disabled="busy" @click="micAction('REQUEST')">申请连麦</button><button v-if="own&&['WAITING','APPROVED','CONNECTED'].includes(own!.state)" class="rtc-button" :disabled="busy" @click="micAction('CANCEL',own!)">{{own!.state==='CONNECTED'?'结束连麦':'取消申请'}}</button><button v-if="status==='PERMISSION'" class="rtc-button" @click="settings">权限设置</button><button v-if="error" class="rtc-button" @click="refresh">重试连接</button></view>
 <text v-if="own?.state==='WAITING'" class="rtc-note">{{own!.priority?'会员优先 · ':''}}已提交申请，等候主播邀请。批准后仍需你确认开麦。</text>
 <view v-if="host&&queue.length" class="rtc-queue"><text class="rtc-label">连麦申请</text><view v-for="item in queue" :key="item.id" class="rtc-person"><view class="rtc-person-copy"><text class="rtc-name">{{item.nickname}}</text><text class="rtc-note">{{item.priority?'会员优先 · ':''}}{{micLabel(item.state)}}</text></view><view class="rtc-person-actions"><button v-if="item.state==='WAITING'" class="rtc-button" :disabled="busy" @click="micAction('APPROVE',item)">邀请</button><button v-if="item.state==='WAITING'" class="rtc-button" :disabled="busy" @click="micAction('REJECT',item)">暂不接受</button><button v-else class="rtc-button" :disabled="busy" @click="micAction('REMOVE',item)">结束连麦</button></view></view></view>
 <text class="rtc-note">{{mode==='CONSULTATION'?'仅本次预约双方可进入。离开页面会停止采集，结束咨询后请在预约中核对履约结果。':'观看不需要摄像头或麦克风权限。离开页面会停止采集。'}}</text>
-</view></template>
+</scroll-view></view></view></template>
 <script setup lang="ts">
 import {ref,computed,onMounted,onUnmounted,watch} from 'vue';
 // #ifdef APP-ANDROID || APP-IOS
 import {bindRtc,rtcCommand,rtcState,closeRtc} from '@/uni_modules/academy-rtc';
 // #endif
 import {request} from '../lib/api';import {currentUser,sessionGeneration} from '../lib/session';
-const props=defineProps<{leaseKey:string;sessionId?:string;mode:'LIVE'|'CONSULTATION';height:number}>(),emit=defineEmits<{error:[message:string];reconnect:[]}>();
+const props=defineProps<{leaseKey:string;sessionId?:string;mode:'LIVE'|'CONSULTATION';height:number;immersive?:boolean;controlsVisible?:boolean;fit?:string}>(),emit=defineEmits<{error:[message:string];reconnect:[];closeControls:[];roomState:[value:{state:string;micState:string;consent:boolean}]}>();
 type Credential={appId:number;roomId:string;userId:string;token:string;role:string;title:string;publishStreamId:string|null;playStreamIds:string[]};type Mic={id:string;state:string;version:number;priority:number;nickname?:string};
 const id='rtc-'+Math.random().toString(36).slice(2),status=ref('CONNECTING'),error=ref(''),consent=ref(false),muted=ref(false),video=ref(props.mode==='CONSULTATION'),busy=ref(false),host=ref(false),queue=ref<Mic[]>([]),own=ref<Mic|null>(null);
 const statusLabel=computed(()=>({IDLE:'等待连接',CONNECTING:'正在连接',CONNECTED:'已连接，等待画面',PLAYING:'研习中',PUBLISHING:'正在推流',PERMISSION:'需要设备权限',ERROR:'连接中断',CLOSED:'连接已结束'} as Record<string,string>)[status.value]??'正在连接');
+watch(()=>status.value+'|'+(own.value?.state??'')+'|'+consent.value,()=>emit('roomState',{state:status.value,micState:own.value?.state??'',consent:consent.value}),{immediate:true});
 const owner=currentUser.value?.id,generation=sessionGeneration();let disposed=false,bound=false,credentials:Credential|null=null,poll:ReturnType<typeof setInterval>|null=null,timer:ReturnType<typeof setInterval>|null=null,micTimer:ReturnType<typeof setInterval>|null=null,refreshing=false,micLoading=false,receiving=false,hadMic=false,reconnecting=false;
 function valid(){return !disposed&&owner===currentUser.value?.id&&generation===sessionGeneration();}
 function command(data:Record<string,unknown>){
@@ -25,7 +29,8 @@ function command(data:Record<string,unknown>){
 if(bound&&valid())rtcCommand(id,JSON.stringify(data));
 // #endif
 }
-function configure(){if(credentials)command({...credentials,action:'CONFIGURE',publishStreamId:credentials.publishStreamId??'',publishConsent:consent.value,video:video.value});}
+function configure(){if(credentials)command({...credentials,action:'CONFIGURE',publishStreamId:credentials.publishStreamId??'',publishConsent:consent.value,video:video.value,canvasFit:props.immersive&&props.fit!=='contain'?'cover':'contain'});}
+watch(()=>props.fit,()=>configure());
 function bind(e:{detail:{element:UniNativeViewElement}}){
 // #ifdef APP-ANDROID || APP-IOS
 bindRtc(e.detail.element,id);bound=true;configure();
@@ -51,5 +56,7 @@ void request(props.mode==='LIVE'?'/live/rtc/leave':'/rtc/consultations/leave',{m
 watch(()=>currentUser.value?.id,()=>{if(!valid())stop();});onUnmounted(stop);
 </script>
 <style>
-.rtc-panel{padding-bottom:12px;}.rtc-status{padding:12px 0 4px;}.rtc-state{font-size:14px;color:#31564F;}.rtc-error{font-size:13px;color:#A44F42;margin-top:6px;line-height:21px;}.rtc-actions{flex-direction:row;flex-wrap:wrap;margin:8px 0;}.rtc-button{margin-right:8px;margin-bottom:8px;font-size:13px;color:#31564F;background-color:#F4F1E9;border-width:1px;border-color:#DFD9CF;line-height:22px;min-height:44px;padding:10px 12px;margin-left:0;margin-top:0;border-radius:5px;}.rtc-note{font-size:12px;color:#7F847D;line-height:20px;}.rtc-queue{margin-top:12px;padding-top:12px;border-top-width:1px;border-top-color:#DFD9CF;}.rtc-label{font-size:15px;color:#293B34;font-family:AcademySerif;margin-bottom:8px;}.rtc-person{padding:10px 0;border-bottom-width:1px;border-bottom-color:#E9E4D9;}.rtc-person-copy{margin-bottom:8px;}.rtc-person-actions{flex-direction:row;}.rtc-name{font-size:14px;color:#293B34;}
+.rtc-panel{padding-bottom:12px;}.rtc-status{padding:12px 0 4px;}.rtc-state{font-size:14px;color:#235663;}.rtc-error{font-size:13px;color:#B4533F;margin-top:6px;line-height:21px;}.rtc-actions{flex-direction:row;flex-wrap:wrap;margin:8px 0;}.rtc-button{margin-right:8px;margin-bottom:8px;font-size:13px;color:#235663;background-color:#EFE9DC;border-width:1px;border-color:#E3DCCF;line-height:22px;min-height:44px;padding:10px 12px;margin-left:0;margin-top:0;border-radius:5px;}.rtc-note{font-size:12px;color:#7C878A;line-height:20px;}.rtc-queue{margin-top:12px;padding-top:12px;border-top-width:1px;border-top-color:#E3DCCF;}.rtc-label{font-size:15px;color:#182B31;font-family:AcademySerif;margin-bottom:8px;}.rtc-person{padding:10px 0;border-bottom-width:1px;border-bottom-color:#E9E4D9;}.rtc-person-copy{margin-bottom:8px;}.rtc-person-actions{flex-direction:row;}.rtc-name{font-size:14px;color:#182B31;}
+.rtc-panel-immersive{padding-bottom:0;}.rtc-controls-immersive{position:fixed;left:0;right:0;bottom:0;padding:20px 20px 28px;background-color:#FCF9F2;border-top-left-radius:22px;border-top-right-radius:22px;z-index:350;}.rtc-sheet-head{flex-direction:row;align-items:center;justify-content:space-between;}
+.rtc-controls-mask{position:fixed;left:0;right:0;top:0;bottom:0;background-color:rgba(0,0,0,0.45);z-index:349;}
 </style>

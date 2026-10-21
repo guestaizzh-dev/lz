@@ -29,7 +29,7 @@ export class DiscoveryService {
   private async pool(userId?: string) {
     return Prisma.sql`WITH pool AS (
       SELECT r.id, r.kind AS type, r.title, r.summary, r.visibility, r."isDemo", COALESCE(a."publishedAt",r."publishedAt",r."createdAt") AS "publishedAt",
-        COALESCE(a.cover,c.cover,p.cover,e.cover,t.portrait,'') AS cover,
+        COALESCE(a.cover,c.cover,p.cover,e.cover,t.portrait,l.cover,'') AS cover,
         ARRAY(SELECT DISTINCT tag FROM unnest(COALESCE(a.tags,c.tags,t.expertise,ARRAY[]::text[]) || ARRAY(SELECT tg.name FROM "ResourceTag" rt JOIN "Tag" tg ON tg.id=rt."tagId" AND tg.active WHERE rt."resourceId"=r.id)) AS tag ORDER BY tag) AS tags,
         (SELECT count(*)::int FROM "Reaction" x WHERE x."resourceId"=r.id AND x.kind='LIKE') AS popularity
       FROM "Resource" r LEFT JOIN "Article" a ON a.id=r.id AND r.kind='ARTICLE'
@@ -39,7 +39,7 @@ export class DiscoveryService {
         LEFT JOIN "Teacher" lt ON lt.id=l."teacherId"
         LEFT JOIN "ForumThread" ft ON ft.id=r.id AND r.kind='THREAD' LEFT JOIN "ForumSection" fs ON fs.id=ft."sectionId"
       WHERE r."publishState"='PUBLISHED' AND (${await demoContentVisible(this.db)} OR NOT r."isDemo") AND (
-        (a.status='PUBLISHED') OR (c.status='PUBLISHED' AND ct.status='PUBLISHED') OR (p.status='PUBLISHED') OR (e.status='PUBLISHED') OR (t.status='PUBLISHED') OR (l.id IS NOT NULL AND lt.status='PUBLISHED') OR (ft.id IS NOT NULL AND ft."deletedAt" IS NULL AND fs.active AND fs.scope='PUBLIC' AND fs."cohortId" IS NULL AND r.visibility='PUBLIC')
+        (a.status='PUBLISHED') OR (c.status='PUBLISHED' AND ct.status='PUBLISHED') OR (p.status='PUBLISHED') OR (e.status='PUBLISHED') OR (t.status='PUBLISHED') OR (l.id IS NOT NULL AND (lt.status='PUBLISHED' OR l."managedByAdmin")) OR (ft.id IS NOT NULL AND ft."deletedAt" IS NULL AND fs.active AND fs.scope='PUBLIC' AND fs."cohortId" IS NULL AND r.visibility='PUBLIC')
       ) ${userId ? Prisma.sql`AND NOT EXISTS(SELECT 1 FROM "UserBlock" b WHERE b."userId"=${userId} AND b."blockedId"=ft."authorId")` : Prisma.empty}
       AND (${await demoContentVisible(this.db)} OR (COALESCE(ct."isDemo",false)=false AND COALESCE(lt."isDemo",false)=false))
     )`;
@@ -53,7 +53,9 @@ export class DiscoveryService {
       this.db.$queryRaw<Item[]>(Prisma.sql`${await this.pool(userId)} SELECT *, ${score} AS score FROM pool WHERE ${condition} ORDER BY ${order} LIMIT ${query.size} OFFSET ${(query.page - 1) * query.size}`),
       this.db.$queryRaw<{ total: number }[]>(Prisma.sql`${await this.pool(userId)} SELECT count(*)::int AS total FROM pool WHERE ${condition}`),
     ]);
-    return { items, total: count[0]!.total, page: query.page, size: query.size, hasMore: query.page * query.size < count[0]!.total };
+    const liveIds=items.filter(item=>item.type==='LIVE').map(item=>item.id);
+    const live=liveIds.length?await this.db.$queryRaw<{roomId:string;liveState:string;scheduledAt:Date;replayReady:boolean}[]>(Prisma.sql`SELECT DISTINCT ON (s."roomId") s."roomId",s.state AS "liveState",s."scheduledAt",(s.state='REPLAY_READY' AND p."reviewState"='APPROVED' AND p."publishedAt" IS NOT NULL) AS "replayReady" FROM "LiveSession" s LEFT JOIN "LiveReplay" p ON p."sessionId"=s.id WHERE s."roomId" IN (${Prisma.join(liveIds)}) ORDER BY s."roomId",CASE s.state WHEN 'LIVE' THEN 0 WHEN 'PREPARING' THEN 1 WHEN 'SCHEDULED' THEN 2 WHEN 'REPLAY_READY' THEN 3 WHEN 'ENDED' THEN 4 ELSE 5 END,CASE WHEN s.state IN ('SCHEDULED','PREPARING') THEN s."scheduledAt" END ASC,s."scheduledAt" DESC,s.id DESC`):[];
+    return { items:items.map(item=>({...item,...(live.find(row=>row.roomId===item.id)??{})})), total: count[0]!.total, page: query.page, size: query.size, hasMore: query.page * query.size < count[0]!.total };
   }
   async tags(userId?: string) {
     return this.db.$queryRaw<{ name: string; count: number }[]>(Prisma.sql`${await this.pool(userId)} SELECT tag AS name,count(*)::int AS count FROM pool CROSS JOIN LATERAL unnest(tags) tag GROUP BY tag ORDER BY count DESC,tag LIMIT 80`);
@@ -117,7 +119,7 @@ export class DiscoveryService {
     const item = await this.publicItem(id, 'LIVE');
     const room = await this.db.liveRoom.findUniqueOrThrow({ where: { id } });
     const sessions = await this.db.liveSession.findMany({ where: { roomId: id, state: { in: ['SCHEDULED', 'LIVE', 'ENDED'] } }, select: { id: true, title: true, scheduledAt: true, startedAt: true, endedAt: true, state: true }, orderBy: { scheduledAt: 'desc' }, take: 10 });
-    return { ...item, teacher: await this.catalog.teacher(room.teacherId), courseId: room.courseId, sessions, playbackAvailable: false };
+    return { ...item, teacher: room.teacherId?await this.catalog.teacher(room.teacherId):{name:'老子道学书院'}, courseId: room.courseId, sessions, playbackAvailable: false };
   }
 }
 

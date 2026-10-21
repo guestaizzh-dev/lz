@@ -9,17 +9,18 @@
 </view>
 <ContentState v-if="loading&&!items.length||error" :loading="loading" :error="error" @retry="retry()"/>
 <view v-if="!error&&(!loading||items.length)">
-<view v-for="teacher in items" :key="teacher.id" class="teacher-card" @click="openPage('teacher/detail?id='+teacher.id)">
-<view class="row">
+<text v-if="items.length" class="eyebrow list-eyebrow">书院师承</text>
+<view v-for="teacher in items" :key="teacher.id" class="teacher-card" hover-class="row-pressed" @click="openPage('teacher/detail?id='+teacher.id)">
+<view class="row teacher-top">
 <TeacherAvatar :portrait="teacher.portrait" :demo="teacher.isDemo" :size="58"/>
 <view class="teacher-copy grow">
-<text class="item-title">{{teacher.name}}</text>
+<text class="teacher-name">{{teacher.name}}</text>
 <text class="meta">{{teacher.title}}</text>
 </view>
 <AppIcon name="arrow-right" :size="15"/>
 </view>
-<text class="article-summary">{{teacher.bio}}</text>
-<text class="tag">{{teacher.expertise.join(' · ')}}</text>
+<text class="teacher-bio">{{teacher.bio}}</text>
+<view v-if="teacher.expertise.length" class="teacher-tags"><text v-for="item in teacher.expertise" :key="item" class="teacher-tag">{{item}}</text></view>
 </view>
 <ContentState v-if="!items.length" title="暂无相关名师"/>
 <button v-if="nextCursor" class="retry" @click="load(true)">更多名师</button>
@@ -33,4 +34,4 @@
 import SponsoredContent from '../../components/SponsoredContent.uvue';
 import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {Teacher} from '../../lib/api';import {openPage} from '../../lib/presentation';const query=ref('');const {items,loading,error,nextCursor,load,retry}=useCatalog<Teacher>('teachers',()=>({category:'全部',q:query.value}));let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());
 </script>
-<style>@import '../../styles/app.css';.teacher-card{border-style:solid;border-width:0;padding:16px 0;border-bottom-width:1px;border-bottom-color:#D8D4CA;}.teacher-copy{padding-left:13px;}</style>
+<style>@import '../../styles/app.css';.list-eyebrow{margin-top:2px;margin-bottom:8px;}.teacher-card{background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:16px;margin-top:12px;}.teacher-top{margin-bottom:12px;}.teacher-copy{padding-left:14px;}.teacher-name{font-family:AcademySerif;font-size:19px;line-height:28px;color:#182B31;font-weight:600;}.teacher-bio{font-size:12px;line-height:21px;color:#5F6B6E;max-height:42px;overflow:hidden;}.teacher-tags{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.teacher-tag{font-size:11px;line-height:17px;color:#235663;background-color:#E6EDE9;border-radius:9px;padding:3px 8px;margin:0 8px 6px 0;}</style>

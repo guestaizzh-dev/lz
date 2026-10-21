@@ -26,6 +26,7 @@
 </view>
 </view>
 <ContentState v-if="loading&&!courses.length||error" :loading="loading" :error="error" @retry="retry()"/>
+<text v-if="!loading&&!error&&courses.length" class="eyebrow list-eyebrow">课程目录</text>
 <view v-if="!error&&(!loading||courses.length)">
 <CourseRow v-for="course in visible" :key="course.id" :course="course"/>
 <ContentState v-if="!visible.length" title="这一类课程正在筹备" description="试试其他分类，开启一段新的研习。"/>
@@ -44,4 +45,4 @@ const categories=['全部','经典研习','实践修行','生活应用','少儿�
 const formats=[{label:'全部',value:'',icon:'book-open'},{label:'图文',value:'TEXT',icon:'text-aa'},{label:'视频',value:'VIDEO',icon:'play'},{label:'音频',value:'AUDIO',icon:'headphones'},{label:'直播课',value:'LIVE',icon:'video-camera'},{label:'训练营',value:'COHORT',icon:'calendar-blank'},{label:'线下课',value:'OFFLINE',icon:'flower-lotus'}];
 const {items:courses,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Course>('courses',()=>({category:category.value,q:query.value,format:format.value}));const visible=computed(()=>courses.value);watch([category,format],()=>load());let searchTimer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(searchTimer!==null)clearTimeout(searchTimer);searchTimer=setTimeout(()=>load(),300);});onUnload(()=>{if(searchTimer!==null)clearTimeout(searchTimer);});onLoad(()=>load());onShow(()=>{const value=uni.getStorageSync('academyFormat');if(value==='COHORT'||value==='ALL'){format.value=value==='ALL'?'':value;uni.removeStorageSync('academyFormat');}});
 </script>
-<style>@import '../../styles/app.css';</style>
+<style>@import '../../styles/app.css';.list-eyebrow{margin-top:2px;margin-bottom:8px;}</style>

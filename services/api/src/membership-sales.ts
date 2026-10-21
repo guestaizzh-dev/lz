@@ -18,7 +18,7 @@ const safe=(value:unknown)=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='b
 const day=86400000;
 const refundPolicy='付款确认后7日内，整段会员尚未生效且未占用或消费权益，可申请原路全额退款；已生效会员请联系书院核查。审核通过后暂停本段权益，渠道待确认或退款失败重试期间继续暂停，渠道成功后才撤销。取消未来会员不提前其他已确认套餐。此套餐不自动续费。';
 class QuoteQuery { @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; }
-class CheckoutDto extends QuoteQuery { @IsUUID() planId!:string; @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; @IsIn(['WECHAT_APP','ALIPAY_APP']) channel!:AppPaymentChannel; }
+class CheckoutDto extends QuoteQuery { @IsUUID() planId!:string; @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel!:AppPaymentChannel; }
 class PageQuery { @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1; @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(50) size=20; @IsOptional() @IsIn(['PENDING','COMPLETED','CLOSED']) state?:string; @IsOptional() @IsString() @Length(0,80) q?:string; }
 class RefundDto { @IsUUID() requestKey!:string; @IsString() @Length(2,1000) @Matches(/\S/) reason!:string; }
 class ReviewDto { @IsInt() @Min(1) expectedVersion!:number; @IsIn(['APPROVE','REJECT','RETRY','CANCEL']) action!:string; @IsString() @Length(2,500) @Matches(/\S/) reason!:string; @IsOptional() @IsString() @Matches(/^[1-9][0-9]{0,17}$/) approvedAmount?:string; }
@@ -312,3 +312,4 @@ export class MembershipSalesService implements OnModuleInit,OnModuleDestroy {
   @Post(':id/refresh') refresh(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['FINANCE','SUPPORT']);return this.sales.adminRefresh(id);}
   @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ReviewDto){return this.sales.reviewRefund(id,req,dto);}
 }
+

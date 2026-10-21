@@ -5,10 +5,15 @@ import {resolve,relative,basename} from 'node:path';
 import assert from 'node:assert/strict';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const source=resolve(root,'apps/mobile'),target=resolve(root,'.runtime/android-preview-039');
+const source=resolve(root,'apps/mobile');
+const manifest=JSON.parse(await readFile(resolve(source,'manifest.json'),'utf8'));
+assert(/^\d+\.\d+\.\d+$/.test(manifest.versionName)&&Number.isInteger(Number(manifest.versionCode)));
+const suffix=manifest.versionName.replaceAll('.','');
+const target=resolve(root,'.runtime/android-preview-'+suffix),evidence=resolve(root,'outputs/android-preview-'+suffix);
 const rtc=JSON.parse(await readFile(resolve(source,'uni_modules/academy-rtc/utssdk/app-android/config.json'),'utf8'));
 assert(rtc.project?.repositories?.includes("maven { url 'https://maven.zego.im' }")&&!rtc.repositories,'ZEGO must use DCloud project.repositories');
 await mkdir(resolve(root,'.runtime'),{recursive:true});
+await mkdir(evidence,{recursive:true});
 try { await mkdir(target); } catch { throw Error('Preview directory already exists; use its recorded build instead of overwriting it.'); }
 await cp(source,target,{recursive:true,filter:path=>!relative(source,path).split(/[\\/]/).some(part=>['unpackage','node_modules','.git','.hbuilderx'].includes(part))});
 const notificationPath=resolve(source,'lib/notifications.ts');
@@ -36,5 +41,5 @@ assert.equal(await readFile(notificationPath,'utf8'),original);
 assert(!(await readFile(resolve(target,'lib/notifications.ts'),'utf8')).includes('uni.getPushClientId'));
 const environment=await readFile(resolve(target,'lib/environment.ts'),'utf8');
 assert(environment.includes("apiEnvironment = 'production'")&&environment.includes('https://academy.43-160-229-173.sslip.io/api/v1'));
-await writeFile(resolve(root,'outputs/android-preview-039/profile.json'),JSON.stringify({project:basename(target),path:target,version:'0.3.9',code:14,environment:'production',systemPush:false,inAppMessages:true,releasePushSourcePreserved:true,createdAt:new Date().toISOString()},null,2)+'\n');
+await writeFile(resolve(evidence,'profile.json'),JSON.stringify({project:basename(target),path:target,version:manifest.versionName,code:Number(manifest.versionCode),environment:'production',systemPush:false,inAppMessages:true,releasePushSourcePreserved:true,createdAt:new Date().toISOString()},null,2)+'\n');
 console.log('Isolated Android preview prepared: '+target);

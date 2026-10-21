@@ -13,7 +13,7 @@ const types=[{value:'SINGLE',label:'单选题'},{value:'MULTIPLE',label:'多选�
 const blankQuestion={type:'SINGLE',prompt:'',required:true,optionText:''};
 const optionRules=[{required:true,message:'请填写选项，每行一个'},{validator:(_:unknown,value:string)=>{const rows=(value??'').split('\n').map(s=>s.trim()).filter(Boolean);return rows.length<2||rows.length>8||new Set(rows).size!==rows.length||rows.some(s=>s.length>100)?Promise.reject(new Error('请输入2至8个不重复选项，每项最多100字')):Promise.resolve();}}];
 
-export default function Polls({sessionId,title,host=false,canEdit,onClose}:{sessionId:string;title:string;host?:boolean;canEdit:boolean;onClose:()=>void}){
+export default function Polls({sessionId,title,host=false,canEdit,onClose,zIndex}:{sessionId:string;title:string;host?:boolean;canEdit:boolean;onClose:()=>void;zIndex?:number}){
   const {message}=App.useApp(),[data,setData]=useState<Page>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[editor,setEditor]=useState<{row?:Poll}>(),[operation,setOperation]=useState<{row:Poll;action:string}>(),[responses,setResponses]=useState<{poll:Poll;page:number;data?:ResponsePage}>(),[form]=Form.useForm(),[reasonForm]=Form.useForm();
   const alive=useRef(true),loading=useRef(false),revision=useRef(0),owner=useRef(session?.user.id),kind=Form.useWatch('kind',form),base=host?'/admin/live-host/'+sessionId+'/polls':'/admin/live/sessions/'+sessionId+'/polls';
   const valid=()=>alive.current&&owner.current===session?.user.id;
@@ -25,7 +25,7 @@ export default function Polls({sessionId,title,host=false,canEdit,onClose}:{sess
   async function viewResponses(poll:Poll,page=1){if(busy)return;setBusy(true);setResponses({poll,page});try{const result=await api<ResponsePage>(base+'/'+poll.id+'/responses?page='+page);if(valid())setResponses({poll,page,data:result});}catch(e){if(valid()){setResponses(undefined);message.error((e as Error).message);}}finally{if(valid())setBusy(false);}}
   function action(row:Poll,action:string){reasonForm.resetFields();setOperation({row,action});}
   const editable=canEdit&&!error&&!!data&&['SCHEDULED','PREPARING','LIVE'].includes(data.sessionState);
-  return <Drawer title={'投票与问卷 · '+title} size={880} open onClose={onClose} extra={<Space><Button onClick={()=>void load()}>刷新</Button>{editable&&<Button type="primary" onClick={()=>edit()}>新建互动</Button>}</Space>}>
+  return <Drawer title={'投票与问卷 · '+title} zIndex={zIndex} size={880} open onClose={onClose} extra={<Space><Button onClick={()=>void load()}>刷新</Button>{editable&&<Button type="primary" onClick={()=>edit()}>新建互动</Button>}</Space>}>
     <Typography.Paragraph type="secondary">提前保存草稿，直播中发布；截止或结束场次后停止提交。投票可展示汇总，问卷仅向本人、授权主持和运营提供答案，不显示答题者身份。请勿收集手机号、证件或健康等敏感信息。</Typography.Paragraph>
     {error&&<Alert showIcon type="error" title={error} style={{marginBottom:16}}/>}
     {!data&&!error?<Spin/>:data&&!data.items.length?<Empty description="尚未安排互动，可先准备一份投票或问卷"/>:null}

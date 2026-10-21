@@ -32,7 +32,7 @@
  <ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
  <view v-else>
 <view class="section-head">
-<text class="section-heading">精选经典</text>
+<view><text class="eyebrow">书院选读</text><text class="section-heading">精选经典</text></view>
 <text class="section-link" @click="switchPage('discover')">更多 ›</text>
 </view>
  <view v-if="data.articles.length" class="classic-card" @click="readClassic">
@@ -45,7 +45,7 @@
 <ContentState v-else title="经典内容正在整理"/>
  <view class="section">
 <view class="section-head">
-<text class="section-heading">推荐课程</text>
+<view><text class="eyebrow">研习路径</text><text class="section-heading">推荐课程</text></view>
 <text class="section-link" @click="switchPage('academy')">更多 ›</text>
 </view>
 <CourseRow v-for="course in data.courses.slice(0,1)" :key="course.id" :course="course"/>
@@ -54,7 +54,7 @@
  <ScrollDivider/>
 <view class="section">
 <view class="section-head">
-<text class="section-heading">名师</text>
+<view><text class="eyebrow">书院师承</text><text class="section-heading">名师</text></view>
 <text class="section-link" @click="openPage('teacher/index')">更多 ›</text>
 </view>
 <view class="row home-teachers">
@@ -67,7 +67,7 @@
 </view>
 <view class="section">
 <view class="section-head">
-<text class="section-heading">直播预告</text>
+<view><text class="eyebrow">LIVE</text><text class="section-heading">直播预告</text></view>
 <text class="section-link" @click="openPage('live/index')">更多 ›</text>
 </view>
 <view class="live-preview" @click="livePreview?openContent(livePreview!):openPage('live/index')">
@@ -97,4 +97,4 @@ function switchPage(name:string){uni.switchTab({url:'/pages/'+name+'/index'});}f
 function readClassic(){if(classic.value)goArticle(classic.value.id);else switchPage('discover');}function search(){openPage('search/index?q='+encodeURIComponent(searchText.value));}
 async function load(){loading.value=true;error.value='';try{data.value=await request<HomeData>('/catalog/home');const [people,live]=await Promise.all([teachers(),request<{items:DiscoveryItem[]}>('/discovery/search?type=LIVE&size=1&sort=recent')]);teacherList.value=people;livePreview.value=live.items[0]??null;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}onLoad(load);
 </script>
-<style>@import '../../styles/app.css';.home-hero{position:relative;border-radius:4px;overflow:hidden;}.hero-overlay{position:absolute;left:22px;top:19px;}.ink-title{font-family:AcademyCalligraphy;font-size:34px;line-height:42px;color:#17292D;letter-spacing:4px;}.ink-subtitle{font-family:AcademySerif;font-size:12px;line-height:18px;letter-spacing:2px;color:#344C54;margin-top:5px;}.ink-caption{font-family:AcademySerif;font-size:11px;line-height:18px;color:#344C54;margin-top:12px;}.read-pill{background-color:#245564;border-radius:16px;padding:5px 13px;align-self:flex-start;margin-top:10px;}.read-label{font-family:AcademySans;color:#F4F0E7;font-size:11px;line-height:16px;}.home-shortcuts{flex-direction:row;justify-content:space-between;padding:12px 0 10px;}.shortcut{align-items:center;flex:1;min-height:40px;}.shortcut-label{font-family:AcademySans;font-size:11px;color:#245564;margin-top:7px;line-height:15px;}.classic-card{border-style:solid;border-width:0;flex-direction:row;padding:7px;border-radius:4px;border-width:1px;border-color:#D8D4CA;background-color:#EFE9DD;}.classic-copy{flex:1;padding-left:10px;justify-content:center;}.home-columns{flex-direction:row;}.teacher-column{flex:1;padding-right:10px;}.live-column{flex:1;}.home-teachers{flex-direction:row;align-items:flex-start;}.home-teacher{align-items:center;margin-right:26px;max-width:86px;}.teacher-name{font-family:AcademySans;font-size:11px;color:#5F6A6D;margin-top:6px;max-height:32px;overflow:hidden;line-height:16px;text-align:center;}.live-preview{border-style:solid;border-width:1px;border-color:#E2DCD1;border-radius:8px;padding:12px 14px;background-color:#FAF8F2;}.live-copy{font-family:AcademySans;font-size:14px;font-weight:600;color:#245564;margin-left:8px;line-height:22px;}</style>
+<style>@import '../../styles/app.css';.home-hero{position:relative;border-radius:12px;overflow:hidden;}.hero-overlay{position:absolute;left:22px;top:19px;}.ink-title{font-family:AcademyCalligraphy;font-size:34px;line-height:42px;color:#182B31;letter-spacing:4px;}.ink-subtitle{font-family:AcademySerif;font-size:12px;line-height:18px;letter-spacing:2px;color:#344C54;margin-top:5px;}.ink-caption{font-family:AcademySerif;font-size:11px;line-height:18px;color:#344C54;margin-top:12px;}.read-pill{background-color:#235663;border-radius:17px;padding:6px 15px;align-self:flex-start;margin-top:12px;}.read-label{font-family:AcademySans;color:#FCF9F2;font-size:12px;line-height:17px;}.home-shortcuts{flex-direction:row;justify-content:space-between;padding:12px 0 10px;}.shortcut{align-items:center;flex:1;min-height:40px;}.shortcut-label{font-family:AcademySans;font-size:11px;color:#235663;margin-top:7px;line-height:15px;}.classic-card{border-style:solid;border-width:1px;border-color:#E3DCCF;flex-direction:row;padding:10px;border-radius:12px;background-color:#FCF9F2;}.classic-copy{flex:1;padding-left:12px;justify-content:center;}.home-columns{flex-direction:row;}.teacher-column{flex:1;padding-right:10px;}.live-column{flex:1;}.home-teachers{flex-direction:row;align-items:flex-start;}.home-teacher{align-items:center;margin-right:26px;max-width:86px;}.teacher-name{font-family:AcademySans;font-size:11px;color:#5F6A6D;margin-top:6px;max-height:32px;overflow:hidden;line-height:16px;text-align:center;}.live-preview{border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:14px 16px;background-color:#FCF9F2;}.live-copy{font-family:AcademySans;font-size:14px;font-weight:600;color:#235663;margin-left:8px;line-height:22px;}</style>

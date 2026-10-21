@@ -78,5 +78,5 @@ const root=document.getElementById(elementId);if(root){root.classList.add('acade
 watch(()=>[props.blocks,props.fontSize,props.annotations,props.templateCode],render,{deep:true});onUnmounted(()=>{clearSelection();pauseMedia();webReader?.destroy();loaded=false;});
 </script>
 <style>
-.reader-failure{font-size:14px;color:#B95543;padding:20px;}
+.reader-failure{font-size:14px;color:#B4533F;padding:20px;}
 </style>

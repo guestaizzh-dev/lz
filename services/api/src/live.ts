@@ -21,7 +21,7 @@ export const liveCategories=['CULTURE','QA','PRACTICE','MEMBER','EVENT'];
 const terminal=['ENDED','REPLAY_READY','CANCELLED'];
 const playerDirectory=fileURLToPath(new URL('../public/live/',import.meta.url));
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');
-type Rule={mode:'PUBLIC'|'COURSE'|'MEMBER';courseId?:string;tier?:number;lessonBound?:boolean};
+type Rule={mode:'PUBLIC'|'COURSE'|'MEMBER';courseId?:string;tier?:number;lessonBound?:boolean;allMembers?:boolean};
 class RoomDto {
   @IsString() @Length(1,120) @Matches(/\S/) title!:string;
   @IsString() @Length(1,500) @Matches(/\S/) summary!:string;
@@ -84,28 +84,34 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
       if(rule.lessonBound&&!await store.lesson.findFirst({where:{releaseId:context.releaseId??'',liveSessionId:id,format:'LIVE'}}))throw new ForbiddenException('本场不属于你已获得的课程版本，请从课程目录进入');
       return row;
     }throw new ForbiddenException('加入对应课程后可观看本场直播');}
-    if(rule.mode==='MEMBER'&&rule.tier){const member=await this.learning.membership(userId,store);if(member&&member.contentTier>=rule.tier)return row;throw new ForbiddenException('当前会员权益不能观看本场直播');}
+    if(rule.mode==='MEMBER'&&(rule.tier||rule.allMembers)){const member=await this.learning.membership(userId,store);if(member&&(rule.allMembers||member.contentTier>=rule.tier!))return row;throw new ForbiddenException(rule.allMembers?'开通有效会员后可观看直播与回放':'当前会员权益不能观看本场直播');}
     throw new ForbiddenException('直播准入规则尚未配置');
   }
   async room(id:string,userId?:string){
     const item=await this.discovery.publicItem(id,'LIVE',userId),room=await this.db.liveRoom.findUniqueOrThrow({where:{id}});
     const [teacher,active,upcoming,history]=await Promise.all([
-      this.db.teacher.findUniqueOrThrow({where:{id:room.teacherId},select:{id:true,name:true,portrait:true}}),
+      room.teacherId?this.db.teacher.findUniqueOrThrow({where:{id:room.teacherId},select:{id:true,name:true,portrait:true}}):Promise.resolve({id:null,name:'老子道学书院',portrait:null}),
       this.db.liveSession.findMany({where:{roomId:id,state:{in:['LIVE','PREPARING']}},orderBy:[{state:'asc'},{scheduledAt:'asc'},{id:'asc'}],take:50}),
       this.db.liveSession.findMany({where:{roomId:id,state:'SCHEDULED'},orderBy:[{scheduledAt:'asc'},{id:'asc'}],take:50}),
       this.db.liveSession.findMany({where:{roomId:id,state:{in:terminal}},orderBy:[{scheduledAt:'desc'},{id:'desc'}],take:25})
     ]);
     const sessions=[...active,...upcoming,...history].slice(0,50);
     const reservations=userId?await this.db.liveReservation.findMany({where:{sessionId:{in:sessions.map(s=>s.id)},userId,cancelledAt:null}}):[];
-    return {...item,categoryCode:room.categoryCode,teacher,courseId:room.courseId,accessRule:room.accessRule,rtcReady:this.zego.ready(),sessions:await Promise.all(sessions.map(async s=>{
+    const recordings=await this.db.liveRecording.findMany({where:{sessionId:{in:sessions.map(s=>s.id)}},select:{sessionId:true,state:true,failure:true}});
+    return {...item,cover:room.cover||item.cover,managedByAdmin:room.managedByAdmin,categoryCode:room.categoryCode,teacher,courseId:room.courseId,accessRule:room.accessRule,rtcReady:this.zego.ready(),sessions:await Promise.all(sessions.map(async s=>{
       let accessReason='';try{if(userId)await this.access(s.id,userId);else accessReason='请登录后进入直播';}catch(e){accessReason=e instanceof Error?e.message:'暂不可观看';}
       const replay=await this.db.liveReplay.findFirst({where:{sessionId:s.id,reviewState:'APPROVED',publishedAt:{not:null},reviewerId:{not:null}},select:{id:true}});
-      return {id:s.id,title:s.title,version:s.version,scheduledAt:s.scheduledAt,startedAt:s.startedAt,endedAt:s.endedAt,state:s.state,disconnected:!!s.disconnectedAt,reserved:reservations.some(r=>r.sessionId===s.id),accessReason,replayReady:!!replay&&s.state==='REPLAY_READY'};
+      const recording=recordings.find(r=>r.sessionId===s.id);
+      return {id:s.id,title:s.title,version:s.version,scheduledAt:s.scheduledAt,startedAt:s.startedAt,endedAt:s.endedAt,state:s.state,disconnected:!!s.disconnectedAt,reserved:reservations.some(r=>r.sessionId===s.id),accessReason,replayReady:!!replay&&s.state==='REPLAY_READY',replayStatus:recording?.state??null};
     }))};
   }
   async hostSessions(req:AuthRequest){
-    requireRoles(req,['TEACHER']);
-    return this.db.liveSession.findMany({where:{hostUserId:req.actor.id},orderBy:[{scheduledAt:'desc'},{id:'desc'}],take:100,select:{id:true,title:true,state:true,version:true,scheduledAt:true,roomId:true,disconnectedAt:true}});
+    requireRoles(req,['TEACHER','ADMIN']);
+    const managed=req.actor.roles.includes('ADMIN')?await this.db.liveRoom.findMany({where:{managedByAdmin:true},select:{id:true}}):[];
+    const rows=await this.db.liveSession.findMany({where:{OR:[{hostUserId:req.actor.id},{roomId:{in:managed.map(r=>r.id)}}]},orderBy:[{scheduledAt:'desc'},{id:'desc'}],take:100,select:{id:true,title:true,state:true,version:true,scheduledAt:true,roomId:true,disconnectedAt:true}});
+    const rooms=await this.db.liveRoom.findMany({where:{id:{in:[...new Set(rows.map(row=>row.roomId))]}},select:{id:true,accessRule:true}});
+    const rules=new Map(rooms.map(room=>[room.id,room.accessRule]));
+    return rows.map(row=>({...row,accessMode:((rules.get(row.roomId)??null) as {mode?:string}|null)?.mode??'PUBLIC'}));
   }
   async lessonLive(lessonId:string,userId:string){
     const {lesson}=await this.learning.lesson(lessonId,userId);
@@ -117,8 +123,9 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
     const rooms=await this.db.liveRoom.findMany({where:{courseId,provider:'ZEGO_RTC'},select:{id:true}});
     return this.db.liveSession.findMany({where:{roomId:{in:rooms.map(r=>r.id)},state:{not:'CANCELLED'}},orderBy:[{scheduledAt:'desc'},{id:'desc'}],take:200,select:{id:true,title:true,scheduledAt:true,state:true}});
   }
-  async offers(id:string,userId:string){
-    const s=await this.access(id,userId),related=await this.discovery.related(s.roomId,userId),items=[];
+  async offers(id:string,userId:string,host=false){
+    const s=host?await this.session(id):await this.access(id,userId);if(host)await this.hostAllowed(s,userId);
+    const related=await this.discovery.related(s.roomId,userId),items=[];
     for(const item of related.items.filter(r=>['COURSE','PRODUCT','EVENT'].includes(r.type)).slice(0,24)){
       if(item.type==='PRODUCT'){
           const skus=await this.db.productSku.findMany({where:{productId:item.id,active:true,price:{gt:0},product:{type:'PHYSICAL',status:'PUBLISHED',isDemo:false}},orderBy:{price:'asc'}}),hints=await productPromotionHints(this.db,skus.map(k=>k.id));
@@ -159,10 +166,11 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
       await tx.$queryRaw`SELECT id FROM "LiveRoom" WHERE id=${roomId} FOR UPDATE`;
       const room=await tx.liveRoom.findUnique({where:{id:roomId}}),host=await tx.user.findFirst({where:{id:dto.hostUserId,status:'ACTIVE',roles:{hasSome:['TEACHER','ADMIN']}}});
       if(!room||room.provider!=='ZEGO_RTC')throw new BadRequestException('请新建 ZEGO RTC 直播间');
-      const teacher=await tx.teacher.findUniqueOrThrow({where:{id:room.teacherId}});
-      if(!host||!host.roles.includes('ADMIN')&&teacher.userId!==host.id)throw new BadRequestException('主播须为该名师关联账号或授权管理员');
+      const teacher=room.teacherId?await tx.teacher.findUniqueOrThrow({where:{id:room.teacherId}}):null;
+      if(!host||!host.roles.includes('ADMIN')&&teacher?.userId!==host.id)throw new BadRequestException('主播须为该名师关联账号或授权管理员');
       const scheduledAt=new Date(dto.scheduledAt);if(+scheduledAt<Date.now()-60000||+scheduledAt>Date.now()+366*86400000)throw new BadRequestException('开播时间须在现在至一年内');
-      const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:host.id,title:dto.title.trim(),scheduledAt,accessRuleSnapshot:room.accessRule as Prisma.InputJsonValue,providerSessionId:rtcRoomId(id)}});
+      if(await tx.liveSession.findFirst({where:{roomId,scheduledAt},select:{id:true}}))throw new ConflictException('该时间已有场次（含已取消），请换一个时间再安排');
+const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:host.id,title:dto.title.trim(),scheduledAt,accessRuleSnapshot:room.accessRule as Prisma.InputJsonValue,providerSessionId:rtcRoomId(id)}});
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'live.session.create',resource:'live',resourceId:id,changes:{roomId,hostUserId:host.id,scheduledAt:dto.scheduledAt}}});return s;
     });
   }
@@ -214,8 +222,9 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
     await tx.liveReservation.upsert({where:{sessionId_userId:{sessionId:id,userId:req.actor.id}},create:{sessionId:id,userId:req.actor.id},update:{cancelledAt:null,version:{increment:1}}});return {reserved:true};
   });}
   async hostAllowed(session:Awaited<ReturnType<LiveService['session']>>,userId:string,store:Prisma.TransactionClient=this.db){
-    const user=await store.user.findUnique({where:{id:userId}}),room=await store.liveRoom.findUniqueOrThrow({where:{id:session.roomId}}),teacher=await store.teacher.findUniqueOrThrow({where:{id:room.teacherId}});
-    if(!user||user.status!=='ACTIVE'||session.hostUserId!==userId||!user.roles.includes('ADMIN')&&(!user.roles.includes('TEACHER')||teacher.userId!==userId))throw new ForbiddenException('仅本场授权主播可以开播');
+    const user=await store.user.findUnique({where:{id:userId}}),room=await store.liveRoom.findUniqueOrThrow({where:{id:session.roomId}}),teacher=room.teacherId?await store.teacher.findUniqueOrThrow({where:{id:room.teacherId}}):null;
+    if(room.managedByAdmin){if(!user||user.status!=='ACTIVE'||!user.roles.includes('ADMIN'))throw new ForbiddenException('仅管理员可操作书院直播');await this.discovery.publicItem(session.roomId,'LIVE',userId);return;}
+    if(!user||user.status!=='ACTIVE'||session.hostUserId!==userId||!user.roles.includes('ADMIN')&&(!user.roles.includes('TEACHER')||teacher?.userId!==userId))throw new ForbiddenException('仅本场授权主播可以开播');
     if(!(await this.permissions.resolve(user.roles)).includes('teaching.write'))throw new ForbiddenException('开播权限已撤销，请联系书院运营');
     await this.discovery.publicItem(session.roomId,'LIVE',userId);
   }
@@ -226,6 +235,7 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
     const s=await this.session(id,tx);if(host)await this.hostAllowed(s,req.actor.id,tx);else await this.access(id,req.actor.id,tx);
     if(host?!['PREPARING','LIVE'].includes(s.state):s.state!=='LIVE')throw new ConflictException(host?'请先将场次设为准备开播':'本场尚未开播或已经结束');
     if(!this.zego.ready())throw new ServiceUnavailableException('ZEGO 房间权限认证或直播配置尚未完成');
+    if(host){const room=await tx.liveRoom.findUniqueOrThrow({where:{id:s.roomId}});if(room.managedByAdmin){const other=await tx.liveRtcLease.findFirst({where:{sessionId:id,role:'HOST',userId:{not:req.actor.id},revokedAt:null,expiresAt:{gt:new Date()},absoluteExpiresAt:{gt:new Date()}}});if(other)throw new ConflictException('另一位管理员正在开播，请先由对方退出开播台');await tx.liveSession.update({where:{id},data:{hostUserId:req.actor.id}});s.hostUserId=req.actor.id;}}
     const key=randomBytes(32).toString('base64url'),idLease=randomUUID(),rtcUserId=(host?'h_':'v_')+req.actor.id.replace(/-/g,'')+'_'+idLease.slice(0,8);
     if(host)await tx.liveRtcLease.updateMany({where:{sessionId:id,role:'HOST',revokedAt:null},data:{revokedAt:new Date()}});
     await tx.liveRtcLease.create({data:{id:idLease,sessionId:id,userId:req.actor.id,authSessionId:req.authSessionId,rtcUserId,role:host?'HOST':'VIEWER',keyHash:hash(key),expiresAt:new Date(Date.now()+90000),absoluteExpiresAt:new Date(Date.now()+4*3600000)}});
@@ -421,6 +431,7 @@ export class LiveAdminController {
 export class LiveHostController {
   constructor(private readonly live:LiveService){}
   @Get() list(@Req() req:AuthRequest){return this.live.hostSessions(req);}
+  @Get(':id/offers') offers(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.live.offers(id,req.actor.id,true);}
   @Post(':id/state') state(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest,@Body() dto:StateDto){return this.live.state(req,id,dto,true);}
   @Post(':id/host') host(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.live.lease(req,id,true);}
 }

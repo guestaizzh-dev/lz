@@ -24,7 +24,7 @@ class QuoteDto {
 class CheckoutDto extends QuoteDto {
   @IsUUID() requestKey!:string;
   @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string;
-  @IsIn(['WECHAT_APP','ALIPAY_APP']) channel:AppPaymentChannel='WECHAT_APP';
+  @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel:AppPaymentChannel='WECHAT_APP';
 }
 class OrderPage {
   @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1;
@@ -472,3 +472,4 @@ export class ProductOrdersAdminController {
   @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ReviewDto){return this.sales.reviewRefund(id,req,dto);}
   @Post('refunds/:id/exchange') exchange(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ShipmentDto){return this.sales.shipExchange(id,req,dto);}
 }
+

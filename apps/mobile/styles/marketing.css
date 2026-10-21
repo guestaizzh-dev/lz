@@ -1,9 +1,9 @@
 /* Reuse the paper/ink foundations for the small marketing and co-creation surfaces. */
-.hint{font-family:AcademySans;font-size:13px;line-height:24px;color:#637276;margin-top:12px;}
-.section-title{font-family:AcademySerif;font-size:18px;line-height:29px;color:#17292D;}
+.hint{font-family:AcademySans;font-size:13px;line-height:24px;color:#6A7578;margin-top:12px;}
+.section-title{font-family:AcademySerif;font-size:18px;line-height:29px;color:#182B31;}
 .filter-scroll{height:58px;flex-shrink:0;width:100%;margin-top:8px;}
-.filter-row{flex-direction:row;align-items:center;margin-top:14px;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;}
-.filter-pill{flex-shrink:0;min-width:82px;min-height:44px;padding:10px 12px;margin:0;border-style:solid;border-width:0;border-bottom-width:2px;border-bottom-color:transparent;border-radius:0;background-color:transparent;font-family:AcademySans;font-size:14px;line-height:22px;color:#637276;}
-.filter-active{color:#245564;border-bottom-color:#245564;}
-.invite-row{flex-direction:row;align-items:center;min-height:52px;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#DFD9CF;margin-bottom:8px;}
+.filter-row{flex-direction:row;align-items:center;margin-top:14px;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#E3DCCF;}
+.filter-pill{flex-shrink:0;min-width:82px;min-height:44px;padding:10px 12px;margin:0;border-style:solid;border-width:0;border-bottom-width:2px;border-bottom-color:transparent;border-radius:0;background-color:transparent;font-family:AcademySans;font-size:14px;line-height:22px;color:#6A7578;}
+.filter-active{color:#235663;border-bottom-color:#235663;}
+.invite-row{flex-direction:row;align-items:center;min-height:52px;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#E3DCCF;margin-bottom:8px;}
 .invite-input{flex:1;min-width:0;min-height:44px;font-family:AcademySans;font-size:14px;line-height:22px;color:#344C54;padding-right:12px;}

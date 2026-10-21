@@ -6,4 +6,4 @@ const reasons=[{code:'SPAM',name:'垃圾广告'},{code:'INAPPROPRIATE',name:'内
 function chooseReason(){uni.showActionSheet({itemList:reasons.map(r=>r.name),success:r=>{reason.value=r.tapIndex;visible.value=true;},fail:()=>{if(!visible.value)emit('close');}});}
 async function submit(){if(saving.value)return;saving.value=true;error.value='';try{await request((props.resourceType==='THREAD'?'/forum/threads/':'/articles/')+props.resourceId+'/reports',{method:'POST',data:{reason:reasons[reason.value].code,description:description.value,...(props.commentId?{commentId:props.commentId}:{})}});uni.showToast({title:'举报已提交',icon:'none'});emit('success');emit('close');}catch(e){error.value=(e as Error).message;}finally{saving.value=false;}}
 onMounted(chooseReason);
-</script><style>.change-reason{font-size:13px;line-height:22px;min-height:44px;background-color:transparent;color:#245564;padding:10px 0;border-width:0;margin:0 0 10px;align-self:flex-start;}</style>
+</script><style>.change-reason{font-size:13px;line-height:22px;min-height:44px;background-color:transparent;color:#235663;padding:10px 0;border-width:0;margin:0 0 10px;align-self:flex-start;}</style>

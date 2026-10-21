@@ -154,7 +154,11 @@ export class ShoppingService {
       if(!row||row.version!==dto.expectedVersion||!(from as readonly string[]).includes(row.status))throw new ConflictException('商品状态或版本已变化');
       if(['submit','publish'].includes(dto.action)){
         await validateEvidencePublication(tx,id);
-        if(row.type==='DIGITAL'||!row.skus.some(sku=>sku.active))throw new BadRequestException('请配置可售规格；数字交付尚未开放');
+        if(row.type==='DIGITAL'){
+  const release=row.skus.some(sku=>sku.active&&sku.digitalReleaseId)?await tx.digitalRelease.findFirst({where:{productId:id},orderBy:{releaseNo:'desc'}}):null;
+  const files=release?await tx.digitalReleaseAsset.count({where:{releaseId:release.id}}):0;
+  if(!release||!files)throw new BadRequestException('数字商品需先配置可售规格与资料包文件');
+}else if(!row.skus.some(sku=>sku.active))throw new BadRequestException('请配置可售规格');
         if(row.type==='SERVICE')for(const sku of row.skus.filter(s=>s.active)){
           const service=sku.serviceOfferingId?await tx.serviceOffering.findUnique({where:{id:sku.serviceOfferingId}}):null;
           const offers=service?await tx.saleOffer.findMany({where:{serviceOfferingId:service.id,active:true,AND:[{OR:[{validFrom:null},{validFrom:{lte:new Date()}}]},{OR:[{validUntil:null},{validUntil:{gt:new Date()}}]}]}}):[];

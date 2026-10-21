@@ -690,6 +690,7 @@ export class Gifts implements OnModuleInit, OnModuleDestroy {
       room = await this.db.liveRoom.findUniqueOrThrow({ where: { id: session.roomId } });
     let available = session.state === 'LIVE' && process.env.GIFT_SALES_ENABLED === 'true';
     try {
+      if(!room.teacherId||room.managedByAdmin)throw new ForbiddenException('书院直播不提供礼物');
       await this.contract(this.db, room.teacherId);
     } catch {
       available = false;
@@ -722,8 +723,9 @@ export class Gifts implements OnModuleInit, OnModuleDestroy {
       await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${dto.sessionId} FOR SHARE`;
       const session = await this.live.access(dto.sessionId, userId, tx);
       if (session.state !== 'LIVE') throw new ConflictException('仅直播中可以赠礼');
-      const room = await tx.liveRoom.findUniqueOrThrow({ where: { id: session.roomId } }),
-        teacher = await tx.teacher.findUniqueOrThrow({ where: { id: room.teacherId } });
+      const room = await tx.liveRoom.findUniqueOrThrow({ where: { id: session.roomId } });
+      if(!room.teacherId||room.managedByAdmin)throw new ForbiddenException('书院直播不提供礼物');
+      const teacher = await tx.teacher.findUniqueOrThrow({ where: { id: room.teacherId } });
       if (teacher.userId === userId) throw new BadRequestException('不能给自己负责的直播赠礼');
       await tx.$queryRaw`SELECT id FROM "VirtualGift" WHERE id=${dto.giftId} FOR SHARE`;const contract = await this.contract(tx, teacher.id),
         gift = await tx.virtualGift.findFirst({ where: { id: dto.giftId, active: true } });

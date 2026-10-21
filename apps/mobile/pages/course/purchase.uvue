@@ -78,5 +78,46 @@ function copyRules(){if(!purchase.value)return;const p=purchase.value;uni.setCli
 onLoad(options=>{courseId=options?.courseId??'';orderId=options?.orderId??'';groupId.value=options?.groupId??'';});onShow(()=>{clock.value=Date.now();if(!timer)timer=setInterval(()=>clock.value=Date.now(),1000);void load();});onHide(()=>{if(timer)clearInterval(timer);timer=null;});onUnload(()=>{if(timer)clearInterval(timer);});
 onBackPress(()=>{if(busy.value){uni.showToast({title:'正在确认订单，请稍候',icon:'none'});return true;}if(showRefund.value){showRefund.value=false;return true;}return false;});
 </script>
-<style>@import '../../styles/app.css';.purchase-content{padding-top:12px;padding-bottom:28px;}.purchase-heading{padding:10px 0 22px;}.purchase-eyebrow{font-size:11px;line-height:20px;color:#788084;letter-spacing:1px;}.purchase-title{font-family:AcademySerif;font-size:24px;line-height:36px;color:#17292D;margin-top:8px;}.purchase-teacher{font-size:13px;line-height:22px;color:#637276;margin-top:8px;}.purchase-course{flex-direction:row;padding:0 0 22px;}.purchase-course-copy{flex:1;padding-left:16px;justify-content:center;}.purchase-format{font-size:11px;line-height:19px;color:#245564;}.purchase-summary{font-size:15px;line-height:26px;color:#17292D;margin-top:4px;}.purchase-description{font-size:12px;line-height:22px;color:#637276;margin-top:4px;}.purchase-section{padding:22px 0;border-top-width:1px;border-top-style:solid;border-top-color:#E3DED3;}.purchase-section-title{font-family:AcademySerif;font-size:17px;line-height:26px;color:#17292D;}.purchase-row{flex-direction:row;justify-content:space-between;align-items:center;min-height:44px;padding:7px 0;}.purchase-label{font-size:13px;line-height:22px;color:#637276;padding-right:16px;}.purchase-value{flex:1;text-align:right;font-size:13px;line-height:22px;color:#17292D;}.purchase-explanation{font-size:12px;line-height:23px;color:#788084;margin-top:8px;}.purchase-policy{font-size:14px;line-height:26px;color:#344C54;margin-top:12px;}.purchase-total{flex-direction:row;align-items:center;justify-content:space-between;padding-top:16px;}.purchase-total-label{font-size:14px;color:#17292D;}.purchase-total-amount{font-size:28px;line-height:36px;color:#245564;}.purchase-text-button{margin:0;align-self:flex-start;padding:10px 0;min-height:44px;line-height:24px;font-size:13px;color:#245564;background-color:transparent;border-width:0;}.purchase-status{padding:18px 20px;margin-bottom:22px;background-color:#EEE9DF;border-radius:6px;}.purchase-status-title{font-family:AcademySerif;font-size:20px;line-height:30px;color:#245564;}.purchase-status-copy{font-size:13px;line-height:24px;color:#637276;margin-top:8px;}.purchase-consent{flex-direction:row;align-items:center;min-height:52px;padding:10px 0;}.purchase-checkbox{width:20px;height:20px;border-width:1px;border-style:solid;border-color:#A3AEAB;border-radius:3px;align-items:center;justify-content:center;}.purchase-checkbox-active{background-color:#245564;border-color:#245564;}.purchase-checkmark{color:#FAF8F2;font-size:15px;line-height:20px;}.purchase-consent-copy{flex:1;font-size:13px;line-height:23px;color:#637276;padding-left:10px;}.purchase-notice{padding:14px 16px;background-color:#EEE9DF;border-radius:4px;margin-top:10px;}.purchase-notice-text{font-size:13px;line-height:24px;color:#637276;}.purchase-number{flex:1;align-items:flex-end;}.purchase-number-text{font-size:11px;line-height:18px;color:#637276;}.purchase-copy{font-size:12px;line-height:22px;color:#245564;}.purchase-links{flex-direction:row;justify-content:space-between;border-top-width:1px;border-top-style:solid;border-top-color:#E3DED3;padding-top:12px;}.purchase-bar-copy{justify-content:center;min-width:80px;padding-right:8px;}.purchase-bar-price{font-size:21px;line-height:28px;color:#245564;}.purchase-bar-label{font-size:10px;line-height:18px;color:#788084;}</style>
-<style>.purchase-channels{flex-direction:row;flex-wrap:wrap;margin-top:6px;}.purchase-channel{min-height:44px;padding:10px 18px;margin:0 10px 8px 0;border-width:1px;border-style:solid;border-color:#D8D4CA;border-radius:6px;background-color:#F7F3EC;color:#637276;font-size:13px;line-height:22px;}.purchase-channel-active{border-color:#245564;color:#245564;background-color:#E7EFEB;}</style>
+<style>@import '../../styles/app.css';
+.purchase-content{padding-top:8px;padding-bottom:28px;}
+.purchase-heading{padding:6px 0 18px;}
+.purchase-eyebrow{font-family:AcademySans;font-size:10px;line-height:18px;color:#A67C46;letter-spacing:2px;font-weight:600;}
+.purchase-title{font-family:AcademySerif;font-size:26px;line-height:37px;color:#182B31;margin-top:8px;letter-spacing:0.4px;}
+.purchase-teacher{font-size:13px;line-height:22px;color:#6A7578;margin-top:8px;}
+.purchase-course{flex-direction:row;padding:12px;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;}
+.purchase-course-copy{flex:1;min-width:0;padding-left:14px;justify-content:center;}
+.purchase-format{font-size:11px;line-height:18px;color:#235663;background-color:#E6EDE9;border-radius:9px;padding:2px 7px;align-self:flex-start;}
+.purchase-summary{font-size:14px;line-height:24px;color:#182B31;margin-top:6px;}
+.purchase-description{font-size:12px;line-height:20px;color:#6A7578;margin-top:4px;}
+.purchase-section{padding:16px;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;background-color:#FCF9F2;margin-top:12px;}
+.purchase-section-title{font-family:AcademySerif;font-size:16px;line-height:25px;color:#182B31;font-weight:600;}
+.purchase-row{flex-direction:row;justify-content:space-between;align-items:center;min-height:44px;padding:7px 0;}
+.purchase-label{font-size:13px;line-height:22px;color:#6A7578;padding-right:16px;}
+.purchase-value{flex:1;text-align:right;font-size:13px;line-height:22px;color:#182B31;}
+.purchase-explanation{font-size:12px;line-height:22px;color:#7C878A;margin-top:8px;}
+.purchase-policy{font-size:14px;line-height:25px;color:#344C54;margin-top:10px;}
+.purchase-total{flex-direction:row;align-items:center;justify-content:space-between;padding-top:14px;margin-top:6px;border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;}
+.purchase-total-label{font-size:14px;color:#182B31;}
+.purchase-total-amount{font-size:28px;line-height:36px;color:#235663;font-family:AcademySerif;font-weight:600;}
+.purchase-text-button{margin:0;align-self:flex-start;padding:10px 0;min-height:44px;line-height:24px;font-size:13px;color:#235663;background-color:transparent;border-width:0;}
+.purchase-status{padding:20px;margin-bottom:16px;background-color:#182B31;border-radius:12px;}
+.purchase-status-title{font-family:AcademySerif;font-size:20px;line-height:30px;color:#E9D7B8;font-weight:600;}
+.purchase-status-copy{font-size:13px;line-height:23px;color:#C8D0CB;margin-top:8px;}
+.purchase-consent{flex-direction:row;align-items:center;min-height:52px;padding:12px 0;}
+.purchase-checkbox{width:20px;height:20px;border-width:1px;border-style:solid;border-color:#A3AEAB;border-radius:4px;align-items:center;justify-content:center;}
+.purchase-checkbox-active{background-color:#235663;border-color:#235663;}
+.purchase-checkmark{color:#FCF9F2;font-size:15px;line-height:20px;}
+.purchase-consent-copy{flex:1;font-size:13px;line-height:23px;color:#6A7578;padding-left:10px;}
+.purchase-notice{padding:14px 16px;background-color:#EFE9DC;border-left-width:2px;border-left-style:solid;border-left-color:#A67C46;border-radius:0 10px 10px 0;margin-top:12px;}
+.purchase-notice-text{font-size:13px;line-height:23px;color:#5F6B6E;}
+.purchase-number{flex:1;align-items:flex-end;}
+.purchase-number-text{font-size:11px;line-height:18px;color:#6A7578;}
+.purchase-copy{font-size:12px;line-height:22px;color:#235663;}
+.purchase-links{flex-direction:row;justify-content:space-between;border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;padding-top:12px;}
+.purchase-channels{flex-direction:row;flex-wrap:wrap;margin-top:6px;}
+.purchase-channel{min-height:44px;padding:10px 18px;margin:0 10px 8px 0;border-width:1px;border-style:solid;border-color:#D3C9B8;border-radius:22px;background-color:#FCF9F2;color:#6A7578;font-size:13px;line-height:22px;}
+.purchase-channel-active{border-color:#235663;color:#235663;background-color:#E6EDE9;font-weight:600;}
+.purchase-bar-copy{justify-content:center;min-width:80px;padding-right:8px;}
+.purchase-bar-price{font-family:AcademySerif;font-size:22px;line-height:28px;color:#235663;font-weight:600;}
+.purchase-bar-label{font-size:10px;line-height:18px;color:#7C878A;}
+</style>

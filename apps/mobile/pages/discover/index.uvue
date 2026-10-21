@@ -20,6 +20,7 @@
 </view>
 </scroll-view>
 <ContentState v-if="loading&&!articles.length||error" :loading="loading" :error="error" @retry="retry()"/>
+<text v-if="!loading&&!error&&articles.length" class="eyebrow list-eyebrow">文章目录</text>
 <view v-if="!error&&(!loading||articles.length)">
 <ArticleRow v-for="article in articles" :key="article.id" :article="article"/>
 <ContentState v-if="!articles.length" title="没有找到相关内容" description="换个关键词，或看看其他分类。"/>
@@ -37,4 +38,4 @@ import AppIcon from '../../components/AppIcon.uvue';import ArticleRow from '../.
 const sections=[{label:'文章',path:''},{label:'名师',path:'teacher/index'},{label:'直播',path:'live/index'},{label:'社区',path:'community/index'},{label:'活动',path:'event/index'}],categories=['全部','经典原文','名师解读','实践心得','道学常识'],category=ref('全部'),query=ref('');function openSection(path:string){if(path)openPage(path);}
 const {items:articles,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Article>('articles',()=>({category:category.value,q:query.value}));watch(category,()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());onShow(()=>{const value=uni.getStorageSync('searchQuery');if(typeof value==='string'&&value){query.value=value;uni.removeStorageSync('searchQuery');}});
 </script>
-<style>@import '../../styles/app.css';.discover-tabs{margin-top:0;margin-bottom:10px;}</style>
+<style>@import '../../styles/app.css';.discover-tabs{margin-top:0;margin-bottom:10px;}.list-eyebrow{margin-top:2px;margin-bottom:8px;}</style>

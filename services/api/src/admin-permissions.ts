@@ -48,6 +48,7 @@ export function routePermission(method:string,path:string,body?:Record<string,un
   const route=path.replace(/^\/api\/v1\//,'').replace(/^\//,'');
   const parts=route.split('/'),root=parts[1],read=['GET','HEAD','OPTIONS'].includes(method);
   if(root==='auth')return null;
+  if(root==='payments')return 'finance.refund';
   if(root==='community-enhancements'){if(parts[2]==='cases'&&parts.at(-1)==='comment')return 'teaching.write';return read?'community.read':parts.includes('review')||parts.includes('judge')?'community.review':'community.write';}
   if(root==='member-gifts')return read||parts.at(-1)==='proof'&&parts.length===5?'products.read':parts[2]==='plans'?'members.write':'products.write';
   if(root==='advertising')return read?'content.read':parts.at(-1)==='state'&&parts[2]==='campaigns'&&['APPROVE','REJECT'].includes(String(body?.action))?'content.review':'content.write';
@@ -79,6 +80,7 @@ export function routePermission(method:string,path:string,body?:Record<string,un
   if(root==='apple-transactions')return read&&parts.at(-1)==='refund-review'||parts.at(-1)==='proof'?'finance.read':read?'orders.read':'finance.refund';
   if(root==='orders')return 'orders.read';
   if(root==='live-host')return read?'teaching.read':'teaching.write';
+  if(root==='live'&&parts[2]==='mics')return 'teaching.write'; // A valid host lease and ownership are required by LiveMics.
   if(root==='live')return read?'live.read':parts.includes('review')||parts.includes('mute')?'live.review':'live.write';
   const module:Record<string,string>={cohorts:'courses',services:'courses',articles:'content',comments:'content','course-reviews':'courses',teachers:'courses',courses:'courses',products:'products','delivery-zones':'products',memberships:'members',entitlements:'members',enrollments:'members',events:'events',media:'media','media-library':'media','live-discovery':'live',forum:'community',feedback:'support',teaching:'teaching',questions:'questions'};
   const scope=module[root??''];
@@ -107,3 +109,4 @@ export function entityPermission(key:string,write=false):string {
   const scope=/^(article|source_evidence|resource_evidence|content_relation|comment)/.test(key)?'content':/^(course|teacher|lesson|assignment|submission|practice_task|practice_checkin)/.test(key)?'courses':/^(product|inventory|delivery_zone)/.test(key)?'products':/^event/.test(key)?'events':/^live/.test(key)?'live':/^(membership|plan_benefit|benefit_scope)/.test(key)?'members':key==='app_user'?'users':/^(feedback|report)/.test(key)?'support':/^(forum|user_block)/.test(key)?'community':null;
   return scope?scope+(write?'.write':'.read'):write?'data.write':'data.read';
 }
+

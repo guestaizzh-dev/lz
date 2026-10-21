@@ -1,3 +1,4 @@
+import {reportClientError} from './diagnostics';
 export type PublicEvidence={id:string;kind?:string;title:string;author?:string|null;edition?:string|null;rightsHolder?:string|null;licenseScope?:string|null;sourceUrl:string|null;validFrom?:string|null;validUntil?:string|null;isDemo?:boolean};
 export type Article = { id: string; version: number; title: string; summary: string; category: string; categoryLabel?: string; author: string; cover: string; visibility: string; tags: string[]; source?: string; templateCode?:string; blocks?: { id: string; type: string; text: string; url?: string; caption?: string; mediaId?: string }[]; access?: string };
 export type TeacherArticle={id:string;title:string;summary:string;visibility:string;membershipTier:number};
@@ -30,12 +31,14 @@ function perform<T>(path: string, options: RequestOptions = {}): Promise<T> {
         else {
           const data = response.data as { message?: string | string[] } | null;
           const detail = data?.message;
-          const message = Array.isArray(detail) ? detail.join('；') : detail ?? '操作暂时无法完成';
+          const message = Array.isArray(detail) ? detail.filter(item=>typeof item==='string').join('；') || '操作暂时无法完成' : typeof detail==='string'&&detail ? detail : '操作暂时无法完成';
           const smsNotice = response.statusCode === 503 && path === '/auth/sms' && ['短信登录尚未开通，请联系书院', '短信服务暂不可用，请稍后再试', '预览测试账号不可用'].includes(message);
           // Never surface Nest/class-validator contract text such as "property X should not exist".
           const contractError = /property \w+ should not exist|^[A-Za-z]\w* (must|should) /.test(message);
           const error = new Error(response.statusCode >= 500 && !smsNotice ? '服务暂时繁忙，请稍后重试' : contractError ? '这项内容暂时无法使用，请稍后重试' : /^Cannot (GET|POST|PUT|PATCH|DELETE)\b/.test(message) ? '内容暂时无法打开，请稍后重试' : message);
-          (error as Error & { status: number }).status = response.statusCode; reject(error);
+          (error as Error & { status: number }).status = response.statusCode;
+          if(response.statusCode>=500){const headers=response.header as Record<string,unknown>;const id=headers?.['X-Request-ID']??headers?.['x-request-id'];reportClientError('API_5XX',new Error(path.split('?')[0]),typeof id==='string'?id:undefined,response.statusCode);}
+          reject(error);
         }
       },
       fail: (error) => { console.warn('Academy request failed', error.errMsg); reject(new Error('暂时无法连接书院，请检查网络后重试')); },

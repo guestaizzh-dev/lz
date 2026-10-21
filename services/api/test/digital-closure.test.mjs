@@ -36,6 +36,12 @@ test('digital goods end-to-end ownership, frozen versions, callbacks, refunds an
       assert.equal((await call('/commerce/digital-orders',student,'POST',{...payload,requestKey:randomUUID(),quoteHash:'a'.repeat(64)})).status,409);
       assert.equal((await call('/commerce/digital-orders/'+order.id+'/cancel',student,'POST',{})).body.state,'CLOSED');
     });
+    await t.test('order detail displays purchased refund terms instead of current policy',async()=>{
+      const {order}=await checkout();const row=await db.tradeOrder.findUniqueOrThrow({where:{id:order.id}});
+      await db.tradeOrder.update({where:{id:order.id},data:{pricingSnapshot:{...row.pricingSnapshot,refundPolicy:'购买时冻结条款'}}});
+      assert.equal((await call('/commerce/digital-orders/'+order.id)).body.refundPolicy,'购买时冻结条款');
+      assert.equal((await call('/commerce/digital-orders/'+order.id+'/cancel',student,'POST',{})).body.state,'CLOSED');
+    });
     await t.test('trusted callbacks route to digital domain and duplicate channels grant only once',async()=>{
       const {order}=await checkout(),data=transaction(order);const router=app.get(CourseSalesService);assert.equal(await router.paymentDomain(order.orderNo),sales);
       const result=await Promise.all([sales.confirmPayment(data),sales.confirmPayment(data)]);assert.ok(result.every(r=>r.disposition==='ACCEPTED'));assert.equal(await db.digitalDelivery.count({where:{userId:student.user.id}}),1);

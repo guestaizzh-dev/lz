@@ -1,0 +1,17 @@
+{
+  "apps/admin/src/pages/courses/index.tsx": "af8a1f1c49da9244c3b4a1ee32c0e0a17f41afeb6f087675af12aa91659984f1",
+  "apps/mobile/App.uvue": "87bbacee81bde5b6cb45693d33e25f4855806cb5dd448fea441234204777beba",
+  "apps/mobile/lib/api.ts": "5cf70bdd4c5635fcf46aab6a33d56e70e023f179938d0f12fbd48bcae1cb7c1a",
+  "apps/mobile/lib/diagnostics.ts": "5dbf689534f755f5d1d6e2a15466e9f7b40ed57fde5e5b1463db16bc3f7fd266",
+  "apps/mobile/pages/live/watch.uvue": "26a2566e1059a08d498311aa90ffe1225a0366030c2b5bf317e90f85a2a106a8",
+  "apps/mobile/components/LiveDiscussion.uvue": "b398d7a91938bb9352ff1ea49a4ac5023944cb35f2dbd92d6915c6fe6c4b5450",
+  "apps/mobile/pages/profile/privacy.uvue": "7475d6fd5908f9b90111cf568588a98e49ab96d9056b767853b3963b00690116",
+  "services/api/src/curriculum-admin.ts": "ea0802a24125d1c81778d91cd00f23a63e48d1861518767b777527a07a93039a",
+  "services/api/src/client-diagnostics.ts": "c09b9f1ea6f86e2b3446cbc559821777f9bd25da0aa7158de754924f81427fe6",
+  "services/api/src/domain-policy.ts": "e3c73f9f12a71b550dd2e0806f31884ef61dbe77810e5d00a75432e293084f5a",
+  "services/api/src/database.ts": "c438588309b0ea1f919e0b823538cef1d5f380ce0b0b6106da8277632df0c608",
+  "services/api/src/digital-sales.ts": "b0b89afdd4d3ed5c4fb93f2388bfbe07a77cca2243ff06ea4fcfbcdcbe5a5036",
+  "services/api/src/main.ts": "533441cd645f6fb12714321a4d3236a047b55f83b5620e1d4fb10ae6d02aef7e",
+  "services/api/prisma/schema.prisma": "3eb872b09ca2232d607b96216ce0b570ed454199d2991958e1c2b1d07af26b0b",
+  "services/api/prisma/migrations/20261022010000_course_soft_delete/migration.sql": "2e082116cac8e7de4d889b13eab1439dc6ed9ea06099e85371b74a7485cac828"
+}

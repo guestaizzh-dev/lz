@@ -252,6 +252,7 @@ model Article {
 }
 
 model Course {
+  deletedAt DateTime? @db.Timestamptz(6)
   memberDiscountEligible Boolean @default(false)
   earlyAccessAt DateTime? @db.Timestamptz(6)
   publicOpenAt DateTime? @db.Timestamptz(6)

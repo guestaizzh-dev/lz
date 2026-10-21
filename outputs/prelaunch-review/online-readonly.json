@@ -1,0 +1,20 @@
+{
+  "checkedAtUtc": "2026-10-21T21:24:06Z",
+  "release": "20261021-internal-closure-04",
+  "migrations": 80,
+  "health": "ok",
+  "rootDisk": {
+    "size": "59G",
+    "used": "53G",
+    "available": "3.6G",
+    "usage": "94%"
+  },
+  "failedRecordings": 1,
+  "smsEnabled": false,
+  "wechatPayEnabled": false,
+  "previewLoginEnabled": true,
+  "previewExpiresAt": "2026-10-25T10:06:52+00:00",
+  "healthWatchTimer": "active",
+  "backupTimer": "active",
+  "productionChanged": false
+}

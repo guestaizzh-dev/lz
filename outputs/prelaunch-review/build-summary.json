@@ -1,0 +1,20 @@
+{
+  "api": "passed",
+  "admin": "TypeScript and production build passed",
+  "appWeb": "passed before final live CSS and lifecycle sequencing additions; final sources verified by both native resource builds",
+  "androidVaporResources": {
+    "passed": true,
+    "pages": 76,
+    "target": "bytecode"
+  },
+  "iosVaporResources": {
+    "passed": true,
+    "pages": 76,
+    "target": "bytecode"
+  },
+  "nativeResourceDiagnostics": 0,
+  "signedPackagesBuilt": false,
+  "nativeSdkCompilationOrDeviceAcceptance": false,
+  "deployed": false,
+  "sourceHashFiles": 15
+}

@@ -48,6 +48,7 @@ class CourseDto {
   @IsBoolean() featured!: boolean;
   @IsArray() @ArrayMaxSize(100) @ValidateNested({ each: true }) @Type(() => ChapterDto) chapters!: ChapterDto[];
 }
+class CourseDeleteDto { @IsInt() @Min(1) expectedVersion!: number; }
 class CourseEditDto extends CourseDto { @IsInt() @Min(1) expectedVersion!: number; }
 class TeacherDto {
   @IsOptional() @IsString() @Length(0, 1000) teachingDirection?: string;
@@ -86,7 +87,7 @@ class PlanDto {
 export class CurriculumAdminService {
   constructor(private readonly db: Database) {}
   async list(query: TableQuery) {
-    const where = { ...(query.category ? {category:query.category} : {}), ...(query.status ? { status: query.status } : {}), ...(query.q ? { title: { contains: query.q, mode: 'insensitive' as const } } : {}) };
+    const where = { deletedAt: null, ...(query.category ? {category:query.category} : {}), ...(query.status ? { status: query.status } : {}), ...(query.q ? { title: { contains: query.q, mode: 'insensitive' as const } } : {}) };
     const [items, total] = await this.db.$transaction([this.db.course.findMany({ where, include: { teacher: true }, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], skip: (query.page - 1) * query.size, take: query.size }), this.db.course.count({ where })]);
     return { items, total };
   }
@@ -117,7 +118,7 @@ export class CurriculumAdminService {
       let course;
       const stats = { chaptersCount: chapters.length, durationMinutes: Math.ceil(chapters.reduce((sum, c) => sum + c.durationSeconds, 0) / 60) };
       if (id) {
-        const changed = await tx.course.updateMany({ where: { id, version: (dto as CourseEditDto).expectedVersion, status: { in: ['DRAFT', 'REJECTED'] } }, data: { ...data, ...stats, version: { increment: 1 } } });
+        const changed = await tx.course.updateMany({ where: { id, deletedAt: null, version: (dto as CourseEditDto).expectedVersion, status: { in: ['DRAFT', 'REJECTED'] } }, data: { ...data, ...stats, version: { increment: 1 } } });
         if (!changed.count) throw new ConflictException('版本或状态已变化；已发布课程需先下架修订');
         course = await tx.course.findUniqueOrThrow({ where: { id } });
         await tx.courseChapter.deleteMany({ where: { courseId: id } });
@@ -134,6 +135,20 @@ export class CurriculumAdminService {
       return course;
     });
   }
+  async remove(req: AuthRequest, id: string, dto: CourseDeleteDto) {
+    requireRoles(req, ['OPERATOR']);
+    return this.db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM "Course" WHERE id=${id} FOR UPDATE`;
+      const course = await tx.course.findUnique({ where: { id } });
+      if (!course) throw new NotFoundException('课程不存在');
+      if (course.deletedAt) return { deleted: true };
+      if (course.status !== 'ARCHIVED' || course.version !== dto.expectedVersion) throw new ConflictException('仅可删除已下架课程；状态或版本已变化，请刷新');
+      // Retain frozen releases and every purchased entitlement, order and learning record.
+      await tx.course.update({ where: { id }, data: { deletedAt: new Date(), featured: false, version: { increment: 1 } } });
+      await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'course.delete', resource: 'course', resourceId: id, changes: { title: course.title, previousVersion: course.version, retainedPurchases: true } } });
+      return { deleted: true };
+    });
+  }
   async transition(req: AuthRequest, id: string, dto: TransitionDto) {
     requireRoles(req, ['publish', 'reject'].includes(dto.action) ? ['MODERATOR'] : ['OPERATOR']);
     const states: Record<string, { from: PublishStatus[]; to: PublishStatus }> = {
@@ -141,7 +156,7 @@ export class CurriculumAdminService {
     };
     const state = states[dto.action]!;
     return this.db.$transaction(async tx => {
-      const changed = await tx.course.updateMany({ where: { id, version: dto.expectedVersion, status: { in: state.from } }, data: { status: state.to, version: { increment: 1 } } });
+      const changed = await tx.course.updateMany({ where: { id, deletedAt: null, version: dto.expectedVersion, status: { in: state.from } }, data: { status: state.to, version: { increment: 1 } } });
       if (!changed.count) throw new ConflictException('版本或状态已变化，请刷新');
       const course = await tx.course.findUniqueOrThrow({ where: { id }, include: { chapters: { orderBy: { position: 'asc' } }, teacher: true } });
       if (['submit', 'publish'].includes(dto.action)) {
@@ -263,9 +278,10 @@ export class CurriculumAdminService {
 export class CurriculumAdminController {
   constructor(private readonly service: CurriculumAdminService, private readonly db: Database,private readonly categories:Categories) {}
   @Get('courses') list(@Query() query: TableQuery, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.service.list(query).then(value=>this.categories.decorate('COURSE',value)); }
-  @Get('courses/:id') async detail(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); const row = await this.db.course.findUnique({ where: { id }, include: { chapters: { orderBy: { position: 'asc' } } } }); if (!row) throw new NotFoundException('课程不存在'); return row; }
+  @Get('courses/:id') async detail(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); const row = await this.db.course.findUnique({ where: { id }, include: { chapters: { orderBy: { position: 'asc' } } } }); if (!row || row.deletedAt) throw new NotFoundException('课程不存在或已删除'); return row; }
   @Post('courses') create(@Body() dto: CourseDto, @Req() req: AuthRequest) { return this.service.save(req, dto); }
   @Patch('courses/:id') edit(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CourseEditDto, @Req() req: AuthRequest) { return this.service.save(req, dto, id); }
+  @Post('courses/:id/delete') remove(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CourseDeleteDto, @Req() req: AuthRequest) { return this.service.remove(req, id, dto); }
   @Post('courses/:id/transition') transition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: TransitionDto, @Req() req: AuthRequest) { return this.service.transition(req, id, dto); }
   @Get('courses/:id/audit') audit(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.db.auditLog.findMany({ where: { resource: 'course', resourceId: id }, orderBy: { createdAt: 'desc' }, take: 100 }); }
   @Post('courses/:id/grant') grant(@Param('id', ParseUUIDPipe) id: string, @Body() dto: GrantDto, @Req() req: AuthRequest) { return this.service.grant(req, id, dto); }

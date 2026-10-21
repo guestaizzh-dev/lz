@@ -1,0 +1,7 @@
+{
+  "tests": 4,
+  "pass": 4,
+  "fail": 0,
+  "overlapWithFullSuite": 2,
+  "scope": "real page script in VM; no native RTC SDK execution"
+}

@@ -12,6 +12,8 @@ facts.add('event_staff');
 for(const key of ['poll_option','poll_response'])facts.add(key);
 for(const key of ['live_room','live_session','live_reservation','live_replay','live_poll'])facts.add(key);
 facts.add('service_delivery');
+// Course edits/deletion must retain purchased versions through the dedicated workflow.
+facts.add('course');
 facts.add('channel_product_mapping');facts.add('apple_refund_review');
 facts.add('membership_plan');
 facts.add('benefit_definition');

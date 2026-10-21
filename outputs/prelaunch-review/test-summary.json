@@ -1,0 +1,11 @@
+{
+  "tests": 831,
+  "pass": 831,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "durationMs": 498722.8947,
+  "database": "unique isolated local PostgreSQL database, migrated then removed",
+  "productionWrites": false
+}

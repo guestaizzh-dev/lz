@@ -1,6 +1,7 @@
 <script setup lang="uts">
     import {startStudySync,studyForeground} from './lib/study-queue'
     import {restoreSession,currentUser,sessionGeneration,sessionNotice} from './lib/session'
+    import {reportClientError} from './lib/diagnostics'
     import {request} from './lib/api'
     import type {AppUser} from './lib/session'
     import {refreshPush} from './lib/notifications'
@@ -11,7 +12,11 @@
 	let firstBackTime = 0
 	// #endif
 
+    onError((error)=>{reportClientError('RUNTIME',error);})
 	onLaunch(() => {
+        // #ifdef WEB
+        window.addEventListener('unhandledrejection',(event)=>{reportClientError('RUNTIME',event.reason);})
+        // #endif
 		startStudySync()
         // #ifdef APP
         uni.loadFontFace({ global: true, family: 'AcademySans', source: "url('/static/fonts/AcademySans.otf')" })

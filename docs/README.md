@@ -8,6 +8,7 @@
 
 | 想知道什么 | 看哪里 |
 | --- | --- |
+| 上线前风险与本轮修复 | [90 上线前全量评审](90-prelaunch-review.md) |
 | 现在做到哪了、还差什么 | [83 现状核对与剩余缺口](83-status-and-gaps-2026-10-19.md)（唯一状态入口） |
 | 下一步做什么、怎么验收 | [26 剩余开发计划](26-remaining-development-plan.md) |
 | 业务范围与验收口径 | [01 产品需求](01-product-requirements.md) |

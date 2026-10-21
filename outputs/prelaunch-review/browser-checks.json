@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "真实后台：下架列表删除、影响确认、请求成功刷新、数据库留痕",
+    "课程列表Web布局 small 无文档横向溢出",
+    "课程列表Web布局 portrait 无文档横向溢出",
+    "课程列表Web布局 landscape 无文档横向溢出",
+    "Web深色系统偏好下登录页截图（固定纸色主题）"
+  ],
+  "errors": [],
+  "scope": "isolated database and real API; Web only"
+}

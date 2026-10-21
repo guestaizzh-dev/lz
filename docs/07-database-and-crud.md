@@ -1,3 +1,5 @@
+2026-10-21补充：当前线上80次迁移、198张表（含迁移表）。第75—80迁移分别补首次资料领取事实、CommercePartnerRule/CommerceFeeEvidence/CommercePartnerShare/CommercePartnerRevenue、账单修订唯一约束、咨询抵扣定义、OperationsIncident/OperationsIncidentEvent与新数字消费触发器。规则/合约/订单/账务不允许通用CRUD改写；新表完整字段见prisma/schema.prisma与对应手写migration.sql，业务约束和入口见[89](89-internal-business-closure.md)。原业务数据未重新seed或覆盖。
+
 2026-10-18结构增量：第70迁移新增ServiceDelivery，完整字段与约束以[迁移SQL](../services/api/prisma/migrations/20261018120000_paid_service_delivery/migration.sql)及Prisma模型为准；业务流程与验证见[79](79-paid-service-delivery-and-recognition.md)。原183张业务表原字段摘要保持，新增表仅由订单履约流程维护，不开放通用编辑。
 
 2026-10-15 M06第46迁移：新增NotificationPreference（userId文本主键并外键User、version正整数默认1、updatedAt timestamptz、pushEnabled默认false、transactions/learning/community布尔默认true）；DeviceToken新增sessionId可空外键AuthSession与索引、boundAt timestamptz默认now；NotificationDelivery新增deviceVersion整数默认1。Notification插入触发器同事务写原OutboxJob、eventKey唯一去重，不新建平行消息队列。所有偏好/设备/投递由鉴权专用流程处理。已应用本地迁移，15类原业务数量保持；正式库未变更，见[65](65-m06-sharing-and-teacher-profiles.md)与[迁移](../services/api/prisma/migrations/20261015140000_notification_delivery/migration.sql)。

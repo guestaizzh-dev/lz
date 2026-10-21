@@ -101,3 +101,15 @@ curl -f https://academy.43-160-229-173.sslip.io/api/v1/health
 当前发布`/opt/daoxue-academy/releases/20261011-member-sales-03`；后端healthy，后台HTTPS正常。新增Apple会员映射/购买确认/恢复撤销和渠道CLOSED退款取消，正式开关保持关闭；234后端全量及末次14发布专项、45HTTPS、4实际浏览器通过。数据库/媒体备份academy-20261011T074219Z-c3IILj校验成功；25迁移、155表，原规范样例/所有套餐及会员字段完整保留，未生成正式交易或改变admin/admin123。详细证据和未完成正式验收见32，未操作其他项目服务。
 
 
+
+## 2026-10-21内部闭环发布（线上北京时间10-22）
+
+最终API/Pro `20261021-internal-closure-04`（源码3376c75），74→80迁移、192→198表；原17类业务计数与规范数据保持，仅API_IMAGE_TAG变化。数据库及媒体备份逐个校验后迁移，保留兼容镜像与发布记录；新数据已生效，不可盲退旧Prisma或恢复旧库覆盖业务。
+
+74版/80版各完成独立数据库与独立媒体恢复，48文件与7 READY资产匹配，演练库/目录已清理；当前健康、录制就绪、29组公网和5后台核心页面通过。独立academy-watch.timer每2分钟检查健康与备份新鲜度，已启用。一次开发电脑备份保存到.runtime/backup-export-20261021；长期目的地/14天异地留存/站外接收仍依实际资源。
+
+100并发首页p95=363ms（03中测得，04同一首页代码），100/100成功，非RTC负载验收；保留磁盘低容量告警与1条历史录制失败。旧待踢出RTC租约已0。原开关和其他项目未变。
+
+主要证据：outputs/deploy-2026-10-21-closure-04、closure-03/capacity.txt、closure/current-recovery.txt及off-host-copy.json；详89。Android0.3.16连接本线上环境，无系统推送预览，无手机验收。
+
+- 追加整套恢复验证：在80版备份还原的独立数据库和媒体目录中启动同一生产镜像（所有外部支付/短信/RTC/推送及定时工作关闭），实际管理员登录、首页、原订单财务读取与鉴权私有媒体Range返回206均成功；临时容器/数据库/目录随后全部清理，生产订单仍6笔。工具已独立部署于服务器/opt/daoxue-academy/operations-drill，并随Git提交。证据closure-04/application-recovery.txt及final-state.txt。

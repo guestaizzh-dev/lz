@@ -64,3 +64,6 @@ print('READY database media entries:',len(keys),'missing:',len(missing))
 if missing:raise SystemExit('Database/media consistency requires repair; original production data unchanged')
 print('ISOLATED_RESTORE_OK: database and media restored; production untouched')
 PY
+if [[ "${ACADEMY_RESTORE_APP_CHECK:-false}" == true ]]; then
+  python3 "$(dirname "$0")/restore-application-check.py" "$database" "$root"
+fi

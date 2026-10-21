@@ -1,0 +1,131 @@
+{
+  "release": "20261021-internal-closure-04",
+  "checks": [
+    {
+      "path": "/api/v1/health",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/catalog/home",
+      "status": 200
+    },
+    {
+      "path": "/user/login",
+      "status": 200
+    },
+    {
+      "path": "/content/live",
+      "status": 200
+    },
+    {
+      "path": "/guide?workflow=daily-operations",
+      "status": 200
+    },
+    {
+      "path": "/categories",
+      "status": 200
+    },
+    {
+      "path": "/courses",
+      "status": 200
+    },
+    {
+      "path": "/products",
+      "status": 200
+    },
+    {
+      "path": "/events",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/live/player/client.js",
+      "sha256Matched": true
+    },
+    {
+      "path": "/api/v1/live/player/client.css",
+      "sha256Matched": true
+    },
+    {
+      "path": "/",
+      "sha256Matched": true
+    },
+    {
+      "path": "/api/v1/admin/live/broadcasts",
+      "status": 200,
+      "recordingReady": true,
+      "broadcasts": 1
+    },
+    {
+      "path": "/admin/digital-orders?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/partner-finance/options",
+      "status": 200
+    },
+    {
+      "path": "/admin/partner-finance/rules?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/partner-finance/payments?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/partner-finance/shares?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/partner-finance/settlements?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/reconciliation?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/reconciliation/scopes",
+      "status": 200
+    },
+    {
+      "path": "/admin/operations/incidents?page=1&size=5",
+      "status": 200
+    },
+    {
+      "path": "/admin/operations/incidents/summary",
+      "status": 200
+    },
+    {
+      "path": "/configuration/release",
+      "status": 200
+    },
+    {
+      "categories": "ARTICLE",
+      "publicAndAdmin": true,
+      "count": 4
+    },
+    {
+      "categories": "COURSE",
+      "publicAndAdmin": true,
+      "count": 4
+    },
+    {
+      "categories": "PRODUCT",
+      "publicAndAdmin": true,
+      "count": 5
+    },
+    {
+      "categories": "EVENT",
+      "publicAndAdmin": true,
+      "count": 5
+    },
+    {
+      "path": "/api/v1/admin/images",
+      "status": 200
+    }
+  ],
+  "adminLogin": true,
+  "temporarySessionLoggedOut": true,
+  "businessRowsCreated": false,
+  "newNativePackage": "tracked separately"
+}

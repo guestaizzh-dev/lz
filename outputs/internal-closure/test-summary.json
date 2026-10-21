@@ -10,10 +10,26 @@
     "passed": 68
   },
   "homeRegression": {
-    "tests": 37,
-    "passed": 37
+    "tests": 38,
+    "passed": 38
   },
-  "browserFlows": 9,
+  "browserFlows": 10,
   "browserRuntimeErrors": 0,
-  "commercialAcceptance": false
+  "commercialAcceptance": false,
+  "settlementExportRegression": {
+    "tests": 15,
+    "passed": 15
+  },
+  "finalRelease": "20261021-internal-closure-04",
+  "sourceCommit": "3376c75f578d3f64a5f4ce834f585e9bd723f205",
+  "productionBusinessRowsPreserved": true,
+  "nativeAcceptance": false,
+  "restoredApplication": {
+    "adminLogin": true,
+    "catalog": true,
+    "originalOrder": true,
+    "privateMediaRange": true,
+    "productionDatabaseTouched": false,
+    "externalProvidersEnabled": false
+  }
 }

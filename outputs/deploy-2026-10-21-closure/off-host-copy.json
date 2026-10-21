@@ -1,0 +1,16 @@
+{
+  "oneTimeDevelopmentComputerCopy": true,
+  "scheduledOffsiteRetention": false,
+  "files": [
+    {
+      "name": "academy-20261021T194411Z-FHHHJe.dump",
+      "bytes": 1116633,
+      "sha256": "830c0e77138d079d022d63c95b94b0deffe1b03b06f83c8bf141bfc296ea8c96"
+    },
+    {
+      "name": "academy-20261021T194411Z-FHHHJe.dump.media.tar.gz",
+      "bytes": 230352679,
+      "sha256": "2aa1eb3ab17175a3e820cca7663d28bc9208e8ad8d3744f00323cbf482763104"
+    }
+  ]
+}

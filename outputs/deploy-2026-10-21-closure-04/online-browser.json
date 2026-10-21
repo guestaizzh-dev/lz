@@ -1,0 +1,31 @@
+{
+  "checks": [
+    {
+      "path": "/partner-finance",
+      "title": "合作结算",
+      "rendered": true
+    },
+    {
+      "path": "/reconciliation",
+      "title": "账单对账",
+      "rendered": true
+    },
+    {
+      "path": "/digital-orders",
+      "title": "数字资料订单",
+      "rendered": true
+    },
+    {
+      "path": "/operations/incidents",
+      "title": "运行告警",
+      "rendered": true
+    },
+    {
+      "path": "/guide?workflow=digital-delivery",
+      "title": "售卖数字资料",
+      "rendered": true
+    }
+  ],
+  "errors": [],
+  "readOnlyBusiness": true
+}

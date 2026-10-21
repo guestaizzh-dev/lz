@@ -17,8 +17,8 @@
 <text class="menu-value">{{selected?.title??'尚未配置可售规格'}}</text>
 </view>
 <view v-if="product!.skus?.length" class="sku-options"><button v-for="item in product!.skus" :key="item.id" :class="['sku-button',skuId===item.id?'sku-selected':'']" @click="choose(item.id)">{{item.title}}</button></view>
-<text v-if="selected&&product!.type!=='SERVICE'" :class="['stock-note',selected!.available>0?'':'stock-out']">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
-<view v-if="product!.type!=='SERVICE'" class="menu-row">
+<text v-if="selected&&product!.type==='PHYSICAL'" :class="['stock-note',selected!.available>0?'':'stock-out']">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
+<view v-if="product!.type==='PHYSICAL'" class="menu-row">
 <text class="menu-label product-label">数量</text>
 <view class="stepper">
 <button class="stepper-button" :class="quantity<=1?'is-disabled':''" aria-label="减少数量" @click="dec"><AppIcon name="minus" :size="14"/></button>
@@ -40,8 +40,9 @@
 </view>
 </scroll-view>
 <BottomBar v-if="product"><button v-if="product!.type==='SERVICE'" class="bar-primary" :class="selected?.serviceOfferingId?'':'is-disabled'" @click="serviceBook">选择服务时段</button>
-<button v-if="product!.type!=='SERVICE'" class="bar-secondary" :class="canBuy&&!busy?'':'is-disabled'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
-<button v-if="product!.type!=='SERVICE'" class="bar-primary" :class="canBuy?'':'is-disabled'" @click="buy()">确认规格与配送</button>
+<button v-if="product!.type==='DIGITAL'" class="bar-primary grow" :disabled="!selected" @click="digitalBuy">查看资料与交付规则</button>
+<button v-if="product!.type==='PHYSICAL'" class="bar-secondary" :class="canBuy&&!busy?'':'is-disabled'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
+<button v-if="product!.type==='PHYSICAL'" class="bar-primary" :class="canBuy?'':'is-disabled'" @click="buy()">确认规格与配送</button>
 </BottomBar>
 </view>
 </template>
@@ -75,7 +76,7 @@ async function share(){
   }catch(e){
     uni.showToast({title:'生成分享链接失败',icon:'none'});
   }
-}async function cart(){const sku=selected.value;if(busy.value||needLogin()||!sku||!canBuy.value){if(sku&&!canBuy.value)uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}busy.value=true;try{await request('/shopping/cart/'+sku.id,{method:'PUT',data:{quantity:quantity.value}});uni.showToast({title:'购物车数量已更新',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function serviceBook(){if(!selected.value?.serviceOfferingId)return;openPage('booking/confirm?offeringId='+selected.value.serviceOfferingId+'&skuId='+selected.value.id);}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}if(!canBuy.value){uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
+}async function cart(){const sku=selected.value;if(busy.value||needLogin()||!sku||!canBuy.value){if(sku&&!canBuy.value)uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}busy.value=true;try{await request('/shopping/cart/'+sku.id,{method:'PUT',data:{quantity:quantity.value}});uni.showToast({title:'购物车数量已更新',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function digitalBuy(){if(needLogin()||!selected.value)return;openPage('shop/digital-order?skuId='+selected.value.id);}function serviceBook(){if(!selected.value?.serviceOfferingId)return;openPage('booking/confirm?offeringId='+selected.value.serviceOfferingId+'&skuId='+selected.value.id);}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}if(!canBuy.value){uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
 
 const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
 onShow(()=>{relatedRef.value?.refresh();});

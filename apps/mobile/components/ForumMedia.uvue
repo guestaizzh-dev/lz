@@ -1,7 +1,7 @@
 <template>
 <view class="forum-media">
   <video v-if="type==='video'&&url" :id="playerId" class="forum-video" :src="url" :initial-time="position" :controls="true" @timeupdate="position=$event.detail.currentTime" @play="started" @pause="playing=false" @ended="playing=false" @loadedmetadata="restoreVideo" @error="failed"/>
-  <view v-if="type==='audio'" class="forum-audio"><view class="row between"><view class="row"><AppIcon name="headphones" :size="22"/><text class="audio-title">音频心得</text></view><text class="meta">{{duration(position)}} / {{duration(seconds)}}</text></view><slider :value="dragging?dragPosition:position" :max="Math.max(1,seconds)" activeColor="#235663" :disabled="!url||loading" @changing="dragging=true;dragPosition=$event.detail.value" @change="seek($event.detail.value)"/><button class="audio-action" :disabled="!url||loading" @click="toggle">{{playing?'暂停音频':'播放音频'}}</button></view>
+  <view v-if="type==='audio'" class="forum-audio"><view class="row between"><view class="row"><AppIcon name="headphones" :size="22"/><text class="audio-title">{{digitalDeliveryId?'音频资料':'音频心得'}}</text></view><text class="meta">{{duration(position)}} / {{duration(seconds)}}</text></view><slider :value="dragging?dragPosition:position" :max="Math.max(1,seconds)" activeColor="#235663" :disabled="!url||loading" @changing="dragging=true;dragPosition=$event.detail.value" @change="seek($event.detail.value)"/><button class="audio-action" :disabled="!url||loading" @click="toggle">{{playing?'暂停音频':'播放音频'}}</button></view>
   <text v-if="loading&&!url" class="meta">正在准备{{type==='video'?'视频':'音频'}}…</text><text v-if="error" class="media-error">{{error}}</text><button v-if="error" class="media-retry" :disabled="loading" @click="load">重新加载</button>
 </view>
 </template>
@@ -12,7 +12,7 @@ import {request,apiBase} from '../lib/api';
 import {currentUser,sessionGeneration} from '../lib/session';
 import {studyEventId,duration} from '../lib/learning';
 import type {ForumMediaTicket} from '../lib/forum-media';
-const props=defineProps<{threadId?:string;assetId?:string;uploadId?:string;type:string}>();
+const props=defineProps<{digitalDeliveryId?:string;threadId?:string;assetId?:string;uploadId?:string;type:string}>();
 const url=ref(''),loading=ref(false),error=ref(''),playing=ref(false),position=ref(0),seconds=ref(0),dragging=ref(false),dragPosition=ref(0),playerId='forum-'+studyEventId();
 let audio:ReturnType<typeof uni.createInnerAudioContext>|null=null,timer:ReturnType<typeof setTimeout>|null=null,sequence=0,visible=true,restorePlaying=false;
 function started(){claimForumPlayback(playerId,stop);playing.value=true;}
@@ -23,7 +23,7 @@ function restoreVideo(){const ctx=uni.createVideoContext(playerId);if(position.v
 async function load(){
   clearTimer();const token=++sequence,generation=sessionGeneration();loading.value=true;error.value='';
   try{
-    const path=props.uploadId?'/forum/media/uploads/'+props.uploadId+'/preview':'/forum/threads/'+props.threadId+'/media/'+props.assetId;
+    const path=props.digitalDeliveryId?'/me/digital/'+props.digitalDeliveryId+'/files/'+props.assetId:props.uploadId?'/forum/media/uploads/'+props.uploadId+'/preview':'/forum/threads/'+props.threadId+'/media/'+props.assetId;
     const result=await request<ForumMediaTicket>(path,{method:'POST'});if(token!==sequence||generation!==sessionGeneration()||!visible)return;
     restorePlaying=playing.value;stop();audio?.destroy();audio=null;url.value=apiBase+result.path;seconds.value=result.durationSeconds;
     if(props.type==='audio'){
@@ -37,7 +37,7 @@ async function load(){
 }
 function toggle(){if(playing.value)audio?.pause();else audio?.play();}
 function seek(value:number){position.value=value;dragging.value=false;audio?.seek(value);}
-watch(()=>[props.threadId,props.assetId,props.uploadId],()=>{position.value=0;void load();});
+watch(()=>[props.threadId,props.assetId,props.uploadId,props.digitalDeliveryId],()=>{position.value=0;void load();});
 watch(()=>currentUser.value?.id,()=>{sequence++;stop();audio?.destroy();audio=null;url.value='';clearTimer();loading.value=false;});
 onMounted(()=>void load());onShow(()=>{visible=true;if(!url.value&&!loading.value)void load();});onHide(()=>{visible=false;sequence++;stop();audio?.destroy();audio=null;url.value='';clearTimer();loading.value=false;});onUnmounted(()=>{visible=false;sequence++;stop();audio?.destroy();clearTimer();});
 </script>

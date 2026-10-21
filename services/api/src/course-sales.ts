@@ -341,6 +341,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   }
   private async paymentDomain(orderNo:string){
     const order=await this.db.tradeOrder.findUnique({where:{orderNo}});
+    if(order?.kind==='DIGITAL')return this.moduleRef.get<Pick<CourseSalesService,'confirmPayment'|'confirmRefund'>>('DIGITAL_SALES',{strict:false});
     if(order?.kind==='COHORT')return this.moduleRef.get<Pick<CourseSalesService,'confirmPayment'|'confirmRefund'>>('COHORT_SALES',{strict:false});
     if(order?.kind==='GIFT')return this.moduleRef.get<Pick<CourseSalesService,'confirmPayment'|'confirmRefund'>>('GIFT_SALES',{strict:false});
     if(order&&['CONSULTATION','EVENT'].includes(order.kind))return this.moduleRef.get<Pick<CourseSalesService,'confirmPayment'|'confirmRefund'>>('BOOKING_SALES',{strict:false});

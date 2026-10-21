@@ -1,5 +1,5 @@
 import {offlineBooking} from './offline-courses.js';
-import {finishBookingMemberPrice,reverseFreeEventPrices} from './booking-member-pricing.js';
+import {syncConsultationCredit,finishBookingMemberPrice,reverseFreeEventPrices} from './booking-member-pricing.js';
 import {syncPointsAppointment} from './points-accounting.js';
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Length, Matches, Max, Min, ValidateNested } from 'class-validator';
@@ -140,6 +140,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       if(cancel){
         const pointRows=await tx.pointsRedemption.findMany({where:{appointmentId:{in:(await tx.appointment.findMany({where:{slotId:id,state:'CONFIRMED',orderItemId:null},select:{id:true}})).map(a=>a.id)},state:'FULFILLING'}});
         await tx.appointment.updateMany({where:{slotId:id,state:'CONFIRMED',orderItemId:null},data:{state:'CANCELLED',cancelReason:dto.reason.trim(),scheduleSnapshot:schedule,version:{increment:1}}});for(const point of pointRows)await syncPointsAppointment(tx,point.appointmentId!,req.actor.id);
+        for(const appointment of await tx.appointment.findMany({where:{slotId:id,state:'CANCELLED',orderItemId:null},select:{id:true}}))await syncConsultationCredit(tx,appointment.id);
         if(next.confirmed>0)await this.queueCompensation(tx,'appointment',id,schedule);
       }
       await this.queueNotice(tx,'appointment',id,schedule,cancel?'CANCEL':'RESCHEDULE',now);
@@ -382,7 +383,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       await tx.$queryRaw`SELECT id FROM "EventSession" WHERE id=${session.id} FOR UPDATE`;
       const event=await tx.event.findFirst({where:{id:session.eventId,...await publicContentScope(tx)}}),current=await tx.eventSession.findUniqueOrThrow({where:{id:session.id}});
       const all=await tx.eventTicketType.findMany({where:{sessionId:session.id}}),now=new Date(),t=all.find(t=>t.id===ticket.id)!;
-      await offlineBooking(tx,session.id,dto.quantity);
+      const offline=await offlineBooking(tx,session.id,dto.quantity);
       if(!event||current.state!=='OPEN'||current.startsAt<=now||!t.active)throw new ConflictException('场次暂未开放报名或已结束');
       const priority=current.publicOpenAt>now&&current.memberOpenAt&&current.memberOpenAt<=now?await eventPrioritySource(tx,req.actor.id,event.id,now):null;
       if(current.publicOpenAt>now&&!priority)throw new ConflictException(current.memberOpenAt&&current.memberOpenAt<=now?'当前为会员优先报名时段，请核查已购权益，或等待公众开放':'场次暂未到开放报名时间');
@@ -392,7 +393,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       if((mine._sum.quantity??0)+dto.quantity>t.perUserLimit)throw new ConflictException('已达到每人报名人数上限');
       if(t.capacity-t.reserved-t.confirmed<dto.quantity||current.capacity-all.reduce((n,t)=>n+t.reserved+t.confirmed,0)<dto.quantity)throw new ConflictException('剩余名额不足，请减少人数或选择其他场次');
       const snapshot={name:dto.name.trim(),phone:dto.phone,consentedAt:now.toISOString(),requestDigest:hash,title:event.title,ticketTitle:t.title,startsAt:current.startsAt.toISOString(),endsAt:current.endsAt.toISOString(),location:current.location,scheduleVersion:current.scheduleVersion,cancelDeadline:current.cancelDeadline.toISOString(),price:0,offerId:offers[0]!.id};
-      const row=await tx.eventRegistration.create({data:{userId:req.actor.id,ticketTypeId:t.id,requestKey:dto.requestKey,quantity:dto.quantity,state:'CONFIRMED',acceptedScheduleVersion:current.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify(snapshot)),checkinHash:digest(randomBytes(32).toString('hex')),confirmedAt:now,...(priority?{prioritySnapshot:{...priority,memberOpenAt:current.memberOpenAt!.toISOString(),publicOpenAt:current.publicOpenAt.toISOString()}}:{})}});
+      const row=await tx.eventRegistration.create({data:{userId:req.actor.id,courseReleaseId:offline?.releaseId??null,ticketTypeId:t.id,requestKey:dto.requestKey,quantity:dto.quantity,state:'CONFIRMED',acceptedScheduleVersion:current.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify(snapshot)),checkinHash:digest(randomBytes(32).toString('hex')),confirmedAt:now,...(priority?{prioritySnapshot:{...priority,memberOpenAt:current.memberOpenAt!.toISOString(),publicOpenAt:current.publicOpenAt.toISOString()}}:{})}});
       await tx.eventTicketType.update({where:{id:t.id},data:{confirmed:{increment:dto.quantity},version:{increment:1}}});
       await this.notice(tx,req.actor.id,'registration',row.id,'confirmed','活动报名已确认',event.title+'，请在我的预约查看报名安排。');
       await this.audit(tx,req,'registration.confirm',row.id,{sessionId:session.id,quantity:dto.quantity});return {id:row.id,state:row.state};
@@ -436,9 +437,9 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         const row=await tx.appointment.findUniqueOrThrow({where:{id}}),slot=await tx.appointmentSlot.findUniqueOrThrow({where:{id:row.slotId}});
         if(row.state==='CANCELLED')return {success:true};
         const s=json(row.serviceSnapshot),cancelAt=(s.scheduleVersion??1)<slot.scheduleVersion?+slot.startsAt:new Date(s.startsAt).getTime()-s.cancelBeforeMinutes*60000;
-        if(row.state!=='CONFIRMED'||row.orderItemId||row.benefitUsageId||(cancelAt<=Date.now()&&row.acceptedScheduleVersion>=slot.scheduleVersion))throw new ConflictException('已超过自助取消期限或已履约，请联系书院');
+        if(row.state!=='CONFIRMED'||row.orderItemId||row.benefitUsageId&&s.memberBenefit?.code!=='CONSULTATION_CREDIT'||(cancelAt<=Date.now()&&row.acceptedScheduleVersion>=slot.scheduleVersion))throw new ConflictException('已超过自助取消期限或已履约，请联系书院');
         await tx.appointment.update({where:{id},data:{state:'CANCELLED',cancelReason:dto.reason,scheduleSnapshot:this.schedule(slot),version:{increment:1}}});
-        await tx.appointmentSlot.update({where:{id:slot.id},data:{confirmed:{decrement:1},version:{increment:1}}});await syncPointsAppointment(tx,id,req.actor.id);
+        await tx.appointmentSlot.update({where:{id:slot.id},data:{confirmed:{decrement:1},version:{increment:1}}});await syncPointsAppointment(tx,id,req.actor.id);await syncConsultationCredit(tx,id);
         const teacher=await tx.teacher.findUnique({where:{id:slot.teacherId},select:{userId:true}});
         if(teacher?.userId&&teacher.userId!==req.actor.id)await this.notice(tx,teacher.userId,kind,id,'cancelled','服务预约已取消','学员已取消本次预约，名额已释放。');
       }else{
@@ -447,7 +448,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         const row=await tx.eventRegistration.findUniqueOrThrow({where:{id}}),session=await tx.eventSession.findUniqueOrThrow({where:{id:ticket.sessionId}});
         if(row.state==='CANCELLED')return {success:true};
         const s=JSON.parse(decryptPrivate(row.attendeeSnapshotCipher)),cancelAt=(s.scheduleVersion??1)<session.scheduleVersion?session.startsAt:new Date(s.cancelDeadline);
-        if(row.state!=='CONFIRMED'||row.orderItemId||row.benefitUsageId||(cancelAt<=new Date()&&row.acceptedScheduleVersion>=session.scheduleVersion)||await tx.eventCheckin.count({where:{registrationId:id,revokedAt:null}}))throw new ConflictException('报名已签到或超过取消期限，请联系书院');
+        if(row.state!=='CONFIRMED'||row.orderItemId||row.benefitUsageId&&s.memberBenefit?.code!=='CONSULTATION_CREDIT'||(cancelAt<=new Date()&&row.acceptedScheduleVersion>=session.scheduleVersion)||await tx.eventCheckin.count({where:{registrationId:id,revokedAt:null}}))throw new ConflictException('报名已签到或超过取消期限，请联系书院');
         await tx.eventRegistration.update({where:{id},data:{state:'CANCELLED',cancelledAt:new Date(),scheduleSnapshot:this.schedule(session),version:{increment:1}}});
         await tx.eventTicketType.update({where:{id:ticket.id},data:{confirmed:{decrement:row.quantity},version:{increment:1}}});await finishBookingMemberPrice(tx,'event.price:'+id,'REVERSED');
       }
@@ -491,7 +492,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       if(slot.state==='CANCELLED'||current.acceptedScheduleVersion<slot.scheduleVersion)throw new ConflictException('学员尚未确认新安排或时段已取消，不可记录履约');
       if(slot.endsAt>new Date())throw new BadRequestException('服务结束后才能记录履约结果');
       if(!(await tx.appointment.updateMany({where:{id,state:'CONFIRMED',version:dto.expectedVersion},data:{state:dto.state,completedAt:new Date(),scheduleSnapshot:this.schedule(slot),version:{increment:1}}})).count)throw new ConflictException('预约已处理，请刷新');
-      await syncPointsAppointment(tx,id,req.actor.id);await this.notice(tx,row.userId,'appointment',id,'fulfilled','预约履约结果已更新',dto.state==='COMPLETED'?'本次服务已完成。':'本次预约记录为未到场，请联系书院了解情况。');
+      await syncPointsAppointment(tx,id,req.actor.id);await syncConsultationCredit(tx,id);await this.notice(tx,row.userId,'appointment',id,'fulfilled','预约履约结果已更新',dto.state==='COMPLETED'?'本次服务已完成。':'本次预约记录为未到场，请联系书院了解情况。');
       await this.audit(tx,req,'appointment.fulfil',id,{state:dto.state,reason:dto.reason});return {success:true};
     });
   }
@@ -504,7 +505,7 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       const row=await tx.appointment.findUniqueOrThrow({where:{id}}),slot=await tx.appointmentSlot.findUniqueOrThrow({where:{id:row.slotId}});
       if(row.version!==dto.expectedVersion||row.state!=='CONFIRMED'||row.benefitUsageId||slot.startsAt<=new Date()||slot.state==='CANCELLED')throw new ConflictException('预约已更新、使用会员权益或已开始，请通过售后核查');
       await tx.appointment.update({where:{id},data:{state:'CANCELLED',cancelReason:dto.reason.trim(),scheduleSnapshot:this.schedule(slot),version:{increment:1}}});
-      await tx.appointmentSlot.update({where:{id:slot.id},data:{confirmed:{decrement:1},version:{increment:1}}});await syncPointsAppointment(tx,id,req.actor.id);
+      await tx.appointmentSlot.update({where:{id:slot.id},data:{confirmed:{decrement:1},version:{increment:1}}});await syncPointsAppointment(tx,id,req.actor.id);await syncConsultationCredit(tx,id);
       await this.notice(tx,row.userId,'appointment',id,'staff-rejected','老师无法提供本次服务',dto.reason.trim()+'；预约已取消，原记录保留。');
       await this.audit(tx,req,'appointment.staff.reject',id,{reason:dto.reason.trim()});return{success:true};
     });

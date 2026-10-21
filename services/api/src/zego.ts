@@ -52,6 +52,6 @@ export class ZegoService {
       return data;
     }catch{throw new ServiceUnavailableException('暂时无法连接直播服务，操作已保留，请稍后重试');}
   }
-  async kickRoom(roomId:string,userId:string){const result=await this.request('KickoutUser',{RoomId:roomId,'UserId[]':userId,CustomReason:'研习连接权限已失效'});if(result.Code!==0)throw new ServiceUnavailableException('退房仍待确认');return result;}
+  async kickRoom(roomId:string,userId:string){const result=await this.request('KickoutUser',{RoomId:roomId,'UserId[]':userId,CustomReason:'研习连接权限已失效'});if(![0,104,105,5024,50001].includes(result.Code))throw new ServiceUnavailableException('退房仍待确认');return {...result,Code:0,originalCode:result.Code};}
   async kick(sessionId:string,userId:string){return this.kickRoom(rtcRoomId(sessionId),userId);}
 }

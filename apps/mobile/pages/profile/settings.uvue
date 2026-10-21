@@ -28,7 +28,7 @@
 <button class="close-account" :disabled="busy" @click="closeAccount">申请注销账号</button>
 </view>
 <text v-if="error" class="footer-note">{{error}}</text>
-<text class="demo-note">老子道学书院 · {{appVersion}}</text>
+<view class="section"><text class="section-heading">版本与更新</text><text class="intro">当前版本 {{appVersion}}。更新入口仅使用书院已核实的发布地址。</text><button class="setting-action" :disabled="checkingUpdate" @click="checkUpdate">{{checkingUpdate?'正在检查…':'检查新版本'}}</button><text v-if="updateNotice" class="meta">{{updateNotice}}</text></view><text class="demo-note">老子道学书院 · {{appVersion}}</text>
 </view>
 </scroll-view>
 </view>
@@ -39,7 +39,8 @@ import ContentState from '../../components/ContentState.uvue';import {notificati
 import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {removeStudyUser} from '../../lib/study-queue';import {currentUser,clearSession,sessionGeneration} from '../../lib/session';
 const choices=['经典研习','实践修行','生活应用','少儿启蒙','名师解读','文创','养生交流','线下活动'],tags=ref<string[]>([]),busy=ref(false),error=ref('');
 const back=()=>uni.navigateBack(),privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
-const appVersion=uni.getAppBaseInfo().appVersion;
+const appVersion=uni.getAppBaseInfo().appVersion,checkingUpdate=ref(false),updateNotice=ref('');
+async function checkUpdate(){if(checkingUpdate.value)return;checkingUpdate.value=true;updateNotice.value='';try{const info=await request<{androidVersion:string;androidCode:number;androidUrl:string;iosVersion:string;iosCode:number;iosUrl:string;notes:string}>('/configuration/release');const ios=uni.getSystemInfoSync().platform==='ios',version=ios?info.iosVersion:info.androidVersion,url=ios?info.iosUrl:info.androidUrl,code=ios?info.iosCode:info.androidCode;if(!version||!code||!url){updateNotice.value='书院暂未公布新的正式安装包。';return;}if(Number(uni.getAppBaseInfo().appVersionCode)>=code){updateNotice.value='当前已是所公布的最新版本。';return;}uni.showModal({title:'发现新版本 '+version,content:info.notes||'可以更新书院最新版本，更新前请同步学习记录。',confirmText:'复制下载地址',success:r=>{if(r.confirm)uni.setClipboardData({data:url,success:()=>{updateNotice.value='下载地址已复制，可在系统浏览器打开。更新前请同步学习记录。';}});}});}catch(e){updateNotice.value=(e as Error).message;}finally{checkingUpdate.value=false;}}
 const addresses=()=>uni.navigateTo({url:'/pages/shop/addresses'});
 function toggle(value:string){if(busy.value)return;tags.value=tags.value.includes(value)?tags.value.filter(item=>item!==value):[...tags.value,value];}
 async function saveTags(){if(busy.value)return;busy.value=true;error.value='';try{await request('/me/tags',{method:'PATCH',data:{tags:tags.value}});if(currentUser.value)currentUser.value={...currentUser.value,tags:tags.value};uni.showToast({title:'已保存',icon:'none'});}catch(e){error.value=(e as Error).message;}finally{busy.value=false;}}

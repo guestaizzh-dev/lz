@@ -58,6 +58,9 @@ const sourceNavigation: NavigationGroup[] = [
     { path: '/cohort-orders', title: '训练营订单', summary: '营期收款、退出与争议补偿', access: 'canViewOrders' },
     { path: '/booking-orders', title: '预约与活动订单', summary: '预约报名收款、取消与协商退款', access: 'canViewOrders' },
     { path: '/membership-orders', title: '会员订单', summary: '会员收款、权益开通与退款', access: 'canViewOrders' },
+    {path:'/partner-finance',title:'合作结算',summary:'合作合同、渠道核费、交付分成及月结付款',access:'canFinanceRead'},
+    {path:'/reconciliation',title:'账单对账',summary:'导入渠道账单、差异核查与复核关闭',access:'canFinanceRead'},
+    {path:'/digital-orders',title:'数字资料订单',summary:'固定版本资料交付、领取与售后',access:'canViewOrders'},
     { path: '/orders', title: '商品订单', summary: '实物商品付款、分包发货、退货与退款', access: 'canViewOrders' },
     { path: '/feedback', title: '客服与反馈', summary: '用户反馈、处理进度与客服回复', access: 'canSupport' },
   ] },
@@ -65,6 +68,7 @@ const sourceNavigation: NavigationGroup[] = [
     { path: '/finance', title: '收退款与账务', summary: '跨业务收款、退款、订单关联和借贷明细核查', access: 'canFinanceRead', keywords: '流水 对账 异常' },
   ] },
   { id: 'system', title: '系统管理', entries: [
+    {path:'/operations/incidents',title:'运行告警',summary:'任务、录制、退款、库存与容量异常追踪',access:'canOperations'},
     { path: '/operations', title: '任务监控与恢复', summary: '收款查单、退款、交付通知和取消补偿的失败任务', access: 'canOperations', keywords: '异常 重试 死任务' },
     { path: '/system/users', title: '账号与会话', summary: '账号、角色、冻结、密码与会话撤销', access: 'canUsers' },
     { path: '/system/access', title: '角色与权限', summary: '配置角色的查看、编辑、审核与操作权限', access: 'canAccess' },
@@ -78,11 +82,11 @@ const sourceNavigation: NavigationGroup[] = [
 const entries = sourceNavigation.flatMap(group => group.entries);
 const extra: Record<string,string[]> = {
   education:['/marketing','/referrals','/charity'], shop:['/product-promotions','/promotion-services'],
-  membership:['/points-rewards'], orders:['/finance'],
+  membership:['/points-rewards'], orders:['/finance','/partner-finance','/reconciliation'],
 };
 export const navigation: NavigationGroup[] = sourceNavigation.filter(group=>!['marketing','promotion-services','finance'].includes(group.id)).map(group=>({
   ...group,title:({content:'内容管理',education:'课程与教学',shop:'商城管理',membership:'用户与会员',events:'活动与咨询',orders:'订单与售后'} as Record<string,string>)[group.id]??group.title,
-  entries:[...group.entries,...entries.filter(entry=>(extra[group.id]??[]).includes(entry.path))],
+  entries:[...group.entries,...entries.filter(entry=>(extra[group.id]??[]).includes(entry.path)&&!group.entries.some(existing=>existing.path===entry.path))],
 }));
 
 export function visibleNavigation(permissions: AdminAccess): NavigationGroup[] {

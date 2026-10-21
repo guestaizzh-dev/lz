@@ -7,14 +7,14 @@ import { api } from '@/api';
 import { formatChinaTime } from '@/utils/date-time';
 import { orderLink } from '@/operations/business-links';
 
-const kinds: Record<string, string> = {
+const kinds: Record<string, string> = { DIGITAL_PAYMENT_CHECK:'数字资料收款核查',DIGITAL_REFUND:'数字资料退款',RECONCILIATION_RECHECK:'账单每日核对',
   CONSUMPTION_SYNC:'消费积分与退款核对',GIFT_PAYMENT_CHECK:'礼物余额收款核查',GIFT_REFUND:'礼物余额原路退款',AUTH_APPLE_REVOKE:'Apple登录授权撤销', NOTIFICATION_PUSH: '书院消息推送', COURSE_PAYMENT_CHECK: '课程收款核查', COURSE_REFUND: '课程退款', COURSE_DELIVERY_NOTICE: '课程交付通知',
   MEMBERSHIP_PAYMENT_CHECK: '会员收款核查', MEMBERSHIP_REFUND: '会员退款', PRODUCT_PAYMENT_CHECK: '商品收款核查', PRODUCT_REFUND: '商品退款',
   BOOKING_PAYMENT_CHECK: '预约 / 活动收款核查', BOOKING_REFUND: '预约 / 活动退款', BOOKING_CANCEL_COMPENSATION: '预约 / 活动取消补偿',
   COHORT_PAYMENT_CHECK: '训练营收款核查', COHORT_REFUND: '训练营退款', COHORT_SCHEDULE_COMPENSATION: '营期变更补偿',
 };
 const states: Record<string, string> = { DEAD: '失败待处理', READY: '等待执行', RUNNING: '执行中', DONE: '已完成' };
-const errors: Record<string, string> = { CONSUMPTION_SOURCE_UNAVAILABLE:'消费来源或账务暂不可核实，请核对原订单和收入后重试',APPLE_REVOKE_UNAVAILABLE:'Apple授权撤销尚未完成，请核查登录密钥配置或服务状态后重试', PUSH_NOT_CONFIGURED:'推送网关未开通，站内消息保留', PUSH_AMBIGUOUS:'服务商结果不确定，请核对云网关记录，禁止盲目重发', PUSH_GATEWAY_REJECTED:'推送网关拒绝请求，请核查配置', PUSH_UNAVAILABLE:'推送服务暂不可用', PROVIDER_OR_PROCESSING_ERROR: '渠道查询或业务处理失败，请核查渠道与相关订单', PROVIDER_OR_POSTING_UNAVAILABLE: '渠道或账务处理不可用，请核查业务状态' };
+const errors: Record<string, string> = { DIGITAL_PROVIDER_OR_PROCESSING_ERROR:'数字资料渠道或交付处理失败，请核对原订单',RECONCILIATION_COMPARE_FAILED:'账单核对失败，请查看原账单及实际渠道记录',CONSUMPTION_SOURCE_UNAVAILABLE:'消费来源或账务暂不可核实，请核对原订单和收入后重试',APPLE_REVOKE_UNAVAILABLE:'Apple授权撤销尚未完成，请核查登录密钥配置或服务状态后重试', PUSH_NOT_CONFIGURED:'推送网关未开通，站内消息保留', PUSH_AMBIGUOUS:'服务商结果不确定，请核对云网关记录，禁止盲目重发', PUSH_GATEWAY_REJECTED:'推送网关拒绝请求，请核查配置', PUSH_UNAVAILABLE:'推送服务暂不可用', PROVIDER_OR_PROCESSING_ERROR: '渠道查询或业务处理失败，请核查渠道与相关订单', PROVIDER_OR_POSTING_UNAVAILABLE: '渠道或账务处理不可用，请核查业务状态' };
 type Job = { id: string; revision: string; kind: string; aggregateId: string; aggregateType: string; state: string; attempts: number; availableAt: string; lockedUntil: string | null; lastErrorCode: string | null; completedAt: string | null; createdAt: string; updatedAt: string; retryable: boolean };
 type Detail = Job & { pushDeliveries?:{id:string;state:string;attempts:number;providerMessageId:string|null;failureCode:string|null;updatedAt:string}[]; order: { id: string; orderNo: string; kind: string; state: string } | null; audit: { id: string; createdAt: string; actorId: string; reason: string }[] };
 type Summary = { counts: Record<string, number>; overdue: number; expiredLeases: number; oldestPendingAt: string | null; checkedAt: string };

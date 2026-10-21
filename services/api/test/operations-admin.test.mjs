@@ -28,7 +28,7 @@ test('operations and unified finance: real HTTP, permissions, money and concurre
     auth = await login('ADMIN'); const support = await login('SUPPORT'), finance = await login('FINANCE');
     await t.test('read access is explicit and write access does not follow financial access', async () => {
       assert.equal((await call('/admin/finance/summary', 'GET', undefined, null)).status, 401);
-      for (const session of [support, finance]) assert.equal((await call('/admin/finance/summary', 'GET', undefined, session)).status, 403);
+      assert.equal((await call('/admin/finance/summary','GET',undefined,support)).status,403);const original=await db.accessRole.findUniqueOrThrow({where:{code:'FINANCE'}});await db.accessRole.update({where:{id:original.id},data:{permissionCodes:original.permissionCodes.filter(c=>c!=='finance.read')}});assert.equal((await call('/admin/finance/summary','GET',undefined,finance)).status,403);
       const policy = await db.accessRole.findUniqueOrThrow({ where: { code: 'FINANCE' } });
       await db.accessRole.update({ where: { id: policy.id }, data: { permissionCodes: [...policy.permissionCodes, 'finance.read'] } });
       assert.equal((await call('/admin/finance/summary', 'GET', undefined, finance)).status, 200);

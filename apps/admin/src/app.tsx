@@ -1,3 +1,4 @@
+import OperationsBadge from '@/components/OperationsBadge';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';

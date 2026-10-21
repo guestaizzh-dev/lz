@@ -1,6 +1,6 @@
 import {offlineBooking,offlineOrderReady} from './offline-courses.js';
 import {consumptionPolicy} from './consumption-policy.js';
-import {eventMemberPrice,freezeBookingMemberPrice,finishBookingMemberPrice,bookingMemberPriceReady,type BookingMemberPrice} from './booking-member-pricing.js';
+import {consultationCredit,syncConsultationCredit,eventMemberPrice,freezeBookingMemberPrice,finishBookingMemberPrice,bookingMemberPriceReady,type BookingMemberPrice} from './booking-member-pricing.js';
 import {BadRequestException,Body,ConflictException,Controller,ForbiddenException,Get,Injectable,NotFoundException,OnModuleDestroy,OnModuleInit,Param,ParseUUIDPipe,Post,Query,Req,ServiceUnavailableException,UseGuards} from '@nestjs/common';
 import {Type} from 'class-transformer';
 import {IsBoolean,IsIn,IsInt,IsOptional,IsString,IsUUID,Length,Matches,Max,Min} from 'class-validator';
@@ -88,6 +88,7 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
         if(!sku||BigInt(sku.price)!==offer.price)throw new ConflictException('服务商品价格或归属已变化，请重新选择');isDemo=sku.product.isDemo;
       }
       available=slot.capacity-slot.reserved-slot.confirmed;isDemo=isDemo||teacher.isDemo;
+      memberBenefit=await consultationCredit(tx,userId,offering.id,offer.id,offer.price);
       snapshot={kind:dto.kind,resourceId:slot.id,parentId:offering.id,title:offering.title,teacherId:teacher.id,teacherName:teacher.name,skuId:dto.skuId??null,startsAt:slot.startsAt.toISOString(),endsAt:slot.endsAt.toISOString(),cancelDeadline:new Date(+slot.startsAt-offering.cancelBeforeMinutes*60000).toISOString(),location:offering.locationPolicy,deliveryPolicy:offering.deliveryPolicy,refundPolicy,scheduleVersion:slot.scheduleVersion,offerId:offer.id,offerVersion:offer.version,offeringVersion:offering.version,price:String(offer.price),quantity:1,platform:dto.platform};
     }else{
       if(dto.skuId)throw new BadRequestException('活动报名不接受服务商品规格');
@@ -109,7 +110,7 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
     }
     const originalTotal=BigInt(snapshot.price)*BigInt(dto.quantity);if(originalTotal<=0n||originalTotal>1000000000n)throw new BadRequestException('免费服务请直接报名；付费总额须在允许范围内');
     const discount=memberBenefit?BigInt(memberBenefit.savings):0n,total=originalTotal-discount;
-    if(memberBenefit)snapshot={...snapshot,memberBenefit,originalTotal:String(originalTotal),discount:String(discount),total:String(total),...(total===0n?{refundPolicy:'本次使用会员活动票价权益，无需付款，不产生现金退款。取消截止前且未签到可自助取消；书院取消自动释放名额，延期须本人确认，不方便参加可退出。已确认报名不因会员到期取消。'}:{})};
+    if(memberBenefit)snapshot={...snapshot,memberBenefit,originalTotal:String(originalTotal),discount:String(discount),total:String(total),...(total===0n?{refundPolicy:'本次使用会员服务或活动权益，无需付款，不产生现金退款。取消截止前且未签到可自助取消；书院取消自动释放名额，延期须本人确认，不方便参加可退出。已确认报名不因会员到期取消。'}:{})};
     return{snapshot,available,cutoff,isDemo,priority,memberBenefit,originalTotal,discount,total,quoteHash:hash({consumptionRule:consumptionPolicy,userId,snapshot,priority:priority??null})};
   }
   async quote(userId:string,dto:QuoteDto){
@@ -139,7 +140,7 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
         await tx.appointment.create({data:{userId,slotId:dto.resourceId,orderItemId:item.id,requestKey:dto.requestKey,state:'PENDING',acceptedScheduleVersion:s.scheduleVersion,contactCipher:encryptPrivate(JSON.stringify(contact)),serviceSnapshot:{...s,cancelBeforeMinutes:(Date.parse(s.startsAt)-Date.parse(s.cancelDeadline))/60000}}});
         await tx.appointmentSlot.update({where:{id:dto.resourceId},data:{reserved:{increment:1},version:{increment:1}}});
       }else{
-        await tx.eventRegistration.create({data:{userId,ticketTypeId:dto.resourceId,orderItemId:item.id,requestKey:dto.requestKey,quantity:dto.quantity,state:'PENDING',acceptedScheduleVersion:s.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify({...s,...contact})),checkinHash:hash(randomUUID()),...(r.priority?{prioritySnapshot:r.priority}:{})}});
+        await tx.eventRegistration.create({data:{userId,courseReleaseId:s.offline?.releaseId??null,ticketTypeId:dto.resourceId,orderItemId:item.id,requestKey:dto.requestKey,quantity:dto.quantity,state:'PENDING',acceptedScheduleVersion:s.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify({...s,...contact})),checkinHash:hash(randomUUID()),...(r.priority?{prioritySnapshot:r.priority}:{})}});
         await tx.eventTicketType.update({where:{id:dto.resourceId},data:{reserved:{increment:dto.quantity},version:{increment:1}}});
       }
       await tx.inventoryReservation.create({data:{orderItemId:item.id,...(dto.kind==='appointment'?{slotId:dto.resourceId}:{eventTicketId:dto.resourceId}),quantity:dto.quantity,expiresAt,requestKey:'booking.reserve:'+item.id}});
@@ -148,7 +149,8 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
     });return this.detail(order.id,userId);
   }
   async confirmBenefit(userId:string,dto:ConfirmationDto){
-    if(dto.kind!=='registration'||!dto.contactConsent)throw new BadRequestException('请核对活动报名并授权本次联系信息');
+    if(dto.kind==='appointment')return this.confirmConsultationBenefit(userId,dto);
+    if(!dto.contactConsent)throw new BadRequestException('请核对活动报名并授权本次联系信息');
     const requestDigest=hash({...dto,requestKey:undefined,name:dto.name.trim()});
     return this.db.$transaction(async tx=>{
       if(!(await tx.$queryRaw<{id:string}[]>`SELECT id FROM "User" WHERE id=${userId} AND status='ACTIVE' FOR NO KEY UPDATE`).length)throw new ForbiddenException('账号不可用');
@@ -160,10 +162,27 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
       if(r.total!==0n||!r.memberBenefit)throw new ConflictException('当前不能免费报名，请重新确认报价');
       const id=randomUUID(),snapshot={...r.snapshot,price:0,originalPrice:r.snapshot.price,name:dto.name.trim(),phone:dto.phone,consentedAt:new Date().toISOString(),requestDigest};
       await freezeBookingMemberPrice(tx,userId,'event.price:'+id,r.memberBenefit,dto.quantity,'CONSUMED');
-      const row=await tx.eventRegistration.create({data:{id,userId,ticketTypeId:dto.resourceId,requestKey:dto.requestKey,quantity:dto.quantity,state:'CONFIRMED',acceptedScheduleVersion:r.snapshot.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify(snapshot)),checkinHash:hash(randomUUID()),confirmedAt:new Date(),...(r.priority?{prioritySnapshot:r.priority}:{})}});
+      const row=await tx.eventRegistration.create({data:{id,userId,courseReleaseId:r.snapshot.offline?.releaseId??null,ticketTypeId:dto.resourceId,requestKey:dto.requestKey,quantity:dto.quantity,state:'CONFIRMED',acceptedScheduleVersion:r.snapshot.scheduleVersion,attendeeSnapshotCipher:encryptPrivate(JSON.stringify(snapshot)),checkinHash:hash(randomUUID()),confirmedAt:new Date(),...(r.priority?{prioritySnapshot:r.priority}:{})}});
       await tx.eventTicketType.update({where:{id:dto.resourceId},data:{confirmed:{increment:dto.quantity},version:{increment:1}}});
       await tx.notification.create({data:{userId,kind:'BOOKING',registrationId:id,eventKey:'booking.member-free:'+id,title:'会员活动报名已确认',body:'本次使用会员活动权益，无需付款；请在我的预约查看安排和核销凭证。'}});
       await tx.auditLog.create({data:{actorId:userId,action:'booking.member-free.confirm',resource:'event_registration',resourceId:id,changes:{ticketTypeId:dto.resourceId,quantity:dto.quantity,memberBenefit:r.memberBenefit,originalAmount:String(r.originalTotal),payable:'0'}}});return{id:row.id,state:row.state,kind:'registration'};
+    });
+  }
+  private async confirmConsultationBenefit(userId:string,dto:ConfirmationDto){
+    if(!dto.contactConsent)throw new BadRequestException('请授权本次服务联系信息');
+    const requestDigest=hash({...dto,requestKey:undefined,name:dto.name.trim()});
+    return this.db.$transaction(async tx=>{
+      if(!(await tx.$queryRaw<{id:string}[]>`SELECT id FROM "User" WHERE id=${userId} AND status='ACTIVE' FOR NO KEY UPDATE`).length)throw new ForbiddenException('账号不可用');
+      const prior=await tx.appointment.findFirst({where:{userId,requestKey:dto.requestKey}});if(prior){if((prior.serviceSnapshot as {requestDigest?:string}).requestDigest!==requestDigest)throw new ConflictException('编号已用于另一预约');return{id:prior.id,state:prior.state,kind:'appointment'};}
+      if(await tx.tradeOrder.count({where:{userId,requestKey:dto.requestKey}})||await tx.eventRegistration.count({where:{userId,requestKey:dto.requestKey}}))throw new ConflictException('编号已用于其他订单或报名');
+      const r=await this.resource(tx,dto,userId,true);if(r.total!==0n||r.memberBenefit?.code!=='CONSULTATION_CREDIT'||r.available<1||r.isDemo||r.quoteHash!==dto.quoteHash)throw new ConflictException('咨询额度、时段或报价已变化，请重新确认');
+      if(await tx.appointment.count({where:{userId,slotId:dto.resourceId,state:{notIn:['CANCELLED','REFUNDED']}}}))throw new ConflictException('已经预约该时段');
+      const id=randomUUID();await freezeBookingMemberPrice(tx,userId,'consult.price:'+id,r.memberBenefit,1,'HELD');
+      const usage=await tx.benefitUsage.findFirstOrThrow({where:{businessKey:'consult.price:'+id}});
+      const row=await tx.appointment.create({data:{id,userId,benefitUsageId:usage.id,slotId:dto.resourceId,requestKey:dto.requestKey,state:'CONFIRMED',acceptedScheduleVersion:r.snapshot.scheduleVersion,contactCipher:encryptPrivate(JSON.stringify({name:dto.name.trim(),phone:dto.phone,consentedAt:new Date().toISOString()})),serviceSnapshot:{...r.snapshot,price:0,originalPrice:r.snapshot.price,requestDigest,cancelBeforeMinutes:(Date.parse(r.snapshot.startsAt)-Date.parse(r.snapshot.cancelDeadline))/60000}}});
+      await tx.appointmentSlot.update({where:{id:dto.resourceId},data:{confirmed:{increment:1},version:{increment:1}}});
+      await tx.notification.create({data:{userId,kind:'BOOKING',appointmentId:id,eventKey:'consult.member-free:'+id,title:'会员咨询预约已确认',body:'本次已预留原会员咨询额度，实际服务后计次，取消或未交付按原份额返还。'}});
+      await tx.auditLog.create({data:{actorId:userId,action:'consultation.member.confirm',resource:'appointment',resourceId:id,changes:{benefit:r.memberBenefit,originalAmount:String(r.originalTotal)}}});return{id:row.id,state:row.state,kind:'appointment'};
     });
   }
   private async owned(id:string,userId?:string){const row=await this.db.tradeOrder.findFirst({where:{id,...(userId?{userId}:{}),kind:{in:kinds}}});if(!row)throw new NotFoundException('预约活动订单不存在');return row;}

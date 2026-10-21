@@ -4,6 +4,7 @@ export function messageTarget(row:Message){
   const id=row.resourceId&&uuid.test(row.resourceId)?row.resourceId:null,order=row.orderId&&uuid.test(row.orderId)?row.orderId:null,cohort=row.cohortId&&uuid.test(row.cohortId)?row.cohortId:null;
   const target=(path:string,label:string)=>({path:'/pages/'+path,label});
   switch(row.kind){
+    case 'DIGITAL_ORDER':return target(order?'shop/digital-order?id='+order:'shop/digital','查看资料订单');
     case 'PRODUCT_ORDER':return target(order?'shop/order-detail?id='+order:'shop/orders','查看商品订单');
     case 'COURSE_ORDER':return target(order?'course/purchase?orderId='+order:'course/orders','查看购课订单');
     case 'MEMBERSHIP_ORDER':return target(order?'membership/purchase?orderId='+order:'membership/orders','查看会员订单');
@@ -24,5 +25,5 @@ export function messageTarget(row:Message){
   }
 }
 export function messageCategory(kind:string):'transactions'|'learning'|'community'{
-  return ['PRODUCT_ORDER','COURSE_ORDER','MEMBERSHIP_ORDER','COHORT_ORDER','BOOKING','BOOKING_STAFF','FEEDBACK_REPLY'].includes(kind)?'transactions':['COMMUNITY_CASE','FORUM_REVIEW','TEACHER_ANSWER','COURSE_REVIEW'].includes(kind)?'community':'learning';
+  return ['DIGITAL_ORDER','PRODUCT_ORDER','COURSE_ORDER','MEMBERSHIP_ORDER','COHORT_ORDER','BOOKING','BOOKING_STAFF','FEEDBACK_REPLY'].includes(kind)?'transactions':['COMMUNITY_CASE','FORUM_REVIEW','TEACHER_ANSWER','COURSE_REVIEW'].includes(kind)?'community':'learning';
 }

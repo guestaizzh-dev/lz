@@ -24,9 +24,12 @@ async function source(tx:Tx,order:TradeOrder,at:Date){
   for(const item of items){const quantity=lines.filter(r=>r.orderItemId===item.id).reduce((n,r)=>n+r.quantity,0);if(quantity>item.quantity)throw new ConflictException('商品已退款数量超过原购买数量');const base=item.payable-item.shippingAllocated;amount+=base-base*BigInt(quantity)/BigInt(item.quantity);}
   delivered=!!order.completedAt&&shipments.length>0&&shipments.every(s=>s.state==='DELIVERED'&&!!s.deliveredAt);if(delivered)deliveredAt=new Date(Math.max(+order.completedAt!,...shipments.map(s=>+s.deliveredAt!)));
  }else{
-  const revenue=order.kind==='COURSE'?'COURSE_REVENUE':order.kind==='MEMBERSHIP'?'MEMBERSHIP_REVENUE':order.kind==='COHORT'?'COHORT_REVENUE':'BOOKING_REVENUE';
+  const revenue=order.kind==='COURSE'?'COURSE_REVENUE':order.kind==='MEMBERSHIP'?'MEMBERSHIP_REVENUE':order.kind==='COHORT'?'COHORT_REVENUE':order.kind==='DIGITAL'?'PRODUCT_REVENUE':'BOOKING_REVENUE';
   const rows=await tx.$queryRaw<{amount:bigint;deliveredAt:Date|null}[]>`SELECT coalesce(sum(e.credit-e.debit),0)::bigint AS amount,max(j."postedAt") FILTER(WHERE e.credit>0) AS "deliveredAt" FROM "FinanceEntry" e JOIN "FinanceJournal" j ON j.id=e."journalId" WHERE j."orderId"=${order.id} AND j."transactionId"=${payment.id} AND e."accountCode"=${revenue} AND j.currency='CNY'`;
   amount=rows[0]?.amount??0n;if(amount<0n)throw new ConflictException('原消费净收入为负，请先核查原收退款');deliveredAt=rows[0]?.deliveredAt??null;delivered=!!deliveredAt&&items.length>0;
+  if(order.kind==='DIGITAL'){
+   const delivery=await tx.digitalDelivery.findFirst({where:{orderItemId:{in:items.map(i=>i.id)}}});if(!delivery?.firstAccessAt||delivery.revokedAt&&order.refundedTotal<order.paidTotal)delivered=false;else if(deliveredAt)deliveredAt=new Date(Math.max(+deliveredAt,+delivery.firstAccessAt));
+  }
   if(order.kind==='MEMBERSHIP'){
    const member=await tx.membership.findFirst({where:{orderItemId:{in:items.map(i=>i.id)},source:'PURCHASE'},orderBy:{createdAt:'asc'}});if(!member)delivered=false;else if(deliveredAt)deliveredAt=new Date(Math.max(+deliveredAt,+member.startsAt));
   }

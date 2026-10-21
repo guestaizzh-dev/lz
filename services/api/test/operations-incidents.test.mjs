@@ -1,0 +1,16 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {createApp} from '../dist/main.js';
+import {Database} from '../dist/database.js';
+import {OperationsIncidents} from '../dist/operations-incidents.js';
+
+test('persistent incidents preserve episodes, actual operators and automatic recovery',async t=>{
+ const app=await createApp(false);app.useLogger(['error']);await app.init();const db=app.get(Database),service=app.get(OperationsIncidents),admin=await db.user.create({data:{nickname:'告警隔离管理员',roles:['ADMIN']}}),req={actor:admin,requestId:randomUUID()},key='isolated-'+randomUUID(),signal={key,title:'业务恢复异常',severity:'CRITICAL',path:'/operations',details:{count:1},active:true};let row;
+ try{
+  await t.test('concurrent scans create one incident and one notification per episode',async()=>{await Promise.all([service.reconcile([signal]),service.reconcile([signal])]);row=await db.operationsIncident.findUniqueOrThrow({where:{key}});assert.equal(row.episode,1);assert.equal(await db.operationsIncidentEvent.count({where:{incidentId:row.id,action:'OPEN'}}),1);assert.equal(await db.notification.count({where:{userId:admin.id,eventKey:{startsWith:'ops.incident:'+row.id}}}),1);assert.equal((await db.operationsIncidentEvent.findFirstOrThrow({where:{incidentId:row.id}})).actorId,null);});
+  await t.test('only an administrator can acknowledge; stale versions cannot erase recovery',async()=>{await assert.rejects(service.acknowledge(row.id,{actor:{...admin,roles:['FINANCE']}},{expectedVersion:row.version,reason:'财务尝试接手'}));row=await service.acknowledge(row.id,req,{expectedVersion:row.version,reason:'管理员已定位原业务任务'});assert.equal(row.state,'ACKNOWLEDGED');assert.equal((await db.auditLog.findFirstOrThrow({where:{resourceId:row.id,action:'operations.incident.acknowledge'}})).actorId,admin.id);await service.reconcile([{...signal,active:false,details:{count:0}}]);await assert.rejects(service.acknowledge(row.id,req,{expectedVersion:row.version,reason:'过期页面尝试接手'}));assert.equal((await db.operationsIncident.findUniqueOrThrow({where:{key}})).state,'RESOLVED');});
+  await t.test('recurrence starts a fresh episode and preserves recovery and operator history',async()=>{await service.reconcile([signal]);row=await db.operationsIncident.findUniqueOrThrow({where:{key}});assert.equal(row.state,'OPEN');assert.equal(row.episode,2);assert.equal(row.acknowledgedBy,null);assert.equal(await db.notification.count({where:{userId:admin.id,eventKey:{startsWith:'ops.incident:'+row.id}}}),2);const history=await service.history(row.id,{page:1,size:20});assert.equal(history.total,4);assert.ok(history.items.some(e=>e.action==='RESOLVED'));});
+  await t.test('latency and server faults become actionable signals without counting client errors',async()=>{for(let i=0;i<30;i++)service.observe(i===0?503:i<3?500:i===3?403:200,900);const m=service.metrics();assert.equal(m.errorCount,3);assert.equal(m.p95Ms,900);await service.scan();assert.equal((await db.operationsIncident.findUniqueOrThrow({where:{key:'api-errors'}})).state,'OPEN');assert.equal((await db.operationsIncident.findUniqueOrThrow({where:{key:'api-latency'}})).state,'OPEN');});
+ }finally{await app.close();}
+});

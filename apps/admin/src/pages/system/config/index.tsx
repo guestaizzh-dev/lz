@@ -7,7 +7,7 @@ import { formatChinaTime } from '@/utils/date-time';
 
 type Config={key:string;revision:number;value:Record<string,string|number|boolean>};
 type Revision={id:string;revision:number;value:unknown;reason:string;effectiveAt:string};
-const labels:Record<string,string>={site:'书院与客服信息',catalog:'首页内容展示',community:'公共讨论区',presentation:'演示内容展示',showDemoContent:'公开展示规范演示内容',academyName:'书院名称',description:'书院简介',supportPhone:'客服电话',supportEmail:'客服邮箱',supportHours:'服务时间',homeArticles:'文章数量',homeCourses:'课程数量',homeProducts:'商品数量',homeEvents:'活动数量',publicPostingEnabled:'允许公共讨论区发布新帖'};
+const labels:Record<string,string>={release:'App版本与下载',androidVersion:'Android版本号',androidCode:'Android构建号',androidUrl:'Android下载HTTPS地址',iosVersion:'iOS版本号',iosCode:'iOS构建号',iosUrl:'App Store下载HTTPS地址',notes:'版本更新说明',site:'书院与客服信息',catalog:'首页内容展示',community:'公共讨论区',presentation:'演示内容展示',showDemoContent:'公开展示规范演示内容',academyName:'书院名称',description:'书院简介',supportPhone:'客服电话',supportEmail:'客服邮箱',supportHours:'服务时间',homeArticles:'文章数量',homeCourses:'课程数量',homeProducts:'商品数量',homeEvents:'活动数量',publicPostingEnabled:'允许公共讨论区发布新帖'};
 function ConfigForm({item,reload,onDirty}:{item:Config;reload:()=>Promise<void>;onDirty:(value:boolean)=>void}) {
   const {setInitialState}=useModel('@@initialState'),access=useAccess(),{message,modal}=App.useApp(),[form]=Form.useForm(),[busy,setBusy]=useState(false),[history,setHistory]=useState<Revision[]>(),[error,setError]=useState('');
   useEffect(()=>{form.resetFields();form.setFieldsValue({...item.value,reason:''});onDirty(false);},[item,form,onDirty]);
@@ -22,8 +22,8 @@ function ConfigForm({item,reload,onDirty}:{item:Config;reload:()=>Promise<void>;
     {error&&<Alert type="error" showIcon title={error} style={{marginBottom:16}}/>}
     {item.key==='presentation'&&<Alert type="info" showIcon title="仅展示已发布的示例。开启后首页、搜索与学习入口保持一致，会员和私人内容仍需授权，示例课程不能真实收款。" style={{marginBottom:16}}/>}
     <Form form={form} layout="vertical" onFinish={save} onValuesChange={()=>onDirty(true)} disabled={busy||!access.canConfigWrite} style={{maxWidth:680}}>
-      {Object.entries(item.value).map(([key,value])=><Form.Item key={key} name={key} label={labels[key]} valuePropName={typeof value==='boolean'?'checked':'value'} rules={typeof value==='boolean'?[]:[{required:typeof value==='number'||key==='academyName',...(typeof value==='string'?{max:key==='description'?500:100}:{})},...(key==='supportEmail'?[{type:'email' as const}]:[])]}>
-        {typeof value==='boolean'?<Switch/>:typeof value==='number'?<InputNumber min={1} max={12}/>:key==='description'?<Input.TextArea rows={3} maxLength={500} showCount/>:<Input maxLength={100}/>}
+      {Object.entries(item.value).map(([key,value])=><Form.Item key={key} name={key} label={labels[key]} valuePropName={typeof value==='boolean'?'checked':'value'} rules={typeof value==='boolean'?[]:[{required:typeof value==='number'||key==='academyName',...(typeof value==='string'?{max:['description','notes'].includes(key)?500:key.endsWith('Url')?1000:100}:{})},...(key==='supportEmail'?[{type:'email' as const}]:[])]}>
+        {typeof value==='boolean'?<Switch/>:typeof value==='number'?<InputNumber min={item.key==='release'?0:1} max={item.key==='release'?2147483647:12} precision={0}/>:['description','notes'].includes(key)?<Input.TextArea rows={3} maxLength={500} showCount/>:<Input maxLength={key.endsWith('Url')?1000:100}/>}
       </Form.Item>)}
       {access.canConfigWrite&&<><Form.Item name="reason" label="修改原因" rules={[{required:true,whitespace:true,min:2,max:500}]}><Input.TextArea rows={2} maxLength={500}/></Form.Item><Button htmlType="submit" type="primary" loading={busy}>保存配置</Button></>}
     </Form>

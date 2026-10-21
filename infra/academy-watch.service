@@ -1,0 +1,12 @@
+[Unit]
+Description=Daoxue API and backup availability watchdog
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /opt/daoxue-academy/current/infra/health-watch.sh
+TimeoutStartSec=25
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

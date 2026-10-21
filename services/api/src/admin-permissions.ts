@@ -48,6 +48,8 @@ export function routePermission(method:string,path:string,body?:Record<string,un
   const route=path.replace(/^\/api\/v1\//,'').replace(/^\//,'');
   const parts=route.split('/'),root=parts[1],read=['GET','HEAD','OPTIONS'].includes(method);
   if(root==='auth')return null;
+  if(['partner-finance','reconciliation'].includes(root??''))return read?'finance.read':'finance.refund';
+  if(root==='digital-orders')return read?'orders.read':'finance.refund';
   if(root==='categories')return read?'config.read':'config.write';
   if(root==='media'&&parts.at(-1)==='preview')return 'media.read';
   if(root==='images')return read?'media.read':'media.write';

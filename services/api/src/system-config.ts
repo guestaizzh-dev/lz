@@ -6,6 +6,7 @@ import type { Prisma } from './generated/prisma/client.js';
 
 export const configDefaults = {
   site: { academyName: '老子道学书院', description: '道学文化传承与实践', supportPhone: '', supportEmail: '', supportHours: '工作日 09:00—18:00' },
+  release: { androidVersion: '', androidCode: 0, androidUrl: '', iosVersion: '', iosCode: 0, iosUrl: '', notes: '' },
   catalog: { homeArticles: 4, homeCourses: 4, homeProducts: 6, homeEvents: 3 },
   community: { publicPostingEnabled: true },
   presentation: { showDemoContent: false },
@@ -19,7 +20,10 @@ export function validateConfig(key: string, input: Record<string, unknown>) {
     const example = defaults[name as keyof typeof defaults];
     if (typeof value !== typeof example) throw new BadRequestException('配置字段类型错误');
     if (key === 'catalog' && (!Number.isInteger(value) || Number(value) < 1 || Number(value) > 12)) throw new BadRequestException('首页展示数量须为1至12');
-    if (typeof value === 'string' && (value.length > (name === 'description' ? 500 : 100) || value !== value.trim() || /[\x00-\x1f]/.test(value))) throw new BadRequestException('配置文字过长或含不允许的字符');
+    if (typeof value === 'string' && (value.length > (['description','notes'].includes(name) ? 500 : name.endsWith('Url') ? 1000 : 100) || value !== value.trim() || /[\x00-\x1f]/.test(value))) throw new BadRequestException('配置文字过长或含不允许的字符');
+  }
+  if(key==='release'){
+    for(const platform of ['android','ios']){const version=String(input[platform+'Version']),code=Number(input[platform+'Code']),url=String(input[platform+'Url']);if(!Number.isSafeInteger(code)||code<0||code>2147483647||version&&!/^\d+\.\d+\.\d+$/.test(version))throw new BadRequestException('请填写有效版本及非负整数构建号');if(url){let target:URL;try{target=new URL(url);}catch{throw new BadRequestException('下载地址须为完整HTTPS地址');}if(target.protocol!=='https:'||target.username||target.password)throw new BadRequestException('下载地址只支持不含凭据的HTTPS链接');if(!version||!code)throw new BadRequestException('公布下载地址前须填写版本及构建号');}}
   }
   if (key === 'site') {
     if (!input.academyName) throw new BadRequestException('书院名称不能为空');
@@ -70,5 +74,6 @@ export class ConfigController {
 @Controller('configuration')
 export class PublicConfigController {
   constructor(private readonly config: SystemConfig) {}
+  @Get('release') async release(){return (await this.config.current('release')).value;}
   @Get() async site() { return (await this.config.current('site')).value; }
 }

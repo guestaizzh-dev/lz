@@ -116,7 +116,7 @@ test('admin management uses real HTTP, database versions, CSRF, scope policies a
       await db.authSession.delete({where:{id:appSession.id}});
     });
     await t.test('activities validate intervals, versions and publication transitions; generic edit cannot bypass review',async()=>{
-      const data={title:prefix,description:'活动介绍',category:'线下研学',cover:'/static/art/books.svg',location:'书院',startsAt:new Date(Date.now()+86400000).toISOString(),endsAt:new Date(Date.now()+172800000).toISOString(),capacity:30,price:0};
+      const data={title:prefix,description:'活动介绍',category:'线下活动',cover:'/static/art/books.svg',location:'书院',startsAt:new Date(Date.now()+86400000).toISOString(),endsAt:new Date(Date.now()+172800000).toISOString(),capacity:30,price:0};
       const staff=await call('/admin/events/staff');assert.equal(staff.status,200);assert.ok(staff.body.some(item=>item.id===operator.id));assert.equal(staff.body.some(item=>item.id===support.id),false);
       assert.equal((await call('/admin/events','POST',{...data,endsAt:data.startsAt})).status,400);
       assert.equal((await call('/admin/events','POST',{...data,responsibleUserId:support.id})).status,400);
@@ -191,6 +191,7 @@ test('admin management uses real HTTP, database versions, CSRF, scope policies a
     await db.userRole.deleteMany({where:{userId:{in:users}}});
     await db.authSession.deleteMany({where:{userId:{in:users}}});
     await db.idempotencyRecord.deleteMany({where:{userId:{in:users}}});
+    const eventSessions=await db.eventSession.findMany({where:{eventId:{in:events}},select:{id:true}}),sessionIds=eventSessions.map(s=>s.id),tickets=await db.eventTicketType.findMany({where:{sessionId:{in:sessionIds}},select:{id:true}});await db.saleOffer.deleteMany({where:{eventTicketId:{in:tickets.map(t=>t.id)}}});await db.eventTicketType.deleteMany({where:{sessionId:{in:sessionIds}}});await db.eventSession.deleteMany({where:{id:{in:sessionIds}}});
     await db.event.deleteMany({where:{id:{in:events}}});await db.resource.deleteMany({where:{id:{in:events}}});
     await db.mediaAsset.deleteMany({where:{id:{in:assets}}});
     for(const path of files)await unlink(path);

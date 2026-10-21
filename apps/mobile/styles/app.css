@@ -73,8 +73,6 @@
 .card{background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:16px;}
 .card-flat{background-color:#EFE9DC;border-radius:12px;padding:16px;}
 .card-ink{background-color:#182B31;border-radius:12px;padding:20px;}
-.card-ink .item-title,.card-ink .section-heading{color:#F4EBDD;}
-.card-ink .meta,.card-ink .article-summary{color:#BFC8C3;}
 .media{border-radius:10px;overflow:hidden;position:relative;flex-shrink:0;}
 .media-shade{position:absolute;left:0;top:0;right:0;bottom:0;background-color:rgba(24,43,49,0.38);}
 .display{font-family:AcademySerif;font-size:26px;line-height:36px;color:#182B31;font-weight:600;letter-spacing:0.4px;}

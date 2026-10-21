@@ -1,161 +1,136 @@
-import { IsIn, IsOptional, IsUUID } from 'class-validator';
-import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import {consumptionRuleText} from './consumption-policy.js';
+import { IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
+import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
-import type { Prisma } from './generated/prisma/client.js';
-import { UserGuard, type AuthRequest } from './auth.js';
+import type { Prisma, TradeOrder } from './generated/prisma/client.js';
+import { AdminGuard, requireRoles, UserGuard, type AuthRequest } from './auth.js';
 import { Database } from './database.js';
 import { PaymentChannels, type AppPaymentChannel } from './payment-channels.js';
 import { DigitalGoods } from './digital.js';
 import { productSalesEnabled } from './product-sales.js';
-import type { WechatTransaction } from './wechat-pay.js';
+import type { WechatTransaction, WechatRefund } from './wechat-pay.js';
 
 const now = () => new Date();
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const safe = (value: unknown) => JSON.parse(JSON.stringify(value, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)));
-
-class DigitalCheckoutDto {
-  @IsUUID() skuId!: string;
-  @IsUUID() requestKey!: string;
-  @IsIn(['WECHAT_APP', 'ALIPAY_APP', 'SIMULATED']) channel!: AppPaymentChannel;
-  @IsOptional() @IsIn(['ANDROID', 'IOS', 'WEB']) platform?: string;
+const safe = <T>(value: T): T => JSON.parse(JSON.stringify(value, (_k, v) => typeof v === 'bigint' ? v.toString() : v));
+export const digitalPolicy = '资料按购买时版本交付，无需配送。首次领取文件即开始数字交付，请确认后领取。付款7日内且尚未领取文件可申请退款；质量或无法交付问题请联系书院核查。退款办理中暂停领取，渠道确认成功后撤销本单权益。'+'消费奖励：'+consumptionRuleText+'数字资料从首次领取开始计算交付观察期。';
+class QuoteQuery { @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; }
+class DigitalCheckoutDto extends QuoteQuery {
+  @IsUUID() skuId!: string; @IsUUID() requestKey!: string;
+  @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel!: AppPaymentChannel;
+  @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!: string;
 }
+class Page { @Type(()=>Number) @IsInt() @Min(1) page=1; @Type(()=>Number) @IsInt() @Min(1) @Max(100) size=20; }
+class RefundDto { @IsUUID() requestKey!: string; @IsString() @Length(2,1000) @Matches(/\S/) reason!: string; }
+class QualityRefundDto extends RefundDto { @IsInt() @Min(1) expectedVersion!:number; }
+class ReviewDto { @IsInt() @Min(1) expectedVersion!: number; @IsIn(['APPROVE','REJECT','RETRY']) action!: string; @IsString() @Length(2,500) @Matches(/\S/) reason!: string; }
 
-/** 数字商品：独立订单，付款后发放资料包，无物流。 */
 @Injectable()
-export class DigitalSales {
+export class DigitalSales implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly db: Database, private readonly channels: PaymentChannels, private readonly digital: DigitalGoods) {}
-
-  private async sale(skuId: string) {
-    const sku = await this.db.productSku.findUnique({ where: { id: skuId }, include: { product: true } });
-    if (!sku || !sku.active || sku.product.type !== 'DIGITAL' || sku.product.status !== 'PUBLISHED' || sku.product.isDemo) throw new NotFoundException('数字商品不可购买');
-    if (!sku.digitalReleaseId) throw new ConflictException('数字资料尚未准备完成');
-    if (sku.price <= 0) throw new ConflictException('价格尚未配置');
-    return sku;
+  private timer?: ReturnType<typeof setInterval>;
+  private working=false;
+  private logger=new Logger(DigitalSales.name);
+  onModuleInit(){if(process.env.NODE_ENV!=='test')this.timer=setInterval(()=>void this.runJobs().catch(()=>this.logger.error('Digital recovery pending')),10000);}
+  onModuleDestroy(){if(this.timer)clearInterval(this.timer);}
+  private async lock(tx:Prisma.TransactionClient,order:Pick<TradeOrder,'id'|'userId'>){await tx.$queryRaw`SELECT id FROM "User" WHERE id=${order.userId} FOR UPDATE`;await tx.$queryRaw`SELECT id FROM "TradeOrder" WHERE id=${order.id} FOR UPDATE`;}
+  private async owned(id:string,userId:string){const order=await this.db.tradeOrder.findFirst({where:{id,userId,kind:'DIGITAL'}});if(!order)throw new NotFoundException('资料订单不存在');return order;}
+  private async sale(skuId:string,store:Database|Prisma.TransactionClient=this.db){
+    const sku=await store.productSku.findUnique({where:{id:skuId},include:{product:true}});
+    if(!sku?.active||sku.product.type!=='DIGITAL'||sku.product.status!=='PUBLISHED'||sku.product.isDemo||sku.price<=0||!sku.digitalReleaseId)throw new ConflictException('数字资料尚未开放购买');
+    await this.digital.checkRelease(sku.digitalReleaseId,store);
+    const release=await store.digitalRelease.findUniqueOrThrow({where:{id:sku.digitalReleaseId}});
+    return {sku,release,quoteHash:hash({skuId:sku.id,price:sku.price,version:sku.version,releaseId:release.id,policy:digitalPolicy})};
   }
-
-  async checkout(userId: string, dto: DigitalCheckoutDto) {
-    if (!productSalesEnabled()) throw new BadRequestException('数字商品销售尚未开放');
-    if ((dto.platform ?? 'ANDROID') !== 'ANDROID') throw new BadRequestException('请在 Android App 内购买');
+  async quote(skuId:string,platform:string){const sale=await this.sale(skuId);const channels=this.channels.choices(),enabled=platform==='ANDROID'&&productSalesEnabled();return safe({skuId,title:sale.sku.product.title,skuTitle:sale.sku.title,price:String(sale.sku.price),description:sale.release.description,releaseId:sale.release.id,releaseNo:sale.release.releaseNo,accessDays:sale.release.accessDays,quoteHash:sale.quoteHash,refundPolicy:digitalPolicy,channels,paymentEnabled:enabled&&channels.some(c=>c.enabled),unavailableReason:enabled?'支付渠道暂不可用':'数字资料目前仅在已开放销售的Android版本购买；原已购资料可继续领取'});}
+  async checkout(userId:string,dto:DigitalCheckoutDto){
+    if(!productSalesEnabled()||dto.platform!=='ANDROID')throw new BadRequestException('数字资料销售尚未开放');
     this.channels.resolve(dto.channel).identity();
-    const sku = await this.sale(dto.skuId);
-    const requestHash = hash({ skuId: dto.skuId, channel: dto.channel });
-    const order = await this.db.$transaction(async (tx) => {
-      const existing = await tx.tradeOrder.findFirst({ where: { userId, requestKey: dto.requestKey } });
-      if (existing) {
-        if (existing.kind !== 'DIGITAL' || existing.requestHash !== requestHash) throw new ConflictException('请求编号已用于其他订单');
-        return existing;
-      }
-      const row = await tx.tradeOrder.create({
-        data: {
-          orderNo: 'D' + randomUUID().replaceAll('-', '').slice(0, 31),
-          kind: 'DIGITAL',
-          userId,
-          requestKey: dto.requestKey,
-          requestHash,
-          currency: 'CNY',
-          subtotal: BigInt(sku.price),
-          payableTotal: BigInt(sku.price),
-          pricingSnapshot: { platform: dto.platform ?? 'ANDROID', channel: dto.channel, digitalReleaseId: sku.digitalReleaseId },
-          quoteHash: hash({ skuId: sku.id, price: String(sku.price), version: sku.version }),
-          expiresAt: new Date(Date.now() + 15 * 60000),
-        },
-      });
-      const offer = await tx.saleOffer.create({ data: { kind: 'DIGITAL', skuId: sku.id, price: BigInt(sku.price), active: false, quantityLimit: 1, policySnapshot: {} } });
-      await tx.tradeOrderItem.create({
-        data: {
-          orderId: row.id,
-          lineNo: 1,
-          offerId: offer.id,
-          quantity: 1,
-          unitPrice: BigInt(sku.price),
-          subtotal: BigInt(sku.price),
-          payable: BigInt(sku.price),
-          itemSnapshot: { skuId: sku.id, title: sku.product.title, skuTitle: sku.title, digitalReleaseId: sku.digitalReleaseId },
-          benefitSnapshot: {},
-          state: 'PENDING',
-        },
-      });
-      await tx.paymentAttempt.create({ data: { orderId: row.id, channel: dto.channel, requestKey: 'digital.attempt:' + row.id, state: 'CREATED', amount: BigInt(sku.price), currency: 'CNY', expiresAt: row.expiresAt } });
-      await tx.auditLog.create({ data: { actorId: userId, action: 'digital.order.create', resource: 'trade_order', resourceId: row.id, changes: { amount: String(sku.price) } } });
-      return row;
+    const order=await this.db.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
+      if(!await tx.user.findFirst({where:{id:userId,status:'ACTIVE'}}))throw new ConflictException('账号不可用');
+      const requestHash=hash(dto),existing=await tx.tradeOrder.findFirst({where:{userId,requestKey:dto.requestKey}});
+      if(existing){if(existing.kind!=='DIGITAL'||existing.requestHash!==requestHash)throw new ConflictException('请求编号已用于其他订单');return existing;}
+      const {sku,release,quoteHash}=await this.sale(dto.skuId,tx);if(quoteHash!==dto.quoteHash)throw new ConflictException('资料版本或价格已变化，请重新确认');
+      const pending=await tx.tradeOrderItem.findFirst({where:{orderId:{in:(await tx.tradeOrder.findMany({where:{userId,kind:'DIGITAL',state:'PENDING',expiresAt:{gt:now()}},select:{id:true}})).map(o=>o.id)},itemSnapshot:{path:['skuId'],equals:sku.id}}});
+      if(pending)throw new ConflictException('已有待付款资料订单，请先在资料订单中处理');
+      const row=await tx.tradeOrder.create({data:{orderNo:'D'+randomUUID().replaceAll('-','').slice(0,31),kind:'DIGITAL',userId,requestKey:dto.requestKey,requestHash,currency:'CNY',subtotal:BigInt(sku.price),payableTotal:BigInt(sku.price),quoteHash,pricingSnapshot:{platform:dto.platform,channel:dto.channel,title:sku.product.title,releaseId:release.id,refundPolicy:digitalPolicy},expiresAt:new Date(Date.now()+15*60000)}});
+      const offer=await tx.saleOffer.create({data:{kind:'DIGITAL',skuId:sku.id,price:BigInt(sku.price),active:false,quantityLimit:1,policySnapshot:{refundPolicy:digitalPolicy}}});
+      await tx.tradeOrderItem.create({data:{orderId:row.id,lineNo:1,offerId:offer.id,quantity:1,unitPrice:BigInt(sku.price),subtotal:BigInt(sku.price),payable:BigInt(sku.price),itemSnapshot:{skuId:sku.id,title:sku.product.title,skuTitle:sku.title,digitalReleaseId:release.id,accessDays:release.accessDays},benefitSnapshot:{},state:'PENDING'}});
+      await this.job(tx,'DIGITAL_PAYMENT_CHECK',row.id,row.expiresAt);
+      await tx.auditLog.create({data:{actorId:userId,action:'digital.order.create',resource:'trade_order',resourceId:row.id,changes:{amount:String(sku.price),releaseId:release.id}}});return row;
+    });return this.detail(order.id,userId);
+  }
+  async detail(id:string,userId:string){const order=await this.owned(id,userId),items=await this.db.tradeOrderItem.findMany({where:{orderId:id}}),delivery=items[0]?await this.db.digitalDelivery.findUnique({where:{orderItemId:items[0].id}}):null,refunds=await this.db.refund.findMany({where:{orderId:id},orderBy:{createdAt:'desc'}}),releaseId=(items[0]?.itemSnapshot as {digitalReleaseId?:string})?.digitalReleaseId;return safe({...order,items,delivery,pack:releaseId?await this.digital.pack(releaseId):null,refunds,refundPolicy:digitalPolicy,canRefund:order.refundedTotal===0n&&!!order.paidAt&&Date.now()-order.paidAt.getTime()<=7*86400000&&!delivery?.firstAccessAt&&!refunds.some(r=>['DIGITAL_RETURN','DIGITAL_QUALITY'].includes(r.reasonCode)&&!['REJECTED','CANCELLED'].includes(r.state)),canReceive:!!delivery&&!delivery.revokedAt&&(!delivery.expiresAt||delivery.expiresAt>now())&&!refunds.some(r=>r.reasonCode==='DIGITAL_RETURN'||r.reasonCode==='DIGITAL_QUALITY' ? ['REQUESTED','REFUNDING','FAILED','APPROVED'].includes(r.state) : false)});}
+  async list(userId:string,q:Page){const where={userId,kind:'DIGITAL'},[rows,total]=await this.db.$transaction([this.db.tradeOrder.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:q.size,skip:(q.page-1)*q.size}),this.db.tradeOrder.count({where})]);return {items:await Promise.all(rows.map(r=>this.detail(r.id,userId))),total};}
+  async prepay(id:string,userId:string){
+    const order=await this.owned(id,userId),channel=(order.pricingSnapshot as {channel:AppPaymentChannel}).channel;const adapter=this.channels.resolve(channel);adapter.identity();
+    await this.db.$transaction(async tx=>{await this.lock(tx,order);const current=await tx.tradeOrder.findUniqueOrThrow({where:{id}});if(current.state!=='PENDING'||current.expiresAt<=now()||!await tx.user.findFirst({where:{id:userId,status:'ACTIVE'}}))throw new ConflictException('订单或账号状态已变化');
+      const item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:id}}),snapshot=item.itemSnapshot as {skuId:string;digitalReleaseId:string};const sale=await this.sale(snapshot.skuId,tx);if(sale.release.id!==snapshot.digitalReleaseId||sale.quoteHash!==current.quoteHash)throw new ConflictException('资料已调整，请取消订单后重新确认');
+      const old=await tx.paymentAttempt.findFirst({where:{orderId:id}});if(old&&(!old.lastQueriedAt||old.lastQueriedAt<old.updatedAt||old.failureCode))throw new ConflictException('请先查询上次支付结果再继续');
+      if(old)await tx.paymentAttempt.update({where:{id:old.id},data:{state:'CREATED',updatedAt:now()}});else await tx.paymentAttempt.create({data:{orderId:id,channel,requestKey:'digital.pay:'+id,state:'CREATED',amount:order.payableTotal,currency:'CNY',expiresAt:order.expiresAt}});
     });
-    return this.detail(order.id, userId);
+    try{const orderInfo=await adapter.prepay(order.orderNo,String((order.pricingSnapshot as {title:string}).title),Number(order.payableTotal),order.expiresAt);await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING',updatedAt:now()}});return{provider:channel==='ALIPAY_APP'?'alipay':'wxpay',orderInfo};}catch(error){await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING',failureCode:'PROVIDER_RESULT_UNKNOWN'}});throw error;}
   }
-
-  async detail(id: string, userId: string) {
-    const row = await this.db.tradeOrder.findFirst({ where: { id, userId, kind: 'DIGITAL' } });
-    if (!row) throw new NotFoundException('数字商品订单不存在');
-    const items = await this.db.tradeOrderItem.findMany({ where: { orderId: row.id } });
-    const delivery = items[0] ? await this.db.digitalDelivery.findUnique({ where: { orderItemId: items[0].id } }) : null;
-    const pack = delivery ? await this.digital.releases((await this.db.digitalRelease.findUnique({ where: { id: delivery.releaseId } }))?.productId ?? '').catch(() => null) : null;
-    return safe({ ...row, items, delivery, pack: pack?.items?.[0] ?? null });
+  async cancel(id:string,userId:string,reason='USER_CANCEL'){
+    const order=await this.owned(id,userId);if(order.state==='CLOSED')return this.detail(id,userId);if(order.state!=='PENDING')throw new ConflictException('已付款订单请申请退款');
+    const attempt=await this.db.paymentAttempt.findFirst({where:{orderId:id}});
+    if(attempt){if(attempt.state==='CREATED'&&Date.now()-attempt.updatedAt.getTime()<30000)throw new ConflictException('支付正在发起，请稍后查询');const result=await this.channels.resolve(attempt.channel).query(order.orderNo);if(result.trade_state==='SUCCESS'){await this.confirmPayment(result,undefined,attempt.channel as AppPaymentChannel);return this.detail(id,userId);}if(!['NOTPAY','NOTFOUND','CLOSED'].includes(result.trade_state))throw new ConflictException('支付结果仍待确认');if(result.trade_state==='NOTPAY')await this.channels.resolve(attempt.channel).close(order.orderNo);}
+    await this.db.$transaction(async tx=>{await this.lock(tx,order);const current=await tx.tradeOrder.findUniqueOrThrow({where:{id}});if(current.state==='CLOSED')return;if(current.state!=='PENDING')throw new ConflictException('订单已付款，请刷新');await tx.tradeOrder.update({where:{id},data:{state:'CLOSED',closedAt:now(),closeReason:reason,version:{increment:1}}});await tx.tradeOrderItem.updateMany({where:{orderId:id},data:{state:'CLOSED'}});await tx.paymentAttempt.updateMany({where:{orderId:id},data:{state:'CLOSED'}});await tx.auditLog.create({data:{actorId:userId,action:'digital.order.close',resource:'trade_order',resourceId:id,reason,changes:{orderId:id}}});});return this.detail(id,userId);
   }
-
-  async list(userId: string, page = 1, size = 20) {
-    const [items, total] = await this.db.$transaction([
-      this.db.tradeOrder.findMany({ where: { userId, kind: 'DIGITAL' }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: size, skip: (page - 1) * size }),
-      this.db.tradeOrder.count({ where: { userId, kind: 'DIGITAL' } }),
-    ]);
-    return safe({ items, total });
+  async refresh(id:string,userId:string){const order=await this.owned(id,userId),attempt=await this.db.paymentAttempt.findFirst({where:{orderId:id}});if(order.state==='PENDING'&&attempt){const revision=attempt.updatedAt,result=await this.channels.resolve(attempt.channel).query(order.orderNo);if(result.trade_state==='SUCCESS')await this.confirmPayment(result,undefined,attempt.channel as AppPaymentChannel);else if(['NOTPAY','CLOSED','NOTFOUND'].includes(result.trade_state)){await this.db.paymentAttempt.updateMany({where:{id:attempt.id,updatedAt:revision},data:{lastQueriedAt:now(),failureCode:null}});if(order.expiresAt<=now()||result.trade_state==='CLOSED')await this.cancel(id,userId,'TIMEOUT');}}else if(order.state==='PENDING'&&order.expiresAt<=now())await this.cancel(id,userId,'TIMEOUT');return this.detail(id,userId);}
+  private async job(tx:Prisma.TransactionClient,kind:string,id:string,availableAt=now()){const eventKey=kind.toLowerCase()+':'+id;await tx.outboxJob.upsert({where:{eventKey},create:{eventKey,kind,aggregateType:kind==='DIGITAL_REFUND'?'DIGITAL_REFUND':'DIGITAL_ORDER',aggregateId:id,payload:{},availableAt},update:{state:'READY',availableAt,attempts:0,lockedUntil:null,lastErrorCode:null}});}
+  private async journal(tx:Prisma.TransactionClient,order:TradeOrder,paymentId:string,amount:bigint,key:string,refund:boolean,anomaly:boolean,channel:string,refundId?:string){const row=await tx.financeJournal.create({data:{eventKey:key,kind:refund?'PRODUCT_REFUND':'PRODUCT_PAYMENT',orderId:order.id,transactionId:paymentId,refundId,currency:'CNY',postedAt:now(),description:refund?'数字资料可信退款':'数字资料可信收款'}}),receivable=channel==='WECHAT_APP'?'WECHAT_RECEIVABLE':'ALIPAY_RECEIVABLE',income=anomaly?'PRODUCT_REFUND_PAYABLE':'PRODUCT_REVENUE';await tx.financeEntry.createMany({data:[{journalId:row.id,accountCode:refund?income:receivable,debit:amount,userId:order.userId},{journalId:row.id,accountCode:refund?receivable:income,credit:amount,userId:order.userId}]});}
+  async confirmPayment(data:WechatTransaction,callback?:{id:string;payloadHash:string},channel:AppPaymentChannel='WECHAT_APP'){
+    const identity=this.channels.resolve(channel).identity();if(data.appid!==identity.appid||data.mchid!==identity.mchid||data.trade_type!=='APP'||data.trade_state!=='SUCCESS'||!data.transaction_id||!Number.isSafeInteger(data.amount?.total)||data.amount!.total<=0||data.amount!.currency!=='CNY'||!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('数字资料收款信息无效');
+    const initial=await this.db.tradeOrder.findUnique({where:{orderNo:data.out_trade_no}});if(initial?.kind!=='DIGITAL')throw new NotFoundException('资料订单不存在');
+    return this.db.$transaction(async tx=>{await this.lock(tx,initial);const order=await tx.tradeOrder.findUniqueOrThrow({where:{id:initial.id}}),item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:order.id}}),old=await tx.paymentTransaction.findFirst({where:{channel,appScope:identity.appid,externalTransactionId:data.transaction_id!}});if(old){if(old.orderId!==order.id)throw new ConflictException('交易已归属其他订单');return{disposition:old.disposition};}
+      const amount=BigInt(data.amount!.total),paidAt=new Date(data.success_time!);let available=true;try{await this.digital.checkRelease((item.itemSnapshot as {digitalReleaseId:string}).digitalReleaseId,tx);}catch{available=false;}
+      const existing=await tx.paymentTransaction.findFirst({where:{orderId:order.id,disposition:'ACCEPTED'}}),disposition=amount!==order.payableTotal?'AMOUNT_MISMATCH':existing?'DUPLICATE':order.state==='CLOSED'||paidAt>order.expiresAt?'LATE':!available||!await tx.user.findFirst({where:{id:order.userId,status:'ACTIVE'}})?'REFUND_REQUIRED':'ACCEPTED';
+      const payment=await tx.paymentTransaction.create({data:{orderId:order.id,channel,appScope:identity.appid,externalTransactionId:data.transaction_id!,amount,currency:'CNY',paidAt,verifiedAt:now(),disposition,receiptHash:hash(data)}});await this.journal(tx,order,payment.id,amount,'digital.payment:'+payment.id,false,disposition!=='ACCEPTED',channel);
+      if(disposition==='ACCEPTED'){const snapshot=item.itemSnapshot as {digitalReleaseId:string;accessDays:number|null};await this.digital.grant(tx,order.userId,item.id,snapshot.digitalReleaseId,snapshot.accessDays);await tx.tradeOrder.update({where:{id:order.id},data:{state:'COMPLETED',paidTotal:amount,paidAt,completedAt:now(),version:{increment:1}}});await tx.tradeOrderItem.update({where:{id:item.id},data:{state:'DELIVERED'}});await tx.paymentAttempt.updateMany({where:{orderId:order.id,channel},data:{state:'SUCCEEDED'}});}else{const refund=await tx.refund.create({data:{orderId:order.id,userId:order.userId,requestKey:'digital.anomaly:'+payment.id,kind:'REFUND_ONLY',state:'REFUNDING',requestedAmount:amount,approvedAmount:amount,paymentTransactionId:payment.id,channelRequestKey:'R'+randomUUID().replaceAll('-','').slice(0,31),reasonCode:disposition,description:'数字资料异常收款原路补偿'}});await this.job(tx,'DIGITAL_REFUND',refund.id);if(!existing){await tx.tradeOrder.update({where:{id:order.id},data:{state:'CLOSED',closedAt:now(),closeReason:disposition,version:{increment:1}}});await tx.tradeOrderItem.update({where:{id:item.id},data:{state:'CLOSED'}});}}
+      if(callback)await tx.providerCallback.create({data:{provider:channel,appScope:identity.appid,externalEventId:callback.id,kind:'TRANSACTION.SUCCESS',payloadHash:callback.payloadHash,payloadStorageRef:'sha256:'+callback.payloadHash,signatureVerified:true,state:'HANDLED',handledAt:now()}});
+      await tx.notification.create({data:{userId:order.userId,kind:'DIGITAL_ORDER',orderId:order.id,eventKey:'digital.paid:'+payment.id,title:disposition==='ACCEPTED'?'数字资料已购入':'资料收款需原路退回',body:disposition==='ACCEPTED'?'请在我的资料中确认并领取购买时的资料版本。':'本笔未新增资料权益，请在原订单查看处理结果。'}});return{disposition};});
   }
-
-  async prepay(id: string, userId: string) {
-    const order = await this.db.tradeOrder.findFirst({ where: { id, userId, kind: 'DIGITAL' } });
-    if (!order || order.state !== 'PENDING') throw new ConflictException('订单当前不可支付');
-    const channel = (order.pricingSnapshot as { channel: AppPaymentChannel }).channel;
-    const adapter = this.channels.resolve(channel);
-    const attempt = await this.db.paymentAttempt.findFirst({ where: { orderId: id, channel } });
-    if (!attempt) throw new ConflictException('支付尝试缺失，请重新下单');
-    return { channel, orderNo: order.orderNo, amount: String(order.payableTotal), ...(await adapter.prepay(order.orderNo, '数字资料', Number(order.payableTotal), order.expiresAt).then(orderInfo => ({ orderInfo })).catch(() => ({}))) };
+  async requestRefund(id:string,userId:string,dto:RefundDto){const initial=await this.owned(id,userId);await this.db.$transaction(async tx=>{await this.lock(tx,initial);const old=await tx.refund.findFirst({where:{userId,requestKey:dto.requestKey}});if(old){if(old.orderId!==id||old.description!==dto.reason.trim())throw new ConflictException('请求编号已用于其他申请');return;}const order=await tx.tradeOrder.findUniqueOrThrow({where:{id}}),item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:id}}),payment=await tx.paymentTransaction.findFirst({where:{orderId:id,disposition:'ACCEPTED'}}),delivery=await tx.digitalDelivery.findUnique({where:{orderItemId:item.id}});if(!payment||order.refundedTotal>0n||delivery?.firstAccessAt||Date.now()-payment.paidAt.getTime()>7*86400000||await tx.refund.count({where:{orderId:id,paymentTransactionId:payment.id,state:{notIn:['REJECTED','CANCELLED']}}}))throw new ConflictException('已领取、超过期限或已有售后，请联系书院核查');const refund=await tx.refund.create({data:{orderId:id,userId,requestKey:dto.requestKey,kind:'REFUND_ONLY',state:'REQUESTED',requestedAmount:payment.amount,paymentTransactionId:payment.id,channelRequestKey:'R'+randomUUID().replaceAll('-','').slice(0,31),reasonCode:'DIGITAL_RETURN',description:dto.reason.trim()}});await tx.refundItem.create({data:{refundId:refund.id,orderItemId:item.id,quantity:1,amount:payment.amount,revokeQuantity:1}});await tx.auditLog.create({data:{actorId:userId,action:'digital.refund.request',resource:'refund',resourceId:refund.id,reason:dto.reason,changes:{orderId:id}}});});return this.detail(id,userId);}
+  async qualityRefund(id:string,req:AuthRequest,dto:QualityRefundDto){
+    requireRoles(req,['FINANCE']);const initial=await this.db.tradeOrder.findFirst({where:{id,kind:'DIGITAL'}});if(!initial)throw new NotFoundException('资料订单不存在');
+    await this.db.$transaction(async tx=>{await this.lock(tx,initial);const existing=await tx.refund.findFirst({where:{userId:initial.userId,requestKey:dto.requestKey}});if(existing){if(existing.orderId!==id||existing.reasonCode!=='DIGITAL_QUALITY'||existing.description!==dto.reason.trim())throw new ConflictException('请求编号已用于其他售后');return;}
+      const order=await tx.tradeOrder.findUniqueOrThrow({where:{id}}),payment=await tx.paymentTransaction.findFirst({where:{orderId:id,disposition:'ACCEPTED'}}),item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:id}});
+      if(order.version!==dto.expectedVersion||!payment||order.refundedTotal>0n||await tx.refund.count({where:{orderId:id,paymentTransactionId:payment.id,state:{notIn:['REJECTED','CANCELLED']}}}))throw new ConflictException('订单已变化或已有售后，请刷新原单');
+      const refund=await tx.refund.create({data:{orderId:id,userId:order.userId,requestKey:dto.requestKey,kind:'REFUND_ONLY',state:'REFUNDING',requestedAmount:payment.amount,approvedAmount:payment.amount,paymentTransactionId:payment.id,channelRequestKey:'R'+randomUUID().replaceAll('-','').slice(0,31),reasonCode:'DIGITAL_QUALITY',description:dto.reason.trim(),reviewerId:req.actor.id,reviewNote:dto.reason.trim()}});
+      await tx.refundItem.create({data:{refundId:refund.id,orderItemId:item.id,quantity:1,amount:payment.amount,revokeQuantity:1}});await this.job(tx,'DIGITAL_REFUND',refund.id);await tx.auditLog.create({data:{actorId:req.actor.id,action:'digital.refund.quality',resource:'refund',resourceId:refund.id,reason:dto.reason,changes:{orderId:id,amount:String(payment.amount)}}});
+    });return this.detail(id,initial.userId);
   }
-
-  async confirmPayment(data: WechatTransaction, _callback?: { id: string; payloadHash: string }, channel: AppPaymentChannel = 'WECHAT_APP') {
-    const identity = this.channels.resolve(channel).identity();
-    if (data.appid !== identity.appid || data.mchid !== identity.mchid || data.trade_type !== 'APP' || data.trade_state !== 'SUCCESS' || !data.transaction_id || !Number.isSafeInteger(data.amount?.total) || data.amount!.total <= 0 || data.amount!.currency !== 'CNY' || !data.success_time) throw new BadRequestException('收款信息无效');
-    const initial = await this.db.tradeOrder.findUnique({ where: { orderNo: data.out_trade_no } });
-    if (initial?.kind !== 'DIGITAL') throw new NotFoundException('数字商品订单不存在');
-    return this.db.$transaction(async (tx) => {
-      const order = await tx.tradeOrder.findUniqueOrThrow({ where: { id: initial.id } });
-      const item = await tx.tradeOrderItem.findFirstOrThrow({ where: { orderId: order.id } });
-      const amount = BigInt(data.amount!.total);
-      const old = await tx.paymentTransaction.findFirst({ where: { channel, appScope: identity.appid, externalTransactionId: data.transaction_id! } });
-      if (old) return { disposition: old.disposition };
-      const paidAt = new Date(data.success_time!);
-      const disposition = amount !== order.payableTotal ? 'AMOUNT_MISMATCH' : order.state === 'CLOSED' || paidAt > order.expiresAt ? 'LATE' : 'ACCEPTED';
-      const payment = await tx.paymentTransaction.create({ data: { orderId: order.id, channel, appScope: identity.appid, externalTransactionId: data.transaction_id!, amount, currency: 'CNY', paidAt, verifiedAt: now(), disposition, receiptHash: hash(data) } });
-      const receivable = channel === 'WECHAT_APP' ? 'WECHAT_RECEIVABLE' : 'ALIPAY_RECEIVABLE';
-      const journal = await tx.financeJournal.create({ data: { eventKey: 'digital.payment:' + payment.id, kind: 'PRODUCT_PAYMENT', orderId: order.id, transactionId: payment.id, currency: 'CNY', postedAt: now(), description: '数字资料已验证收款' } });
-      await tx.financeEntry.createMany({ data: [
-        { journalId: journal.id, accountCode: receivable, debit: amount, userId: order.userId },
-        { journalId: journal.id, accountCode: disposition === 'ACCEPTED' ? 'PRODUCT_REVENUE' : 'PRODUCT_REFUND_PAYABLE', credit: amount, userId: order.userId },
-      ] });
-      if (disposition !== 'ACCEPTED') {
-        await tx.refund.create({ data: { orderId: order.id, userId: order.userId, requestKey: 'digital.anomaly:' + payment.id, kind: 'REFUND_ONLY', state: 'REFUNDING', requestedAmount: amount, approvedAmount: amount, paymentTransactionId: payment.id, channelRequestKey: 'R' + randomUUID().replaceAll('-', ''), reasonCode: disposition, description: '数字资料收款异常，原路退回' } });
-        return { disposition };
-      }
-      await this.digital.grant(tx, order.userId, item.id, (item.itemSnapshot as { digitalReleaseId: string }).digitalReleaseId, null);
-      await tx.tradeOrder.update({ where: { id: order.id }, data: { state: 'COMPLETED', paidTotal: amount, paidAt, completedAt: now(), version: { increment: 1 } } });
-      await tx.tradeOrderItem.update({ where: { id: item.id }, data: { state: 'PAID' } });
-      await tx.auditLog.create({ data: { actorId: order.userId, action: 'digital.payment.confirm', resource: 'trade_order', resourceId: order.id, changes: { source: channel, amount: String(amount) } } });
-      return { disposition };
-    });
+  async reviewRefund(id:string,req:AuthRequest,dto:ReviewDto){requireRoles(req,['FINANCE']);const initial=await this.db.refund.findUniqueOrThrow({where:{id}}),order=await this.db.tradeOrder.findFirst({where:{id:initial.orderId,kind:'DIGITAL'}});if(!order)throw new NotFoundException('资料退款不存在');await this.db.$transaction(async tx=>{await this.lock(tx,order);const row=await tx.refund.findUniqueOrThrow({where:{id}});if(row.version!==dto.expectedVersion||(dto.action==='RETRY'?!['FAILED','REFUNDING'].includes(row.state):row.state!=='REQUESTED'))throw new ConflictException('退款状态已变化');if(dto.action==='APPROVE'){const item=await tx.refundItem.findFirstOrThrow({where:{refundId:id}}),delivery=await tx.digitalDelivery.findUnique({where:{orderItemId:item.orderItemId}});if(delivery?.firstAccessAt)throw new ConflictException('资料已开始交付，请核查实际售后');}await tx.refund.update({where:{id},data:{state:dto.action==='REJECT'?'REJECTED':'REFUNDING',approvedAmount:dto.action==='REJECT'?null:row.requestedAmount,reviewerId:req.actor.id,reviewNote:dto.reason,failureCode:null,version:{increment:1}}});if(dto.action!=='REJECT')await this.job(tx,'DIGITAL_REFUND',id);await tx.auditLog.create({data:{actorId:req.actor.id,action:'digital.refund.'+dto.action.toLowerCase(),resource:'refund',resourceId:id,reason:dto.reason,changes:{orderId:order.id}}});});return this.detail(order.id,order.userId);}
+  async confirmRefund(data:WechatRefund,channel:AppPaymentChannel='WECHAT_APP'){
+    const identity=this.channels.resolve(channel).identity(),refund=await this.db.refund.findUnique({where:{channelRequestKey:data.out_refund_no}});if(!refund)throw new NotFoundException('退款不存在');const order=await this.db.tradeOrder.findUniqueOrThrow({where:{id:refund.orderId}}),payment=await this.db.paymentTransaction.findUniqueOrThrow({where:{id:refund.paymentTransactionId!}}),state=data.refund_status??data.status;
+    if(order.kind!=='DIGITAL'||payment.channel!==channel||payment.appScope!==identity.appid||data.mchid&&data.mchid!==identity.mchid||data.out_trade_no!==order.orderNo||data.transaction_id!==payment.externalTransactionId||!Number.isSafeInteger(data.amount?.refund)||!Number.isSafeInteger(data.amount?.total)||BigInt(data.amount.refund)!==refund.approvedAmount||BigInt(data.amount.total)!==payment.amount||data.amount.currency&&data.amount.currency!=='CNY'||!data.refund_id||!['SUCCESS','PROCESSING','ABNORMAL','CLOSED'].includes(state??''))throw new BadRequestException('退款事实与原收款不一致');if(state==='PROCESSING')return false;
+    return this.db.$transaction(async tx=>{await this.lock(tx,order);const current=await tx.refund.findUniqueOrThrow({where:{id:refund.id}});if(current.state==='SUCCEEDED')return true;if(!['REFUNDING','FAILED'].includes(current.state))throw new ConflictException('退款尚未批准');if(state!=='SUCCESS'){await tx.refund.update({where:{id:refund.id},data:{state:'FAILED',failureCode:state,version:{increment:1}}});return true;}if(!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('退款时间无效');const row=await tx.refundTransaction.create({data:{refundId:refund.id,paymentTransactionId:payment.id,channel,appScope:identity.appid,externalRefundId:data.refund_id,amount:current.approvedAmount!,currency:'CNY',verifiedAt:now(),succeededAt:new Date(data.success_time),receiptHash:hash(data)}});await this.journal(tx,order,payment.id,row.amount,'digital.refunded:'+refund.id,true,payment.disposition!=='ACCEPTED',channel,refund.id);await tx.refund.update({where:{id:refund.id},data:{state:'SUCCEEDED',succeededAt:row.succeededAt,failureCode:null,version:{increment:1}}});if(payment.disposition==='ACCEPTED'){await tx.tradeOrder.update({where:{id:order.id},data:{refundedTotal:{increment:row.amount},version:{increment:1}}});for(const item of await tx.refundItem.findMany({where:{refundId:refund.id}})){await tx.tradeOrderItem.update({where:{id:item.orderItemId},data:{state:'REFUNDED',refundedAmount:{increment:item.amount}}});await tx.digitalDelivery.updateMany({where:{orderItemId:item.orderItemId,revokedAt:null},data:{revokedAt:now(),version:{increment:1}}});}}await tx.notification.create({data:{userId:order.userId,kind:'DIGITAL_ORDER',orderId:order.id,eventKey:'digital.refunded:'+refund.id,title:'数字资料退款已完成',body:payment.disposition==='ACCEPTED'?'渠道已确认退款，本单领取权限已撤销。':'异常重复收款已原路退回，原有效资料权益保持。'}});return true;});
   }
+  async admin(q:Page){const where={kind:'DIGITAL'},[rows,total]=await this.db.$transaction([this.db.tradeOrder.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],skip:(q.page-1)*q.size,take:q.size}),this.db.tradeOrder.count({where})]);return{items:await Promise.all(rows.map(r=>this.detail(r.id,r.userId))),total};}
+  async adminDetail(id:string){const order=await this.db.tradeOrder.findFirst({where:{id,kind:'DIGITAL'}});if(!order)throw new NotFoundException('资料订单不存在');return this.detail(id,order.userId);}
+  async runJobs(){if(this.working)return;this.working=true;try{for(let i=0;i<10;i++){const jobs=await this.db.$queryRaw<{id:string;kind:string;aggregateId:string;attempts:number}[]>`UPDATE "OutboxJob" SET state='RUNNING',"lockedUntil"=now()+interval '2 minutes',attempts=attempts+1,"updatedAt"=now() WHERE id=(SELECT id FROM "OutboxJob" WHERE kind IN ('DIGITAL_PAYMENT_CHECK','DIGITAL_REFUND') AND ((state='READY' AND "availableAt"<=now()) OR (state='RUNNING' AND "lockedUntil"<now())) ORDER BY "availableAt" LIMIT 1 FOR UPDATE SKIP LOCKED) RETURNING id,kind,"aggregateId",attempts`;if(!jobs.length)break;const job=jobs[0]!;try{let done=true;if(job.kind==='DIGITAL_PAYMENT_CHECK'){const order=await this.db.tradeOrder.findUniqueOrThrow({where:{id:job.aggregateId}});if(order.state==='PENDING'){await this.refresh(order.id,order.userId);done=(await this.db.tradeOrder.findUniqueOrThrow({where:{id:order.id}})).state!=='PENDING';}}else{const refund=await this.db.refund.findUniqueOrThrow({where:{id:job.aggregateId}});if(refund.state==='REFUNDING'){const payment=await this.db.paymentTransaction.findUniqueOrThrow({where:{id:refund.paymentTransactionId!}}),order=await this.db.tradeOrder.findUniqueOrThrow({where:{id:refund.orderId}});done=await this.confirmRefund(await this.channels.resolve(payment.channel).refund(payment.externalTransactionId,refund.channelRequestKey!,Number(refund.approvedAmount),Number(payment.amount),order.orderNo),payment.channel as AppPaymentChannel);}}await this.db.outboxJob.updateMany({where:{id:job.id,state:'RUNNING',attempts:job.attempts},data:{state:done?'DONE':'READY',completedAt:done?now():null,lockedUntil:null,availableAt:new Date(Date.now()+60000),lastErrorCode:null}});}catch{await this.db.outboxJob.updateMany({where:{id:job.id,state:'RUNNING',attempts:job.attempts},data:{state:job.attempts>=20?'DEAD':'READY',lockedUntil:null,availableAt:new Date(Date.now()+Math.min(3600000,30000*2**Math.min(job.attempts,7))),lastErrorCode:'DIGITAL_PROVIDER_OR_PROCESSING_ERROR'}});}}}finally{this.working=false;}}
 }
 
-@Controller('commerce')
-@UseGuards(UserGuard)
+@Controller('commerce') @UseGuards(UserGuard)
 export class DigitalSalesController {
-  constructor(private readonly sales: DigitalSales) {}
-
-  @Post('digital-orders')
-  checkout(@Req() req: AuthRequest, @Body() dto: DigitalCheckoutDto) { return this.sales.checkout(req.actor.id, dto); }
-
-  @Get('digital-orders')
-  list(@Req() req: AuthRequest) { return this.sales.list(req.actor.id); }
-
-  @Get('digital-orders/:id')
-  detail(@Req() req: AuthRequest, @Param('id', ParseUUIDPipe) id: string) { return this.sales.detail(id, req.actor.id); }
-
-  @Post('digital-orders/:id/payment')
-  prepay(@Req() req: AuthRequest, @Param('id', ParseUUIDPipe) id: string) { return this.sales.prepay(id, req.actor.id); }
+  constructor(private readonly sales:DigitalSales){}
+  @Get('digital-products/:id/quote') quote(@Param('id',ParseUUIDPipe) id:string,@Query() q:QuoteQuery){return this.sales.quote(id,q.platform);}
+  @Post('digital-orders') checkout(@Req() req:AuthRequest,@Body() dto:DigitalCheckoutDto){return this.sales.checkout(req.actor.id,dto);}
+  @Get('digital-orders') list(@Req() req:AuthRequest,@Query() q:Page){return this.sales.list(req.actor.id,q);}
+  @Get('digital-orders/:id') detail(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.sales.detail(id,req.actor.id);}
+  @Post('digital-orders/:id/payment') prepay(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.sales.prepay(id,req.actor.id);}
+  @Post('digital-orders/:id/refresh') refresh(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.sales.refresh(id,req.actor.id);}
+  @Post('digital-orders/:id/cancel') cancel(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.sales.cancel(id,req.actor.id);}
+  @Post('digital-orders/:id/refunds') refund(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:RefundDto){return this.sales.requestRefund(id,req.actor.id,dto);}
+}
+@Controller('admin/digital-orders') @UseGuards(AdminGuard)
+export class DigitalOrdersAdminController {
+  constructor(private readonly sales:DigitalSales){}
+  @Get() list(@Query() q:Page){return this.sales.admin(q);}
+  @Get(':id') detail(@Param('id',ParseUUIDPipe) id:string){return this.sales.adminDetail(id);}
+  @Post(':id/quality-refund') quality(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:QualityRefundDto){return this.sales.qualityRefund(id,req,dto);}
+  @Post('refunds/:id/review') review(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Body() dto:ReviewDto){return this.sales.reviewRefund(id,req,dto);}
 }

@@ -1,6 +1,6 @@
 import type {ServiceDeliveryResult} from './service-delivery';
 import type {CoursePaymentChoice} from './course-sales';
-export type BookingPurchase={memberBenefit?:{basisPoints:number;savings:string;endsAt:string}|null;originalTotal?:string;discount?:string;kind:string;resourceId:string;title:string;teacherName?:string;ticketTitle?:string;startsAt:string;endsAt:string;cancelDeadline:string;location:string;deliveryPolicy:string;refundPolicy:string;quantity:number;price:string};
+export type BookingPurchase={memberBenefit?:{code?:string;basisPoints:number;savings:string;endsAt:string}|null;originalTotal?:string;discount?:string;kind:string;resourceId:string;title:string;teacherName?:string;ticketTitle?:string;startsAt:string;endsAt:string;cancelDeadline:string;location:string;deliveryPolicy:string;refundPolicy:string;quantity:number;price:string};
 export type BookingQuote=BookingPurchase&{benefitConfirmationEnabled?:boolean;total:string;quoteHash:string;available:number;serverTime:string;pendingOrderId:string|null;paymentEnabled:boolean;unavailableReason:string;channels:CoursePaymentChoice[]};
 export type BookingAssessment={assessedAt:string;startsAt:string;endsAt:string;quantity:number;checkedCount:number;withdrawalScope:string;deductionAmount?:string};
 export type BookingRefund={assessmentSnapshot:BookingAssessment|null;acceptedAt:string|null;id:string;state:string;version:number;reasonCode:string;description:string;requestedAmount:string;approvedAmount:string|null;reviewNote:string|null;createdAt:string};

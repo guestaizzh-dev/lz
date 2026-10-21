@@ -1,0 +1,1 @@
+INSERT INTO "BenefitDefinition"(code,name,kind,"parameterSchema",active) VALUES ('CONSULTATION_CREDIT','会员咨询抵扣','QUOTA','{"amountMinor":"positive minor-unit string"}',true) ON CONFLICT(code) DO NOTHING;

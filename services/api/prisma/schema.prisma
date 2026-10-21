@@ -1982,6 +1982,7 @@ model DigitalDelivery {
   expiresAt DateTime? @db.Timestamptz(6)
   revokedAt DateTime? @db.Timestamptz(6)
   grantKey String @unique
+  firstAccessAt DateTime? @db.Timestamptz(6)
 }
 
 model MembershipPlanVersion {
@@ -3140,4 +3141,90 @@ model CatalogCategory {
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
   @@unique([scope, code])
   @@unique([scope, label])
+}
+
+model CommercePartnerRule {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  contractId String
+  businessKind String
+  resourceId String?
+  rateBasisPoints Int
+  observationDays Int @default(15)
+  startsAt DateTime @db.Timestamptz(6)
+  endsAt DateTime @db.Timestamptz(6)
+  enabled Boolean @default(true)
+  version Int @default(1)
+  @@index([businessKind,resourceId,enabled])
+}
+model CommerceFeeEvidence {
+  paymentId String @id
+  amount BigInt
+  proofAssetId String
+  actorId String
+  verifiedAt DateTime @default(now()) @db.Timestamptz(6)
+}
+model CommercePartnerShare {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  version Int @default(1)
+  orderId String
+  orderItemId String @unique
+  ruleId String
+  partnerId String
+  contractId String
+  snapshot Json
+  accruedAmount BigInt @default(0)
+  basisAmount BigInt @default(0)
+  frozen Boolean @default(true)
+  availableAt DateTime?
+  nextCheckAt DateTime @default(now()) @db.Timestamptz(6)
+  attempts Int @default(0)
+  failureCode String?
+  @@index([nextCheckAt])
+  @@index([partnerId,createdAt])
+}
+model CommercePartnerRevenue {
+  id String @id @default(dbgenerated("gen_random_uuid()::text"))
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  shareId String
+  orderItemId String
+  partnerId String
+  contractId String
+  eventKey String @unique
+  delta BigInt
+  basisSnapshot Json
+  availableAt DateTime @db.Timestamptz(6)
+  settlementId String?
+  @@index([partnerId,settlementId,availableAt])
+}
+
+model OperationsIncident {
+ id String @id @default(dbgenerated("gen_random_uuid()::text"))
+ key String @unique
+ title String
+ severity String
+ state String @default("OPEN")
+ path String
+ details Json
+ episode Int @default(1)
+ version Int @default(1)
+ firstSeenAt DateTime @default(now()) @db.Timestamptz(6)
+ lastSeenAt DateTime @default(now()) @db.Timestamptz(6)
+ resolvedAt DateTime? @db.Timestamptz(6)
+ acknowledgedBy String?
+ acknowledgedAt DateTime? @db.Timestamptz(6)
+ @@index([state,lastSeenAt])
+}
+
+model OperationsIncidentEvent {
+ id String @id @default(dbgenerated("gen_random_uuid()::text"))
+ incidentId String
+ episode Int
+ action String
+ actorId String?
+ createdAt DateTime @default(now()) @db.Timestamptz(6)
+ details Json
+ @@index([incidentId,createdAt])
 }

@@ -156,7 +156,7 @@ export class MediaService {
     if (!imageOnly) throw new BadRequestException('音视频请使用分片上传入口');
     if (!file?.buffer.length) throw new BadRequestException('请选择媒体文件');
     const image = file.mimetype === 'image/png' ? file.buffer.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) : file.mimetype === 'image/jpeg' ? file.buffer[0] === 255 && file.buffer[1] === 216 && file.buffer[2] === 255 : file.mimetype === 'image/webp' && file.buffer.subarray(0,4).toString() === 'RIFF' && file.buffer.subarray(8,12).toString() === 'WEBP';
-    const pdf=imagePurpose==='EVIDENCE_FILE'&&file.mimetype==='application/pdf'&&file.buffer.subarray(0,5).toString()==='%PDF-';
+    const pdf=['EVIDENCE_FILE','DIGITAL_FILE'].includes(imagePurpose??'')&&file.mimetype==='application/pdf'&&file.buffer.subarray(0,5).toString()==='%PDF-';
     if (!image&&!pdf) throw new BadRequestException(imagePurpose==='EVIDENCE_FILE'?'证据文件仅支持 PDF、PNG、JPEG、WebP':'作业附件仅支持 PNG、JPEG、WebP 图片');
     const storageKey = randomUUID();
     await mkdir(this.root, { recursive: true });
@@ -212,16 +212,28 @@ export class MediaService {
     const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');
     return {path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url'),expiresAt:new Date(payload.expires).toISOString(),subtitles:subtitleCues(replay.subtitleText,replay.durationSeconds),notes:replay.notes};
   }
+  private async digitalAccess(deliveryId:string,userId:string,assetId:string,begin=false){
+    return this.db.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
+      const original=await tx.digitalDelivery.findFirst({where:{id:deliveryId,userId}});
+      if(!original)throw new NotFoundException('资料领取记录不存在');
+      const item=await tx.tradeOrderItem.findUniqueOrThrow({where:{id:original.orderItemId}});
+      await tx.$queryRaw`SELECT id FROM "TradeOrder" WHERE id=${item.orderId} FOR UPDATE`;
+      const delivery=await tx.digitalDelivery.findUniqueOrThrow({where:{id:deliveryId}}),payment=await tx.paymentTransaction.findFirst({where:{orderId:item.orderId,disposition:'ACCEPTED'}});
+      if(delivery.revokedAt||delivery.startsAt>new Date()||delivery.expiresAt&&delivery.expiresAt<=new Date()||await tx.refund.count({where:{orderId:item.orderId,state:{in:['REQUESTED','APPROVED','REFUNDING','FAILED']},paymentTransactionId:payment?.id??'__no_payment__'}}))throw new ForbiddenException('资料已失效、过期或正在售后，请在原订单查看');
+      if(!await tx.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId}}))throw new NotFoundException('数字资料不存在');
+      const asset=await tx.mediaAsset.findFirst({where:{id:assetId,status:'READY',visibility:'PRIVATE'}});
+      if(!asset||['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA'].includes(String((asset.variants as {uploadPurpose?:string}|null)?.uploadPurpose)))throw new NotFoundException('数字资料暂时不可用');
+      try{await stat(resolve(this.root,asset.storageKey));}catch{throw new NotFoundException('资料文件不可用，请联系书院');}
+      if(begin&&!delivery.firstAccessAt){await tx.digitalDelivery.update({where:{id:deliveryId},data:{firstAccessAt:new Date(),version:{increment:1}}});await tx.auditLog.create({data:{actorId:userId,action:'digital.delivery.begin',resource:'digital_delivery',resourceId:deliveryId,changes:{orderId:item.orderId,assetId}}});}
+      return asset;
+    });
+  }
   async digitalFile(deliveryId:string,assetId:string,req:AuthRequest){
-    const delivery=await this.db.digitalDelivery.findFirst({where:{id:deliveryId,userId:req.actor.id,revokedAt:null}});
-    if(!delivery||delivery.startsAt>new Date()||(delivery.expiresAt&&delivery.expiresAt<=new Date()))throw new ForbiddenException('数字资料已失效或已过期');
-    if(!await this.db.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId}}))throw new NotFoundException('数字资料不存在');
-    const asset=await this.db.mediaAsset.findFirst({where:{id:assetId,status:'READY',visibility:'PRIVATE'}});
-    if(!asset)throw new NotFoundException('数字资料暂时不可用');
-    try{await stat(resolve(this.root,asset.storageKey));}catch{throw new NotFoundException('数字资料暂时不可用');}
+    const asset=await this.digitalAccess(deliveryId,req.actor.id,assetId,true);
     const payload:Ticket={digitalDeliveryId:deliveryId,assetId,userId:req.actor.id,sessionId:req.authSessionId,sessionKind:'APP',expires:Date.now()+10*60000};
     const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');
-    return{path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url'),mime:asset.mime,name:asset.name,expiresAt:new Date(payload.expires).toISOString()};
+    return{path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url'),mime:asset.mime,name:asset.name,durationSeconds:asset.durationSeconds??0,expiresAt:new Date(payload.expires).toISOString()};
   }
   async stream(token: string, req: Request, res: Response) {
     if (!token || token.length > 1000) throw new UnauthorizedException('播放凭证无效');
@@ -248,9 +260,7 @@ export class MediaService {
       }
       if(ticket.checkinId){await this.practices.checkinAccess(ticket.checkinId,session.user);if(!await this.db.attachmentBinding.findFirst({where:{checkinId:ticket.checkinId,assetId:ticket.assetId??''}}))throw new NotFoundException('实践图片不存在');assetId=ticket.assetId??null;}
       if(ticket.digitalDeliveryId){
-        const delivery=await this.db.digitalDelivery.findFirst({where:{id:ticket.digitalDeliveryId,userId:session.user.id,revokedAt:null}});
-        if(!delivery||delivery.startsAt>new Date()||(delivery.expiresAt&&delivery.expiresAt<=new Date()))throw new ForbiddenException('数字资料已失效或已过期');
-        if(!await this.db.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId:ticket.assetId??''}}))throw new NotFoundException('数字资料不存在');
+        await this.digitalAccess(ticket.digitalDeliveryId,session.user.id,ticket.assetId??'');
         assetId=ticket.assetId??null;
       }
       if(ticket.threadId&&ticket.sessionKind==='ADMIN')requireRoles({actor:session.user} as AuthRequest,['OPERATOR','MODERATOR']);

@@ -7,7 +7,7 @@ import { Database } from './database.js';
 import { Prisma } from './generated/prisma/client.js';
 
 export const recoveryKinds = [
-  'CONSUMPTION_SYNC','GIFT_PAYMENT_CHECK','GIFT_REFUND','AUTH_APPLE_REVOKE', 'NOTIFICATION_PUSH', 'COURSE_PAYMENT_CHECK', 'COURSE_REFUND', 'COURSE_DELIVERY_NOTICE',
+  'RECONCILIATION_RECHECK','DIGITAL_PAYMENT_CHECK','DIGITAL_REFUND','CONSUMPTION_SYNC','GIFT_PAYMENT_CHECK','GIFT_REFUND','AUTH_APPLE_REVOKE', 'NOTIFICATION_PUSH', 'COURSE_PAYMENT_CHECK', 'COURSE_REFUND', 'COURSE_DELIVERY_NOTICE',
   'MEMBERSHIP_PAYMENT_CHECK', 'MEMBERSHIP_REFUND', 'PRODUCT_PAYMENT_CHECK', 'PRODUCT_REFUND',
   'BOOKING_PAYMENT_CHECK', 'BOOKING_REFUND', 'BOOKING_CANCEL_COMPENSATION',
   'COHORT_PAYMENT_CHECK', 'COHORT_REFUND', 'COHORT_SCHEDULE_COMPENSATION',
@@ -31,7 +31,7 @@ class FinanceQuery {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(10000) page = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) size = 20;
   @IsOptional() @IsString() @Length(0, 80) q?: string;
-  @IsOptional() @IsIn(['COURSE', 'MEMBERSHIP', 'PHYSICAL', 'CONSULTATION', 'EVENT', 'COHORT', 'GIFT']) kind?: string;
+  @IsOptional() @IsIn(['COURSE', 'MEMBERSHIP', 'PHYSICAL', 'DIGITAL', 'CONSULTATION', 'EVENT', 'COHORT', 'GIFT']) kind?: string;
   @IsOptional() @IsIn(['WECHAT_APP', 'ALIPAY_APP', 'APPLE_IAP']) channel?: string;
   @IsOptional() @IsISO8601() from?: string;
   @IsOptional() @IsISO8601() to?: string;
@@ -77,7 +77,7 @@ export class OperationsAdmin {
     const row = await this.db.outboxJob.findUnique({ where: { id }, select: jobSelect });
     if (!row) throw new NotFoundException('任务不存在');
     let orderId: string | undefined;
-    if (['COURSE_ORDER', 'MEMBERSHIP_ORDER', 'PRODUCT_ORDER', 'BOOKING_ORDER', 'COHORT_ORDER'].includes(row.aggregateType) || row.kind.endsWith('PAYMENT_CHECK') || row.kind === 'COURSE_DELIVERY_NOTICE') orderId = row.aggregateId;
+    if (['COURSE_ORDER', 'MEMBERSHIP_ORDER', 'PRODUCT_ORDER', 'BOOKING_ORDER', 'COHORT_ORDER','DIGITAL_ORDER'].includes(row.aggregateType) || row.kind.endsWith('PAYMENT_CHECK') || row.kind === 'COURSE_DELIVERY_NOTICE') orderId = row.aggregateId;
     if (row.kind.endsWith('_REFUND')) orderId = (await this.db.refund.findUnique({ where: { id: row.aggregateId }, select: { orderId: true } }))?.orderId;
     const order = orderId ? await this.db.tradeOrder.findUnique({ where: { id: orderId }, select: { id: true, orderNo: true, kind: true, state: true } }) : null;
     const audit = await this.db.auditLog.findMany({ where: { resource: 'outbox_job', resourceId: id, action: 'operations.job.retry' }, select: { id: true, createdAt: true, actorId: true, reason: true }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 20 });
@@ -110,7 +110,7 @@ export class OperationsAdmin {
 
   private filter(query: FinanceQuery) {
     const { from, to } = financePeriod(query);
-    const conditions = [Prisma.sql`o.kind IN ('COURSE','MEMBERSHIP','PHYSICAL','CONSULTATION','EVENT','COHORT')`];
+    const conditions = [Prisma.sql`o.kind IN ('COURSE','MEMBERSHIP','PHYSICAL','DIGITAL','CONSULTATION','EVENT','COHORT')`];
     if (query.kind) conditions.push(Prisma.sql`o.kind=${query.kind}`);
     if (query.q?.trim()) conditions.push(Prisma.sql`position(lower(${query.q.trim()}) in lower(o."orderNo"))>0`);
     return { from, to, where: Prisma.join(conditions, ' AND ') };
@@ -177,7 +177,7 @@ export class OperationsAdmin {
   async financeOrder(id: string) {
     return this.db.$transaction(async tx => {
       const order = await tx.tradeOrder.findUnique({ where: { id }, select: { id: true, orderNo: true, kind: true, state: true, currency: true, payableTotal: true, paidTotal: true, refundedTotal: true, createdAt: true, paidAt: true } });
-      if (!order || !['COURSE', 'MEMBERSHIP', 'PHYSICAL', 'CONSULTATION', 'EVENT', 'COHORT', 'GIFT'].includes(order.kind)) throw new NotFoundException('订单不存在或不在当前财务范围');
+      if (!order || !['COURSE', 'MEMBERSHIP', 'PHYSICAL', 'DIGITAL', 'CONSULTATION', 'EVENT', 'COHORT', 'GIFT'].includes(order.kind)) throw new NotFoundException('订单不存在或不在当前财务范围');
       const [payments, refunds, journals] = await Promise.all([
         tx.paymentTransaction.findMany({ where: { orderId: id }, select: { id: true, channel: true, amount: true, currency: true, disposition: true, externalTransactionId: true, paidAt: true, verifiedAt: true }, orderBy: { paidAt: 'desc' } }),
         tx.refund.findMany({ where: { orderId: id, kind: { not: 'EXCHANGE' } }, select: { id: true, requestedAmount: true, approvedAmount: true, state: true, reasonCode: true, createdAt: true, succeededAt: true, failureCode: true }, orderBy: { createdAt: 'desc' } }),

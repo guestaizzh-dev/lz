@@ -26,9 +26,9 @@ test('frozen membership benefits and atomic quotas preserve independent sources'
       await db.membership.create({data:{userId:b.user.id,planId:plan.id,tier:2,startsAt:new Date(Date.now()-1000),endsAt:new Date(Date.now()+86400000),source:'ADMIN_COMPENSATION'}});assert.equal((await app.get(LearningService).membership(b.user.id)).contentTier,1);
       const stale=await call('/admin/membership-benefits/plans/'+plan.id+'/content',root,'POST',{expectedVersion:plan.version,contentTier:2,reason:'过期编辑不得覆盖'});assert.equal(stale.status,409);
       assert.equal((await call('/admin/membership-benefits/plans/'+plan.id+'/content',root,'POST',{expectedVersion:currentPlan.version,contentTier:3,reason:'不能越过套餐层级'})).status,400);
-      const summary=await call('/learning/benefits',a);assert.equal(summary.status,200);assert.equal(summary.body.memberships[0].benefits[0].parameters.contentTier,2);
+      const summary=await call('/learning/benefits',a);assert.equal(summary.status,200);assert.equal(summary.body.memberships[0].benefits.find(b=>b.code==='CONTENT_ACCESS').parameters.contentTier,2);
       assert.equal((await call('/learning/benefits?userId='+a.user.id,b)).status,400);
-      const history=await call('/admin/membership-benefits/plans/'+plan.id,root);assert.equal(history.status,200);assert.equal(history.body.items[0].benefits[0].parameters.contentTier,1);
+      const history=await call('/admin/membership-benefits/plans/'+plan.id,root);assert.equal(history.status,200);assert.equal(history.body.items[0].benefits.find(b=>b.definition.code==='CONTENT_ACCESS').parameters.contentTier,1);
       await db.membership.update({where:{id:old.id},data:{revokedAt:new Date()}});assert.equal(await app.get(LearningService).membership(a.user.id),null);
     });
     await t.test('database and generic editor cannot rewrite published terms, source identity or usage ownership',async()=>{

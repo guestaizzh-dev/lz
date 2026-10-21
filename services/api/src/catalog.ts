@@ -53,7 +53,15 @@ export class CatalogService {
   private pagination(query: CatalogQuery) {
     return { take: query.size + 1, ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}), orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }] };
   }
-  async home() {
+  private homeRequest:Promise<Awaited<ReturnType<CatalogService['loadHome']>>>|null=null;
+  invalidateHome(){this.homeRequest=null;}
+  home(){
+    if(this.homeRequest)return this.homeRequest;
+    const pending=this.loadHome();this.homeRequest=pending;
+    const clear=()=>{if(this.homeRequest===pending)this.homeRequest=null;};
+    void pending.then(clear,clear);return pending;
+  }
+  private async loadHome() {
     const [settings,scope]=await Promise.all([this.config?this.config.current('catalog').then(r=>r.value):Promise.resolve(configDefaults.catalog),this.publicScope()]);
     const [articles, courses, products, events] = await Promise.all([
       this.db.article.findMany({ where: scope, select: articlePreview, orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: settings.homeArticles }),

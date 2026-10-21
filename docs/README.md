@@ -2,7 +2,7 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新直播体验返修见 [86 直播UI与交互](86-live-ui-and-interaction-polish.md)：本地构建与页面验证通过，尚未上线或重新打包。
+最新直播API、后台与官方Linux录制器已于2026-10-21上线，见[24部署记录](24-online-deployment.md)和[86直播交互](86-live-ui-and-interaction-polish.md)；未重新打包App。一眼看懂业务与技术见[87总体链路与架构图](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 
@@ -15,13 +15,13 @@
 | 商用审查基线（只读快照） | [25 商用完成度审查](25-commercial-readiness-review.md)（38/131） |
 | 给客户看的材料 | [客户版功能说明](../outputs/client-review-2026-10-19/老子道学书院_功能与交付说明_客户版_20261019.docx) |
 
-## 一页事实（2026-10-19 发布后）
+## 一页事实（2026-10-21 发布后）
 
 | 项 | 值 |
 | --- | --- |
-| 线上版本 | `20261019-status-review-01`，72 次迁移，190 张表 |
+| 线上版本 | `20261021-live-recording-01`，73次迁移，191张表（含迁移表） |
 | 线上地址 | https://academy.43-160-229-173.sslip.io（后台 `/user/login`） |
-| 安装包 | Android 0.3.11 / code16，`outputs/android/daoxue-academy-0.3.11.apk`；无系统推送预览包，较0.3.10仅App版本号变化，后端修改需另行发布 |
+| 安装包 | 最近留存Android0.3.13/code18；本次只部署API/后台/服务端录制，未新打包，85/86的App源码更新不自动进入旧包 |
 | 演示账号 | 学员 `19900001002` / 验证码 `123456`（预览入口 10-25 到期）；后台 admin 口令见 `.runtime/online-admin-access.json` |
 | 商用完成度 | 38/131（29.0%），卡在收款、短信、上架、云媒体、推送、版权六道真实门禁 |
 | 代码规模 | 后端 104 模块、App 76 页、后台 86 页 |
@@ -34,6 +34,7 @@
 - [11](11-v03-no-payment-no-live-planning.md)、[12 内容阅读规划](12-v03-content-reading-plan.md)（历史规划，已被 01 取代）
 
 **技术**
+- [87 项目业务链路与架构总览](87-project-business-and-architecture-map.md)
 - [02 技术调研与决策](02-technical-research-and-decisions.md)
 - [07 数据库与接口契约](07-database-and-crud.md)、[35 管理层技术说明](35-technical-overview-for-management.md)
 - [17 发布与恢复](17-release-and-recovery.md)、[24 线上部署记录](24-online-deployment.md)

@@ -1,3 +1,4 @@
+import {Categories} from './categories.js';
 import {productPromotionHints} from './product-promotions.js';
 import { publicEvidence } from './evidence.js';
 import { teacherContent } from './teacher-content.js';
@@ -146,17 +147,17 @@ export class CatalogService {
 @ApiTags('公开内容')
 @Controller('catalog')
 export class CatalogController {
-  constructor(private readonly catalog: CatalogService) {}
-  @Get('home') home() { return this.catalog.home(); }
-  @Get('articles') articles(@Query() query: CatalogQuery) { return this.catalog.articles(query); }
-  @Get('articles/:id') @UseGuards(OptionalUserGuard) article(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { return this.catalog.article(id, req.actor?.id); }
-  @Get('courses') courses(@Query() query: CatalogQuery) { return this.catalog.courses(query); }
-  @Get('courses/:id') @UseGuards(OptionalUserGuard) course(@Param('id', ParseUUIDPipe) id: string,@Req() req:AuthRequest) { return this.catalog.course(id,req.actor?.id); }
+  constructor(private readonly catalog: CatalogService, private readonly categories:Categories) {}
+  @Get('home') async home() {const data=await this.catalog.home();return {...data,articles:await this.categories.decorate('ARTICLE',data.articles,true),courses:await this.categories.decorate('COURSE',data.courses,true),products:await this.categories.decorate('PRODUCT',data.products,true),events:await this.categories.decorate('EVENT',data.events,true)};}
+  @Get('articles') articles(@Query() query: CatalogQuery) { return this.catalog.articles(query).then(value=>this.categories.decorate('ARTICLE',value,true)); }
+  @Get('articles/:id') @UseGuards(OptionalUserGuard) article(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { return this.catalog.article(id, req.actor?.id).then(value=>this.categories.decorate('ARTICLE',value,true)); }
+  @Get('courses') courses(@Query() query: CatalogQuery) { return this.catalog.courses(query).then(value=>this.categories.decorate('COURSE',value,true)); }
+  @Get('courses/:id') @UseGuards(OptionalUserGuard) course(@Param('id', ParseUUIDPipe) id: string,@Req() req:AuthRequest) { return this.catalog.course(id,req.actor?.id).then(value=>this.categories.decorate('COURSE',value,true)); }
   @Get('teachers') teachers(@Query() query: CatalogQuery) { return this.catalog.teachers(query); }
   @Get('teachers/:id') teacher(@Param('id', ParseUUIDPipe) id: string) { return this.catalog.teacher(id); }
-  @Get('events') events(@Query() query: CatalogQuery) { return this.catalog.events(query); }
-  @Get('events/:id') event(@Param('id', ParseUUIDPipe) id: string) { return this.catalog.event(id); }
-  @Get('products') products(@Query() query: CatalogQuery) { return this.catalog.products(query); }
+  @Get('events') events(@Query() query: CatalogQuery) { return this.catalog.events(query).then(value=>this.categories.decorate('EVENT',value,true)); }
+  @Get('events/:id') event(@Param('id', ParseUUIDPipe) id: string) { return this.catalog.event(id).then(value=>this.categories.decorate('EVENT',value,true)); }
+  @Get('products') products(@Query() query: CatalogQuery) { return this.catalog.products(query).then(value=>this.categories.decorate('PRODUCT',value,true)); }
   @Get('courses/:id/tools') tools(@Param('id',ParseUUIDPipe) id:string){return this.catalog.courseTools(id);}
-  @Get('products/:id') product(@Param('id', ParseUUIDPipe) id: string) { return this.catalog.product(id); }
+  @Get('products/:id') product(@Param('id', ParseUUIDPipe) id: string) { return this.catalog.product(id).then(value=>this.categories.decorate('PRODUCT',value,true)); }
 }

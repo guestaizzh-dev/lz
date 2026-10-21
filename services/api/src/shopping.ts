@@ -1,3 +1,5 @@
+import {Categories,validateCategory} from './categories.js';
+import {imageUrlPattern} from './image-url.js';
 import {productPromotionHints} from './product-promotions.js';
 import { validateEvidencePublication } from './evidence.js';
 import { encryptPrivate, personalAddress } from './private-data.js';
@@ -30,12 +32,13 @@ class SkuDto {
 }
 class SkuEditDto extends SkuDto { @IsInt() @Min(1) expectedVersion!: number; }
 class ProductDto {
+  @IsOptional() @IsInt() @Min(0) @Max(1000000) initialStock?: number;
   @IsString() @Length(1, 120) @Matches(/\S/) title!: string;
   @IsString() @Length(1, 200) @Matches(/\S/) subtitle!: string;
   @IsString() @Length(1, 10000) @Matches(/\S/) description!: string;
-  @IsIn(['经典典籍','文创','养生用品','修行工具','线下服务']) category!: string;
+  @IsString() @Length(1, 40) category!: string;
   @IsIn(['PHYSICAL','DIGITAL','SERVICE']) type!: 'PHYSICAL' | 'DIGITAL' | 'SERVICE';
-  @IsString() @Matches(/^(https:\/\/[^\s]+|\/static\/art\/[a-z-]+\.svg)$/) cover!: string;
+  @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) cover!: string;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsString() @Length(1, 3000) @Matches(/\S/) culturalOrigin!: string;
   @IsBoolean() featured!: boolean;
@@ -107,16 +110,18 @@ export class ShoppingService {
     return {success:true};
   }
   async products(query:TableQuery) {
-    const where={...(query.status?{status:query.status}:{}),...(query.q?{title:{contains:query.q,mode:'insensitive' as const}}:{})};
+    const where={...(query.category?{category:query.category}:{}),...(query.status?{status:query.status}:{}),...(query.q?{title:{contains:query.q,mode:'insensitive' as const}}:{})};
     const [items,total]=await this.db.$transaction([this.db.product.findMany({where,include:{skus:{orderBy:{id:'asc'}}},orderBy:[{updatedAt:'desc'},{id:'desc'}],skip:(query.page-1)*query.size,take:query.size}),this.db.product.count({where})]);
     return {items,total};
   }
   async saveProduct(req:AuthRequest,dto:ProductDto|ProductEditDto,id?:string) {
     requireRoles(req,['OPERATOR']);
-    const {expectedVersion:_,...data}=dto as ProductEditDto;
+    const {expectedVersion:_,initialStock,...data}=dto as ProductEditDto;
     return this.db.$transaction(async tx=>{
+      await validateCategory(tx, 'PRODUCT', dto.category, id ? (await tx.product.findUnique({where:{id},select:{category:true}}))?.category : undefined);
       if(id){const updated=await tx.product.updateMany({where:{id,version:(dto as ProductEditDto).expectedVersion,status:{in:['DRAFT','REJECTED']}},data:{...data,version:{increment:1}}});if(!updated.count)throw new ConflictException('商品版本或状态已变化，请刷新');}
       const row=id?await tx.product.findUniqueOrThrow({where:{id}}):await tx.product.create({data});
+      if(!id&&initialStock!==undefined){if(row.type!=='PHYSICAL')throw new BadRequestException('仅实物商品支持初始规格');const sku=await tx.productSku.create({data:{productId:row.id,title:'默认规格',price:row.price,stock:initialStock,active:true}});await tx.inventoryLedger.create({data:{skuId:sku.id,stockDelta:BigInt(initialStock),reservedDelta:0n,reason:'MANUAL_ADJUSTMENT',eventKey:'product.initial:'+sku.id,actorId:req.actor.id,stockAfter:BigInt(initialStock),reservedAfter:0n}});}
       await tx.auditLog.create({data:{actorId:req.actor.id,action:id?'product.edit':'product.create',resource:'product',resourceId:row.id,changes:{title:row.title,version:row.version}}});
       return row;
     });
@@ -146,7 +151,7 @@ export class ShoppingService {
   async transition(req:AuthRequest,id:string,dto:TransitionDto) {
     requireRoles(req,['publish','reject'].includes(dto.action)?['MODERATOR']:['OPERATOR']);
     if(!dto.reason.trim())throw new BadRequestException('请填写操作原因');
-    const states={submit:[['DRAFT','REJECTED'],'REVIEW'],publish:[['REVIEW'],'PUBLISHED'],reject:[['REVIEW'],'REJECTED'],archive:[['PUBLISHED'],'ARCHIVED'],revise:[['ARCHIVED','REJECTED'],'DRAFT']} as const;
+    const states={submit:[['DRAFT','REJECTED'],'REVIEW'],publish:[req.actor.roles.includes('ADMIN')?['DRAFT','REJECTED','REVIEW']:['REVIEW'],'PUBLISHED'],reject:[['REVIEW'],'REJECTED'],archive:[['PUBLISHED'],'ARCHIVED'],revise:[req.actor.roles.includes('ADMIN')?['ARCHIVED','REJECTED','PUBLISHED']:['ARCHIVED','REJECTED'],'DRAFT']} as const;
     const [from,to]=states[dto.action as keyof typeof states];
     return this.db.$transaction(async tx=>{
       await tx.$queryRaw`SELECT id FROM "Product" WHERE id=${id} FOR UPDATE`;
@@ -184,8 +189,8 @@ export class ShoppingController {
 }
 @Controller('admin') @UseGuards(AdminGuard)
 export class ShoppingAdminController {
-  constructor(private readonly shopping:ShoppingService,private readonly db:Database){}
-  @Get('products') products(@Req() req:AuthRequest,@Query() query:TableQuery){requireRoles(req,['OPERATOR','MODERATOR']);return this.shopping.products(query);}
+  constructor(private readonly shopping:ShoppingService,private readonly db:Database,private readonly categories:Categories){}
+  @Get('products') products(@Req() req:AuthRequest,@Query() query:TableQuery){requireRoles(req,['OPERATOR','MODERATOR']);return this.shopping.products(query).then(value=>this.categories.decorate('PRODUCT',value));}
   @Get('products/service-offerings') async offerings(@Req() req:AuthRequest){requireRoles(req,['OPERATOR','MODERATOR']);return this.db.serviceOffering.findMany({where:{active:true},select:{id:true,title:true,teacherId:true,mode:true,durationMinutes:true},orderBy:{title:'asc'},take:100});}
   @Get('products/:id') async detail(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){requireRoles(req,['OPERATOR','MODERATOR']);const row=await this.db.product.findUnique({where:{id},include:{skus:{orderBy:{id:'asc'}}}});if(!row)throw new NotFoundException('商品不存在');return row;}
   @Post('products') product(@Req() req:AuthRequest,@Body() dto:ProductDto){return this.shopping.saveProduct(req,dto);}

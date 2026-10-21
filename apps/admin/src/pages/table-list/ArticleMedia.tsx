@@ -1,3 +1,4 @@
+import ImagePicker from '@/components/ImagePicker';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Form, Input, Select, Space, Typography } from 'antd';
 import type { FormInstance } from 'antd';
@@ -6,7 +7,7 @@ import type { Block } from '@/api';
 import MediaUploader from '@/components/MediaUploader';
 
 type Asset = { id: string; name: string; mime: string; status: string };
-export function ArticleBlockFields({ form, name }: { form: FormInstance; name: number }) {
+export function ArticleBlockFields({ form, name, onBusyChange }: { form: FormInstance; name: number; onBusyChange?:(busy:boolean)=>void }) {
   const type = Form.useWatch(['blocks', name, 'type'], form), selected = Form.useWatch(['blocks', name, 'mediaId'], form);
   const [assets, setAssets] = useState<Asset[]>([]), [query, setQuery] = useState(''), [error, setError] = useState(''), [revision, setRevision] = useState(0);
   const media = type === 'audio' || type === 'video';
@@ -27,8 +28,8 @@ export function ArticleBlockFields({ form, name }: { form: FormInstance; name: n
       <Form.Item name={[name, 'mediaId']} label={type === 'video' ? '视频课件' : '音频讲解'} rules={[{ required: true, message: '请选择处理完成的媒体' }]} extra="仅处理完成且类型匹配的媒体可以送审；文章下架会同时停止播放。">
         <Select showSearch={{ onSearch: setQuery, filterOption: false }} placeholder="搜索媒体名称" options={assets.filter(a => a.status === 'READY' && (type === 'video' ? a.mime === 'video/mp4' : a.mime.startsWith('audio/'))).map(a => ({ value: a.id, label: a.name }))} />
       </Form.Item>
-      <MediaUploader onReady={asset => { if (type === 'video' ? asset.mime === 'video/mp4' : asset.mime.startsWith('audio/')) form.setFieldValue(['blocks', name, 'mediaId'], asset.id); setRevision(value => value + 1); }} />
-    </> : type === 'image' ? <Form.Item name={[name, 'url']} label="图片地址" rules={[{ required: true, pattern: /^https:\/\/[^\s]+$/, message: '请填写 HTTPS 图片地址' }]}><Input maxLength={2000} /></Form.Item> :
+      <MediaUploader compact onBusyChange={onBusyChange} onReady={asset => { if (type === 'video' ? asset.mime === 'video/mp4' : asset.mime.startsWith('audio/')) form.setFieldValue(['blocks', name, 'mediaId'], asset.id); setRevision(value => value + 1); }} />
+    </> : type === 'image' ? <Form.Item name={[name, 'url']} label="正文图片" rules={[{required:true}]}><ImagePicker onBusyChange={onBusyChange}/></Form.Item> :
       <Form.Item name={[name, 'text']} label="段落内容" rules={[{ required: true, whitespace: true, message: '请填写段落内容' }]}><Input.TextArea rows={5} maxLength={10000} showCount /></Form.Item>}
     {(media || type === 'image') && <Form.Item name={[name, 'caption']} label="说明（可选）"><Input maxLength={500} /></Form.Item>}
   </>;

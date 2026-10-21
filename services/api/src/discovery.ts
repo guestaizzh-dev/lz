@@ -1,3 +1,4 @@
+import {Categories} from './categories.js';
 import { publicEvidence } from './evidence.js';
 import { demoContentVisible } from './public-content.js';
 import { Body, Controller, Get, Post, Injectable, NotFoundException, Param, ParseUUIDPipe, Query, Req, UseGuards } from '@nestjs/common';
@@ -138,9 +139,9 @@ export class DiscoveryController {
 
 @Controller('me/reading-history') @UseGuards(UserGuard)
 export class ReadingController {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Database,private readonly categories:Categories) {}
   @Get() async history(@Query() q: SearchQuery, @Req() req: AuthRequest) {
     const items = await this.db.$queryRaw<unknown[]>`SELECT a.id,a.title,a.summary,a.cover,a.category,a.author, max(h."createdAt") AS "lastReadAt",sum(h."dwellSeconds")::int AS "readDuration" FROM "ReadingEvent" h JOIN "Article" a ON a.id=h."resourceId" WHERE h."userId"=${req.actor.id} AND a.status='PUBLISHED' AND (${await demoContentVisible(this.db)} OR NOT a."isDemo") GROUP BY a.id ORDER BY "lastReadAt" DESC,a.id LIMIT ${q.size + 1} OFFSET ${(q.page - 1) * q.size}`;
-    return { items: items.slice(0, q.size), hasMore: items.length > q.size, page: q.page };
+    return { items: await this.categories.decorate('ARTICLE',items.slice(0,q.size),true), hasMore: items.length > q.size, page: q.page };
   }
 }

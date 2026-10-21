@@ -29,7 +29,7 @@ class MediaQuery extends TableQuery {
   @IsOptional() @IsIn(['UPLOADING','PROCESSING','REVIEW','READY','REJECTED','DELETED']) assetStatus?:string;
 }
 type FileUpload = { buffer: Buffer; originalname: string; mimetype: string; size: number };
-type Ticket = {offlineRegistrationId?:string;referralProofKind?:string;referralProofId?:string;giftContractId?:string;giftSettlementId?:string; uploadId?:string; threadVersion?:number; forumMedia?:boolean; evidenceId?:string; evidenceVersion?:number; evidenceResourceId?:string; evidenceScope?:string; articleId?:string; articleVersion?:number; articleBlockId?:string; articlePreview?:boolean; replayReviewId?:string; replayVersion?:number; liveSessionId?:string; digitalDeliveryId?:string; lessonId?: string; cohortId?:string; submissionId?: string; checkinId?:string; threadId?:string; assetId?: string; userId?: string; sessionId?: string; sessionKind?: string; expires: number };
+type Ticket = { adminAssetId?:string;adminAssetVersion?:number;offlineRegistrationId?:string;referralProofKind?:string;referralProofId?:string;giftContractId?:string;giftSettlementId?:string; uploadId?:string; threadVersion?:number; forumMedia?:boolean; evidenceId?:string; evidenceVersion?:number; evidenceResourceId?:string; evidenceScope?:string; articleId?:string; articleVersion?:number; articleBlockId?:string; articlePreview?:boolean; replayReviewId?:string; replayVersion?:number; liveSessionId?:string; digitalDeliveryId?:string; lessonId?: string; cohortId?:string; submissionId?: string; checkinId?:string; threadId?:string; assetId?: string; userId?: string; sessionId?: string; sessionKind?: string; expires: number };
 @Injectable()
 export class MediaService {
   // Single-process local delivery: restarting invalidates tickets; object storage/CDN replaces this for scaled deployment.
@@ -44,6 +44,13 @@ export class MediaService {
   async asset(id:string){
     if((await this.db.$queryRaw<{id:string}[]>`SELECT id FROM "MediaAsset" WHERE id=${id} AND variants->>'uploadPurpose' IS NOT NULL`).length)throw new NotFoundException('私人投稿请在所属审核流程查看');
     const asset=await this.db.mediaAsset.findUnique({where:{id},select:{id:true,name:true,mime:true,bytes:true,status:true,durationSeconds:true,failureCode:true}});if(!asset)throw new NotFoundException('媒体不存在');return asset;
+  }
+  async assetPreview(id:string,req:AuthRequest){
+    const asset=await this.db.mediaAsset.findUnique({where:{id}});
+    if(!asset||asset.status!=='READY'||(asset.variants as {uploadPurpose?:string})?.uploadPurpose||!['video/mp4','audio/mp4','audio/mpeg','audio/wav'].includes(asset.mime))throw new NotFoundException('课件尚未处理完成或不可预览');
+    const payload:Ticket={adminAssetId:id,adminAssetVersion:asset.version,assetId:id,userId:req.actor.id,sessionId:req.authSessionId,sessionKind:'ADMIN',expires:Date.now()+10*60000};
+    const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');
+    return {path:'/media/stream?ticket='+encoded+'.'+createHmac('sha256',this.secret).update(encoded).digest('base64url')};
   }
   private async articleBlock(id:string,blockId:string,userId?:string,preview=false,version?:number){
     const article=preview?await this.db.article.findUnique({where:{id}}):await this.catalog.article(id,userId);
@@ -77,7 +84,7 @@ export class MediaService {
     if(kind==='charity-qualification')return (await this.db.charityProgram.findUnique({where:{id}}))?.qualificationProofId;
     if(kind==='charity-contract'){const p=await this.db.charityProgram.findUnique({where:{id}});return p?(await this.db.partnerContract.findUnique({where:{id:p.contractId}}))?.proofAssetId:null;}
     if(kind==='charity-revenue'){const o=await this.db.charityOrder.findUnique({where:{id}});return o?(await this.db.charityRevenue.findFirst({where:{orderItemId:o.orderItemId,reversalOfId:null}}))?.proofAssetId:null;}
-    if(kind==='service-delivery'){const row=await this.db.serviceDelivery.findUnique({where:{id}});if(!row)return null;return (await this.db.mediaAsset.findFirst({where:{id:row.proofAssetId,sha256:row.proofHash,status:'READY',visibility:'PRIVATE',variants:{path:['uploadPurpose'],equals:'EVIDENCE_FILE'}}}))?.id;}
+    if(kind==='service-delivery'){const row=await this.db.serviceDelivery.findUnique({where:{id}});if(!row?.proofAssetId||!row.proofHash)return null;return (await this.db.mediaAsset.findFirst({where:{id:row.proofAssetId,sha256:row.proofHash,status:'READY',visibility:'PRIVATE',variants:{path:['uploadPurpose'],equals:'EVIDENCE_FILE'}}}))?.id;}
     if(kind==='points-returns')return (await this.db.pointsRedemption.findUnique({where:{id}}))?.returnProofAssetId;
     if(kind==='promoters')return (await this.db.promoterProfile.findUnique({where:{id}}))?.proofAssetId;
     if(kind==='accruals')return (await this.db.referralOrder.findUnique({where:{id}}))?.feeProofAssetId;
@@ -223,13 +230,13 @@ export class MediaService {
     if (!signature || extra || signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) throw new UnauthorizedException('播放凭证无效');
     let ticket: Ticket;
     try { ticket = JSON.parse(Buffer.from(encoded!, 'base64url').toString()); } catch { throw new UnauthorizedException('播放凭证无效'); }
-    if ((!ticket.referralProofId && !ticket.giftContractId && !ticket.giftSettlementId && !ticket.evidenceId && !ticket.articleId && !ticket.replayReviewId && !ticket.liveSessionId && !ticket.lessonId && !ticket.submissionId && !ticket.checkinId && !ticket.threadId && !ticket.uploadId && !ticket.digitalDeliveryId) || !Number.isFinite(ticket.expires) || ticket.expires <= Date.now()) throw new UnauthorizedException('媒体凭证已过期，请重新打开');
+    if ((!ticket.adminAssetId && !ticket.referralProofId && !ticket.giftContractId && !ticket.giftSettlementId && !ticket.evidenceId && !ticket.articleId && !ticket.replayReviewId && !ticket.liveSessionId && !ticket.lessonId && !ticket.submissionId && !ticket.checkinId && !ticket.threadId && !ticket.uploadId && !ticket.digitalDeliveryId) || !Number.isFinite(ticket.expires) || ticket.expires <= Date.now()) throw new UnauthorizedException('媒体凭证已过期，请重新打开');
     let assetId: string | null = null;
     if (ticket.userId) {
       const session = await this.db.authSession.findFirst({ where: { id: ticket.sessionId ?? '', userId: ticket.userId, kind: ticket.sessionKind ?? 'APP', revokedAt: null, expiresAt: { gt: new Date() }, user: { status: 'ACTIVE' } }, include: { user: true } });
       if (!session) throw new UnauthorizedException('请重新登录');
       if(ticket.sessionKind==='ADMIN') {
-        const needed=ticket.referralProofKind==='service-delivery'?'orders.read':ticket.referralProofKind==='operating-delivery'?null:ticket.referralProofId?(['member-gift-pool','member-gift-return'].includes(ticket.referralProofKind!)?'products.read':ticket.referralProofKind==='points-returns'?'members.read':ticket.referralProofKind==='promoters'?'courses.read':'finance.read'):ticket.giftContractId||ticket.giftSettlementId?'finance.read':ticket.evidenceId?ticket.evidenceScope+'.read':ticket.articleId?'content.read':ticket.replayReviewId?'live.review':ticket.threadId?'community.read':ticket.submissionId||ticket.checkinId?'teaching.read':null;
+        const needed=ticket.adminAssetId?'media.read':ticket.referralProofKind==='service-delivery'?'orders.read':ticket.referralProofKind==='operating-delivery'?null:ticket.referralProofId?(['member-gift-pool','member-gift-return'].includes(ticket.referralProofKind!)?'products.read':ticket.referralProofKind==='points-returns'?'members.read':ticket.referralProofKind==='promoters'?'courses.read':'finance.read'):ticket.giftContractId||ticket.giftSettlementId?'finance.read':ticket.evidenceId?ticket.evidenceScope+'.read':ticket.articleId?'content.read':ticket.replayReviewId?'live.review':ticket.threadId?'community.read':ticket.submissionId||ticket.checkinId?'teaching.read':null;
         if(ticket.referralProofKind==='service-delivery')requireRoles({actor:session.user} as AuthRequest,['OPERATOR','FINANCE']);
         if(ticket.referralProofKind?.startsWith('operating-')){requireRoles({actor:session.user} as AuthRequest,ticket.referralProofKind==='operating-delivery'?['OPERATOR','FINANCE']:['FINANCE']);if(ticket.referralProofKind==='operating-delivery'&&!(await this.permissions.resolve(session.user.roles)).some(p=>['courses.read','finance.read'].includes(p)))throw new ForbiddenException('服务交付凭证权限已撤销');}
         if(needed&&!(await this.permissions.resolve(session.user.roles)).includes(needed))throw new ForbiddenException('媒体访问权限已撤销，请联系管理员');
@@ -248,6 +255,7 @@ export class MediaService {
       }
       if(ticket.threadId&&ticket.sessionKind==='ADMIN')requireRoles({actor:session.user} as AuthRequest,['OPERATOR','MODERATOR']);
     }
+    if(ticket.adminAssetId){if(!ticket.userId||ticket.sessionKind!=='ADMIN')throw new UnauthorizedException('请登录运营后台');const asset=await this.db.mediaAsset.findUnique({where:{id:ticket.adminAssetId}});if(!asset||asset.version!==ticket.adminAssetVersion||asset.status!=='READY'||(asset.variants as {uploadPurpose?:string})?.uploadPurpose||asset.id!==ticket.assetId)throw new NotFoundException('课件已变化，请重新预览');assetId=asset.id;}
     if(ticket.referralProofId){if(ticket.sessionKind!=='ADMIN'||!ticket.userId||!ticket.referralProofKind)throw new UnauthorizedException();const bound=await this.referralProof(ticket.referralProofKind,ticket.referralProofId);if(!bound||bound!==ticket.assetId)throw new NotFoundException('凭证已变化');assetId=bound;}
     if(ticket.threadId){
       const asset=await this.forumAsset(ticket.threadId,ticket.assetId??'',ticket.userId,ticket.sessionKind==='ADMIN',!!ticket.forumMedia);
@@ -340,6 +348,7 @@ export class MediaController {
   @Post('admin/teaching/submissions/:id/images/:assetId') @UseGuards(AdminGuard) adminImageTicket(@Param('id', ParseUUIDPipe) id: string, @Param('assetId', ParseUUIDPipe) assetId: string, @Req() req: AuthRequest) { return this.media.imageTicket(id, assetId, req); }
   @Get('admin/media') @UseGuards(AdminGuard) async list(@Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return (await this.media.library(Object.assign(new MediaQuery(),{size:50}))).items; }
   @Get('admin/media-library') @UseGuards(AdminGuard) library(@Query() query:MediaQuery) {return this.media.library(query);}
+  @Post('admin/media/assets/:id/preview') @UseGuards(AdminGuard) assetPreview(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.assetPreview(id,req);}
   @Get('admin/media/assets/:id') @UseGuards(AdminGuard) asset(@Param('id',ParseUUIDPipe) id:string){return this.media.asset(id);}
   @Post('articles/:id/blocks/:blockId/media') @UseGuards(OptionalUserGuard) articleTicket(@Param('id',ParseUUIDPipe) id:string,@Param('blockId') blockId:string,@Req() req:AuthRequest){return this.media.articleTicket(id,blockId,req);}
   @Post('admin/articles/:id/blocks/:blockId/media') @UseGuards(AdminGuard) articlePreview(@Param('id',ParseUUIDPipe) id:string,@Param('blockId') blockId:string,@Req() req:AuthRequest){return this.media.articleTicket(id,blockId,req,true);}

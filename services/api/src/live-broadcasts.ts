@@ -1,3 +1,4 @@
+import {imageUrlPattern} from './image-url.js';
 import {BadRequestException,Body,ConflictException,Controller,Get,Injectable,NotFoundException,Param,ParseUUIDPipe,Post,Req,UseGuards} from '@nestjs/common';
 import {IsIn,IsInt,IsISO8601,IsOptional,IsString,IsUUID,Length,Min} from 'class-validator';
 import {randomUUID} from 'node:crypto';
@@ -33,7 +34,7 @@ export class LiveBroadcasts {
     requireRoles(req,['ADMIN']);const title=dto.title.trim(),summary=dto.summary.trim(),scheduledAt=new Date(dto.scheduledAt),cover=(dto.cover??'').trim();
     if(!title||!summary)throw new BadRequestException('请填写直播主题与主要内容');
     if(+scheduledAt<Date.now()-60000||+scheduledAt>Date.now()+366*86400000)throw new BadRequestException('请选择现在至一年内的北京时间');
-    if(cover&&!/^\/static\/art\/[\w.-]+\.(svg|png|jpg|webp)$/.test(cover)&&!/^https:\/\/[^\s<>"']+$/.test(cover))throw new BadRequestException('封面须为HTTPS图片地址');
+    if(cover&&!/^\/static\/art\/[\w.-]+\.(svg|png|jpg|webp)$/.test(cover)&&!imageUrlPattern.test(cover))throw new BadRequestException('封面须为HTTPS图片地址');
     return this.db.$transaction(async tx=>{
       const sessionId=id??dto.requestKey;await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${sessionId}))::text`;
       const existing=await tx.liveSession.findUnique({where:{id:sessionId}});

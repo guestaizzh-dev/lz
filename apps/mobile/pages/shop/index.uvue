@@ -13,11 +13,11 @@
 <view class="icon-button icon-control"><AppIcon name="shopping-cart" :size="20"/><button class="icon-hit-target" aria-label="购物车" @click="openPage('shop/cart')"></button></view>
 </view>
 <view class="category-grid">
-<view v-for="item in categories" :key="item.label" class="category-item" @click="category=category===item.label?'全部':item.label">
-<view :class="['category-circle',category===item.label?'category-circle-selected':'']">
-<AppIcon :name="item.icon" :size="23" :active="category===item.label"/>
+<view v-for="item in categories" :key="item.label" class="category-item" @click="category=category===item.code?'全部':item.code">
+<view :class="['category-circle',category===item.code?'category-circle-selected':'']">
+<AppIcon :name="item.icon" :size="23" :active="category===item.code"/>
 </view>
-<text :class="['category-label',category===item.label?'category-label-selected':'']">{{item.label}}</text>
+<text :class="['category-label',category===item.code?'category-label-selected':'']">{{item.label}}</text>
 </view>
 </view>
 <view class="chips shop-filters">
@@ -28,6 +28,7 @@
 <text class="chip-text">价格 {{['recent','popular'].includes(sort)?'↕':sort==='priceAsc'?'↑':'↓'}}</text>
 </view>
 </view>
+<text v-if="categoryError" class="muted" @click="refreshCategories()">{{categoryError}}</text>
 <ContentState v-if="loading&&!products.length||error" :loading="loading" :error="error" @retry="retry()"/>
 <view v-if="!error&&(!loading||products.length)">
 <view class="product-grid">
@@ -51,11 +52,12 @@
 </view>
 </template>
 <script setup lang="ts">
+import {useCategories} from '../../lib/categories';
 import InkBackdrop from '../../components/InkBackdrop.uvue';
 
 import SafeTop from '../../components/SafeTop.uvue';
 import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {money,goProduct} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {artwork,viewWidth,openPage} from '../../lib/presentation';import type {Product} from '../../lib/api';
-const cardWidth=viewWidth()*0.485-2,categories=[{label:'经典典籍',icon:'book-open'},{label:'文创',icon:'bag'},{label:'养生用品',icon:'flower-lotus'},{label:'修行工具',icon:'leaf'},{label:'线下服务',icon:'calendar-blank'}],category=ref('全部'),query=ref(''),sort=ref('recent');
-const {items:products,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Product>('products',()=>({category:category.value,q:query.value,sort:sort.value}));const sorted=computed(()=>products.value);watch([category,sort],()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());
+const {categories,categoryError,refreshCategories}=useCategories('PRODUCT',false);const cardWidth=viewWidth()*0.485-2,category=ref('全部'),query=ref(''),sort=ref('recent');
+const {items:products,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Product>('products',()=>({category:category.value,q:query.value,sort:sort.value}));const sorted=computed(()=>products.value);watch([category,sort],()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());onShow(async()=>{await refreshCategories();if(category.value!=='全部'&&!categories.value.some(item=>item.code===category.value))category.value='全部';});
 </script>
-<style>@import '../../styles/app.css';.shop-search{flex:1;margin:0 0 0 14px;}.shop-heading{margin-bottom:16px;}.shop-filters{border-style:solid;border-width:0;margin-bottom:10px;border-bottom-width:1px;border-bottom-color:#E3DCCF;}.product-title{min-height:46px;}.product-caption{font-family:AcademySans;font-size:12px;color:#6A7578;line-height:19px;margin-top:2px;height:38px;overflow:hidden;}.product-cart{border-style:solid;border-width:0;background-color:transparent;border-width:0;width:31px;height:32px;padding:0;margin:0;align-items:center;justify-content:center;}</style>
+<style>@import '../../styles/app.css';.category-grid{flex-wrap:wrap;}.shop-search{flex:1;margin:0 0 0 14px;}.shop-heading{margin-bottom:16px;}.shop-filters{border-style:solid;border-width:0;margin-bottom:10px;border-bottom-width:1px;border-bottom-color:#E3DCCF;}.product-title{min-height:46px;}.product-caption{font-family:AcademySans;font-size:12px;color:#6A7578;line-height:19px;margin-top:2px;height:38px;overflow:hidden;}.product-cart{border-style:solid;border-width:0;background-color:transparent;border-width:0;width:31px;height:32px;padding:0;margin:0;align-items:center;justify-content:center;}</style>

@@ -12,12 +12,14 @@ async function fingerprint(file:File){
   const samples=new Blob([file.slice(0,1048576),file.slice(Math.max(0,file.size-1048576)),JSON.stringify([file.size,file.lastModified,file.name])]);
   return [...new Uint8Array(await crypto.subtle.digest('SHA-256',await samples.arrayBuffer()))].map(byte=>byte.toString(16).padStart(2,'0')).join('');
 }
-export default function MediaUploader({onReady}:{onReady?:(asset:Asset)=>void}){
+export default function MediaUploader({onReady,onBusyChange,compact=false}:{compact?:boolean;onReady?:(asset:Asset)=>void;onBusyChange?:(busy:boolean)=>void}){
   const {message}=App.useApp(),[task,setTask]=useState<UploadState>(),[file,setFile]=useState<File>(),[busy,setBusy]=useState(false),[paused,setPaused]=useState(false),[sent,setSent]=useState(0),[error,setError]=useState('');
   const active=useRef<AbortController|undefined>(undefined),alive=useRef(true),running=useRef(false),readyCallback=useRef(onReady);readyCallback.current=onReady;
+  const busyCallback=useRef(onBusyChange);busyCallback.current=onBusyChange;
+  useEffect(()=>{busyCallback.current?.(busy);return()=>busyCallback.current?.(false);},[busy]);
   const [pending,setPending]=useState<UploadState[]>([]);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;active.current?.abort();};},[]);
-  useEffect(()=>{let mounted=true;const load=()=>void api<UploadState[]>('/admin/media/uploads').then(rows=>{if(mounted)setPending(rows);}).catch(()=>{});load();const timer=setInterval(load,5000);return()=>{mounted=false;clearInterval(timer);};},[]);
+  useEffect(()=>{if(compact)return;let mounted=true;const load=()=>void api<UploadState[]>('/admin/media/uploads').then(rows=>{if(mounted)setPending(rows);}).catch(()=>{});load();const timer=setInterval(load,5000);return()=>{mounted=false;clearInterval(timer);};},[compact]);
   async function watchProcessing(start:UploadState,signal:AbortSignal){
     let state=start;
     while(state.state==='PROCESSING'&&!signal.aborted&&alive.current){
@@ -29,7 +31,7 @@ export default function MediaUploader({onReady}:{onReady?:(asset:Asset)=>void}){
     if(state.state==='FAILED')throw new Error(state.failure??'媒体处理失败，请检查源文件或重试');
     if(state.state==='READY'&&state.assetId){
       const asset=await api<Asset>('/admin/media/assets/'+state.assetId);readyCallback.current?.(asset);
-      message.success('媒体处理完成，可以绑定课程并送审');
+      message.success('课件已就绪，可以保存或发布');
     }
   }
   async function run(selected:File){
@@ -68,7 +70,7 @@ export default function MediaUploader({onReady}:{onReady?:(asset:Asset)=>void}){
     <Typography.Text type="secondary" style={{marginLeft:12}}>单文件小于 2GB，支持 200MB 以上课件；中断后重新选择原文件继续。</Typography.Text>
     {task&&<div style={{marginTop:12,padding:16,background:'#fafafa',border:'1px solid #eee',borderRadius:8}}>
       <Typography.Text strong>{task.name}</Typography.Text><Progress percent={Math.min(100,Math.floor(sent/task.bytes*100))} status={error?'exception':task.state==='READY'?'success':busy?'active':'normal'}/>
-      <Space wrap><Typography.Text type="secondary">{task.state==='PROCESSING'?'已上传，正在后台优化音视频；可以继续上传其他课件':task.state==='READY'?'处理完成，可用于课程和人工回放':task.state==='FAILED'?'处理失败，原文件已保留 7 天供重试':`${(sent/1048576).toFixed(1)} / ${(task.bytes/1048576).toFixed(1)} MB${paused?' · 已暂停':''}`}</Typography.Text>
+      <Space wrap><Typography.Text type="secondary">{task.state==='PROCESSING'?'已上传，正在后台优化音视频；可以继续上传其他课件':task.state==='READY'?'处理完成，可直接使用':task.state==='FAILED'?'处理失败，原文件已保留 7 天供重试':`${(sent/1048576).toFixed(1)} / ${(task.bytes/1048576).toFixed(1)} MB${paused?' · 已暂停':''}`}</Typography.Text>
         {busy&&task.state==='UPLOADING'&&<Button size="small" onClick={()=>active.current?.abort()}>暂停</Button>}
         {!busy&&file&&task.state==='UPLOADING'&&<Button size="small" onClick={()=>void run(file)}>继续上传</Button>}
         {!busy&&task.state==='FAILED'&&<Button size="small" onClick={()=>void follow(task)}>重新处理</Button>}

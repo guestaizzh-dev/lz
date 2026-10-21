@@ -11,7 +11,7 @@
 <view class="cover-play-layer"><view class="cover-play"><AppIcon name="play" :size="20"/></view></view>
 </view>
 <view class="course-title-block">
-<text class="eyebrow">课程 · {{course!.category}}</text>
+<text class="eyebrow">课程 · {{course!.categoryLabel??course!.category}}</text>
 <text class="detail-title course-title">{{course!.title}}</text>
 <text class="course-subtitle">{{course!.subtitle}}</text>
 <view class="row course-metadata">

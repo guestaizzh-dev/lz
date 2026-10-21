@@ -1,3 +1,5 @@
+import {Categories,validateCategory} from './categories.js';
+import {imageUrlPattern} from './image-url.js';
 import { validateEvidencePublication } from './evidence.js';
 import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
@@ -9,6 +11,7 @@ import type { AuthRequest } from './auth.js';
 import type { PublishStatus } from './generated/prisma/client.js';
 
 export class TableQuery {
+  @IsOptional() @IsString() @Length(1,40) category?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) size = 20;
   @IsOptional() @IsIn(['DRAFT', 'REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']) status?: PublishStatus;
@@ -18,7 +21,7 @@ class BlockDto {
   @IsString() @Matches(/^[a-zA-Z0-9_-]{1,80}$/) id!: string;
   @IsIn(['paragraph', 'quote', 'image', 'audio', 'video']) type!: string;
   @IsString() @Length(0, 10000) text!: string;
-  @IsOptional() @IsString() @Matches(/^https:\/\/[^\s]+$/) url?: string;
+  @IsOptional() @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) url?: string;
   @IsOptional() @IsString() @Length(0, 500) caption?: string;
   @IsOptional() @IsUUID() mediaId?: string;
 }
@@ -26,10 +29,10 @@ class ArticleDto {
   @IsOptional() @IsIn(['PLAIN','CLASSIC','INK']) draftTemplateCode?:string;
   @IsString() @Length(1, 120) title!: string;
   @IsString() @Length(1, 500) summary!: string;
-  @IsIn(['经典原文', '名师解读', '实践心得', '道学常识']) category!: string;
+  @IsString() @Length(1, 40) category!: string;
   @IsString() @Length(1, 100) author!: string;
   @IsString() @Length(1, 500) source!: string;
-  @IsString() @Matches(/^(https:\/\/[^\s]+|\/static\/art\/[a-z-]+\.svg)$/) cover!: string;
+  @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) cover!: string;
   @IsArray() @ArrayMinSize(1) @ArrayMaxSize(100) @ValidateNested({ each: true }) @Type(() => BlockDto) blocks!: BlockDto[];
   @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) @Length(1, 30, { each: true }) tags!: string[];
   @IsIn(['PUBLIC', 'MEMBER']) visibility!: 'PUBLIC' | 'MEMBER';
@@ -41,7 +44,7 @@ class ArticleEditDto extends ArticleDto {
 }
 export class TransitionDto {
   @IsIn(['submit', 'publish', 'reject', 'archive', 'revise']) action!: string;
-  @IsString() @Length(1, 500) reason!: string;
+  @IsOptional() @IsString() @Length(1, 500) reason: string = '管理员操作';
   @IsInt() @Min(1) expectedVersion!: number;
 }
 @Injectable()
@@ -89,7 +92,7 @@ export class AdminService {
     return {...totals[0],trend};
   }
   async articles(query: TableQuery) {
-    const where = { ...(query.status ? { status: query.status } : {}), ...(query.q ? { OR: [{title:{ contains:query.q,mode:'insensitive' as const }},{id:query.q}] } : {}) };
+    const where = { ...(query.category ? {category:query.category} : {}), ...(query.status ? { status: query.status } : {}), ...(query.q ? { OR: [{title:{ contains:query.q,mode:'insensitive' as const }},{id:query.q}] } : {}) };
     const [items, total] = await this.db.$transaction([
       this.db.article.findMany({ where, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], skip: (query.page - 1) * query.size, take: query.size }),
       this.db.article.count({ where }),
@@ -103,6 +106,7 @@ export class AdminService {
     const { expectedVersion: _, ...record } = data as ArticleEditDto;
     const safeData = { ...record, blocks: record.blocks.map(block => ({ id:block.id, type:block.type, text:['paragraph','quote'].includes(block.type)?block.text:'', ...(block.type==='image'?{url:block.url}:{}), ...(['audio','video'].includes(block.type)?{mediaId:block.mediaId}:{}), ...(['audio','video','image'].includes(block.type)&&block.caption?{caption:block.caption}:{}) })) };
     return this.db.$transaction(async tx => {
+      await validateCategory(tx, 'ARTICLE', data.category, id ? (await tx.article.findUnique({where:{id},select:{category:true}}))?.category : undefined);
       await validateArticleMedia(tx, data.blocks);
       let item;
       if (id) {
@@ -117,9 +121,9 @@ export class AdminService {
   async transition(req: AuthRequest, id: string, dto: TransitionDto) {
     requireRoles(req, dto.action === 'publish' || dto.action === 'reject' ? ['MODERATOR'] : ['OPERATOR']);
     const states: Record<string, { from: PublishStatus[]; to: PublishStatus }> = {
-      submit: { from: ['DRAFT', 'REJECTED'], to: 'REVIEW' }, publish: { from: ['REVIEW'], to: 'PUBLISHED' },
+      submit: { from: ['DRAFT', 'REJECTED'], to: 'REVIEW' }, publish: { from: req.actor.roles.includes('ADMIN') ? ['DRAFT','REJECTED','REVIEW'] : ['REVIEW'], to: 'PUBLISHED' },
       reject: { from: ['REVIEW'], to: 'REJECTED' }, archive: { from: ['PUBLISHED'], to: 'ARCHIVED' },
-      revise: { from: ['ARCHIVED', 'REJECTED'], to: 'DRAFT' },
+      revise: { from: req.actor.roles.includes('ADMIN') ? ['ARCHIVED','REJECTED','PUBLISHED'] : ['ARCHIVED','REJECTED'], to: 'DRAFT' },
     };
     const state = states[dto.action]!;
     return this.db.$transaction(async tx => {
@@ -146,9 +150,9 @@ export class AdminService {
 }
 @Controller('admin') @UseGuards(AdminGuard)
 export class AdminController {
-  constructor(private readonly admin: AdminService, private readonly db: Database) {}
+  constructor(private readonly admin: AdminService, private readonly db: Database,private readonly categories:Categories) {}
   @Get('overview') overview(@Req() req: AuthRequest) { return this.admin.overview(req); }
-  @Get('articles') articles(@Query() query: TableQuery, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.admin.articles(query); }
+  @Get('articles') articles(@Query() query: TableQuery, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.admin.articles(query).then(value=>this.categories.decorate('ARTICLE',value)); }
   @Post('articles') save(@Body() body: ArticleDto, @Req() req: AuthRequest) { return this.admin.save(req, body); }
   @Patch('articles/:id') edit(@Param('id', ParseUUIDPipe) id: string, @Body() body: ArticleEditDto, @Req() req: AuthRequest) { return this.admin.save(req, body, id); }
   @Post('articles/:id/transition') transition(@Param('id', ParseUUIDPipe) id: string, @Body() body: TransitionDto, @Req() req: AuthRequest) { return this.admin.transition(req, id, body); }

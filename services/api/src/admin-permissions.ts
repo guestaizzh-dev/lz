@@ -48,6 +48,9 @@ export function routePermission(method:string,path:string,body?:Record<string,un
   const route=path.replace(/^\/api\/v1\//,'').replace(/^\//,'');
   const parts=route.split('/'),root=parts[1],read=['GET','HEAD','OPTIONS'].includes(method);
   if(root==='auth')return null;
+  if(root==='categories')return read?'config.read':'config.write';
+  if(root==='media'&&parts.at(-1)==='preview')return 'media.read';
+  if(root==='images')return read?'media.read':'media.write';
   if(root==='payments')return 'finance.refund';
   if(root==='community-enhancements'){if(parts[2]==='cases'&&parts.at(-1)==='comment')return 'teaching.write';return read?'community.read':parts.includes('review')||parts.includes('judge')?'community.review':'community.write';}
   if(root==='member-gifts')return read||parts.at(-1)==='proof'&&parts.length===5?'products.read':parts[2]==='plans'?'members.write':'products.write';

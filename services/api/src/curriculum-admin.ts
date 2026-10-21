@@ -1,3 +1,5 @@
+import {Categories,validateCategory} from './categories.js';
+import {imageUrlPattern} from './image-url.js';
 import {validateOfflineCourse} from './offline-courses.js';
 import {activateMemberGift} from './member-gift-stock.js';
 import { validateEvidencePublication } from './evidence.js';
@@ -34,9 +36,9 @@ class CourseDto {
   @IsString() @Length(1, 120) title!: string;
   @IsString() @Length(1, 500) subtitle!: string;
   @IsString() @Length(1, 10000) description!: string;
-  @IsIn(['经典研习', '实践修行', '生活应用', '少儿启蒙']) category!: string;
+  @IsString() @Length(1, 40) category!: string;
   @IsIn(['VIDEO', 'AUDIO', 'LIVE', 'COHORT', 'OFFLINE']) format!: CourseFormat;
-  @IsString() @Matches(/^(https:\/\/[^\s]+|\/static\/art\/[a-z-]+\.svg)$/) cover!: string;
+  @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) cover!: string;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsUUID() teacherId!: string;
   @IsOptional() @IsInt() @Min(1) @Max(3) membershipTier?: number | null;
@@ -54,7 +56,7 @@ class TeacherDto {
   @IsString() @Length(1, 100) name!: string;
   @IsString() @Length(1, 200) title!: string;
   @IsString() @Length(1, 10000) bio!: string;
-  @IsOptional() @IsString() @Matches(/^https:\/\/[^\s]+$/) portrait?: string | null;
+  @IsOptional() @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) portrait?: string | null;
   @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) @Length(1, 40, { each: true }) expertise!: string[];
 }
 class GrantDto {
@@ -84,7 +86,7 @@ class PlanDto {
 export class CurriculumAdminService {
   constructor(private readonly db: Database) {}
   async list(query: TableQuery) {
-    const where = { ...(query.status ? { status: query.status } : {}), ...(query.q ? { title: { contains: query.q, mode: 'insensitive' as const } } : {}) };
+    const where = { ...(query.category ? {category:query.category} : {}), ...(query.status ? { status: query.status } : {}), ...(query.q ? { title: { contains: query.q, mode: 'insensitive' as const } } : {}) };
     const [items, total] = await this.db.$transaction([this.db.course.findMany({ where, include: { teacher: true }, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], skip: (query.page - 1) * query.size, take: query.size }), this.db.course.count({ where })]);
     return { items, total };
   }
@@ -111,6 +113,7 @@ export class CurriculumAdminService {
     const { chapters, expectedVersion: _, earlyAccessAt, publicOpenAt, ...fields } = dto as CourseEditDto;
     const data={...fields,earlyAccessAt:earlyAccessAt?new Date(earlyAccessAt):null,publicOpenAt:publicOpenAt?new Date(publicOpenAt):null};
     return this.db.$transaction(async tx => {
+      await validateCategory(tx, 'COURSE', dto.category, id ? (await tx.course.findUnique({where:{id},select:{category:true}}))?.category : undefined);
       let course;
       const stats = { chaptersCount: chapters.length, durationMinutes: Math.ceil(chapters.reduce((sum, c) => sum + c.durationSeconds, 0) / 60) };
       if (id) {
@@ -134,7 +137,7 @@ export class CurriculumAdminService {
   async transition(req: AuthRequest, id: string, dto: TransitionDto) {
     requireRoles(req, ['publish', 'reject'].includes(dto.action) ? ['MODERATOR'] : ['OPERATOR']);
     const states: Record<string, { from: PublishStatus[]; to: PublishStatus }> = {
-      submit: { from: ['DRAFT', 'REJECTED'], to: 'REVIEW' }, publish: { from: ['REVIEW'], to: 'PUBLISHED' }, reject: { from: ['REVIEW'], to: 'REJECTED' }, archive: { from: ['PUBLISHED'], to: 'ARCHIVED' }, revise: { from: ['ARCHIVED', 'REJECTED'], to: 'DRAFT' },
+      submit: { from: ['DRAFT', 'REJECTED'], to: 'REVIEW' }, publish: { from: req.actor.roles.includes('ADMIN') ? ['DRAFT','REJECTED','REVIEW'] : ['REVIEW'], to: 'PUBLISHED' }, reject: { from: ['REVIEW'], to: 'REJECTED' }, archive: { from: ['PUBLISHED'], to: 'ARCHIVED' }, revise: { from: req.actor.roles.includes('ADMIN') ? ['ARCHIVED','REJECTED','PUBLISHED'] : ['ARCHIVED','REJECTED'], to: 'DRAFT' },
     };
     const state = states[dto.action]!;
     return this.db.$transaction(async tx => {
@@ -258,8 +261,8 @@ export class CurriculumAdminService {
 }
 @Controller('admin') @UseGuards(AdminGuard)
 export class CurriculumAdminController {
-  constructor(private readonly service: CurriculumAdminService, private readonly db: Database) {}
-  @Get('courses') list(@Query() query: TableQuery, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.service.list(query); }
+  constructor(private readonly service: CurriculumAdminService, private readonly db: Database,private readonly categories:Categories) {}
+  @Get('courses') list(@Query() query: TableQuery, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); return this.service.list(query).then(value=>this.categories.decorate('COURSE',value)); }
   @Get('courses/:id') async detail(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest) { requireRoles(req, ['OPERATOR', 'MODERATOR']); const row = await this.db.course.findUnique({ where: { id }, include: { chapters: { orderBy: { position: 'asc' } } } }); if (!row) throw new NotFoundException('课程不存在'); return row; }
   @Post('courses') create(@Body() dto: CourseDto, @Req() req: AuthRequest) { return this.service.save(req, dto); }
   @Patch('courses/:id') edit(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CourseEditDto, @Req() req: AuthRequest) { return this.service.save(req, dto, id); }
@@ -273,7 +276,7 @@ export class CurriculumAdminController {
   }
   @Post('teachers/:id/transition') async teacherTransition(@Param('id', ParseUUIDPipe) id: string, @Body() dto: TransitionDto, @Req() req: AuthRequest) {
     requireRoles(req, ['publish', 'reject'].includes(dto.action) ? ['MODERATOR'] : ['OPERATOR']);
-    const states: Record<string, [PublishStatus[], PublishStatus]> = { submit: [['DRAFT', 'REJECTED'], 'REVIEW'], publish: [['REVIEW'], 'PUBLISHED'], reject: [['REVIEW'], 'REJECTED'], archive: [['PUBLISHED'], 'ARCHIVED'], revise: [['ARCHIVED', 'REJECTED'], 'DRAFT'] };
+    const states: Record<string, [PublishStatus[], PublishStatus]> = { submit: [['DRAFT', 'REJECTED'], 'REVIEW'], publish: [req.actor.roles.includes('ADMIN') ? ['DRAFT','REJECTED','REVIEW'] : ['REVIEW'], 'PUBLISHED'], reject: [['REVIEW'], 'REJECTED'], archive: [['PUBLISHED'], 'ARCHIVED'], revise: [req.actor.roles.includes('ADMIN') ? ['ARCHIVED','REJECTED','PUBLISHED'] : ['ARCHIVED','REJECTED'], 'DRAFT'] };
     return this.db.$transaction(async tx => { if(['submit','publish'].includes(dto.action))await validateEvidencePublication(tx,id); const [from, to] = states[dto.action]!; const changed = await tx.teacher.updateMany({ where: { id, version: dto.expectedVersion, status: { in: from } }, data: { status: to, version: { increment: 1 } } }); if (!changed.count) throw new ConflictException('名师状态或版本已变化'); await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'teacher.' + dto.action, resource: 'teacher', resourceId: id, changes: { reason: dto.reason } } }); return tx.teacher.findUniqueOrThrow({ where: { id } }); });
   }
   @Patch('teachers/:id') async editTeacher(@Param('id', ParseUUIDPipe) id: string, @Body() dto: TeacherEditDto, @Req() req: AuthRequest) {

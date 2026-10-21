@@ -1,3 +1,5 @@
+import ImagePicker from '@/components/ImagePicker';
+import {useUploads} from '@/components/ImagePicker/use-uploads';
 import {PageContainer,ProTable,type ProColumns,type ActionType} from '@ant-design/pro-components';
 import {App,Alert,Button,DatePicker,Empty,Form,Input,Modal,Radio,Segmented,Space,Tag,Typography} from 'antd';
 import {useEffect,useRef,useState} from 'react';
@@ -12,6 +14,7 @@ type Result={items:Broadcast[];recording:{ready:boolean;reason:string}};
 const labels:Record<string,string>={SCHEDULED:'待开播',PREPARING:'准备中',LIVE:'直播中',ENDED:'已结束',REPLAY_READY:'可回放',CANCELLED:'已取消'};
 const recordingLabels:Record<string,string>={WAITING:'等待录制',STARTING:'录制连接中',ARMED:'录制已就绪',RECORDING:'服务端录制中',PROCESSING:'回放处理中',READY:'回放已生成',FAILED:'录制需处理'};
 export default function Broadcasts(){
+  const {uploading,track}=useUploads();
   const{message,modal}=App.useApp(),table=useRef<ActionType>(undefined),[data,setData]=useState<Result>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[filter,setFilter]=useState('全部'),[editing,setEditing]=useState<Broadcast|null|undefined>(),[studio,setStudio]=useState<{row:Broadcast;player:string;key:string}>(),[preview,setPreview]=useState(''),[form]=Form.useForm();
   const owner=useRef(auth?.user.id),alive=useRef(true),loading=useRef(false),requestKey=useRef(''),lease=useRef('');
   const valid=()=>alive.current&&owner.current===auth?.user.id;
@@ -22,7 +25,7 @@ export default function Broadcasts(){
   async function operate(row:Broadcast,action:string){const current=await fresh(row);return api<{key:string;playerPath:string}>('/admin/live/broadcasts/'+row.id+'/action','POST',{action,expectedVersion:current.version});}
   async function leave(){const key=lease.current;lease.current='';setStudio(undefined);if(key)try{await api('/live/rtc/leave','POST',{key});}catch{}void reload();}
   function edit(row?:Broadcast){requestKey.current=crypto.randomUUID();form.resetFields();form.setFieldsValue(row?{title:row.title,summary:row.summary,scheduledAt:chinaPickerValue(row.scheduledAt),cover:row.cover}:{cover:''});setEditing(row??null);}
-  async function save(values:{title:string;summary:string;cover:string;scheduledAt:Parameters<typeof chinaPickerIso>[0]}){await run(async()=>{await api('/admin/live/broadcasts'+(editing?'/'+editing.id:''),'POST',{...values,scheduledAt:chinaPickerIso(values.scheduledAt),requestKey:requestKey.current,...(editing?{expectedVersion:editing.version}:{})});if(valid()){setEditing(undefined);message.success(editing?'直播预告已更新':'直播预告已发布，会员可在 App 查看');}});}
+  async function save(values:{title:string;summary:string;cover:string;scheduledAt:Parameters<typeof chinaPickerIso>[0]}){if(uploading)return;await run(async()=>{await api('/admin/live/broadcasts'+(editing?'/'+editing.id:''),'POST',{...values,scheduledAt:chinaPickerIso(values.scheduledAt),requestKey:requestKey.current,...(editing?{expectedVersion:editing.version}:{})});if(valid()){setEditing(undefined);message.success(editing?'直播预告已更新':'直播预告已发布，会员可在 App 查看');}});}
   function confirm(row:Broadcast,action:string){const cancel=action==='CANCEL',end=action==='END',hide=action==='HIDE_REPLAY';modal.confirm({title:cancel?'取消这场直播？':end?'结束本场直播？':hide?'撤下这场回放？':'确认发布回放？',content:cancel?'预约会员会收到取消通知。':end?'停止推流后，服务器会整理已录视频；处理完成后正常回放自动开放。':hide?'会员将暂时无法观看本场回放，可以随后重新发布。':'请先完整预览，确认内容和音画正常后发布给会员。',okText:cancel?'取消直播':end?'结束直播':hide?'撤下回放':'确认发布',cancelText:'返回',okButtonProps:{danger:cancel||end||hide},onOk:async()=>{await operate(row,action);await reload();}});}
   async function openStudio(row:Broadcast){await run(async()=>{if(lease.current)await leave();const result=await operate(row,'ENTER');if(!valid()){await api('/live/rtc/leave','POST',{key:result.key});return;}lease.current=result.key;setStudio({row:{...row,state:row.state==='SCHEDULED'?'PREPARING':row.state},key:result.key,player:'/api/v1'+result.playerPath});});}
   async function replay(row:Broadcast){await run(async()=>{const result=await api<{path:string}>('/admin/live/sessions/'+row.id+'/replay/review/preview','POST');if(valid())setPreview('/api/v1'+result.path);});}
@@ -54,7 +57,7 @@ export default function Broadcasts(){
         <Form.Item name="title" label="直播主题" rules={[{required:true,whitespace:true,message:'请填写直播主题'}]}><Input maxLength={120} showCount placeholder="例如：道德经中的生活智慧"/></Form.Item>
         <Form.Item name="scheduledAt" label="开播时间（北京时间）" rules={[{required:true,message:'请选择开播时间'}]}><DatePicker showTime format="YYYY-MM-DD HH:mm" style={{width:'100%'}}/></Form.Item>
         <Form.Item name="summary" label="主要内容" rules={[{required:true,whitespace:true,message:'请介绍本次直播内容'}]}><Input.TextArea rows={5} maxLength={500} showCount placeholder="介绍讲解主题、学习要点和参与方式，让会员提前了解。"/></Form.Item>
-        <Form.Item name="cover" label="直播封面" extra="选择书院主题封面，发布后在 App 展示。"><Radio.Group options={[{value:'',label:'书院山水'},{value:'/static/art/books.svg',label:'经典研习'},{value:'/static/art/meditation.svg',label:'静心修习'},{value:'/static/art/tea.svg',label:'茶与生活'}]}/></Form.Item>
+        <Form.Item name="cover" label="直播封面" extra="上传本地图片，也可留空使用书院默认封面。"><ImagePicker onBusyChange={value=>track("cover",value)}/></Form.Item>
         <Alert type="info" showIcon title="全部有效会员均可观看直播和回放" description="发布后即出现在 App，会员可预约提醒；不预约也能观看。"/>
       </Form>
     </Modal>

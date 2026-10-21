@@ -12,7 +12,7 @@ class EvidenceDto {
   @IsString() @Length(1, 150) title!: string;
   @IsString() @Length(1, 100) author!: string;
   @IsString() @Length(1, 150) edition!: string;
-  @IsString() @Matches(/^https:\/\/[^\s]+$/) sourceUrl!: string;
+  @IsOptional() @IsString() @Matches(/^https:\/\/[^\s]+$/) sourceUrl?: string;
   @IsString() @Length(1, 150) rightsHolder!: string;
   @IsString() @Length(1, 1000) licenseScope!: string;
   @IsOptional() @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) validUntil?: string;
@@ -51,7 +51,7 @@ export class EditorialController {
     requireRoles(req,['OPERATOR','MODERATOR']);await this.source(id,req);return this.media.evidenceTicket(id,evidenceId,req);
   }
   @Post('evidence') async addEvidence(@Param('id', ParseUUIDPipe) id: string, @Body() dto: EvidenceDto, @Req() req: AuthRequest) {
-    requireRoles(req, ['OPERATOR']); await this.source(id,req);
+    requireRoles(req, ['OPERATOR']); await this.source(id,req);if(!dto.sourceUrl&&!dto.proofAssetId)throw new BadRequestException('请上传来源资料，或提供公开来源链接');
     const kinds:Record<string,string[]>={article:['ANNOTATION','LICENSE','SOURCE'],product:['CULTURAL','QUALITY','LICENSE','SOURCE'],teacher:['CREDENTIAL','LINEAGE','LICENSE','SOURCE']};
     if(!kinds[this.kind(req)]!.includes(dto.kind))throw new BadRequestException('证据类型与内容不符');
     if([dto.title,dto.author,dto.edition,dto.rightsHolder,dto.licenseScope].some(v=>!v.trim()))throw new BadRequestException('来源资料不能为空白');
@@ -62,7 +62,7 @@ export class EditorialController {
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM "Resource" WHERE id=${id} FOR UPDATE`;
       if(dto.proofAssetId&&!await tx.mediaAsset.findFirst({where:{id:dto.proofAssetId,uploaderId:req.actor.id,status:'READY',variants:{path:['uploadPurpose'],equals:'EVIDENCE_FILE'}}}))throw new BadRequestException('请上传本账号的来源证据文件');
-      const row = await tx.sourceEvidence.create({ data: { ...dto, validFrom:from, validUntil: until, reviewState: 'PENDING' } });
+      const row = await tx.sourceEvidence.create({ data: { ...dto, validFrom:from, validUntil: until, reviewState: req.actor.roles.includes('ADMIN')?'APPROVED':'PENDING',...(req.actor.roles.includes('ADMIN')?{reviewerId:req.actor.id,reviewNote:'管理员确认来源资料并保存'}:{}) } });
       await tx.resourceEvidence.create({ data: { resourceId: id, evidenceId: row.id, purpose: dto.kind } });
       await tx.auditLog.create({ data: { actorId: req.actor.id, action: 'evidence.create', resource: this.kind(req), resourceId: id, changes: { evidenceId: row.id } } });
       return row;

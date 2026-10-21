@@ -1,3 +1,4 @@
+import MediaPreview from '@/components/MediaPreview';
 import { PageContainer, ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { Alert, App, Button, Tag, Typography, Upload } from 'antd';

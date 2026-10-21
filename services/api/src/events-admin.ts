@@ -1,3 +1,5 @@
+import {Categories,validateCategory} from './categories.js';
+import {imageUrlPattern} from './image-url.js';
 import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { IsBoolean, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Length, Matches, Max, Min } from 'class-validator';
 import { Database } from './database.js';
@@ -12,7 +14,7 @@ class EventDto {
   @IsString() @Length(1,40) category!:string;
   @IsOptional() @IsBoolean() studyTour?:boolean;
   @IsOptional() @IsString() @Length(0,4000) studyTourBrief?:string;
-  @IsString() @Matches(/^(https:\/\/[^\s]+|\/static\/art\/[a-z-]+\.svg)$/) cover!:string;
+  @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) cover!:string;
   @IsString() @Length(1,200) location!:string;
   @IsISO8601() startsAt!:string;
   @IsISO8601() endsAt!:string;
@@ -27,7 +29,7 @@ class EventEditDto extends EventDto {
 export class EventsAdmin {
   constructor(private readonly db:Database) {}
   async list(query:TableQuery) {
-    const where={...(query.status?{status:query.status}:{}),...(query.q?{OR:[{title:{contains:query.q,mode:'insensitive' as const}},{id:query.q}]}:{})};
+    const where={...(query.category?{category:query.category}:{}),...(query.status?{status:query.status}:{}),...(query.q?{OR:[{title:{contains:query.q,mode:'insensitive' as const}},{id:query.q}]}:{})};
     const [items,total]=await this.db.$transaction([this.db.event.findMany({where,orderBy:[{updatedAt:'desc'},{id:'desc'}],skip:(query.page-1)*query.size,take:query.size}),this.db.event.count({where})]);
     const teachers=await this.db.teacher.findMany({where:{id:{in:items.flatMap(x=>x.teacherId?[x.teacherId]:[])}},select:{id:true,name:true}});
     const staff=await this.db.user.findMany({where:{id:{in:items.map(item=>item.responsibleUserId)},status:'ACTIVE'},select:{id:true,nickname:true}});
@@ -41,6 +43,7 @@ export class EventsAdmin {
     const {expectedVersion:_,...data}=dto as EventEditDto;
     if(data.studyTour&&(!data.studyTourBrief||data.studyTourBrief.trim().length<10))throw new BadRequestException('研学活动须说明实际行程、集合安排、费用包含与不包含及必要参加条件');
     return this.db.$transaction(async tx=>{
+      await validateCategory(tx, 'EVENT', dto.category, id ? (await tx.event.findUnique({where:{id},select:{category:true}}))?.category : undefined);
       if(data.responsibleUserId&&!await tx.user.findFirst({where:{id:data.responsibleUserId,status:'ACTIVE',OR:[{roles:{has:'ADMIN'}},{roles:{has:'OPERATOR'}}]},select:{id:true}}))throw new BadRequestException('请选择有效的管理员或运营人员');
       if(data.teacherId&&!await tx.teacher.findFirst({where:{id:data.teacherId,status:'PUBLISHED'}}))throw new BadRequestException('请选择已发布的活动主讲');
       let event;
@@ -60,7 +63,7 @@ export class EventsAdmin {
   async transition(req:AuthRequest,id:string,dto:TransitionDto) {
     requireRoles(req,['publish','reject'].includes(dto.action)?['MODERATOR']:['OPERATOR']);
     if(dto.reason.trim().length<1)throw new BadRequestException('请填写操作原因');
-    const states:Record<string,{from:PublishStatus[];to:PublishStatus}>={submit:{from:['DRAFT','REJECTED'],to:'REVIEW'},publish:{from:['REVIEW'],to:'PUBLISHED'},reject:{from:['REVIEW'],to:'REJECTED'},archive:{from:['PUBLISHED'],to:'ARCHIVED'},revise:{from:['ARCHIVED','REJECTED'],to:'DRAFT'}};
+    const states:Record<string,{from:PublishStatus[];to:PublishStatus}>={submit:{from:['DRAFT','REJECTED'],to:'REVIEW'},publish:{from:req.actor.roles.includes('ADMIN')?['DRAFT','REJECTED','REVIEW']:['REVIEW'],to:'PUBLISHED'},reject:{from:['REVIEW'],to:'REJECTED'},archive:{from:['PUBLISHED'],to:'ARCHIVED'},revise:{from:req.actor.roles.includes('ADMIN')?['ARCHIVED','REJECTED','PUBLISHED']:['ARCHIVED','REJECTED'],to:'DRAFT'}};
     const state=states[dto.action]!;
     return this.db.$transaction(async tx=>{
       await tx.$queryRaw`SELECT id FROM "Event" WHERE id=${id} FOR UPDATE`;
@@ -70,6 +73,14 @@ export class EventsAdmin {
       if(dto.action==='revise'&&await tx.eventRegistration.count({where:{ticketTypeId:{in:(await tx.eventTicketType.findMany({where:{sessionId:{in:(await tx.eventSession.findMany({where:{eventId:id},select:{id:true}})).map(row=>row.id)}},select:{id:true}})).map(row=>row.id)},state:{notIn:['CANCELLED','REFUNDED']}}}))throw new ConflictException('活动已有报名记录，不能修改已售活动资料；请创建新的活动');
       const changed=await tx.event.updateMany({where:{id,version:dto.expectedVersion,status:event.status},data:{status:state.to,version:{increment:1}}});
       if(!changed.count)throw new ConflictException('活动已被其他人更新，请刷新');
+      if(state.to==='PUBLISHED'&&req.actor.roles.includes('ADMIN')&&!await tx.eventSession.count({where:{eventId:id}})){
+        const open=new Date();if(event.startsAt<=open)throw new BadRequestException('活动开始时间已过，请调整后再开放报名');
+        const cancel=new Date(Math.max(+open,+event.startsAt-3600000));
+        const session=await tx.eventSession.create({data:{eventId:id,startsAt:event.startsAt,endsAt:event.endsAt,publicOpenAt:open,cancelDeadline:cancel,location:event.location,capacity:event.capacity,state:'OPEN'}});
+        const ticket=await tx.eventTicketType.create({data:{sessionId:session.id,title:'普通席位',capacity:event.capacity,perUserLimit:1,active:true}});
+        await tx.saleOffer.create({data:{kind:'EVENT',eventTicketId:ticket.id,price:BigInt(event.price),active:true,quantityLimit:1,policySnapshot:{eventTitle:event.title,cancelDeadline:cancel.toISOString(),memberDiscountEligible:false}}});
+        await tx.auditLog.create({data:{actorId:req.actor.id,action:'event.session.create',resource:'event_session',resourceId:session.id,changes:{eventId:id,capacity:event.capacity,automatic:true}}});
+      }
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'event.'+dto.action,resource:'event',resourceId:id,requestId:req.requestId??'',reason:dto.reason,changes:{from:event.status,to:state.to,version:event.version+1}}});
       return {success:true};
     });
@@ -77,8 +88,8 @@ export class EventsAdmin {
 }
 @Controller('admin/events') @UseGuards(AdminGuard)
 export class EventsAdminController {
-  constructor(private readonly events:EventsAdmin) {}
-  @Get() list(@Query() query:TableQuery) {return this.events.list(query);}
+  constructor(private readonly events:EventsAdmin,private readonly categories:Categories) {}
+  @Get() list(@Query() query:TableQuery) {return this.events.list(query).then(value=>this.categories.decorate('EVENT',value));}
   @Get('teachers') teachers(){return this.events.teachers();}
   @Get('staff') staff(@Req() req:AuthRequest) {requireRoles(req,['OPERATOR']);return this.events.staff();}
   @Post() create(@Req() req:AuthRequest,@Body() dto:EventDto) {return this.events.save(req,dto);}

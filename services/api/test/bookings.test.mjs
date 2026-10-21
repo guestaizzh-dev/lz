@@ -174,7 +174,7 @@ test('service bookings, event seats and content linkage use real HTTP workflows'
       assert.equal((await call('/admin/content-relations/'+source.id+'/'+saved.body.id,moderator,'DELETE')).status,200);
       assert.equal((await call('/admin/content-relations/'+source.id,support)).status,403);
       await db.event.update({where:{id:event.id},data:{status:'PUBLISHED'}});
-      const course=await db.course.findFirstOrThrow({where:{title:'经典共学课程'}}),live=await db.liveRoom.create({data:{teacherId:teacher.id,provider:'TEST',providerRoomId:randomUUID(),categoryCode:'共读',accessRule:{}}});
+      const course=await db.course.findFirstOrThrow({where:{title:'经典共学课程'}}),liveResource=await db.resource.create({data:{kind:'LIVE',title:'共读直播',summary:'隔离验证',categoryCode:'共读',publishState:'PUBLISHED'}}),live=await db.liveRoom.create({data:{id:liveResource.id,teacherId:teacher.id,provider:'TEST',providerRoomId:randomUUID(),categoryCode:'共读',accessRule:{}}});
       await db.resource.update({where:{id:live.id},data:{title:'共读直播',summary:'隔离验证',publishState:'PUBLISHED'}});
       const targets=[{id:teacher.id,type:'TEACHER'},{id:course.id,type:'COURSE'},{id:live.id,type:'LIVE'},{id:product.id,type:'PRODUCT'},{id:event.id,type:'EVENT'}];
       for(const [rank,target] of targets.entries()){

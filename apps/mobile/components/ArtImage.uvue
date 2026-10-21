@@ -1,6 +1,6 @@
 <template>
   <view class="art-window" :style="{ width: frameWidth + 'px', height: height + 'px', borderRadius: radius + 'px', transform: mirror ? 'scaleX(-1)' : 'scaleX(1)' }">
-    <image v-if="src && !isReference" class="art-original" :src="src" mode="aspectFill" />
+    <image v-if="src && !isReference && !failed" class="art-original" :src="src" mode="aspectFill" @error="failed=true" />
     <image v-else class="art-sheet" src="/static/editorial/design-reference.png" mode="scaleToFill" :style="sheetStyle" />
   </view>
 </template>
@@ -15,6 +15,7 @@ const regions: Record<string, number[]> = {
   study: [438, 845, 133, 86], boat: [959, 1117, 286, 60],
   portrait: [631, 736, 41, 41],
 };
+const failed=ref(false);watch(()=>props.src,()=>{failed.value=false;});
 const frameWidth = computed(() => props.width || Math.max(280, uni.getWindowInfo().windowWidth - 32));
 const isReference = computed(() => !props.src || props.src.startsWith('/static/art/'));
 const sheetStyle = computed(() => {

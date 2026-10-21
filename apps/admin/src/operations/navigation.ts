@@ -11,13 +11,14 @@ export type NavigationEntry = {
 export type NavigationGroup = { id: string; title: string; entries: NavigationEntry[] };
 
 // Keep existing URLs and route guards; this catalog only organizes their entry points.
-export const navigation: NavigationGroup[] = [
+const sourceNavigation: NavigationGroup[] = [
   { id: 'work', title: '工作台', entries: [
     { path: '/', title: '工作台首页', summary: '查找业务入口，按流程开始工作' },
     { path: '/dashboard/analysis', title: '数据概览', summary: '查看经营、学习与内容核心指标', access: 'canDashboard' },
     { path: '/guide', title: '操作指南', summary: '发布、开播、发货、售后与权限配置步骤', keywords: '帮助 使用说明' },
   ] },
   { id: 'content', title: '内容运营', entries: [
+    {path:'/categories',title:'分类管理',summary:'维护文章、课程、商品与活动分类，调整名称、排序及启停',access:'canConfig'},
     { path: '/content/articles', title: '文章与经典', summary: '正文、注释、授权证据与发布审核', access: 'canContent' },
     { path: '/content/comments', title: '文章评论审核', summary: '审核文章讨论与引用', access: 'canComments' },
     {path:'/community-enhancements',title:'社区活动与授权',summary:'会员置顶、征文品质评选、精选排期与课程案例审核',access:'canCommunity'},
@@ -61,7 +62,6 @@ export const navigation: NavigationGroup[] = [
     { path: '/feedback', title: '客服与反馈', summary: '用户反馈、处理进度与客服回复', access: 'canSupport' },
   ] },
   { id: 'finance', title: '财务中心', entries: [
-    {path:'/gifts',title:'直播礼物与分成',summary:'充值、礼物目录、老师合同、退款与分成凭证',access:'canFinanceRead',keywords:'书香点 钱包 余额'},
     { path: '/finance', title: '收退款与账务', summary: '跨业务收款、退款、订单关联和借贷明细核查', access: 'canFinanceRead', keywords: '流水 对账 异常' },
   ] },
   { id: 'system', title: '系统管理', entries: [
@@ -74,6 +74,16 @@ export const navigation: NavigationGroup[] = [
   ] },
 
 ];
+
+const entries = sourceNavigation.flatMap(group => group.entries);
+const extra: Record<string,string[]> = {
+  education:['/marketing','/referrals','/charity'], shop:['/product-promotions','/promotion-services'],
+  membership:['/points-rewards'], orders:['/finance'],
+};
+export const navigation: NavigationGroup[] = sourceNavigation.filter(group=>!['marketing','promotion-services','finance'].includes(group.id)).map(group=>({
+  ...group,title:({content:'内容管理',education:'课程与教学',shop:'商城管理',membership:'用户与会员',events:'活动与咨询',orders:'订单与售后'} as Record<string,string>)[group.id]??group.title,
+  entries:[...group.entries,...entries.filter(entry=>(extra[group.id]??[]).includes(entry.path))],
+}));
 
 export function visibleNavigation(permissions: AdminAccess): NavigationGroup[] {
   return navigation.map(group => ({ ...group, entries: group.entries.filter(entry => !entry.access || permissions[entry.access]) }))

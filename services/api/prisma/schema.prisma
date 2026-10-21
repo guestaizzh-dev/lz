@@ -2987,8 +2987,8 @@ model ServiceDelivery {
   recognizedAmount BigInt
   publicSummary String
   evidenceCipher String
-  proofAssetId String
-  proofHash String
+  proofAssetId String?
+  proofHash String?
   contextSnapshot Json
   proposerId String
   reviewerId String?
@@ -3126,4 +3126,18 @@ model OfflineCourseCertificate {
   completedAt DateTime @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   sourceSnapshot Json
+}
+
+model CatalogCategory {
+  id String @id @default(uuid())
+  scope String
+  code String
+  label String
+  position Int @default(0)
+  enabled Boolean @default(true)
+  version Int @default(1)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  @@unique([scope, code])
+  @@unique([scope, label])
 }

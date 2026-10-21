@@ -13,8 +13,8 @@
 <input class="search-input" placeholder="搜索课程" v-model="query" @confirm="load()"/>
 </view>
 <scroll-view class="chip-scroll" direction="horizontal" :show-scrollbar="false">
-<view v-for="item in categories" :key="item" :class="['chip',category===item?'chip-active':'']" @click="category=item">
-<text :class="['chip-text',category===item?'chip-text-active':'']">{{item==='全部'?'推荐':item}}</text>
+<view v-for="item in categories" :key="item.code" :class="['chip',category===item.code?'chip-active':'']" @click="category=item.code">
+<text :class="['chip-text',category===item.code?'chip-text-active':'']">{{item.code==='全部'?'推荐':item.label}}</text>
 </view>
 </scroll-view>
 <view class="category-grid">
@@ -25,6 +25,7 @@
 <text :class="['category-label',format===item.value?'category-label-selected':'']">{{item.label}}</text>
 </view>
 </view>
+<text v-if="categoryError" class="muted" @click="refreshCategories()">{{categoryError}}</text>
 <ContentState v-if="loading&&!courses.length||error" :loading="loading" :error="error" @retry="retry()"/>
 <text v-if="!loading&&!error&&courses.length" class="eyebrow list-eyebrow">课程目录</text>
 <view v-if="!error&&(!loading||courses.length)">
@@ -37,12 +38,13 @@
 </view>
 </template>
 <script setup lang="ts">
+import {useCategories} from '../../lib/categories';
 import InkBackdrop from '../../components/InkBackdrop.uvue';
 
 import SafeTop from '../../components/SafeTop.uvue';
 import AppIcon from '../../components/AppIcon.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import type {Course} from '../../lib/api';
-const categories=['全部','经典研习','实践修行','生活应用','少儿启蒙'],category=ref('全部'),query=ref(''),showSearch=ref(false),format=ref('');
+const {categories,categoryError,refreshCategories}=useCategories('COURSE');const category=ref('全部'),query=ref(''),showSearch=ref(false),format=ref('');
 const formats=[{label:'全部',value:'',icon:'book-open'},{label:'图文',value:'TEXT',icon:'text-aa'},{label:'视频',value:'VIDEO',icon:'play'},{label:'音频',value:'AUDIO',icon:'headphones'},{label:'直播课',value:'LIVE',icon:'video-camera'},{label:'训练营',value:'COHORT',icon:'calendar-blank'},{label:'线下课',value:'OFFLINE',icon:'flower-lotus'}];
-const {items:courses,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Course>('courses',()=>({category:category.value,q:query.value,format:format.value}));const visible=computed(()=>courses.value);watch([category,format],()=>load());let searchTimer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(searchTimer!==null)clearTimeout(searchTimer);searchTimer=setTimeout(()=>load(),300);});onUnload(()=>{if(searchTimer!==null)clearTimeout(searchTimer);});onLoad(()=>load());onShow(()=>{const value=uni.getStorageSync('academyFormat');if(value==='COHORT'||value==='ALL'){format.value=value==='ALL'?'':value;uni.removeStorageSync('academyFormat');}});
+const {items:courses,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Course>('courses',()=>({category:category.value,q:query.value,format:format.value}));const visible=computed(()=>courses.value);watch([category,format],()=>load());let searchTimer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(searchTimer!==null)clearTimeout(searchTimer);searchTimer=setTimeout(()=>load(),300);});onUnload(()=>{if(searchTimer!==null)clearTimeout(searchTimer);});onLoad(()=>load());onShow(async()=>{await refreshCategories();if(category.value!=='全部'&&!categories.value.some(item=>item.code===category.value))category.value='全部';});onShow(()=>{const value=uni.getStorageSync('academyFormat');if(value==='COHORT'||value==='ALL'){format.value=value==='ALL'?'':value;uni.removeStorageSync('academyFormat');}});
 </script>
 <style>@import '../../styles/app.css';.list-eyebrow{margin-top:2px;margin-bottom:8px;}</style>

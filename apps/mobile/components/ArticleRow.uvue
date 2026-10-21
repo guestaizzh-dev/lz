@@ -4,7 +4,7 @@
 <view class="article-copy">
 <text class="article-name">{{article.title}}</text>
 <text class="article-caption">{{article.summary}}</text>
-<text class="article-meta">{{article.category}} · {{article.visibility==='MEMBER'?'会员专享':article.author}}</text>
+<text class="article-meta">{{article.categoryLabel??article.category}} · {{article.visibility==='MEMBER'?'会员专享':article.author}}</text>
 </view>
 </view>
 </template>

@@ -1,7 +1,7 @@
 export type Actor = { id: string; nickname: string; roles: string[]; permissions: string[] };
 export type Session = { user: Actor; csrfToken: string };
 export type Block = { id: string; type: 'paragraph' | 'quote' | 'image' | 'audio' | 'video'; text: string; url?: string; caption?: string; mediaId?: string };
-export type Article = { draftTemplateCode?:string|null; id: string; version: number; title: string; summary: string; author: string; source: string; cover: string; category: string; status: string; visibility: string; membershipTier: number; featured: boolean; isDemo: boolean; tags: string[]; blocks: Block[]; updatedAt: string };
+export type Article = { draftTemplateCode?:string|null; id: string; version: number; title: string; summary: string; author: string; source: string; cover: string; category: string; categoryLabel?:string; status: string; visibility: string; membershipTier: number; featured: boolean; isDemo: boolean; tags: string[]; blocks: Block[]; updatedAt: string };
 export let session: Session | null = null;
 let sessionRevision=0;
 export function setSession(value: Session | null) { session = value; sessionRevision++; }

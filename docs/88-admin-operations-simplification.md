@@ -11,7 +11,7 @@
 - [x] 05 履约与售后：管理员可独立完成实际履约与收入确认，保留可信付款、原事实、实际退款与操作日志。
 - [x] 06 导航与表单：按工作归并入口、清退礼物日常入口、减少技术术语与重复填表，操作指南同步。
 - [x] 07 App同步：动态分类、图片展示及状态/错误与空态联动，原课程/会员/订单权益不改写。
-- [ ] 08 验证与上线：关联API及实际页面验证、Pro/App构建、备份迁移与生产发布、线上检查及Git推送。
+- [x] 08 验证与上线：关联API及实际页面验证、Pro/App构建、备份迁移与生产发布、线上检查及Git推送。
 
 验收按管理员实际完成的工作进行，不以按钮存在或构建通过代替业务交付。生产部署不等于新APK或真机验收；商用基线不自动提升。
 
@@ -48,6 +48,20 @@
 - 回退信息在服务器 `/opt/daoxue-academy/rollback-20261021-operations-simplification-01.txt`。新API已开放写入后须前向修复，避免旧Prisma客户端读取可空凭证/新管理员自审事实；不得还原旧数据库覆盖新业务。
 - 服务器剩余约5.3GB（91%），保留容量限制。未进行手机/iOS或真实商业收付款验收；商用38/131不变。
 
-证据：`outputs/deploy-2026-10-21-operations/`。Android0.3.14/code19云任务已提交，独立无系统推送预览包，下载及签名核对完成后续记。
+证据：`outputs/deploy-2026-10-21-operations/`。Android0.3.14/code19已生成，49,968,152字节，生产HTTPS、原签名可覆盖；498源文件比对仅两项已授权无系统推送覆盖，ZIP/版本/原生模块/同证书/JAR签名通过。安装包：`outputs/android/daoxue-academy-0.3.14.apk`；站内消息保留，无手机/iOS验收。
 
 后台指南随后以提交`18414bd`更新，线上静态包已独立备份并SHA256校验，旧哈希资源保留。实际入口：`/guide?workflow=daily-operations`。
+
+## 交付位置与原因
+
+| 位置 | 调整与原因 |
+| --- | --- |
+| `apps/admin/src/pages/categories/`、`services/api/src/categories.ts` | 运营自助维护四类分类，减少硬编码和开发依赖；批量归类保持版本核查。 |
+| `apps/admin/src/components/ImagePicker/`、`services/api/src/public-images.ts` | 选择本地图片并裁剪、复用，代替让运营填写URL；公开图片与私人凭证隔离。 |
+| `apps/admin/src/pages/courses/`、`components/MediaUploader/`、`components/MediaPreview/` | 课程内上传、绑定、时长及试听试看，减少跨页面操作。 |
+| `pages/table-list/`、`pages/products/`、`pages/events/`、`services/api/src/*-admin.ts` | 管理员直接保存发布；默认库存/规格及活动单场按现有业务生成，避免空壳内容无法购买或报名。 |
+| `components/ServiceDelivery/`、`services/api/src/service-deliveries.ts`及相关财务模块 | 管理员可独立确认真实交付；保留金额、退款、权限和操作日志。 |
+| `operations/navigation.ts`、`operations/workflows.ts` | 九组业务入口、日常操作指南与新的管理员工作流一致。 |
+| `apps/mobile/lib/categories.ts`及课程/文章/商城/活动页面 | 跟随后台分类、封面与发布状态，继续现有书院视觉和原订单权益。 |
+
+本轮实现与上线清单01—08完成；整体项目商用验收口径保持，未以此关闭其他模块的正式资源/双端/长时验收。代码已提交并推送`feat/v0.3-content-reading`，发行和后台静态补丁各自保留源码提交与摘要。

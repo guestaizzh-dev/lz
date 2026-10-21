@@ -17,5 +17,10 @@
   "commercialAcceptance": "38/131 unchanged",
   "phoneAcceptance": false,
   "iosAcceptance": false,
-  "rollbackPolicy": "After activating new API, use forward repair; do not restore old Prisma client/database over nullable-proof or administrator-confirmed business facts."
+  "rollbackPolicy": "After activating new API, use forward repair; do not restore old Prisma client/database over nullable-proof or administrator-confirmed business facts.",
+  "androidVersion": "0.3.14",
+  "androidCode": 19,
+  "androidPackageSha256": "178fd62aab6b022e8c605f436172d52784053d8f3ae66bf79c2e4b56c51bd423",
+  "gitBranch": "feat/v0.3-content-reading",
+  "remotePushVerified": true
 }

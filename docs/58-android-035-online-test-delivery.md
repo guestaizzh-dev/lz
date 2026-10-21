@@ -1,3 +1,5 @@
+2026-10-21运营简化新包：Android0.3.14/code19，`outputs/android/daoxue-academy-0.3.14.apk`（49,968,152字节），生产HTTPS及原证书可覆盖。498文件与正式源码比对，仅notifications/settings两项用户授权预览覆盖；74页蒸汽编译、云任务OK、ZIP/版本/原生模块/同证书/JAR签名通过。站内消息保留，无系统推送，无手机/iOS验收。后台API已部署20261021-operations-simplification-01；报告见88，证据outputs/android-preview-0314与outputs/deploy-2026-10-21-operations。SHA256：178fd62aab6b022e8c605f436172d52784053d8f3ae66bf79c2e4b56c51bd423。
+
 # Android 0.3.5 与线上测试交付
 
 ## 2026-10-20 当前代码重新打包：Android 0.3.11

@@ -7,7 +7,7 @@
 - 数据库与媒体备份SHA256通过；73→74迁移，public表192张（含迁移表）；新表运行账号权限实际通过。16类业务表记录数保持，未seed或删除现有内容。
 - 18组公网检查通过，管理员会话已退出，无新业务记录。录制ready保持；环境仅API_IMAGE_TAG改变，支付/短信/推送与RTC/录制配置保持。
 - 回退记录 `/opt/daoxue-academy/rollback-20261021-operations-simplification-01.txt`。新API启用后可能产生可空凭证/管理员自审事实，须前向修复，不得盲退旧Prisma客户端或还原旧库覆盖数据。
-- API healthy，其他项目服务未改。磁盘剩余约5.3GB/使用91%，容量与正式长时验收仍待。Android0.3.14独立预览包云打包中；无手机/iOS验收，商用38/131不变。
+- API healthy，其他项目服务未改。磁盘剩余约5.3GB/使用91%，容量与正式长时验收仍待。Android0.3.14/code19已生成，49,968,152字节，生产HTTPS、原签名可覆盖；498源文件比对仅两项已授权无系统推送覆盖，ZIP/版本/原生模块/同证书/JAR签名通过；无手机/iOS验收，商用38/131不变。
 - 证据 `outputs/deploy-2026-10-21-operations/`；完整改动见[88](88-admin-operations-simplification.md)。
 
 

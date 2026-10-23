@@ -1,6 +1,6 @@
 # 后端与后台线上部署记录
 
-## 2026-10-21 运营简化上线（当前）
+## 2026-10-21 运营简化上线（历史）
 
 - 主机 `43.160.229.173`，发行 `20261021-operations-simplification-01`，替换直播录制发行。API源码 `5dc041d`，后台指南后补 `18414bd`；静态包单独备份和校验，保留旧哈希资源供已打开页面读取。
 - 单管理员发布/履约、四类分类维护和批量归类、本地图片裁剪/素材库、章节内上传自动绑定试看、默认活动场次、九组菜单与操作指南上线；App公开API返回可读分类与稳定代码。
@@ -113,3 +113,11 @@ curl -f https://academy.43-160-229-173.sslip.io/api/v1/health
 主要证据：outputs/deploy-2026-10-21-closure-04、closure-03/capacity.txt、closure/current-recovery.txt及off-host-copy.json；详89。Android0.3.16连接本线上环境，无系统推送预览，无手机验收。
 
 - 追加整套恢复验证：在80版备份还原的独立数据库和媒体目录中启动同一生产镜像（所有外部支付/短信/RTC/推送及定时工作关闭），实际管理员登录、首页、原订单财务读取与鉴权私有媒体Range返回206均成功；临时容器/数据库/目录随后全部清理，生产订单仍6笔。工具已独立部署于服务器/opt/daoxue-academy/operations-drill，并随Git提交。证据closure-04/application-recovery.txt及final-state.txt。
+
+## 2026-10-22 上线前评审修复发布
+
+- 发行 **`20261022-prelaunch-review-01`**（源码 `fee3b2c`），替换 `20261021-internal-closure-04`；80→81 迁移、198 表，包含课程留痕删除、直播重连、异常响应兜底、资料冻结条款、受限客户端诊断和数据库语句/锁超时。
+- 发布前 `academy-backup.service` 生成 `academy-20261023T022221Z-m5jIO1.dump` 及媒体包，SHA256 通过；17 类业务表计数前后一致。回滚文件 `/opt/daoxue-academy/rollback-20261022-prelaunch-review-01.txt`，上一版镜像保留。
+- 21 项公网/后台检查通过；通用课程数据入口 403、未登录诊断 401、直播录制 ready、静态资源哈希一致；API healthy，`academy-watch.timer` 与 `academy-backup.timer` active。
+- 清理旧 `daoxue-api` 镜像与 Docker 构建缓存后，磁盘可用约 11GB（81%）；未删业务媒体、备份或当前/上一版镜像。
+- Android 0.3.17/code22 预览包（云端证书、无系统推送）已打包：50,012,581 字节，SHA256 `8f70045162604a0457d5a6e20e58bf481390dd93b3aca8b2bf304277b313baf0`，与 0.3.16 同证书；未做手机/iOS 验收。证据见 `outputs/deploy-2026-10-22-prelaunch-review/` 与 `outputs/android-preview-0317/`。

@@ -121,3 +121,11 @@ curl -f https://academy.43-160-229-173.sslip.io/api/v1/health
 - 21 项公网/后台检查通过；通用课程数据入口 403、未登录诊断 401、直播录制 ready、静态资源哈希一致；API healthy，`academy-watch.timer` 与 `academy-backup.timer` active。
 - 清理旧 `daoxue-api` 镜像与 Docker 构建缓存后，磁盘可用约 11GB（81%）；未删业务媒体、备份或当前/上一版镜像。
 - Android 0.3.17/code22 预览包（云端证书、无系统推送）已打包：50,012,581 字节，SHA256 `8f70045162604a0457d5a6e20e58bf481390dd93b3aca8b2bf304277b313baf0`，与 0.3.16 同证书；未做手机/iOS 验收。证据见 `outputs/deploy-2026-10-22-prelaunch-review/` 与 `outputs/android-preview-0317/`。
+
+## 2026-10-25 评审优化发布
+
+- 发行 **`20261025-review-polish-01`**（源码 `2f4f4f7`），替换 `20261022-prelaunch-review-01`；81 迁移、198 表，无新迁移；API 镜像 `daoxue-api:20261025-review-polish-01`，运行容器镜像 id 与构建一致。
+- 发布前全量 837/837；备份 `academy-20261025T102130Z-Gs2nSD.dump`，18 类业务计数前后一致，21 项公网/后台检查通过；回滚 `/opt/daoxue-academy/rollback-20261025-review-polish-01.txt`，环境备份同名 `.before-` 文件。
+- 清理旧镜像与退出容器后磁盘约 9.7GB（83%）；`academy-watch.timer`、`academy-backup.timer` active。
+- Android 0.3.18/code23 已云打包：50,017,681 字节，SHA256 `471d7f3f…`，与 0.3.17 同证书、无系统推送；未手机/iOS 验收。
+- 证据 `outputs/deploy-2026-10-25-review/`、`outputs/android-preview-0318/`、`outputs/android/daoxue-academy-0.3.18.*`；完整说明见 [99](99-review-polish-release-20261025.md)。

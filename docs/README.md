@@ -2,11 +2,13 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新内部业务闭环已上线：数字资料、咨询抵扣、课程活动联动、合作结算/对账、运行告警及恢复，见[89](89-internal-business-closure.md)。API/Pro `20261021-internal-closure-04`，Android0.3.16/code21。业务总览见[87](87-project-business-and-architecture-map.md)。
+最新发布：**`20261025-review-polish-01`**（课程/直播/会员/订单/阅读与响应式修复），Android 0.3.18/code23；见[99 发布记录](99-review-polish-release-20261025.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 
 | 想知道什么 | 看哪里 |
+| --- | --- |
+| 本次发布与 APK | [99 评审优化发布（2026-10-25）](99-review-polish-release-20261025.md) |
 | --- | --- |
 | 上线前风险与本轮修复 | [90 上线前全量评审](90-prelaunch-review.md) |
 | 课程售卖/观看与直播链路 Review | [91 代码与交互 Review（2026-10-25）](91-code-and-interaction-review-2026-10-25.md) |
@@ -24,15 +26,16 @@
 | 商用审查基线（只读快照） | [25 商用完成度审查](25-commercial-readiness-review.md)（38/131） |
 | 给客户看的材料 | [客户版功能说明](../outputs/client-review-2026-10-19/老子道学书院_功能与交付说明_客户版_20261019.docx) |
 
-## 一页事实（2026-10-21 发布后）
+## 一页事实（2026-10-25 发布后）
 
 | 项 | 值 |
 | --- | --- |
-| 线上版本 | `20261021-internal-closure-04`，80次迁移，198张表（含迁移表） |
+| 线上版本 | `20261025-review-polish-01`，81次迁移，198张public表（含迁移表） |
 | 线上地址 | https://academy.43-160-229-173.sslip.io（后台 `/user/login`） |
-| 安装包 | [Android0.3.16/code21](../outputs/android/daoxue-academy-0.3.16.apk)，生产HTTPS、原签名、无系统推送预览；未做手机验收 |
-| 演示账号 | 学员 `19900001002` / 验证码 `123456`（预览入口 10-25 到期）；后台 admin 口令见 `.runtime/online-admin-access.json` |
+| 安装包 | [Android 0.3.18/code23](../outputs/android/daoxue-academy-0.3.18.apk)，50,017,681字节，生产HTTPS、与0.3.17同证书、无系统推送预览；未做手机/iOS验收 |
+| 演示账号 | 学员 `19900001002` / 验证码 `123456`（预览入口 10-25 18:06 北京时间到期）；后台 admin 口令见 `.runtime/online-admin-access.json` |
 | 商用完成度 | 38/131（29.0%），正式渠道、原生、版权运营及89列明的具体依赖仍未全部验收 |
+| 本轮核查 | 837全量、21项公网/后台检查、2项只读冒烟；18类业务计数一致 |
 | 本轮核查 | 820全量、38性能及15导出关联、10隔离页面、5线上页面、29公网检查 |
 
 ## 文档索引

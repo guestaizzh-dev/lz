@@ -74,5 +74,21 @@ test('admin member broadcast: publish, access, host conflict, recording recovery
       const row=(await call('/admin/live/broadcasts',root,'POST',{...dto,requestKey:randomUUID(),title:'断线恢复回放核查'})).body;await db.liveSession.update({where:{id:row.id},data:{state:'ENDED'}});const token=randomUUID(),job=await db.liveRecording.create({data:{sessionId:row.id,attempts:2,leaseToken:token,state:'PROCESSING'}}),directory=resolve(process.env.MEDIA_DIR,'recordings',job.id,'0002');await mkdir(directory,{recursive:true});await copyFile(sourceFile,resolve(directory,'part-1.mp4'));await recordings.finish(job.id,{token,controller:new AbortController(),renewed:Date.now()});assert.equal((await db.liveRecording.findUniqueOrThrow({where:{id:job.id}})).failure,'RECORDING_PARTIAL');assert.equal((await db.liveReplay.findUniqueOrThrow({where:{sessionId:row.id}})).reviewState,'PENDING');
       assert.equal((await call('/admin/live/sessions/'+row.id+'/replay/review/preview',root,'POST',{})).status,201);assert.equal((await call('/admin/live/broadcasts/'+row.id+'/action',root,'POST',{action:'PUBLISH_REPLAY',expectedVersion:1})).status,201);assert.equal((await call('/admin/live/broadcasts/'+row.id+'/action',root,'POST',{action:'HIDE_REPLAY',expectedVersion:2})).status,201);await db.liveRecording.update({where:{id:job.id},data:{state:'PROCESSING',leaseToken:token}});await recordings.finish(job.id,{token,controller:new AbortController(),renewed:Date.now()});assert.equal((await db.liveReplay.findUniqueOrThrow({where:{sessionId:row.id}})).reviewState,'REJECTED');assert.equal((await db.liveSession.findUniqueOrThrow({where:{id:row.id}})).state,'ENDED');
     });
+    await t.test('the session entry point honours the single-live rule and books the recording job',async()=>{
+      const first=(await call('/admin/live/broadcasts',root,'POST',{...dto,requestKey:randomUUID(),title:'场次入口准备'})).body;
+      const prepared=await call('/admin/live/sessions/'+first.id+'/state',root,'POST',{action:'PREPARE',expectedVersion:1,reason:'从场次入口准备'});
+      assert.equal(prepared.status,201,JSON.stringify(prepared.body));
+      assert.ok(await db.liveRecording.findUnique({where:{sessionId:first.id}}));
+      const second=(await call('/admin/live/broadcasts',root,'POST',{...dto,requestKey:randomUUID(),title:'场次入口冲突'})).body;
+      assert.equal((await call('/admin/live/sessions/'+second.id+'/state',root,'POST',{action:'PREPARE',expectedVersion:1,reason:'同时准备'})).status,409);
+    });
+    await t.test('a cancelled broadcast keeps its recording but never queues an unpublishable replay',async()=>{
+      const row=(await call('/admin/live/broadcasts',root,'POST',{...dto,requestKey:randomUUID(),title:'取消场次录制核查'})).body;
+      assert.equal((await call('/admin/live/broadcasts/'+row.id+'/action',root,'POST',{action:'CANCEL',expectedVersion:1})).status,201);
+      const token=randomUUID(),job=await db.liveRecording.create({data:{sessionId:row.id,leaseToken:token,state:'PROCESSING'}}),directory=resolve(process.env.MEDIA_DIR,'recordings',job.id,'0001');await mkdir(directory,{recursive:true});await copyFile(sourceFile,resolve(directory,'part-1.mp4'));
+      await recordings.finish(job.id,{token,controller:new AbortController(),renewed:Date.now()});
+      const recording=await db.liveRecording.findUniqueOrThrow({where:{id:job.id}});assert.equal(recording.state,'READY',JSON.stringify(recording));assert.ok(recording.assetId);
+      assert.equal(await db.liveReplay.count({where:{sessionId:row.id}}),0);
+    });
   }finally{await app.close();}
 });

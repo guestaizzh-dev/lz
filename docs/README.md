@@ -9,6 +9,14 @@
 | 想知道什么 | 看哪里 |
 | --- | --- |
 | 上线前风险与本轮修复 | [90 上线前全量评审](90-prelaunch-review.md) |
+| 课程售卖/观看与直播链路 Review | [91 代码与交互 Review（2026-10-25）](91-code-and-interaction-review-2026-10-25.md) |
+| 桌面端响应式与视觉一致性 | [92 宽窗口版式与焦点/反馈统一](92-desktop-responsive-and-visual-polish.md) |
+| 直播查询与支付状态反馈 | [93 直播房间批量查询、超时/待确认支付提示](93-live-room-performance-and-payment-feedback.md) |
+| 会员中心与订单反馈 | [94 会员状态、套餐刷新、用量分页与超时订单](94-membership-state-feedback.md) |
+| 列表首帧与订单卡片 | [95 列表空状态首帧、预约/训练营订单卡片统一](95-list-first-frame-and-order-cards.md) |
+| 直播准入去重与订单分页错误 | [96 直播房间按规则复用准入、订单追加加载局部提示](96-live-room-access-grouping.md) |
+| 会员并行取数与数据态截图 | [97 会员中心并行请求、真实套餐桌面/手机截图](97-membership-parallel-load-and-data-shots.md) |
+| 阅读页状态与评论反馈 | [98 文章返回保留点赞/标注、字号显示、评论错误处理](98-reading-state-and-comment-feedback.md) |
 | 现在做到哪了、还差什么 | [83 现状核对与剩余缺口](83-status-and-gaps-2026-10-19.md)（唯一状态入口） |
 | 下一步做什么、怎么验收 | [26 剩余开发计划](26-remaining-development-plan.md) |
 | 业务范围与验收口径 | [01 产品需求](01-product-requirements.md) |

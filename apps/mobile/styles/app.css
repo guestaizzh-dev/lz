@@ -93,4 +93,10 @@
     @keyframes quiet-reveal{from{opacity:0.65;}to{opacity:1;}}
   }
 }
+/* Keep a single readable column on wide windows and align the fixed chrome with it. */
+.content{width:100%;max-width:720px;margin-left:auto;margin-right:auto;box-sizing:border-box;}
+.page-head{padding-left:max(8px,calc((100% - 720px) / 2));padding-right:max(8px,calc((100% - 720px) / 2));}
+.action-bar{padding-left:max(16px,calc((100% - 720px) / 2));padding-right:max(16px,calc((100% - 720px) / 2));}
+/* Keyboard focus must stay visible on the Web build; native has no such focus ring. */
+.primary-button:focus-visible,.secondary-button:focus-visible,.bar-primary:focus-visible,.bar-secondary:focus-visible,.retry:focus-visible,.text-button:focus-visible,.text-action:focus-visible,.icon-button:focus-visible,.rate-button:focus-visible,.lesson-filter:focus-visible,.state-retry:focus-visible{outline:2px solid #A67C46;outline-offset:3px;}
 /* #endif */

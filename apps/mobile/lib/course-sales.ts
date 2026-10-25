@@ -1,6 +1,6 @@
 export type CourseMemberBenefit={basisPoints:number;endsAt:string;savings:string};
 export type PublicCharityPrice={programId:string;title:string;price:string};
-export type CoursePurchase = {liveSessions?:{id:string;title:string;scheduledAt:string;state:string;version:number}[];courseId:string;releaseId:string;title:string;cover:string;teacherName:string;format:string;contentFormats?:string[];lessons:number;durationSeconds:number;accessDays:number|null;refundPolicy:string;refundDays:number};
+export type CoursePurchase = {liveSessions?:{id:string;title:string;scheduledAt:string}[];courseId:string;releaseId:string;title:string;cover:string;teacherName:string;format:string;contentFormats?:string[];lessons:number;durationSeconds:number;accessDays:number|null;refundPolicy:string;refundDays:number};
 export type CoursePaymentChoice = {channel:string;provider:string;label:string;enabled:boolean;reason:string};
 export type CourseQuote = CoursePurchase & {memberBenefit?:CourseMemberBenefit|null;window?:{phase:string;publicOpenAt:string|null;earlyAccessAt:string|null};charity?:PublicCharityPrice|null;group:{groupId:string|null;title:string}|null;groupOptions:{id:string;title:string;price:string}[];originalPrice:string;discount:string;coupon:{id:string;terms:{title:string}}|null;price:string;currency:string;quoteHash:string;alreadyAccessible:boolean;pendingOrderId:string|null;paymentEnabled:boolean;unavailableReason:string;channels:CoursePaymentChoice[]};
 export type CourseRefund = {id:string;state:string;version:number;amount:string;reason:string;reviewNote:string|null;createdAt:string;automatic:boolean};
@@ -15,7 +15,7 @@ export function purchasePlatform():string {
   // #endif
   return platform;
 }
-export const orderLabel=(order:CourseOrder):string=>Number(order.refundedAmount)>0?'已退款':order.state==='COMPLETED'?'已支付':order.state==='CLOSED'?'已关闭':'待支付';
+export const orderLabel=(order:CourseOrder):string=>Number(order.refundedAmount)>0?'已退款':order.state==='COMPLETED'?'已支付':order.state==='CLOSED'?'已关闭':order.paymentStatus==='EXPIRED'?'支付已超时':'待支付';
 export const refundLabel=(state:string):string=>({REQUESTED:'待审核',APPROVED:'方案待本人确认',REFUNDING:'原路退款中',SUCCEEDED:'退款已完成',REVERSED:'Apple已撤回退款',FAILED:'退款需人工处理',REJECTED:'申请未通过',CANCELLED:'已取消'} as Record<string,string>)[state]??'处理中';
 export const paymentChannelLabel=(channel:string):string=>channel==='APPLE_IAP'?'Apple内购':channel==='ALIPAY_APP'?'支付宝':channel==='WECHAT_APP'?'微信支付':'待核查渠道';
 export function coursePurchaseAction(order:CourseOrder|null,quote:CourseQuote|null,canPay:boolean,agreed:boolean,clock:number):{kind:string;label:string;enabled:boolean}{

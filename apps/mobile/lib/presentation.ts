@@ -1,7 +1,17 @@
 import {nativeShare,type SharePayload} from './native-share';
 import { request } from './api';
 import type { Course, Teacher } from './api';
-export const viewWidth = () => Math.max(280, uni.getWindowInfo().windowWidth - 32);
+// Web keeps one readable column instead of stretching cards across a wide window; keep in step with .content in styles/app.css.
+const CONTENT_WIDTH = 688;
+export const viewWidth = (): number => {
+  const available = Math.max(280, uni.getWindowInfo().windowWidth - 32);
+  // #ifdef WEB
+  return Math.min(CONTENT_WIDTH, available);
+  // #endif
+  // #ifndef WEB
+  return available;
+  // #endif
+};
 export function artwork(cover: string, category = ''): string {
   if (cover.includes('tea')) return 'tea';
   if (cover.includes('meditation')) return 'tools';

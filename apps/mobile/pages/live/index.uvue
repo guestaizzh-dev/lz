@@ -8,8 +8,9 @@
 <view class="live-feature-action"><text>{{featured!.liveState==='LIVE'?'查看本场，进入直播':featured!.liveState==='REPLAY_READY'?'回顾本场研习':'查看预告 · 预约提醒'}}</text><AppIcon name="arrow-right" :size="16"/></view>
 </view></view>
 <view class="section-head live-head"><view><text class="eyebrow">研习安排</text><text class="section-heading">直播与回放</text></view><button class="live-refresh" :disabled="loading" @click="load()">{{loading?'刷新中…':'刷新安排'}}</button></view>
-<ContentState v-if="loading&&!items.length||error" :loading="loading&&!items.length" :error="error" @retry="load(failedAppend)"/>
-<view v-for="item in items" :key="item.id" class="live-card" hover-class="row-pressed" @click="openContent(item)">
+<ContentState v-if="!items.length&&(loading||error)" :loading="loading" :error="error" @retry="load(failedAppend)"/>
+<view v-if="error&&items.length" class="live-warning"><text class="live-warning-text">安排暂未更新，请重试。</text><button class="live-warning-action" :disabled="loading" @click="load(failedAppend)">{{loading?'刷新中…':'重新加载'}}</button></view>
+<view v-for="item in listed" :key="item.id" class="live-card" hover-class="row-pressed" @click="openContent(item)">
 <ArtImage :src="item.cover" kind="landscape" :width="88" :height="96"/>
 <view class="live-card-copy">
 <view class="row live-card-top"><view :class="['pill',item.liveState==='LIVE'?'pill-live':'pill-gold']">{{liveLabels[item.liveState??'']??'研习安排'}}</view><text v-if="item.isDemo" class="live-demo">示例</text></view>
@@ -18,15 +19,15 @@
 </view>
 <view class="live-card-go"><text class="live-card-action">{{item.liveState==='LIVE'?'进入':item.liveState==='REPLAY_READY'?'回放':'详情'}}</text></view>
 </view>
-<ContentState v-if="!loading&&!error&&!items.length" title="暂无已发布直播" description="书院发布直播资料后，会在这里展示主题和安排。"/>
+<ContentState v-if="ready&&!loading&&!error&&!items.length" title="暂无已发布直播" description="书院发布直播资料后，会在这里展示主题和安排。"/>
 <button v-if="hasMore" :class="['secondary-button',loading?'is-disabled':'']" @click="load(true)">查看更多直播</button>
 <text class="footer-note">提前预约研习，开播时在书院相遇。开播提醒会发送到「我的 · 消息」。</text>
 </view></scroll-view></view></template>
-<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {formatChinaTime} from '../../lib/date-time';import {viewWidth} from '../../lib/presentation';import {openContent} from '../../lib/discovery';import type {DiscoveryItem} from '../../lib/discovery';const liveLabels:Record<string,string>={SCHEDULED:'直播预告',PREPARING:'即将开播',LIVE:'正在直播',REPLAY_READY:'观看回放',ENDED:'已结束',CANCELLED:'已取消'};const width=viewWidth(),items=ref<DiscoveryItem[]>([]),featured=computed(()=>items.value.find(r=>r.liveState==='LIVE')??items.value.find(r=>['SCHEDULED','PREPARING'].includes(r.liveState??''))??items.value.find(r=>r.liveState==='REPLAY_READY')),loading=ref(false),error=ref(''),hasMore=ref(false);let page=1,failedAppend=false;async function load(append=false){if(loading.value)return;failedAppend=append;loading.value=true;error.value='';try{const next=append?page+1:1,result=await request<{items:DiscoveryItem[];hasMore:boolean}>('/discovery/search?type=LIVE&sort=recent&page='+next);items.value=append?[...items.value,...result.items]:result.items;page=next;hasMore.value=result.hasMore;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}onShow(()=>load());</script>
+<script setup lang="ts">import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import AppIcon from '../../components/AppIcon.uvue';import {request} from '../../lib/api';import {formatChinaTime} from '../../lib/date-time';import {viewWidth} from '../../lib/presentation';import {openContent} from '../../lib/discovery';import type {DiscoveryItem} from '../../lib/discovery';const liveLabels:Record<string,string>={SCHEDULED:'直播预告',PREPARING:'即将开播',LIVE:'正在直播',REPLAY_READY:'观看回放',ENDED:'已结束',CANCELLED:'已取消'};const width=viewWidth(),items=ref<DiscoveryItem[]>([]),featured=computed(()=>items.value.find(r=>r.liveState==='LIVE')??items.value.find(r=>['SCHEDULED','PREPARING'].includes(r.liveState??''))??items.value.find(r=>r.liveState==='REPLAY_READY')),listed=computed(()=>items.value.filter(item=>item.id!==featured.value?.id)),loading=ref(false),error=ref(''),hasMore=ref(false),ready=ref(false);let page=1,failedAppend=false;async function load(append=false){if(loading.value)return;failedAppend=append;loading.value=true;error.value='';try{const next=append?page+1:1,result=await request<{items:DiscoveryItem[];hasMore:boolean}>('/discovery/search?type=LIVE&sort=recent&page='+next);items.value=append?[...items.value,...result.items]:result.items;page=next;hasMore.value=result.hasMore;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;ready.value=true;}}onShow(()=>load());</script>
 <style>@import '../../styles/app.css';
 .live-hero{position:relative;border-radius:12px;overflow:hidden;margin-bottom:16px;}
 .live-hero-shade{position:absolute;left:0;top:0;right:0;bottom:0;background-color:rgba(24,43,49,0.46);padding:20px;}
-.live-title{font-family:AcademySerif;font-size:24px;color:#FCF9F2;line-height:33px;letter-spacing:1px;margin-top:14px;}
+.live-title{font-family:AcademySerif;font-size:24px;color:#FCF9F2;line-height:33px;letter-spacing:1px;margin-top:14px;max-height:66px;overflow:hidden;}
 .live-subtitle{font-size:12px;color:#E4E8E2;margin-top:10px;line-height:20px;letter-spacing:0.6px;}
 .live-head{margin-top:0;margin-bottom:6px;}
 .live-card{flex-direction:row;align-items:center;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:12px;margin-top:12px;}
@@ -37,5 +38,8 @@
 .live-card-summary{font-size:12px;line-height:20px;color:#6A7578;margin-top:4px;max-height:40px;overflow:hidden;}
 .live-time{font-size:11px;line-height:18px;color:#8A7452;margin-top:6px;}
 .live-card-go{width:38px;align-items:flex-end;justify-content:center;}
-.live-feature-access{font-size:12px;line-height:20px;color:#F1EADB;}.live-feature-action{flex-direction:row;align-items:center;justify-content:space-between;margin-top:14px;padding-top:10px;border-top-width:1px;border-top-style:solid;border-top-color:rgba(255,255,255,0.24);font-size:12px;line-height:22px;color:#F4E4C8;}.live-card-action{font-family:AcademySans;font-size:12px;line-height:24px;color:#235663;}.live-refresh{margin:0;padding:8px 0;min-height:44px;font-size:12px;line-height:22px;color:#235663;background-color:#F5F0E6;border-width:0;}.live-title{max-height:66px;overflow:hidden;}
+.live-feature-access{font-size:12px;line-height:20px;color:#F1EADB;}.live-feature-action{flex-direction:row;align-items:center;justify-content:space-between;margin-top:14px;padding-top:10px;border-top-width:1px;border-top-style:solid;border-top-color:rgba(255,255,255,0.24);font-size:12px;line-height:22px;color:#F4E4C8;}.live-card-action{font-family:AcademySans;font-size:12px;line-height:24px;color:#235663;}.live-refresh{margin:0;padding:8px 0;min-height:44px;font-size:12px;line-height:22px;color:#235663;background-color:#F5F0E6;border-width:0;}
+.live-warning{flex-direction:row;align-items:center;justify-content:space-between;padding:12px 14px;background-color:#EFE9DC;border-radius:10px;margin-top:12px;}
+.live-warning-text{flex:1;min-width:0;font-size:12px;line-height:20px;color:#6A7578;padding-right:12px;}
+.live-warning-action{flex-shrink:0;min-height:40px;padding:8px 0;margin:0;border-width:0;background-color:transparent;color:#235663;font-size:13px;line-height:22px;}
 </style>

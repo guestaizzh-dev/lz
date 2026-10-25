@@ -5,8 +5,26 @@ import ts from 'typescript';
 
 const source=await readFile(new URL('../../../apps/mobile/lib/course-sales.ts',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
-const {coursePurchaseAction}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {coursePurchaseAction,orderLabel}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const memberSource=await readFile(new URL('../../../apps/mobile/lib/membership-sales.ts',import.meta.url),'utf8');
+const memberCode=ts.transpileModule(memberSource,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+const {membershipOrderLabel,membershipPeriodLabel}=await import('data:text/javascript;base64,'+Buffer.from(memberCode).toString('base64'));
 const clock=Date.now(),pending={state:'PENDING',canPay:true,expiresAt:new Date(clock+60000).toISOString(),refunds:[],refundedAmount:'0',access:false};
+
+test('order labels separate a timed-out payment from an ordinary pending order',()=>{
+  assert.equal(orderLabel({...pending,paymentStatus:'EXPIRED'}),'支付已超时');
+  assert.equal(orderLabel({...pending,paymentStatus:'CHECK_REQUIRED'}),'待支付');
+  assert.equal(orderLabel({...pending,state:'COMPLETED',paymentStatus:'PAID'}),'已支付');
+  assert.equal(orderLabel({...pending,refundedAmount:'100'}),'已退款');
+});
+test('membership labels keep expired, refunded and refund-pending states distinct',()=>{
+  const order={state:'PENDING',paymentStatus:'EXPIRED',refundedAmount:'0',paidAmount:'0'};
+  assert.equal(membershipOrderLabel(order),'支付已超时');
+  assert.equal(membershipOrderLabel({...order,paymentStatus:'CHECK_REQUIRED'}),'待支付');
+  assert.equal(membershipOrderLabel({state:'COMPLETED',paymentStatus:'PAID',refundedAmount:'100',paidAmount:'300'}),'部分退款 · 已退订');
+  assert.equal(membershipOrderLabel({state:'COMPLETED',paymentStatus:'PAID',refundedAmount:'300',paidAmount:'300'}),'已退款');
+  assert.equal(membershipPeriodLabel('REFUND_PENDING'),'退款办理中 · 本段权益暂停');
+});
 
 test('purchase actions require consent and preserve the existing pending checkout before creating another',()=>{
   assert.equal(coursePurchaseAction(null,{},true,false,clock).enabled,false);

@@ -87,7 +87,8 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
     if(!offer||offer.price<=0n||offer.price>100000000n)throw new BadRequestException('此课程请从详情加入研习，或等待书院开放售卖');
     const deliveryReady=await this.deliverable(release.lessons,course.format,store);
     const snapshot={courseId,releaseId:release.id,title:release.title,cover:course.cover,teacherName:(release.teacherSnapshot as {name?:string})?.name??course.teacher.name,format:course.format,contentFormats:['TEXT','AUDIO','VIDEO','LIVE'].filter(format=>release.lessons.some(lesson=>lesson.format===format)),lessons:release.lessons.length,durationSeconds:release.lessons.reduce((sum,l)=>sum+l.durationSeconds,0),accessDays:release.accessDays,refundPolicy:(release.refundPolicySnapshot as {text?:string})?.text??course.refundPolicy,refundDays:7};
-    const liveSessions=course.format==='LIVE'?await store.liveSession.findMany({where:{id:{in:release.lessons.flatMap(l=>l.liveSessionId?[l.liveSessionId]:[])}},select:{id:true,title:true,scheduledAt:true,state:true,version:true},orderBy:[{scheduledAt:'asc'},{id:'asc'}]}):[];
+    // Live state and version change while the buyer is on the quote page and are not part of what is sold; keep the quote stable.
+    const liveSessions=course.format==='LIVE'?await store.liveSession.findMany({where:{id:{in:release.lessons.flatMap(l=>l.liveSessionId?[l.liveSessionId]:[])}},select:{id:true,title:true,scheduledAt:true},orderBy:[{scheduledAt:'asc'},{id:'asc'}]}):[];
     const quotedSnapshot={...snapshot,...(course.format==='LIVE'?{liveSessions}:{} )};
     const quoteHash=hash({consumptionRule:consumptionPolicy,offerId:offer.id,version:offer.version,price:String(offer.price),snapshot:quotedSnapshot});
     return{course,release,offer,snapshot:quotedSnapshot,quoteHash,deliveryReady};

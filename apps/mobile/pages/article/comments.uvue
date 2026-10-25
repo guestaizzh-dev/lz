@@ -5,7 +5,7 @@
 <button class="write-comment" @click="emit('reply',null,null,null)">写评论</button>
 </view>
 <view v-for="item in mine" :key="item.id" class="my-comment"><view class="comment-header"><text class="comment-author">我的{{item.parentId?'回复':'评论'}}</text><text class="comment-time">{{item.reviewState==='PENDING'?'待审核 · 仅自己可见':'未通过审核 · 仅自己可见'}}</text></view><text class="comment-body" :user-select="true">{{item.body}}</text><button class="withdraw-comment withdraw-mine" @click="remove(item.id)">{{item.reviewState==='PENDING'?'撤回':'删除'}}</button></view>
-<view v-if="comments.length===0&&mine.length===0&&!loading&&!error" class="empty-state">
+<view v-if="ready&&comments.length===0&&mine.length===0&&!loading&&!error" class="empty-state">
 <text class="empty-text">暂无评论，快来发表你的见解吧</text>
 </view>
 <view v-for="c in comments" :key="c.id" class="comment-item">
@@ -37,7 +37,7 @@
 </view>
 </view>
 </view>
-<text v-if="error" class="empty-text" @click="load()">{{error}} · 点击重试</text>
+<text v-if="error" class="empty-text" @click="load(failedAppend)">{{error}} · 点击重试</text>
 <view v-if="hasMore&&!loading" class="load-more" @click="loadMore">
 <text class="load-more-text">加载更多评论</text>
 </view>
@@ -48,7 +48,7 @@
 </view></template>
 <script setup lang="ts">
 import {formatChinaDate} from '../../lib/date-time';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { request,assetUrl } from '../../lib/api';
 import AppIcon from '../../components/AppIcon.uvue';
 import ReportModal from '../../components/report-modal.uvue';import {needLogin} from '../../lib/session';import {currentUser} from '../../lib/session';
@@ -87,7 +87,6 @@ interface CommentsResponse {
 
 const props = defineProps<{
   resourceId: string;
-  blocks?: {id:string;text:string}[];
 }>();
 
 const emit = defineEmits<{
@@ -100,11 +99,11 @@ const cursor = ref<string|null>(null);
 const hasMore = ref(false);
 const loading = ref(false);
 const error=ref('');
-const total = computed(() => comments.value.length);
+const ready=ref(false);let failedAppend=false;
 
 async function load(append=false) {
   if (loading.value) return;
-  loading.value = true;
+  loading.value = true;failedAppend=append;
   try {
     if(!append)cursor.value=null;
     error.value='';
@@ -116,7 +115,7 @@ async function load(append=false) {
   } catch (e) {
     error.value=(e as Error).message;
   } finally {
-    loading.value = false;
+    loading.value = false;ready.value=true;
   }
 }
 
@@ -124,7 +123,7 @@ function loadMore() {
   if (hasMore.value && !loading.value) load(true);
 }
 
-async function allReplies(c:Comment){try{const data=await request<{items:Reply[];nextCursor:string|null}>('/articles/'+props.resourceId+'/comments?parentId='+c.id+(c.repliesCursor?'&cursor='+c.repliesCursor:''));c.replies=c.expanded?[...(c.replies??[]),...data.items]:data.items;c.expanded=true;c.repliesCursor=data.nextCursor;}catch(e){error.value=(e as Error).message;}}
+async function allReplies(c:Comment){try{const data=await request<{items:Reply[];nextCursor:string|null}>('/articles/'+props.resourceId+'/comments?parentId='+c.id+(c.repliesCursor?'&cursor='+c.repliesCursor:''));c.replies=c.expanded?[...(c.replies??[]),...data.items]:data.items;c.expanded=true;c.repliesCursor=data.nextCursor;}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}
 function remove(id:string){uni.showModal({title:'删除这条评论？',content:'删除后无法恢复。',confirmText:'删除',confirmColor:'#B4533F',success:async r=>{if(!r.confirm)return;try{await request('/articles/'+props.resourceId+'/comments/'+id,{method:'DELETE'});load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}});}
 onMounted(()=>load());watch(()=>currentUser.value?.id,()=>load());
 function replyTo(parentId: string, parentAuthor: string) {
@@ -153,7 +152,6 @@ defineExpose({ load });
 .comment-section{padding:26px 0 4px;}
 .section-header{flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .section-title{font-family:AcademySerif;font-size:18px;line-height:28px;font-weight:600;color:#182B31;}
-.section-count{font-size:13px;color:#6A7578;}
 .empty-state{padding:28px 0;align-items:center;}
 .empty-text{font-size:13px;line-height:22px;color:#6A7578;}
 .comment-item{flex-direction:row;margin-bottom:0;padding:18px 0;border-bottom-width:1px;border-bottom-color:#E3DCCF;border-bottom-style:solid;}

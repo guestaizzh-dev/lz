@@ -16,6 +16,7 @@ import { Prisma } from './generated/prisma/client.js';
 import { rtcRoomId, rtcStreamId, ZegoService } from './zego.js';
 import { BookingsService } from './bookings.js';
 import {activeMic,micAudience,micStreamId,endSessionMics} from './live-mics.js';
+import { LiveRecordings } from './live-recordings.js';
 
 export const liveCategories=['CULTURE','QA','PRACTICE','MEMBER','EVENT'];
 const terminal=['ENDED','REPLAY_READY','CANCELLED'];
@@ -66,7 +67,7 @@ class ReplayReviewDto {
 export class LiveService implements OnModuleInit,OnModuleDestroy {
   private timer?:ReturnType<typeof setInterval>;private working=false;
   private readonly logger=new Logger(LiveService.name);
-  constructor(private readonly db:Database,private readonly zego:ZegoService,private readonly discovery:DiscoveryService,private readonly learning:LearningService,private readonly auth:AuthService,private readonly bookings:BookingsService,private readonly permissions:AdminPermissions){}
+  constructor(private readonly db:Database,private readonly zego:ZegoService,private readonly discovery:DiscoveryService,private readonly learning:LearningService,private readonly auth:AuthService,private readonly bookings:BookingsService,private readonly permissions:AdminPermissions,private readonly recordings:LiveRecordings){}
   onModuleInit(){if(process.env.NODE_ENV!=='test'){this.timer=setInterval(()=>void this.runJobs().catch(()=>this.logger.error('Live recovery pending; will retry')),15000);this.timer.unref();}}
   onModuleDestroy(){if(this.timer)clearInterval(this.timer);}
   async session(id:string,store:Prisma.TransactionClient=this.db){const row=await store.liveSession.findUnique({where:{id}});if(!row)throw new NotFoundException('直播场次不存在');return row;}
@@ -96,13 +97,27 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
       this.db.liveSession.findMany({where:{roomId:id,state:{in:terminal}},orderBy:[{scheduledAt:'desc'},{id:'desc'}],take:25})
     ]);
     const sessions=[...active,...upcoming,...history].slice(0,50);
-    const reservations=userId?await this.db.liveReservation.findMany({where:{sessionId:{in:sessions.map(s=>s.id)},userId,cancelledAt:null}}):[];
-    const recordings=await this.db.liveRecording.findMany({where:{sessionId:{in:sessions.map(s=>s.id)}},select:{sessionId:true,state:true,failure:true}});
+    const sessionIds=sessions.map(s=>s.id);
+    const reservations=userId?await this.db.liveReservation.findMany({where:{sessionId:{in:sessionIds},userId,cancelledAt:null}}):[];
+    // Batch room-wide lookups; a 15s poll on a busy room must not issue one query per session.
+    const [recordings,replays]=await Promise.all([
+      this.db.liveRecording.findMany({where:{sessionId:{in:sessionIds}},select:{sessionId:true,state:true,failure:true}}),
+      this.db.liveReplay.findMany({where:{sessionId:{in:sessionIds},reviewState:'APPROVED',publishedAt:{not:null},reviewerId:{not:null}},select:{sessionId:true}})
+    ]);
+    // Sessions in one room share a rule snapshot; only a lesson-bound rule needs a per-session entitlement check.
+    const checks=new Map<string,Promise<string>>();
+    const accessReasonFor=(sessionId:string)=>this.access(sessionId,userId!).then(()=>'').catch((e:unknown)=>e instanceof Error?e.message:'暂不可观看');
+    const reasonFor=(session:{id:string;accessRuleSnapshot:unknown})=>{
+      const rule=session.accessRuleSnapshot as Rule;
+      if(rule.lessonBound)return accessReasonFor(session.id);
+      const key=JSON.stringify(rule),cached=checks.get(key);if(cached)return cached;
+      const pending=accessReasonFor(session.id);checks.set(key,pending);return pending;
+    };
     return {...item,cover:room.cover||item.cover,managedByAdmin:room.managedByAdmin,categoryCode:room.categoryCode,teacher,courseId:room.courseId,accessRule:room.accessRule,rtcReady:this.zego.ready(),sessions:await Promise.all(sessions.map(async s=>{
-      let accessReason='';try{if(userId)await this.access(s.id,userId);else accessReason='请登录后进入直播';}catch(e){accessReason=e instanceof Error?e.message:'暂不可观看';}
-      const replay=await this.db.liveReplay.findFirst({where:{sessionId:s.id,reviewState:'APPROVED',publishedAt:{not:null},reviewerId:{not:null}},select:{id:true}});
+      let accessReason='';if(userId)accessReason=await reasonFor(s);else accessReason='请登录后进入直播';
+      const replay=replays.some(r=>r.sessionId===s.id);
       const recording=recordings.find(r=>r.sessionId===s.id);
-      return {id:s.id,title:s.title,version:s.version,scheduledAt:s.scheduledAt,startedAt:s.startedAt,endedAt:s.endedAt,state:s.state,disconnected:!!s.disconnectedAt,reserved:reservations.some(r=>r.sessionId===s.id),accessReason,replayReady:!!replay&&s.state==='REPLAY_READY',replayStatus:recording?.state??null};
+      return {id:s.id,title:s.title,version:s.version,scheduledAt:s.scheduledAt,startedAt:s.startedAt,endedAt:s.endedAt,state:s.state,disconnected:!!s.disconnectedAt,reserved:reservations.some(r=>r.sessionId===s.id),accessReason,replayReady:replay&&s.state==='REPLAY_READY',replayStatus:recording?.state??null};
     }))};
   }
   async hostSessions(req:AuthRequest){
@@ -176,11 +191,17 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
   }
   async state(req:AuthRequest,id:string,dto:StateDto,assignedHost=false){
     requireRoles(req,assignedHost?['TEACHER']:['OPERATOR']);
-    if(assignedHost&&dto.action==='CANCEL')throw new ForbiddenException('取消课程场次请由运营处理交付补偿');return this.db.$transaction(async tx=>{
+    if(assignedHost&&dto.action==='CANCEL')throw new ForbiddenException('取消课程场次请由运营处理交付补偿');
+    // The broadcast console owns the single-live rule and the recording job; session/teacher entry points must apply both too.
+    const target=dto.action==='PREPARE'?await this.db.liveSession.findUnique({where:{id},select:{roomId:true}}):null;
+    const managed=!!target&&!!(await this.db.liveRoom.findFirst({where:{id:target.roomId,managedByAdmin:true},select:{id:true}}));
+    const result=await this.db.$transaction(async tx=>{
+      if(managed)await tx.$queryRaw`SELECT pg_advisory_xact_lock(20090015)::text`;
       await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${id} FOR UPDATE`;
       const row=await this.session(id,tx);if(assignedHost)await this.hostAllowed(row,req.actor.id,tx);if(row.version!==dto.expectedVersion)throw new ConflictException('场次已变化，请刷新');
       const valid=dto.action==='PREPARE'?row.state==='SCHEDULED':dto.action==='CANCEL'?['SCHEDULED','PREPARING'].includes(row.state):['PREPARING','LIVE'].includes(row.state);
       if(!valid)throw new ConflictException('当前状态不支持此操作');
+      if(managed){const other=await tx.$queryRaw<{id:string}[]>`SELECT s.id FROM "LiveSession" s JOIN "LiveRoom" l ON l.id=s."roomId" AND l."managedByAdmin" WHERE s.id<>${id} AND s.state IN ('PREPARING','LIVE') LIMIT 1`;if(other.length)throw new ConflictException('已有直播正在准备或进行，请先结束或取消上一场');}
       const state=dto.action==='PREPARE'?'PREPARING':dto.action==='CANCEL'?'CANCELLED':'ENDED',now=new Date();
       const result=await tx.liveSession.update({where:{id},data:{state,version:{increment:1},...(state==='ENDED'?{endedAt:now,disconnectedAt:null}:{})}});
       if(state==='CANCELLED'){
@@ -198,6 +219,8 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
       }
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'live.session.'+dto.action.toLowerCase(),resource:'live',resourceId:id,changes:{before:row.state,state,reason:dto.reason.trim()}}});return result;
     });
+    if(managed)await this.recordings.ensure(id);
+    return result;
   }
   async reschedule(req:AuthRequest,id:string,dto:RescheduleDto){
     requireRoles(req,['OPERATOR']);const next=new Date(dto.scheduledAt);
@@ -264,7 +287,8 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
     });
     if(watching&&result.role==='VIEWER'){
       const lease=await this.db.liveRtcLease.findUniqueOrThrow({where:{keyHash:hash(key)}});
-      await this.recordWatch(lease.sessionId,lease.userId);
+      // Attendance is bookkeeping; a failed progress write must not drop a viewer whose room access was just re-verified.
+      try{await this.recordWatch(lease.sessionId,lease.userId);}catch{}
     }
     return result;
   }

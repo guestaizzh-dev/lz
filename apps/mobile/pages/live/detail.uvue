@@ -11,18 +11,19 @@
         <view class="live-detail-host"><text class="live-detail-host-label">主讲</text><text class="live-detail-host-name">{{room!.teacher.name}}</text></view>
       </view>
     </view>
-    <view class="live-outline"><text class="section-heading">本场内容</text><text class="body-copy live-outline-copy" :user-select="true">{{room!.summary}}</text><text v-if="room!.managedByAdmin" class="footer-note">全部有效会员均可观看，不预约也能直接进入直播。</text></view>
+    <view class="live-outline"><text class="section-heading">本场内容</text><text class="body-copy live-outline-copy" :user-select="true">{{room!.summary}}</text><text v-if="room!.managedByAdmin" class="footer-note">全部有效会员均可观看，不预约也能直接进入直播。</text><text v-if="!room!.rtcReady" class="footer-note">直播观看通道正在维护，暂时不能进入；预告、预约与回放入口不受影响。</text></view>
     <view v-if="!room!.managedByAdmin" class="section-head live-head"><view><text class="eyebrow">场次安排</text><text class="section-heading">研习安排</text></view><text class="section-link">{{room!.sessions.length}} 场</text></view>
     <view v-for="s in room!.sessions" :key="s.id" :class="['session',s.state==='LIVE'?'session-live':'']">
       <view class="row between session-top">
-        <view :class="['pill',s.state==='LIVE'?'pill-live':(s.state==='PREPARING'||s.replayReady)?'pill-gold':'pill-muted']"><view v-if="s.state==='LIVE'" class="pill-dot"/><text class="pill-text">{{s.disconnected?'断流重连中':states[s.state]??s.state}}</text></view>
+        <view :class="['pill',s.state==='LIVE'?'pill-live':(s.state==='PREPARING'||s.replayReady)?'pill-gold':'pill-muted']"><view v-if="s.state==='LIVE'" class="pill-dot"/><text class="pill-text">{{s.disconnected?'断流重连中':overdue(s)?'等待开播':states[s.state]??s.state}}</text></view>
         <view v-if="s.reserved" class="pill pill-teal">已预约</view>
       </view>
       <text v-if="!room!.managedByAdmin" class="session-title">{{s.title}}</text>
       <view class="session-time"><AppIcon name="calendar-blank" :size="14"/><text class="session-time-text">{{formatChinaTime(s.scheduledAt)}}</text><text class="session-zone">北京时间</text></view>
+      <text v-if="overdue(s)" class="session-hint">已到开播时间，等待书院开播；开播后可从这里进入。</text>
       <text v-if="s.accessReason&&s.state!=='CANCELLED'" class="session-hint">{{s.accessReason}}</text>
       <view class="session-actions"><button v-if="s.state==='LIVE'" class="primary-button session-cta" :class="busy?'is-disabled':''" @click="watch(s,false)">进入直播</button><button v-if="s.replayReady" class="primary-button session-cta" :class="busy?'is-disabled':''" @click="watch(s,true)">观看回放</button>
-      <button v-if="['SCHEDULED','PREPARING'].includes(s.state)" :class="['session-cta',s.reserved?'secondary-button':'primary-button',busy?'is-disabled':'']" @click="reserve(s)">{{s.reserved?'取消预约':'预约本场'}}</button></view>
+      <button v-if="['SCHEDULED','PREPARING'].includes(s.state)&&(!overdue(s)||s.reserved)" :class="['session-cta',s.reserved?'secondary-button':'primary-button',busy?'is-disabled':'']" @click="reserve(s)">{{s.reserved?'取消预约':'预约本场'}}</button></view>
       <text v-if="s.state==='ENDED'&&!s.replayReady" class="session-hint">{{replayMessage(s.replayStatus)}}</text><text v-if="s.state==='CANCELLED'" class="session-hint">本场已取消，可关注书院其他研习安排。</text>
     </view>
     <ContentState v-if="!room!.sessions.length" title="暂无开播安排" description="新的研习安排将在这里公布。"/>
@@ -42,11 +43,13 @@ import {formatChinaTime} from '../../lib/date-time';import {request,goCourse} fr
 type LiveSession={id:string;title:string;scheduledAt:string;state:string;reserved:boolean;disconnected:boolean;accessReason:string;replayReady:boolean;replayStatus?:string|null};
 type LiveTeacher={name:string};type AccessRule={mode:string;tier?:number};
 type Live={cover?:string;managedByAdmin?:boolean;title:string;summary:string;categoryCode:string;teacher:LiveTeacher;courseId:string|null;accessRule:AccessRule;rtcReady:boolean;sessions:LiveSession[]};
-const room=ref<Live|null>(null),error=ref(''),loading=ref(false),busy=ref(false),relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null),width=viewWidth();let id='',timer:ReturnType<typeof setInterval>|null=null;
+const room=ref<Live|null>(null),error=ref(''),loading=ref(false),busy=ref(false),relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null),width=viewWidth(),now=ref(Date.now());let id='',timer:ReturnType<typeof setInterval>|null=null,clock:ReturnType<typeof setInterval>|null=null;
 const states:Record<string,string>={SCHEDULED:'直播预告',PREPARING:'准备开播',LIVE:'直播中',ENDED:'已结束',REPLAY_READY:'回放就绪',CANCELLED:'已取消'},categories:Record<string,string>={CULTURE:'文化讲解',QA:'研习答疑',PRACTICE:'实践教学',MEMBER:'会员专属',EVENT:'活动同步'};
 const accessLabel=computed(()=>room.value?.accessRule.mode==='MEMBER'?'会员研习':room.value?.accessRule.mode==='COURSE'?'课程学员专享':'公开研习');
+// A session the host never started keeps state SCHEDULED, so its start time, not only its state, has to drive the label.
+function overdue(s:LiveSession){return s.state==='SCHEDULED'&&Date.parse(s.scheduledAt)<now.value;}
 function replayMessage(state?:string|null){return state==='FAILED'?'回放暂未就绪，书院正在处理，请稍后查看。':state==='READY'?'回放正在确认内容，发布后可在此观看。':['WAITING','STARTING','ARMED','RECORDING','PROCESSING'].includes(state??'')?'本场已结束，回放正在生成，请稍后查看。':'本场已结束，回放发布后可在此观看。';}
-async function load(){if(!id||loading.value)return;loading.value=true;error.value='';try{room.value=await request('/live/rooms/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;if(!room.value)uni.showToast({title:error.value,icon:'none'});}finally{loading.value=false;}}
+async function load(){if(!id||loading.value)return;now.value=Date.now();loading.value=true;error.value='';try{room.value=await request('/live/rooms/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;if(!room.value)uni.showToast({title:error.value,icon:'none'});}finally{loading.value=false;}}
 async function watch(s:LiveSession,replay:boolean){if(busy.value||needLogin('live/detail?id='+id))return;busy.value=true;
   try{const latest=await request<Live>('/live/rooms/'+encodeURIComponent(id));room.value=latest;const current=latest.sessions.find(row=>row.id===s.id);
     if(!current)throw new Error('本场安排已更新，请重新选择');if(current.accessReason)throw new Error(current.accessReason);
@@ -54,8 +57,8 @@ async function watch(s:LiveSession,replay:boolean){if(busy.value||needLogin('liv
     if(!replay&&!latest.rtcReady)throw new Error('直播观看尚未开通，请稍后再试');openPage('live/watch?id='+s.id+'&roomId='+id+(replay?'&mode=replay':''));
   }catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
 async function reserve(s:LiveSession){if(needLogin('live/detail?id='+id)||busy.value)return;busy.value=true;try{await request('/live/sessions/'+s.id+'/reservation',{method:'POST',data:{action:s.reserved?'CANCEL':'RESERVE'}});uni.showToast({title:s.reserved?'已取消预约':'预约成功，开播前会提醒你',icon:'none'});await load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
-onLoad(o=>{id=o?.id??'';load();});onShow(()=>{if(id)load();relatedRef.value?.refresh();if(!timer)timer=setInterval(()=>{if(room.value?.sessions.some(s=>['PREPARING','LIVE'].includes(s.state)))load();},15000);});
-function stop(){if(timer)clearInterval(timer);timer=null;}onHide(stop);onUnload(stop);
+onLoad(o=>{id=o?.id??'';load();});onShow(()=>{if(id)load();relatedRef.value?.refresh();if(!timer)timer=setInterval(()=>{if(room.value?.sessions.some(s=>['PREPARING','LIVE'].includes(s.state)))load();},15000);if(!clock)clock=setInterval(()=>now.value=Date.now(),30000);});
+function stop(){if(timer)clearInterval(timer);timer=null;if(clock)clearInterval(clock);clock=null;}onHide(stop);onUnload(stop);
 </script>
 <style>@import '../../styles/app.css';
 .live-detail-hero{position:relative;border-radius:12px;overflow:hidden;}

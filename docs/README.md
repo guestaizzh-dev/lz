@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+短信接入新增：[100 阿里云验证码](100-aliyun-sms.md)（代码与专项验证完成，凭据/真实收码/部署待办）。
+
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
 最新发布：**`20261025-review-polish-01`**（课程/直播/会员/订单/阅读与响应式修复），Android 0.3.18/code23；见[99 发布记录](99-review-polish-release-20261025.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。

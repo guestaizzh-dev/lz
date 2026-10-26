@@ -2,8 +2,10 @@ import {socialLoginConfig} from './login-providers.js';
 import {offlineSigningConfig} from './offline-licenses.js';
 import {pushConfiguration} from './notifications.js';
 import { previewLoginConfig } from './preview-login.js';
+import { smsProvider } from './sms.js';
 
 export function validateProductionConfig(env:NodeJS.ProcessEnv){
+  const provider = smsProvider(env);
   previewLoginConfig(env);
   socialLoginConfig('WECHAT',env);socialLoginConfig('APPLE',env);
   offlineSigningConfig(env);
@@ -25,10 +27,11 @@ export function validateProductionConfig(env:NodeJS.ProcessEnv){
   if(env.APPLE_MEMBERSHIP_SALES_ENABLED==='true'&&(env.APPLE_IAP_ENABLED!=='true'||env.APPLE_NATIVE_PURCHASE_READY!=='true'||env.COURSE_PAYMENT_WORKER_ENABLED==='false'))throw new Error('Apple membership sales require verified Apple identity, native purchase readiness and receipt recovery');
   if(env.DEV_OTP_CODE||env.ORDER_RESERVATION_PREVIEW==='true')throw new Error('Production forbids DEV_OTP_CODE and ORDER_RESERVATION_PREVIEW');
   if(env.SMS_ENABLED!==undefined&&!['true','false'].includes(env.SMS_ENABLED))throw new Error('SMS_ENABLED must be true or false');
-  const smsFields=env.SMS_ENABLED==='false'?[]:['SMS_SECRET_ID','SMS_SECRET_KEY','SMS_SDK_APP_ID','SMS_TEMPLATE_ID','SMS_SIGN_NAME'];
+  const smsFields=env.SMS_ENABLED==='false'?[]:provider==='aliyun'?['ALIBABA_CLOUD_ACCESS_KEY_ID','ALIBABA_CLOUD_ACCESS_KEY_SECRET','ALIYUN_SMS_TEMPLATE_CODE','ALIYUN_SMS_SIGN_NAME']:['SMS_SECRET_ID','SMS_SECRET_KEY','SMS_SDK_APP_ID','SMS_TEMPLATE_ID','SMS_SIGN_NAME'];
   for(const name of ['DATABASE_URL','CORS_ORIGINS','PUBLIC_API_URL','OTP_HASH_SECRET','DOMAIN_ENCRYPTION_KEY','MEDIA_TOKEN_SECRET',...smsFields]){
     const value=env[name];if(!value||/CHANGE_ME|REPLACE_ME/.test(value))throw new Error('Production requires '+name);
   }
+  if(env.SMS_ENABLED!=='false'&&provider==='aliyun'&&!/^SMS_\d+$/.test(env.ALIYUN_SMS_TEMPLATE_CODE!))throw new Error('ALIYUN_SMS_TEMPLATE_CODE must be SMS_ followed by digits');
   for(const name of ['DOMAIN_ENCRYPTION_KEY','MEDIA_TOKEN_SECRET'])if(!/^[a-fA-F0-9]{64}$/.test(env[name]!))throw new Error(name+' must be a 32-byte hex key');
   if(Buffer.byteLength(env.OTP_HASH_SECRET!)<32)throw new Error('OTP_HASH_SECRET must contain at least 32 bytes');
   const db=new URL(env.DATABASE_URL!);if(!['postgres:','postgresql:'].includes(db.protocol)||!db.username||!db.password||db.pathname==='/')throw new Error('Invalid production DATABASE_URL');

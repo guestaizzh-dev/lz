@@ -17,7 +17,7 @@ with apk.open('rb') as f:
  for chunk in iter(lambda:f.read(1024*1024),b''):digest.update(chunk)
 assert digest.hexdigest()==info['sha256']
 assert apk.stat().st_size==info['bytes']
-for name in ['index.html','style.css','page.js','qr.svg','qr.png','icon.png']:
+for name in ['index.html','style.css','page.js','qr.svg','qr.png','icon.png','poster.png','poster-share.png']:
  assert (staging/name).is_file() and not (staging/name).is_symlink()
 base.mkdir(parents=True,exist_ok=True)
 if (base/'current/release.json').exists():

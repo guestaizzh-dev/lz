@@ -11,7 +11,7 @@ await new Promise(done=>server.listen(0,'127.0.0.1',done));const url=`http://127
 const browser=await chromium.launch({channel:'msedge',headless:true});const checks=[],errors=[];
 try{
  for(const [width,height]of [[320,740],[390,844],[844,390],[1280,900]]){
-  const page=await browser.newPage({viewport:{width,height}});page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.locator('.qr img').waitFor();
+  const page=await browser.newPage({viewport:{width,height}});page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.locator('.poster-qr').waitFor();
   assert.equal(await page.locator('#download').getAttribute('href'),'./android.apk');assert.ok(await page.locator('.metadata').innerText().then(x=>x.includes('0.3.18')));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:`${output}/${width}.png`,fullPage:true});checks.push({name:`layout-${width}`,pass:true});await page.close();

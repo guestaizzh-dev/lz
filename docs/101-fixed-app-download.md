@@ -66,3 +66,13 @@ bash /opt/daoxue-academy/publish-app-download.sh /完整的上传暂存目录
 - 发布前临时运行edge做nginx配置检查时，固定IP导致地址冲突；已回退该次尝试，改用现有edge内执行nginx -t后重建，正式上线验证通过，未影响数据库/API。
 - 证据：`outputs/download-page-review/checks.json`、`live-checks.json`、`release-config-before.json`、`release-config-after.json`、页面截图，以及 `outputs/app-download-0318/release.json`、`qr.png`。原始部署日志留在私有 `.runtime/download-*`。
 - 未做手机安装/iOS原生测试，不把Web检查视为真机验收；真实短信、支付及上架门禁仍按原计划。
+
+
+## 用户海报更新
+
+按用户提供的设计图更新下载页海报（源码 `apps/download/poster.png`）。原图中的AI二维码不作为付款或下载凭据；页面在原二维码区域覆盖真实固定地址二维码，海报分享图由浏览器渲染叠加后的页面元素生成，保留原画面文字和装饰。
+
+- 下载页仍为 https://cuecanvas.top/download/，新增分享海报 https://cuecanvas.top/download/poster-share.png ，页面提供保存入口。
+- 新静态目录 `/opt/daoxue-academy/download/releases/0.3.18-code23-poster-v2/`，current已切换；上一目录保留可回退。无API重启、无数据库修改、无新APK，原文件SHA256保持。
+- 6组Web检查与准备工具专项通过。OpenCV实际解码分享海报成功，内容严格为 `https://cuecanvas.top/download/`，不使用AI图原二维码。原生手机扫码/安装未额外验收。
+- 页面源码准备和后续发布完整性检查均纳入海报源图及分享图，固定地址不随版本改变。

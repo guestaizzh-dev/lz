@@ -22,6 +22,8 @@ const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&l
 const html=(await readFile('apps/download/index.html','utf8')).replace(/\{\{([A-Z0-9]+)\}\}/g,(_,key)=>{if(!Object.hasOwn(values,key))throw Error('Unknown template field');return escape(values[key]);});
 await writeFile(join(dir,'index.html'),html);
 for(const name of ['style.css','page.js'])await copyFile('apps/download/'+name,join(dir,name));
+await copyFile('apps/download/poster.png',join(dir,'poster.png'));
+await copyFile('apps/download/poster-share.png',join(dir,'poster-share.png'));
 await copyFile('apps/mobile/static/brand/app-icon-192.png',join(dir,'icon.png'));
 await copyFile(apk,join(dir,'android.apk'));
 await QRCode.toFile(join(dir,'qr.svg'),target.href,{type:'svg',errorCorrectionLevel:'M',margin:4,color:{dark:'#273e35',light:'#ffffff'}});

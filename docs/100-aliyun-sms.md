@@ -2,7 +2,7 @@
 
 ## 状态
 
-代码与部署参数已支持阿里云，API 构建及 18 项短信/生产配置/App 错误提示专项测试通过。凭据已私有配置，API 已发布 `20261025-aliyun-sms-01`（源码 `1addb06`），短信启用、固定验证码预览关闭。真实调用返回 HTTP 403 / `NoPermission`，尚未成功提交短信，需要为 RAM 用户授权 `dysms:SendSms` 后恢复。商用 38/131 不变。
+代码与部署参数已支持阿里云，API 构建及 18 项短信/生产配置/App 错误提示专项测试通过。凭据已私有配置，API 已发布 `20261025-aliyun-sms-01`（源码 `1addb06`），短信启用、固定验证码预览关闭。RAM授权后复测不再返回NoPermission，当前HTTP 200、业务码 `isv.AMOUNT_NOT_ENOUGH`（账户余额不足），仍未成功提交短信；需充值或确认可用套餐后恢复。商用 38/131 不变。
 
 用户确认的模板：
 
@@ -37,7 +37,7 @@ RAM 用户仅授予发送需要的 `dysms:SendSms`，签名/模板须归属同�
 
 - 已验证：签名请求组成/中文参数/STS、随机 nonce、正确模板变量、成功响应、业务拒绝/HTTP 错误/异常 JSON/null、超时不重试、缺凭据不发请求、生产配置分渠道校验、App 安全文案。
 - 待验证：真实号码收码登录、错误/到期/重复验证码拒绝、真实控制台记录、并发与费用控制。
-- 阻塞：真实调用返回 `NoPermission`（RequestId `01A17691-7251-56F7-BD6B-8FB0FA8CA2F3`），用户需为 RAM 用户绑定短信发送策略。最小策略见 [infra/aliyun-sms-send-policy.json](../infra/aliyun-sms-send-policy.json)。恢复：授权后，遵守现有限流重新创建验证码挑战，再确认手机实际收码及登录。
+- 原权限阻塞已解除；授权后真实调用业务码 `isv.AMOUNT_NOT_ENOUGH`，RequestId `01A17697-7BAF-5313-8E30-AD9941D66838`，账户余额不足。恢复：所有者充值/确认可用套餐，遵守现有限流创建新挑战，验证实际收码登录。最小策略见 [infra/aliyun-sms-send-policy.json](../infra/aliyun-sms-send-policy.json)。
 
 ## 线上部署证据
 

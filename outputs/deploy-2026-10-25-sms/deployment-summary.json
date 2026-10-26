@@ -11,9 +11,11 @@
   "previewLoginEnabled": false,
   "provider": "aliyun",
   "deliveryConfirmed": false,
-  "providerError": "NoPermission",
-  "providerHttpStatus": 403,
+  "providerError": "isv.AMOUNT_NOT_ENOUGH",
+  "providerHttpStatus": 200,
   "backup": "academy-20261026T045425Z-Es9XpC.dump",
   "freeDiskGiB": 4.7,
-  "newApk": false
+  "newApk": false,
+  "ramPermissionGateCleared": true,
+  "requestId": "01A17697-7BAF-5313-8E30-AD9941D66838"
 }

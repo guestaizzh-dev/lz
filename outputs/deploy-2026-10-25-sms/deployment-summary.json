@@ -1,0 +1,19 @@
+{
+  "release": "20261025-aliyun-sms-01",
+  "source": "1addb062edc78b058f3055d0546d09b8ea6c949c",
+  "previous": "20261025-review-polish-01",
+  "apiHealthy": true,
+  "migrations": 81,
+  "tables": 198,
+  "businessTableCountsCompared": 17,
+  "businessTableCountsUnchanged": true,
+  "smsEnabled": true,
+  "previewLoginEnabled": false,
+  "provider": "aliyun",
+  "deliveryConfirmed": false,
+  "providerError": "NoPermission",
+  "providerHttpStatus": 403,
+  "backup": "academy-20261026T045425Z-Es9XpC.dump",
+  "freeDiskGiB": 4.7,
+  "newApk": false
+}

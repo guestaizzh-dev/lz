@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8f7f2">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="下载老子道学书院 App，随时研读经典、学习课程、参与直播共修。">
+  <title>下载 App · 老子道学书院</title>
+  <link rel="icon" href="./icon.png">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./page.js" defer></script>
+</head>
+<body>
+  <div class="page">
+    <header class="brand"><img src="./icon.png" alt="" width="48" height="48"><div><strong>老子道学书院</strong><span>道学文化传承与实践</span></div></header>
+    <main>
+      <section class="intro" aria-labelledby="title">
+        <p class="edition">书院 App · Android 体验版</p>
+        <h1 id="title">读经典，<br>亦在日常。</h1>
+        <p class="description">经典研读、课程学习与直播共修。<br>把书院，带在身边。</p>
+        <a class="download" id="download" href="./android.apk" download="daoxue-academy-{{VERSION}}.apk"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>下载 Android 版</a>
+        <p class="metadata">版本 {{VERSION}} <span>·</span> {{SIZE}} MB <span>·</span> Android 6.0 及以上</p>
+        <p id="device-note" class="device-note">适用于 ARM64 安卓手机。iOS 版暂未提供下载。</p>
+        <div id="wechat" class="notice" hidden role="status"><strong>请在浏览器中打开</strong><p>点击微信右上角「···」，选择「在浏览器打开」，再下载并安装。</p></div>
+      </section>
+      <aside class="scan" aria-label="扫码下载">
+        <div class="qr"><img src="./qr.svg" width="196" height="196" alt="扫码打开老子道学书院下载页面"></div>
+        <h2>手机扫一扫</h2><p>随时获取最新安装包</p>
+        <a class="save" href="./qr.png" download="老子道学书院下载二维码.png">保存二维码 <span aria-hidden="true">↗</span></a>
+      </aside>
+      <section class="instructions" aria-labelledby="install-title">
+        <div><h2 id="install-title">安装与更新</h2><p>更新前无需卸载，保留原有使用记录。</p></div>
+        <ol><li><span>01</span><div><strong>下载安装包</strong><p>在手机浏览器中下载，完成后打开安装文件。</p></div></li><li><span>02</span><div><strong>按系统提示安装</strong><p>如系统询问，允许当前浏览器安装此应用，安装后可关闭该权限。</p></div></li><li><span>03</span><div><strong>打开书院，开始研习</strong><p>已有版本可直接覆盖更新；下载失败时请检查网络后重试。</p></div></li></ol>
+      </section>
+      <details class="release"><summary>版本说明与文件校验 <span>{{DATE}}</span></summary><p>{{NOTES}}</p><dl><dt>版本 / 构建号</dt><dd>{{VERSION}} / {{CODE}}</dd><dt>SHA256</dt><dd class="hash">{{SHA256}}</dd></dl></details>
+    </main>
+    <footer><span>老子道学书院</span><label class="share">分享下载地址<input id="share-link" aria-label="固定下载地址，点击可选中复制" value="{{URL}}" readonly></label></footer>
+  </div>
+</body>
+</html>

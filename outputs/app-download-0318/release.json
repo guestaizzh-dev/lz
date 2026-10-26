@@ -1,0 +1,10 @@
+{
+  "version": "0.3.18",
+  "build": 23,
+  "bytes": 50017681,
+  "sha256": "471d7f3f9bea03c3e9377c823109333a977aa23f6fbe03deb5aa41963399f4c5",
+  "pageUrl": "https://cuecanvas.top/download/",
+  "androidUrl": "https://cuecanvas.top/download/android.apk",
+  "publishedDate": "2026-10-25",
+  "notes": "课程、直播与阅读交互优化，完善页面适配与异常提示。"
+}

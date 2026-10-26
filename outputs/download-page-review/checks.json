@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "name": "layout-320",
+      "pass": true
+    },
+    {
+      "name": "layout-390",
+      "pass": true
+    },
+    {
+      "name": "layout-844",
+      "pass": true
+    },
+    {
+      "name": "layout-1280",
+      "pass": true
+    },
+    {
+      "name": "wechat",
+      "pass": true
+    },
+    {
+      "name": "ios",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

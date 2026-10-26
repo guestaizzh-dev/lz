@@ -17,6 +17,7 @@ services:
       - ./api-proxy.conf:/etc/nginx/snippets/api-proxy.conf:ro
       - ../apps/admin/dist:/srv/admin:ro
       - ../apps/mobile/static/art:/srv/app/static/art:ro
+      - ${DOWNLOAD_DIR:-/opt/daoxue-academy/download}:/srv/download:ro
     networks:
       backend: {ipv4_address: 172.30.89.254}
       ingress: {aliases: [daoxue-edge]}

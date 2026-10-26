@@ -1,3 +1,5 @@
+固定下载入口：cuecanvas.top域名路由已补回，https://cuecanvas.top/download/已发布Android0.3.18。API仍20261025-aliyun-sms-01、无新迁移，下载独立持久目录挂载，release配置revision1，回退与证据见[101](101-fixed-app-download.md)。
+
 短信渠道发布：当前20261025-aliyun-sms-01，源码1addb06，无数据库迁移，备份及17类业务计数一致。API健康、短信配置生效；真实阿里云调用NoPermission，需RAM发送权限，不宣称短信可用。回退/配置边界见[100](100-aliyun-sms.md)。
 
 # 后端与后台线上部署记录

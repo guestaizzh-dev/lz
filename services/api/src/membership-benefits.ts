@@ -18,7 +18,7 @@ export async function membershipContentTier(versionId:string|null,store:Pick<Dat
   if(!versionId)return 0;
   const rows=await store.$queryRaw<{parameters:unknown}[]>`SELECT b.parameters FROM "PlanBenefit" b JOIN "BenefitDefinition" d ON d.id=b."definitionId" WHERE b."planVersionId"=${versionId} AND d.code='CONTENT_ACCESS' AND NOT EXISTS(SELECT 1 FROM "BenefitScope" s WHERE s."planBenefitId"=b.id)`;
   const tier=(rows[0]?.parameters as {contentTier?:number}|undefined)?.contentTier;
-  return Number.isInteger(tier)&&tier!>=0&&tier!<=3?tier!:0;
+  return Number.isInteger(tier)&&tier!>=0&&tier!<=4?tier!:0;
 }
 // A pending refund suspends only its purchased period, without rewriting its dates or grant source.
 export async function membershipRefundHolds(userId:string,store:Pick<Database,'$queryRaw'>){
@@ -40,7 +40,7 @@ export async function eventPrioritySource(store:Database|Prisma.TransactionClien
   }return null;
 }
 class PageQuery { @IsOptional() @Type(()=>Number) @IsInt() @Min(1) page=1; @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(50) size=20; }
-class ContentBenefitsDto { @IsInt() @Min(1) expectedVersion!:number; @IsInt() @Min(0) @Max(3) contentTier!:number; @IsOptional() @IsBoolean() micPriority?:boolean; @IsString() @Length(2,500) @Matches(/\S/) reason!:string; }
+class ContentBenefitsDto { @IsInt() @Min(1) expectedVersion!:number; @IsInt() @Min(0) @Max(4) contentTier!:number; @IsOptional() @IsBoolean() micPriority?:boolean; @IsString() @Length(2,500) @Matches(/\S/) reason!:string; }
 class CommerceBenefitsDto {
   @IsInt() @Min(1) expectedVersion!:number;
   @IsInt() @Min(1000) @Max(10000) productBasisPoints!:number;
@@ -136,7 +136,7 @@ export class MembershipBenefitsService {
       const original=await tx.membershipPlanVersion.findUniqueOrThrow({where:{id:plan.currentVersionId!}}),benefits=await tx.planBenefit.findMany({where:{planVersionId:original.id}}),definition=await tx.benefitDefinition.findUniqueOrThrow({where:{code:'CONTENT_ACCESS'}});
       const micPriority=dto.micPriority??(original.termsSnapshot as {micPriority?:boolean}).micPriority??false;
       if(micPriority&&(plan.tier!==3||process.env.RTC_NATIVE_PUBLISH_READY!=='true'))throw new BadRequestException('连麦优先仅供名师会员；须完成原生实时互动验收后才能对外售卖');
-      const range=['不包含会员文章与课程','入门及以下会员文章与课程','进阶及以下会员文章与课程','全部已发布会员文章与课程'][dto.contentTier];
+      const range=['不包含会员文章与课程','铜牌及以下会员文章与课程','银牌及以下会员文章与课程','金牌及以下会员文章与课程','钻石及以下会员文章与课程'][dto.contentTier];
       const description=`有效期${plan.days}天。此版本内容权益：${range}，以实际会员内容目录为准；独立付费内容、咨询、直播、实物和活动不包含在基础内容权益中。`+(micPriority?'\n互动权益：连麦申请优先排列，仍须主播批准，不保证每场获得连麦。':'')+original.description.split('\n').filter(line=>line.startsWith('商城权益：')||line.startsWith('活动权益：')||line.startsWith('社区权益：')||line.startsWith('实物权益：')||line.startsWith('研学权益：')||line.startsWith('课程权益：')||line.startsWith('问答权益：')||line.startsWith('活动票价权益：')).map(line=>'\n'+line).join('');
       const latest=await tx.membershipPlanVersion.aggregate({where:{planId},_max:{releaseNo:true}});
       const next=await tx.membershipPlanVersion.create({data:{planId,releaseNo:(latest._max.releaseNo??0)+1,tier:plan.tier,days:plan.days,description,termsSnapshot:{...original.termsSnapshot as object,title:plan.title,price:plan.price,currency:'CNY',durationDays:plan.days,contentTier:dto.contentTier,micPriority},publishedAt:new Date()}});

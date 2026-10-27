@@ -41,7 +41,7 @@ class CourseDto {
   @IsString() @Matches(imageUrlPattern,{message:'请上传有效的图片'}) cover!: string;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsUUID() teacherId!: string;
-  @IsOptional() @IsInt() @Min(1) @Max(3) membershipTier?: number | null;
+  @IsOptional() @IsInt() @Min(1) @Max(4) membershipTier?: number | null;
   @IsOptional() @IsInt() @Min(1) @Max(3650) accessDays?: number | null;
   @IsString() @Length(1, 1000) refundPolicy!: string;
   @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) @Length(1, 30, { each: true }) tags!: string[];
@@ -76,7 +76,7 @@ class EntitlementQuery {
 class PlanDto {
   @IsOptional() @IsInt() @Min(1) expectedVersion?:number;
   @IsString() @Length(1, 100) title!: string;
-  @IsInt() @Min(1) @Max(3) tier!: number;
+  @IsInt() @Min(1) @Max(4) tier!: number;
   @IsInt() @IsIn([30, 90, 365]) days!: number;
   @IsInt() @Min(0) @Max(100000000) price!: number;
   @IsString() @Length(1, 2000) description!: string;

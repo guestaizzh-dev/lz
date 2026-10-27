@@ -28,18 +28,18 @@ test('admin member broadcast: publish, access, host conflict, recording recovery
     await t.test('discovery includes actual live state and Beijing-ready time, no required teacher publication',async()=>{
       const result=await call('/discovery/search?type=LIVE&sort=recent',member);assert.equal(result.status,200);const row=result.body.items.find(r=>r.id===session.roomId);assert.equal(row.liveState,'SCHEDULED');assert.ok(row.scheduledAt);
     });
-    await t.test('no active membership cannot watch or reserve; recording absence blocks opening honestly',async()=>{
-      assert.equal((await call('/live/sessions/'+session.id+'/reservation',outsider,'POST',{action:'RESERVE'})).status,403);
+    await t.test('registered basic members can reserve; recording absence blocks opening honestly',async()=>{
+      assert.equal((await call('/live/sessions/'+session.id+'/reservation',outsider,'POST',{action:'RESERVE'})).status,201);
       recordings.readiness=async()=>({ready:false,reason:'录制服务尚未配置'});assert.equal((await call('/admin/live/broadcasts/'+session.id+'/action',root,'POST',{action:'ENTER',expectedVersion:1})).status,503);recordings.readiness=async()=>({ready:true,reason:''});
     });
-    await t.test('every active membership tier can reserve, expiry removes access',async()=>{
-      for(const tier of [1,2,3]){
+    await t.test('every paid tier can reserve and falls back to basic membership after expiry',async()=>{
+      for(const tier of [1,2,3,4]){
         member=await actor('USER','APP');
         const plan=await db.membershipPlan.upsert({where:{tier_days:{tier,days:30}},create:{title:'会员'+tier,tier,days:30,price:100,description:'隔离测试'},update:{}});
         const m=await db.membership.create({data:{userId:member.id,planId:plan.id,tier,startsAt:new Date(Date.now()-60000),endsAt:new Date(Date.now()+86400000),source:'ADMIN'}});
         const result=await call('/live/sessions/'+session.id+'/reservation',member,'POST',{action:'RESERVE'});assert.equal(result.status,201,JSON.stringify(result.body));
         await db.membership.update({where:{id:m.id},data:{endsAt:new Date(Date.now()-1000)}});
-        assert.equal((await call('/live/sessions/'+session.id+'/reservation',member,'POST',{action:'RESERVE'})).status,403);
+        assert.equal((await call('/live/sessions/'+session.id+'/reservation',member,'POST',{action:'RESERVE'})).status,201);
       }
     });
     await t.test('admin enters without teacher assignment; concurrent admin cannot take the active host lease',async()=>{
@@ -58,10 +58,10 @@ test('admin member broadcast: publish, access, host conflict, recording recovery
       await db.liveRecording.update({where:{id:job.id},data:{state:'PROCESSING',attempts:1,leaseToken:token,leaseUntil:new Date(Date.now()+90000)}});
       await recordings.finish(job.id,{token,controller:new AbortController(),renewed:Date.now()});
       const result=await db.liveRecording.findUniqueOrThrow({where:{id:job.id}});assert.equal(result.state,'READY',JSON.stringify(result));assert.ok(result.assetId);const replay=await db.liveReplay.findUniqueOrThrow({where:{sessionId:session.id}});assert.equal(replay.reviewState,'APPROVED');assert.ok(await stat(resolve(process.env.MEDIA_DIR,(await db.mediaAsset.findUniqueOrThrow({where:{id:replay.assetId}})).storageKey)));
-      assert.equal((await call('/live/sessions/'+session.id+'/replay-ticket',outsider,'POST',{})).status,403);
+      assert.equal((await call('/live/sessions/'+session.id+'/replay-ticket',outsider,'POST',{})).status,201);
       member=await actor('USER','APP');const memberPlan=await db.membershipPlan.findFirstOrThrow({where:{tier:1}});const activeMember=await db.membership.create({data:{userId:member.id,planId:memberPlan.id,tier:1,source:'ADMIN',startsAt:new Date(Date.now()-60000),endsAt:new Date(Date.now()+86400000)}});
       const ticket=await call('/live/sessions/'+session.id+'/replay-ticket',member,'POST',{});assert.equal(ticket.status,201,JSON.stringify(ticket.body));const bytes=await fetch(base+ticket.body.path,{headers:{Range:'bytes=0-31'}});assert.equal(bytes.status,206);assert.equal((await bytes.arrayBuffer()).byteLength,32);
-      await db.membership.update({where:{id:activeMember.id},data:{endsAt:new Date(Date.now()-1000)}});assert.equal((await fetch(base+ticket.body.path,{headers:{Range:'bytes=0-31'}})).status,403);
+      await db.membership.update({where:{id:activeMember.id},data:{endsAt:new Date(Date.now()-1000)}});assert.equal((await fetch(base+ticket.body.path,{headers:{Range:'bytes=0-31'}})).status,206);
 
       session=await db.liveSession.findUniqueOrThrow({where:{id:session.id}});assert.equal(session.state,'REPLAY_READY');
       assert.equal((await call('/admin/live/broadcasts/'+session.id+'/action',root,'POST',{action:'HIDE_REPLAY',expectedVersion:session.version})).status,201);

@@ -19,6 +19,15 @@ test('membership plan matrix preserves versioned terms and rejects silent concur
       for(const tier of [1,2,3])for(const [index,days] of [30,90,365].entries()){const p=response.body.find(p=>p.tier===tier&&p.days===days);assert.ok(p);assert.equal(p.price,expected[tier-1][index]);assert.equal(p.purchaseReady,false);assert.equal(p.channelProducts.ready,false);assert.match(p.purchaseUnavailableReason,/暂不收取费用/);assert.ok(p.currentVersionId);}
       const channel=await call('/admin/memberships/plans/'+original.id+'/channel-check');assert.equal(channel.status,200);assert.equal(channel.body.purchaseReady,false);assert.equal(channel.body.planVersionId,original.currentVersionId);assert.ok(channel.body.issues.some(issue=>issue.includes('非续期订阅')));
     });
+    await t.test('diamond plan and level-four content are usable without changing older memberships',async()=>{
+      const created=await call('/admin/memberships/plans','POST',{title:'钻石会员测试',tier:4,days:90,price:100,description:'隔离测试',active:true});
+      assert.equal(created.status,201,JSON.stringify(created.body));
+      const current=await db.membershipPlan.findUniqueOrThrow({where:{id:created.body.id}});
+      assert.equal(await (await import('../dist/membership-benefits.js')).membershipContentTier(current.currentVersionId,db),4);
+      assert.equal((await call('/admin/memberships/grant','POST',{userId:member.id,planId:current.id,reason:'隔离测试'})).status,201);
+      const right=await app.get(LearningService).membership(member.id);assert.equal(right.tier,4);assert.equal(right.contentTier,4);
+      await db.membership.deleteMany({where:{userId:member.id}});
+    });
     await t.test('create-existing or stale plan edits cannot overwrite live plan configurations',async()=>{
       assert.equal((await call('/admin/memberships/plans','POST',{...fields(original),title:'不应静默覆盖'})).status,409);
       assert.equal((await call('/admin/memberships/plans','POST',{...fields(original),expectedVersion:original.version+1})).status,409);

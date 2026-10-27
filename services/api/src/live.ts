@@ -30,7 +30,7 @@ class RoomDto {
   @IsIn(liveCategories) categoryCode!:string;
   @IsIn(['PUBLIC','COURSE','MEMBER']) accessMode!:Rule['mode'];
   @IsOptional() @IsUUID() courseId?:string;
-  @IsOptional() @IsInt() @Min(1) @Max(3) membershipTier?:number;
+  @IsOptional() @IsInt() @Min(1) @Max(4) membershipTier?:number;
 }
 class SessionDto {
   @IsString() @Length(1,120) @Matches(/\S/) title!:string;
@@ -85,7 +85,7 @@ export class LiveService implements OnModuleInit,OnModuleDestroy {
       if(rule.lessonBound&&!await store.lesson.findFirst({where:{releaseId:context.releaseId??'',liveSessionId:id,format:'LIVE'}}))throw new ForbiddenException('本场不属于你已获得的课程版本，请从课程目录进入');
       return row;
     }throw new ForbiddenException('加入对应课程后可观看本场直播');}
-    if(rule.mode==='MEMBER'&&(rule.tier||rule.allMembers)){const member=await this.learning.membership(userId,store);if(member&&(rule.allMembers||member.contentTier>=rule.tier!))return row;throw new ForbiddenException(rule.allMembers?'开通有效会员后可观看直播与回放':'当前会员权益不能观看本场直播');}
+    if(rule.mode==='MEMBER'&&(rule.tier||rule.allMembers)){const member=await this.learning.membership(userId,store);if(rule.allMembers&&userId||member&&member.contentTier>=rule.tier!)return row;throw new ForbiddenException(rule.allMembers?'开通有效会员后可观看直播与回放':'当前会员权益不能观看本场直播');}
     throw new ForbiddenException('直播准入规则尚未配置');
   }
   async room(id:string,userId?:string){

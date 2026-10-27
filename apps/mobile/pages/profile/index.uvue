@@ -25,7 +25,7 @@
 </view>
 <view class="grow">
 <text class="member-strip-title">会员中心</text>
-<text class="member-strip-copy">开通会员 · 探索研习权益</text>
+<text class="member-strip-copy">会员中心 · 探索研习权益</text>
 </view>
 <view class="member-open">
 <text class="member-open-label">了解会员</text>

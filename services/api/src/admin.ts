@@ -36,7 +36,7 @@ class ArticleDto {
   @IsArray() @ArrayMinSize(1) @ArrayMaxSize(100) @ValidateNested({ each: true }) @Type(() => BlockDto) blocks!: BlockDto[];
   @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) @Length(1, 30, { each: true }) tags!: string[];
   @IsIn(['PUBLIC', 'MEMBER']) visibility!: 'PUBLIC' | 'MEMBER';
-  @IsOptional() @IsInt() @Min(1) @Max(3) membershipTier?: number;
+  @IsOptional() @IsInt() @Min(1) @Max(4) membershipTier?: number;
   @IsBoolean() featured!: boolean;
 }
 class ArticleEditDto extends ArticleDto {

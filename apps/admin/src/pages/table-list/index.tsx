@@ -140,7 +140,7 @@ export default function Articles() {
         {editorError && <Alert showIcon type="error" title={editorError} style={{ marginBottom: 24 }} />}
         <Form.Item name="title" label="标题" rules={required}><Input maxLength={120} showCount /></Form.Item>
         <Space wrap align="start" style={{ width: '100%' }}><Form.Item name="category" label="内容分类" rules={required}><CategorySelect scope="ARTICLE"/></Form.Item><Form.Item name="visibility" label="阅读权限" rules={required}><Select style={{ width: 220 }} options={[{ value: 'PUBLIC', label: '公开阅读' }, { value: 'MEMBER', label: '会员专享' }]} /></Form.Item></Space>
-        <Form.Item name="membershipTier" label="会员最低层级（会员专享生效）" rules={[{required:true}]}><Select style={{width:220}} options={[{value:1,label:'入门及以上'},{value:2,label:'进阶及以上'},{value:3,label:'至尊'}]} /></Form.Item>
+        <Form.Item name="membershipTier" label="会员最低层级（会员专享生效）" rules={[{required:true}]}><Select style={{width:220}} options={[{value:1,label:'铜牌及以上'},{value:2,label:'银牌及以上'},{value:3,label:'金牌及以上'},{value:4,label:'钻石'}]} /></Form.Item>
         <Form.Item name="summary" label="摘要" rules={required}><Input.TextArea rows={3} maxLength={500} showCount /></Form.Item>
         <Form.Item name="author" label="作者" rules={required}><Input maxLength={100} /></Form.Item>
         <Form.Item name="source" label="来源 / 版本 / 授权说明" rules={required}><Input maxLength={500} /></Form.Item>

@@ -16,7 +16,7 @@ export function contentLabel(lessons: Pick<LessonSummary, 'format'>[]): string {
 export const studyEventId = (): string => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.floor(Math.random() * 16); return (c === 'x' ? r : (r & 3) | 8).toString(16); });
 
 export type MembershipBenefits = { memberships: {id:string;state:string;startsAt:string;endsAt:string;plan:{title:string};benefits:{code:string;name:string;parameters:{contentTier?:number;basisPoints?:number;minimumSubtotal?:number}}[]}[]; membershipTotal:number; quotas:{periodId:string|null;grantId:string|null;name:string;quota:number;used:number;remaining:number}[];usage:{items:{id:string;name:string;quantity:number;state:string;createdAt:string}[];total:number} };
-export const membershipContentLabel=(tier:number):string=>['不包含会员文章与课程','入门及以下会员内容','进阶及以下会员内容','全部会员内容'][tier]??'内容权益待核查';
+export const membershipContentLabel=(tier:number):string=>['不包含会员文章与课程','铜牌及以下会员内容','银牌及以下会员内容','金牌及以下会员内容','钻石及以下会员内容'][tier]??'内容权益待核查';
 export const benefitUsageLabel=(state:string):string=>({HELD:'已预占',CONSUMED:'已使用',RELEASED:'预占已释放',REVERSED:'用量已退回'} as Record<string,string>)[state]??'处理中';
 
 export function membershipBenefitLabel(benefit:MembershipBenefits['memberships'][number]['benefits'][number]):string{

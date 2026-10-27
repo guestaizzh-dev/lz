@@ -22,7 +22,7 @@ test('frozen membership benefits and atomic quotas preserve independent sources'
       assert.equal((await app.get(LearningService).membership(a.user.id)).contentTier,2);
       const changed=await call('/admin/membership-benefits/plans/'+plan.id+'/content',root,'POST',{expectedVersion:plan.version,contentTier:1,reason:'测试新售权益版本'});assert.equal(changed.status,201,JSON.stringify(changed.body));currentPlan=changed.body;
       assert.notEqual(currentPlan.currentVersionId,old.planVersionId);assert.equal((await app.get(LearningService).membership(a.user.id)).contentTier,2);
-      const listed=await call('/learning/plans',a);assert.equal(listed.status,200);assert.equal(listed.body.find(p=>p.id===plan.id).contentTier,1);assert.match(listed.body.find(p=>p.id===plan.id).description,/进阶|入门/);assert.equal(listed.body.find(p=>p.id===plan.id).tier,2);
+      const listed=await call('/learning/plans',a);assert.equal(listed.status,200);assert.equal(listed.body.find(p=>p.id===plan.id).contentTier,1);assert.match(listed.body.find(p=>p.id===plan.id).description,/银牌|铜牌/);assert.equal(listed.body.find(p=>p.id===plan.id).tier,2);
       await db.membership.create({data:{userId:b.user.id,planId:plan.id,tier:2,startsAt:new Date(Date.now()-1000),endsAt:new Date(Date.now()+86400000),source:'ADMIN_COMPENSATION'}});assert.equal((await app.get(LearningService).membership(b.user.id)).contentTier,1);
       const stale=await call('/admin/membership-benefits/plans/'+plan.id+'/content',root,'POST',{expectedVersion:plan.version,contentTier:2,reason:'过期编辑不得覆盖'});assert.equal(stale.status,409);
       assert.equal((await call('/admin/membership-benefits/plans/'+plan.id+'/content',root,'POST',{expectedVersion:currentPlan.version,contentTier:3,reason:'不能越过套餐层级'})).status,400);

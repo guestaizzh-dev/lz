@@ -307,7 +307,7 @@
       "CHECK(kind IN ('ARTICLE','TEACHER','COURSE','PRODUCT','EVENT','LIVE','THREAD'))",
       "CHECK(publish_state IN ('DRAFT','REVIEW','PUBLISHED','REJECTED','ARCHIVED'))",
       "CHECK(visibility IN ('PUBLIC','MEMBER','COURSE','PRIVATE'))",
-      "CHECK(membership_tier IS NULL OR membership_tier BETWEEN 1 AND 3)"
+      "CHECK(membership_tier IS NULL OR membership_tier BETWEEN 1 AND 4)"
     ],
     "indexes": [
       "(kind,publish_state,published_at,id)",
@@ -2392,7 +2392,7 @@
     ],
     "constraints": [
       "UNIQUE(tier,days)",
-      "CHECK(tier BETWEEN 1 AND 3 AND days IN (30,90,365))"
+      "CHECK(tier BETWEEN 1 AND 4 AND days IN (30,90,365))"
     ],
     "indexes": []
   },
@@ -2415,7 +2415,7 @@
     ],
     "constraints": [
       "UNIQUE(plan_id,release_no)",
-      "CHECK(tier BETWEEN 1 AND 3 AND days>0)"
+      "CHECK(tier BETWEEN 1 AND 4 AND days>0)"
     ],
     "indexes": []
   },
@@ -2484,7 +2484,7 @@
       "revoked_at timestamptz"
     ],
     "constraints": [
-      "CHECK(tier BETWEEN 1 AND 3 AND ends_at>starts_at)"
+      "CHECK(tier BETWEEN 1 AND 4 AND ends_at>starts_at)"
     ],
     "indexes": [
       "(user_id,starts_at,ends_at)"

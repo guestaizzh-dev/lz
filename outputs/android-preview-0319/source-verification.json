@@ -1,0 +1,12 @@
+{
+  "files": 502,
+  "missing": 0,
+  "extra": 0,
+  "allowedOverrides": [
+    "lib/notifications.ts",
+    "pages/profile/settings.uvue"
+  ],
+  "api": "https://cuecanvas.top/api/v1",
+  "version": "0.3.19",
+  "code": 24
+}

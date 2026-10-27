@@ -1,7 +1,7 @@
 services:
   api:
     environment:
-      CORS_ORIGINS: https://${ADMIN_HOST}
+      CORS_ORIGINS: https://${ADMIN_HOST},https://academy.43-160-229-173.sslip.io
       PUSH_ENABLED: ${PUSH_ENABLED:-false}
       PUSH_GATEWAY_URL: ${PUSH_GATEWAY_URL:-}
       PUSH_GATEWAY_SECRET: ${PUSH_GATEWAY_SECRET:-}

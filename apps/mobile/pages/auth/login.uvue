@@ -14,7 +14,7 @@
 <text class="login-motto">传承经典 · 研习道学 · 知行合一</text>
 </view>
 <view class="login-tabs">
-<text class="login-tab-active">{{socialTicket?'验证手机号，保留原有学习账号':'手机号验证码登录'}}</text>
+<text class="login-tab-active">{{socialTicket?'验证手机号，保留原有学习账号':'手机号登录 / 注册'}}</text>
 </view>
 <text v-if="socialTicket" class="social-note">首次授权需验证手机号。原账号的订单、笔记与学习进度会保留。</text>
 <view :class="['form-input-row',phoneFocused?'form-input-focused':'']">
@@ -29,7 +29,7 @@
 <button class="send-code" :disabled="sending||countdown>0" @click="send()">{{countdown>0?countdown+'秒后重发':sending?'发送中':'获取验证码'}}</button>
 </view>
 <text v-if="error" class="form-error">{{error}}</text>
-<button class="primary-button login-submit" :disabled="submitting" @click="signIn()">{{submitting?'正在登录…':'登录'}}</button>
+<button class="primary-button login-submit" :disabled="submitting" @click="signIn()">{{submitting?'正在登录…':'登录 / 注册'}}</button>
 <view class="consent-row">
 <view class="consent-touch" @click="accepted=!accepted">
 <view :class="['consent-check',accepted?'consent-checked':'']">
@@ -70,9 +70,10 @@ const privacy=()=>uni.navigateTo({url:'/pages/profile/privacy'});
 async function send() {
   if(sending.value||countdown.value>0) return;
   if(!/^1[3-9]\d{9}$/.test(phone.value)) {error.value='请填写有效的 11 位手机号';return;}
+  const requestedPhone=phone.value;
   sending.value=true; error.value='';
-  try { const result=await request<{challengeId:string;retryAfter:number;channel:string}>('/auth/sms',{method:'POST',data:{phone:phone.value}});challengeId=result.challengeId;development.value=result.channel==='DEVELOPMENT'||result.channel==='PREVIEW';countdown.value=result.retryAfter; if(timer!==null) clearInterval(timer);timer=setInterval(()=>{countdown.value=Math.max(0,countdown.value-1);if(countdown.value===0&&timer!==null){clearInterval(timer);timer=null;}},1000); }
-  catch(e){error.value=(e as Error).message;} finally{sending.value=false;}
+  try { const result=await request<{challengeId:string;retryAfter:number;channel:string}>('/auth/sms',{method:'POST',data:{phone:requestedPhone}});if(!active||phone.value!==requestedPhone)return;challengeId=result.challengeId;development.value=result.channel==='DEVELOPMENT'||result.channel==='PREVIEW';countdown.value=result.retryAfter; if(timer!==null) clearInterval(timer);timer=setInterval(()=>{countdown.value=Math.max(0,countdown.value-1);if(countdown.value===0&&timer!==null){clearInterval(timer);timer=null;}},1000); }
+  catch(e){if(active&&phone.value===requestedPhone)error.value=(e as Error).message;} finally{sending.value=false;}
 }
 watch(phone,()=>{challengeId='';code.value='';development.value=false;countdown.value=0;if(timer!==null){clearInterval(timer);timer=null;}});
 async function signIn(){

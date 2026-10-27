@@ -1,0 +1,52 @@
+{
+  "checks": [
+    [
+      "/api/v1/health",
+      200
+    ],
+    [
+      "/api/v1/catalog/home",
+      200
+    ],
+    [
+      "/user/login",
+      200
+    ],
+    [
+      "/dashboard/analysis",
+      200
+    ],
+    [
+      "/download/",
+      200
+    ],
+    [
+      "/download/poster-share.png",
+      200
+    ],
+    [
+      "/api/v1/configuration/release",
+      200
+    ],
+    [
+      "live/player CSP",
+      200
+    ],
+    [
+      "admin login",
+      200
+    ],
+    [
+      "/api/v1/admin/courses?page=1&size=5",
+      200
+    ],
+    [
+      "/api/v1/admin/live/broadcasts",
+      200
+    ],
+    [
+      "/api/v1/admin/config",
+      200
+    ]
+  ]
+}

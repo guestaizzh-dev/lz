@@ -40,6 +40,6 @@ await writeFile(settingsPath,settings);
 assert.equal(await readFile(notificationPath,'utf8'),original);
 assert(!(await readFile(resolve(target,'lib/notifications.ts'),'utf8')).includes('uni.getPushClientId'));
 const environment=await readFile(resolve(target,'lib/environment.ts'),'utf8');
-assert(environment.includes("apiEnvironment = 'production'")&&environment.includes('https://academy.43-160-229-173.sslip.io/api/v1'));
+assert(environment.includes("apiEnvironment = 'production'")&&environment.includes('https://cuecanvas.top/api/v1'));
 await writeFile(resolve(evidence,'profile.json'),JSON.stringify({project:basename(target),path:target,version:manifest.versionName,code:Number(manifest.versionCode),environment:'production',systemPush:false,inAppMessages:true,releasePushSourcePreserved:true,createdAt:new Date().toISOString()},null,2)+'\n');
 console.log('Isolated Android preview prepared: '+target);

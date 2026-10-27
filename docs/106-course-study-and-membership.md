@@ -15,4 +15,9 @@
 
 ## 发布状态
 
-后台、API 与 0.3.22 Android 包按发布记录另行更新。正式支付、iOS 和原生真机验收状态不因本轮界面调整而改变。
+- 后台与 API 已发布 `20261026-course-member-01`，应用源码 `e89888a`，84 次迁移。发布前数据库与媒体备份均通过 SHA256 校验；17 类原业务表计数前后一致，健康检查与定时任务正常。
+- 已对齐三条线上套餐：注册会员 0 元、铜牌 365 元、银牌 998 元，均保持停用；计划 ID、历史版本和原价格保留。注册本身无需购买套餐。线上后台实际浏览器核对五档和铜银价格通过。
+- Android **0.3.22/code27 已云打包并发布**至 `https://cuecanvas.top/download/`，原二维码保持有效。有效云任务为 `android-preview-0322-r2`；501 个源码文件比对通过，仅两项已授权的无系统推送预览覆盖。
+- 本地包：`outputs/android/daoxue-academy-0.3.22.apk`，50,004,182 字节，SHA256 `f69055a0280fe1da0c1f623d4d7764962417b5a1b8297f4a3bbff1936d0d48f8`。包名 `cn.daoxue.academy`，生产 API `https://cuecanvas.top/api/v1`，与 0.3.18 同证书，可覆盖升级。ZIP、版本、原生模块及 JAR 签名校验通过。
+- 固定下载页已原子切换到 0.3.22，公网完整 APK 下载 SHA256 与本地一致，Range 206 通过；后台版本配置 revision5。发布回退记录：`/opt/daoxue-academy/download-0322-rollback.txt`。证据见 `outputs/android/daoxue-academy-0.3.22.json` 和 `outputs/download-page-review/release-0322-public-check.json`。
+- 本轮未安装手机、未做原生真机验收；正式支付、系统推送、iOS 和正式商用验收状态不因本轮界面调整而改变。服务器可用空间约 3 GB，后续上传大视频前需扩容或清理可安全移除的运维缓存。

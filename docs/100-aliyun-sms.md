@@ -2,7 +2,7 @@
 
 ## 状态
 
-代码与部署参数已支持阿里云，API 构建及 18 项短信/生产配置/App 错误提示专项测试通过。凭据已私有配置，API 已发布 `20261025-aliyun-sms-01`（源码 `1addb06`），短信启用、固定验证码预览关闭。RAM授权后复测不再返回NoPermission，当前HTTP 200、业务码 `isv.AMOUNT_NOT_ENOUGH`（账户余额不足），仍未成功提交短信；需充值或确认可用套餐后恢复。商用 38/131 不变。
+代码与部署参数已支持阿里云，API 构建及 18 项短信/生产配置/App 错误提示专项测试通过。凭据已私有配置，API 已发布 `20261025-aliyun-sms-01`（源码 `1addb06`），短信启用、固定验证码预览关闭。充值后真实发送请求返回 HTTP 200 / 业务码 `OK`，验证码挑战已创建；运营商实际送达及使用验证码登录仍待用户确认。商用 38/131 不变。
 
 用户确认的模板：
 
@@ -51,3 +51,8 @@ RAM 用户仅授予发送需要的 `dysms:SendSms`，签名/模板须归属同�
 测试：`pnpm --filter @daoxue/api build`；在 `services/api` 执行 `node --test test/aliyun-sms.test.mjs test/runtime-config.test.mjs test/mobile-api-errors.test.mjs`（18/18，网络为替身，无真实计费）。本轮未重跑全量或手机测试。
 
 官方依据：[SendSms](https://help.aliyun.com/zh/sms/developer-reference/api-dysmsapi-2017-05-25-sendsms)、[ACS3签名](https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature)。
+
+
+## 充值后真实发送复测
+
+用户充值后，向用户指定测试号码发起一次真实验证码挑战，阿里云返回 HTTP 200、Code `OK`，RequestId `01A17B1F-9CFD-5E20-A797-D6E74DBC09B8`，服务端生成有效期 300 秒的挑战。此结果证明渠道接受发送请求，不代表手机实际收到或登录验证成功；两项仍待用户确认。未修改服务配置、未重启、未发版。

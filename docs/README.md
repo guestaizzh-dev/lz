@@ -2,7 +2,7 @@
 
 扫码下载已上线：[cuecanvas.top/download/](https://cuecanvas.top/download/)，固定二维码与后续更新方法见[101](101-fixed-app-download.md)。
 
-短信接入新增：[100 阿里云验证码](100-aliyun-sms.md)（API已发布，凭据已私有配置，RAM权限已通过，当前因余额不足待充值与收码验证）。
+短信接入新增：[100 阿里云验证码](100-aliyun-sms.md)（API已发布，凭据已私有配置，充值后真实发送请求已获阿里云接受，待实际收码与登录验证）。
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 

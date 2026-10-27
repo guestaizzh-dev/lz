@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+线上测试业务数据已按用户要求清理：[103 清理记录](103-production-test-data-cleanup.md)。
+
 注册及cuecanvas域名迁移：[102](102-cue-domain-registration.md)。
 
 扫码下载已上线：[cuecanvas.top/download/](https://cuecanvas.top/download/)，固定二维码与后续更新方法见[101](101-fixed-app-download.md)。

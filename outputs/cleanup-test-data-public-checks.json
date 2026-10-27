@@ -1,0 +1,59 @@
+{
+  "checks": [
+    {
+      "path": "/api/v1/health",
+      "status": 200
+    },
+    {
+      "path": "/user/login",
+      "status": 200
+    },
+    {
+      "path": "/dashboard/analysis",
+      "status": 200
+    },
+    {
+      "path": "/download/",
+      "status": 200
+    },
+    {
+      "path": "/download/release.json",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/catalog/home",
+      "status": 200,
+      "businessListsEmpty": true
+    },
+    {
+      "path": "admin login",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/admin/courses?page=1&size=5",
+      "status": 200,
+      "total": 0
+    },
+    {
+      "path": "/api/v1/admin/articles?page=1&size=5",
+      "status": 200,
+      "total": 0
+    },
+    {
+      "path": "/api/v1/admin/products?page=1&size=5",
+      "status": 200,
+      "total": 0
+    },
+    {
+      "path": "/api/v1/admin/live/broadcasts",
+      "status": 200,
+      "total": 0,
+      "recordingReady": true
+    },
+    {
+      "path": "/api/v1/admin/config",
+      "status": 200,
+      "androidVersion": "0.3.19"
+    }
+  ]
+}

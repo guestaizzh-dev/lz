@@ -67,7 +67,7 @@ export class CourseVersionsService {
       await tx.courseVersionChoice.create({data:{userId,enrollmentId:enrollment.id,grantKey:enrollment.grantKey,courseId,fromReleaseId:enrollment.releaseId,toReleaseId:choice.releaseId,requestKey:dto.requestKey,requestHash,action,consentSnapshot:{choice,previous:current,expiresAt:enrollment.expiresAt,explanation:'用户主动选择；原版本和历史保留；不改变访问期限',accepted:true}}});
       await tx.enrollment.update({where:{id:enrollment.id},data:{releaseId:choice.releaseId,version:{increment:1},updatedAt:new Date()}});
       await tx.auditLog.create({data:{actorId:userId,action:'course.version.choose',resource:'enrollment',resourceId:enrollment.id,changes:{action,fromReleaseId:enrollment.releaseId,toReleaseId:choice.releaseId,expiresAt:enrollment.expiresAt}}});
-      await tx.notification.create({data:{userId,kind:'COURSE_VERSION',resourceId:courseId,eventKey:'course.version.choose:'+userId+':'+dto.requestKey,title:'课程版本已按你的选择更新',body:'原版与学习记录保留，原访问期限不变。可在课程学习页查看或切回可用旧版。'}});
+      await tx.notification.create({data:{userId,kind:'COURSE_VERSION',resourceId:courseId,eventKey:'course.version.choose:'+userId+':'+dto.requestKey,title:'课程版本已按你的选择更新',body:'学习记录保留，访问期限不变。可在课程学习页继续学习。'}});
     });return this.detail(courseId,userId);
   }
   async admin(courseId:string){

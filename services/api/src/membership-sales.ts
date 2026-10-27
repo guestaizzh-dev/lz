@@ -51,7 +51,7 @@ export class MembershipSalesService implements OnModuleInit,OnModuleDestroy {
     const last=rows.at(-1);return{fingerprint:hash(rows.map(m=>({id:m.id,version:m.version,startsAt:m.startsAt,endsAt:m.endsAt,tier:m.tier}))),anchor:last?.endsAt.toISOString()??null,mode:last?last.tier===tier?'RENEW':'QUEUED':'ACTIVATE'};
   }
   private async sale(planId:string,store:Prisma.TransactionClient|Database=this.db){
-    const plan=await store.membershipPlan.findFirst({where:{id:planId,active:true}});if(!plan?.currentVersionId)throw new NotFoundException('套餐已停售或尚未发布');
+    const plan=await store.membershipPlan.findFirst({where:{id:planId,active:true,tier:{gte:1}}});if(!plan?.currentVersionId)throw new NotFoundException('套餐已停售或尚未发布');
     const version=await store.membershipPlanVersion.findUniqueOrThrow({where:{id:plan.currentVersionId}});
     const contentTier=await membershipContentTier(version.id,store);
     if(!version.publishedAt||contentTier===0||plan.price<=0)throw new ConflictException('会员权益或价格尚未准备完成，暂不收费');

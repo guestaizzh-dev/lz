@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+课程学习页、会员档位及商品数量本轮整改：[106](106-course-study-and-membership.md)。
+
 线上测试业务数据已按用户要求清理：[103 清理记录](103-production-test-data-cleanup.md)。
 
 注册及cuecanvas域名迁移：[102](102-cue-domain-registration.md)。

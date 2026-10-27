@@ -22,7 +22,7 @@ export function coursePurchaseAction(order:CourseOrder|null,quote:CourseQuote|nu
   if(order){
     if(order.refunds.some(r=>r.state==='REFUNDING'))return{kind:'QUERY',label:'查询退课进度',enabled:true};
     if(order.state==='CLOSED'||Number(order.refundedAmount)>0)return{kind:'DETAIL',label:'返回课程',enabled:true};
-    if(order.deliveryBlocked)return{kind:'VERSION',label:'查看课程处理方案',enabled:true};
+    if(order.deliveryBlocked)return{kind:'SUPPORT',label:'联系书院',enabled:true};
     if(order.access)return{kind:'LEARN',label:'开始研习',enabled:true};
     if(order.group&&order.group.state!=='SUCCEEDED'&&order.state==='COMPLETED')return{kind:'GROUP',label:'查看拼团进度',enabled:true};
     if(order.state==='COMPLETED')return{kind:'LIBRARY',label:'查看学习档案',enabled:true};

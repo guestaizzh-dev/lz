@@ -18,7 +18,7 @@ export function messageTarget(row:Message){
     case 'FORUM_REVIEW':return id?target('community/detail?id='+id,'查看帖子与审核结果'):null;
     case 'FEEDBACK_REPLY':return target('profile/feedback','查看客服回复');
     case 'TEACHER_ANSWER':return id?target('teacher/questions?teacherId='+id,'查看老师答复'):null;
-    case 'COURSE_VERSION':return id?target('course/versions?id='+id,'查看课程版本与处理方案'):null;
+    case 'COURSE_VERSION':return id?target('course/detail?id='+id,'查看课程'):null;
     case 'COURSE_REVIEW':return id?target('course/detail?id='+id+'&tab=reviews','查看课程评价'):null;
     case 'PRACTICE_REVIEW':case 'ASSIGNMENT_REVIEW':return id?target('course/'+(row.kind==='PRACTICE_REVIEW'?'checkin':'practice')+'?id='+id+(cohort?'&cohortId='+cohort:''),'查看研习点评'):null;
     default:return null;

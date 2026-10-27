@@ -45,6 +45,6 @@ test('refund recovery stays operable and never suggests paying or learning durin
   assert.equal(coursePurchaseAction({...pending,state:'COMPLETED',refundedAmount:'8800'},null,true,true,clock).kind,'DETAIL');
   assert.equal(coursePurchaseAction({...pending,state:'CLOSED'},null,true,true,clock).kind,'DETAIL');
   assert.equal(coursePurchaseAction({...pending,state:'COMPLETED',access:true},null,false,false,clock).kind,'LEARN');
-  assert.equal(coursePurchaseAction({...pending,state:'COMPLETED',access:true,deliveryBlocked:true},null,false,false,clock).kind,'VERSION');
+  assert.equal(coursePurchaseAction({...pending,state:'COMPLETED',access:true,deliveryBlocked:true},null,false,false,clock).kind,'SUPPORT');
   assert.equal(coursePurchaseAction({...pending,state:'COMPLETED'},null,true,true,clock).kind,'LIBRARY');
 });

@@ -21,9 +21,9 @@
 <view v-if="product!.type==='PHYSICAL'" class="menu-row">
 <text class="menu-label product-label">数量</text>
 <view class="stepper">
-<button class="stepper-button" :class="quantity<=1?'is-disabled':''" aria-label="减少数量" @click="dec"><AppIcon name="minus" :size="14"/></button>
+<button class="stepper-button" :class="quantity<=1?'is-disabled':''" :disabled="quantity<=1" aria-label="减少数量" @click="dec">−</button>
 <text class="stepper-value">{{quantity}}</text>
-<button class="stepper-button" :class="canAdd?'':'is-disabled'" aria-label="增加数量" @click="inc"><AppIcon name="plus" :size="14"/></button>
+<button class="stepper-button" :class="canAdd?'':'is-disabled'" :disabled="!canAdd" aria-label="增加数量" @click="inc">+</button>
 </view>
 </view>
 <view class="detail-tabs">
@@ -51,7 +51,7 @@ import {formatChinaTime} from '../../lib/date-time';
 import SourceEvidence from '../../components/SourceEvidence.uvue';
 import RelatedContent from '../../components/RelatedContent.uvue';
 import BottomBar from '../../components/BottomBar.uvue';
-import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Product} from '../../lib/api';import {viewWidth,artwork,openPage,shareContent,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';
+import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Product} from '../../lib/api';import {viewWidth,artwork,openPage,shareContent,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';
 const width=viewWidth(),product=ref<Product|null>(null),error=ref(''),quantity=ref(1),tab=ref('商品详情'),skuId=ref(''),busy=ref(false);const selected=computed(()=>product.value?.skus?.find(item=>item.id===skuId.value)??null);const canAdd=computed(()=>!!selected.value&&quantity.value<selected.value.available&&quantity.value<99),canBuy=computed(()=>!!selected.value&&product.value?.type==='PHYSICAL'&&selected.value.available>=quantity.value);function dec(){quantity.value=Math.max(1,quantity.value-1);}function inc(){if(canAdd.value)quantity.value=quantity.value+1;}let id='';async function load(){error.value='';try{product.value=await request<Product>('/catalog/products/'+encodeURIComponent(id));if(!product.value.skus?.some(item=>item.id===skuId.value))skuId.value=product.value.skus?.[0]?.id??'';}catch(e){product.value=null;error.value=(e as Error).message;}}function choose(value:string){skuId.value=value;quantity.value=1;}
 function copySource(url:string){uni.setClipboardData({data:url});}
 async function share(){
@@ -81,4 +81,4 @@ async function share(){
 const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
 onShow(()=>{relatedRef.value?.refresh();});
 </script>
-<style>@import '../../styles/app.css';.product-price{margin:18px 0 10px;}.product-label{margin-left:0;}.stepper{flex-direction:row;align-items:center;border-style:solid;border-width:1px;border-color:#D3C9B8;border-radius:23px;overflow:hidden;}.stepper-button{width:40px;height:40px;min-height:40px;padding:0;margin:0;background-color:transparent;border-width:0;align-items:center;justify-content:center;}.stepper-value{min-width:34px;text-align:center;font-size:14px;color:#182B31;line-height:20px;}.stock-note{font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;margin-top:8px;}.stock-out{color:#B4533F;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.sku-button{font-size:14px;line-height:24px;color:#344C54;background-color:#FCF9F2;min-height:44px;border-radius:6px;border-style:solid;border-width:1px;border-color:#D3C9B8;padding:10px 16px;margin:0 8px 8px 0;}.sku-selected{color:#235663;background-color:#E7EEE9;border-color:#235663;font-weight:600;}.product-promotion{padding:16px;margin-top:16px;background-color:#EFE9DC;border-radius:8px;}</style>
+<style>@import '../../styles/app.css';.product-price{margin:18px 0 10px;}.product-label{margin-left:0;}.stepper{flex-direction:row;align-items:center;border-style:solid;border-width:1px;border-color:#D3C9B8;border-radius:23px;overflow:hidden;}.stepper-button{width:44px;height:44px;min-height:44px;flex-shrink:0;padding:0;margin:0;background-color:transparent;border-style:solid;border-width:0;color:#235663;font-size:22px;line-height:44px;text-align:center;}.stepper-value{min-width:34px;text-align:center;font-size:14px;color:#182B31;line-height:20px;}.stock-note{font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;margin-top:8px;}.stock-out{color:#B4533F;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.sku-button{font-size:14px;line-height:24px;color:#344C54;background-color:#FCF9F2;min-height:44px;border-radius:6px;border-style:solid;border-width:1px;border-color:#D3C9B8;padding:10px 16px;margin:0 8px 8px 0;}.sku-selected{color:#235663;background-color:#E7EEE9;border-color:#235663;font-weight:600;}.product-promotion{padding:16px;margin-top:16px;background-color:#EFE9DC;border-radius:8px;}</style>

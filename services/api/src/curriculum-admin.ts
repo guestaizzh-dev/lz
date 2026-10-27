@@ -217,7 +217,7 @@ export class CurriculumAdminService {
       const users = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "User" WHERE id = ${dto.userId} AND status = 'ACTIVE' FOR UPDATE`;
       if (!users.length) throw new NotFoundException('有效用户不存在');
       const plan = await tx.membershipPlan.findUnique({ where: { id: dto.planId } });
-      if (!plan?.active) throw new BadRequestException('会员套餐未启用');
+      if (!plan?.active || plan.tier<1) throw new BadRequestException('会员套餐未启用；注册会员无需额外授权');
       const latest = await tx.membership.findFirst({ where: { userId: dto.userId, revokedAt: null, endsAt: { gt: new Date() } }, orderBy: { endsAt: 'desc' } });
       const startsAt = latest?.endsAt ?? new Date();
       const member = await tx.membership.create({ data: { userId: dto.userId, planId: plan.id, tier: plan.tier, startsAt, endsAt: new Date(startsAt.getTime() + plan.days * 86400000), source: 'ADMIN_COMPENSATION',actorId:req.actor.id,reason:dto.reason } });

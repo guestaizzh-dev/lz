@@ -2392,7 +2392,7 @@
     ],
     "constraints": [
       "UNIQUE(tier,days)",
-      "CHECK(tier BETWEEN 1 AND 4 AND days IN (30,90,365))"
+      "CHECK(tier BETWEEN 0 AND 4 AND days IN (30,90,365))"
     ],
     "indexes": []
   },
@@ -2415,7 +2415,7 @@
     ],
     "constraints": [
       "UNIQUE(plan_id,release_no)",
-      "CHECK(tier BETWEEN 1 AND 4 AND days>0)"
+      "CHECK(tier BETWEEN 0 AND 4 AND days>0)"
     ],
     "indexes": []
   },

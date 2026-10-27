@@ -298,13 +298,6 @@
       }
     },
     {
-      "path": "pages/course/versions",
-      "style": {
-        "navigationStyle": "custom",
-        "disableScroll": true
-      }
-    },
-    {
       "path": "pages/shop/orders",
       "style": {
         "navigationStyle": "custom"

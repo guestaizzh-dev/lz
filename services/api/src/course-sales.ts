@@ -374,7 +374,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
       if(release.deliveryVersion!==payload.deliveryVersion)return true;
       const rows=await tx.enrollment.findMany({where:{releaseId:release.id,revokedAt:null,...(payload.cursor?{id:{gt:payload.cursor}}:{}),user:{status:'ACTIVE'}},orderBy:{id:'asc'},take:51});
       const batch=rows.slice(0,50);
-      if(batch.length)await tx.notification.createMany({skipDuplicates:true,data:batch.map(e=>({userId:e.userId,kind:'COURSE_VERSION',resourceId:release.courseId,eventKey:'course.delivery:'+release.id+':'+payload.deliveryVersion+':'+e.id,title:payload.action==='WITHDRAW'?'课程版本停止交付，请选择处理方案':'课程版本恢复交付',body:payload.reason+(payload.action==='WITHDRAW'?'；已购记录保留。请前往课程版本页选择替代版，或从购课订单申请退课。':'；可前往课程学习页继续研习。')}))});
+      if(batch.length)await tx.notification.createMany({skipDuplicates:true,data:batch.map(e=>({userId:e.userId,kind:'COURSE_VERSION',resourceId:release.courseId,eventKey:'course.delivery:'+release.id+':'+payload.deliveryVersion+':'+e.id,title:payload.action==='WITHDRAW'?'课程暂时无法学习':'课程版本恢复交付',body:payload.reason+(payload.action==='WITHDRAW'?'；已购记录保留。请联系书院，或从购课订单申请退课。':'；可前往课程学习页继续研习。')}))});
       if(rows.length>50)await tx.outboxJob.update({where:{id:job.id},data:{payload:{...payload,cursor:batch.at(-1)!.id,deliveryFailures:0}}});
       return rows.length<=50;
     });

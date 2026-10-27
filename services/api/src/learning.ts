@@ -80,7 +80,7 @@ export class LearningService {
     ]);
     return{watchedSeconds:String(time[0]?.seconds??0n),completedLessons:time[0]?.lessons??0,completedCourses:completed[0]?.courses??0};
   }
-  async plans() { return Promise.all((await this.db.membershipPlan.findMany({ where: { active: true }, orderBy: [{ tier: 'asc' }, { days: 'asc' }] })).map(async plan=>({...plan,contentTier:await membershipContentTier(plan.currentVersionId,this.db),purchaseReady:false,purchaseUnavailableReason:'会员真实支付与对应渠道产品尚未验收，暂不收取费用。',termLabel:plan.days===30?'月卡':plan.days===90?'季卡':'年卡',channelProducts:{ready:false,reason:'会员须接独立购买续费流程；iOS套餐须对应订阅产品，不能复用课程非消耗型映射。'}}))); }
+  async plans() { return Promise.all((await this.db.membershipPlan.findMany({ where: { active: true, tier: {gte:1} }, orderBy: [{ tier: 'asc' }, { days: 'asc' }] })).map(async plan=>({...plan,contentTier:await membershipContentTier(plan.currentVersionId,this.db),purchaseReady:false,purchaseUnavailableReason:'会员真实支付与对应渠道产品尚未验收，暂不收取费用。',termLabel:plan.days===30?'月卡':plan.days===90?'季卡':'年卡',channelProducts:{ready:false,reason:'会员须接独立购买续费流程；iOS套餐须对应订阅产品，不能复用课程非消耗型映射。'}}))); }
   async membership(userId?: string, store: AccessStore = this.db) {
     if (!userId) return null;
     const now = new Date();
@@ -122,7 +122,7 @@ export class LearningService {
     const liveSessions=await this.db.liveSession.findMany({where:{id:{in:release?.lessons.flatMap(l=>l.liveSessionId?[l.liveSessionId]:[])??[]}},select:{id:true,roomId:true,title:true,scheduledAt:true,state:true}});
     const availability=(lesson:{id:string;trial:boolean})=>{
       const s=schedule.find(s=>s.lessonId===lesson.id),opensAt=context.cohort&&s?cohortLessonOpensAt(context.cohort.startsAt,s.opensOnDay):null;
-      const lockedReason=release?.withdrawnAt?'此课程版本已停止交付':context.cohort&&!s?'本章尚未安排，请联系书院':opensAt&&opensAt>now?cohortLessonLockedReason(opensAt):context.access==='TRIAL'&&!(context.publicCourse&&lesson.trial)?context.releaseWindow?.lockedReason??'请先获得课程权限，或选择试听章节':null;
+      const lockedReason=release?.withdrawnAt?'课程暂时无法播放':context.cohort&&!s?'本章尚未安排，请联系书院':opensAt&&opensAt>now?cohortLessonLockedReason(opensAt):context.access==='TRIAL'&&!(context.publicCourse&&lesson.trial)?context.releaseWindow?.lockedReason??'请先获得课程权限，或选择试听章节':null;
       return {accessible:!lockedReason,opensAt,opensOnDay:s?.opensOnDay??null,lockedReason};
     };
     return { releaseWindow:context.releaseWindow,cohort:context.cohort?{id:context.cohort.id,title:context.cohort.title,endsAt:context.cohort.endsAt}:null,course: { id, title: release?.title ?? context.course.title, cover: context.course.cover, refundPolicy: (release?.refundPolicySnapshot as {text?:string}|undefined)?.text ?? context.course.refundPolicy, accessDays: release ? release.accessDays : context.course.accessDays }, access: context.access, releaseId: release?.id ?? null, deliveryBlocked:!!release?.withdrawnAt,deliveryReason:release?.withdrawalReason??null, lessons: release?.lessons.map(({ body: _, mediaId: __, sourceId: ___, subtitleText: ____, progress, ...lesson }) => ({ ...lesson,...(lesson.liveSessionId?{live:liveSessions.find(s=>s.id===lesson.liveSessionId)??null}:{}), ...availability(lesson), progress: context.registration?cohortProgress.find(p=>p.lessonId===lesson.id)??null:progress[0] ?? null })) ?? [] };
@@ -130,7 +130,7 @@ export class LearningService {
   async lesson(id: string, userId?: string,cohortId?:string) {
     const lesson = await this.db.lesson.findUnique({ where: { id }, include: { release: true } });
     if (!lesson) throw new NotFoundException('章节不存在');
-    if(lesson.release.withdrawnAt)throw new ForbiddenException('此版本停止交付，请在课程学习页选择替代版本或从订单申请退课');
+    if(lesson.release.withdrawnAt)throw new ForbiddenException('课程暂时无法播放，请联系书院或在订单中申请退课');
     const context = await this.context(lesson.release.courseId, userId,this.db,cohortId);
     if (context.releaseId !== lesson.releaseId || (context.access === 'TRIAL' && (!context.publicCourse || !lesson.trial))) throw new ForbiddenException('请先获得课程权限，或选择试听章节');
     await this.requireLessonOpen(context,id);
@@ -146,7 +146,7 @@ export class LearningService {
       if(course.format==='OFFLINE')throw new BadRequestException('线下课程须按真实场次报名，不能通过免费研习绕过席位');
       if (!publicCourse || course.price !== 0 || !releaseId) throw new BadRequestException('该课程需要购买或尚未发布章节');
       await tx.$queryRaw`SELECT id FROM "CourseRelease" WHERE id=${releaseId} FOR SHARE`;
-      if((await tx.courseRelease.findUniqueOrThrow({where:{id:releaseId}})).withdrawnAt)throw new BadRequestException('此版本已停止交付，请选择其他课程');
+      if((await tx.courseRelease.findUniqueOrThrow({where:{id:releaseId}})).withdrawnAt)throw new BadRequestException('课程暂时无法播放，请联系书院');
       const existing = await tx.enrollment.findUnique({ where: { userId_courseId: { userId, courseId: id } } });
       if (existing) {
         if (existing.revokedAt || (existing.expiresAt && existing.expiresAt <= new Date())) throw new ForbiddenException('课程权限已撤销或到期，请联系书院');
@@ -160,7 +160,7 @@ export class LearningService {
     const mark=async(tx:Prisma.TransactionClient)=>{
       await tx.$queryRaw`SELECT id FROM "User" WHERE id=${userId} FOR UPDATE`;
       const lesson=await tx.lesson.findUniqueOrThrow({where:{id:lessonId}}),release=await tx.courseRelease.findUniqueOrThrow({where:{id:lesson.releaseId}});
-      if(release.withdrawnAt)throw new ForbiddenException('课程版本已停止交付，请查看课程补偿方案');
+      if(release.withdrawnAt)throw new ForbiddenException('课程暂时无法播放，请联系书院或查看订单');
       const context=await this.context(release.courseId,userId,tx,cohortId);
       if(context.releaseId!==release.id||(context.access==='TRIAL'&&!lesson.trial))throw new ForbiddenException('课程权限已变化，请重新打开章节');
       await this.requireLessonOpen(context,lessonId,tx);
@@ -219,7 +219,7 @@ export class LearningService {
     return this.db.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
       await tx.$queryRaw`SELECT id FROM "CourseRelease" WHERE id=${lesson.releaseId} FOR SHARE`;
-      if((await tx.courseRelease.findUniqueOrThrow({where:{id:lesson.releaseId}})).withdrawnAt)throw new ForbiddenException('课程版本已停止交付，学习记录保留');
+      if((await tx.courseRelease.findUniqueOrThrow({where:{id:lesson.releaseId}})).withdrawnAt)throw new ForbiddenException('课程暂时无法播放，学习记录保留');
       const context = await this.context(lesson.release.courseId, userId, tx,cohortId);
       if (context.releaseId !== lesson.releaseId || (context.access === 'TRIAL' && (!context.publicCourse || !lesson.trial))) throw new ForbiddenException('课程权限已变化，请重新打开章节');
       await this.requireLessonOpen(context,id,tx);

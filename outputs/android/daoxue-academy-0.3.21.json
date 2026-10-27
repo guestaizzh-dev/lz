@@ -1,0 +1,21 @@
+{
+  "apk": "daoxue-academy-0.3.21.apk",
+  "bytes": 50022238,
+  "sha256": "84745937e12969887ba61b1e656496929e5716a13b2b667e790fa7492cf75359",
+  "package": "cn.daoxue.academy",
+  "versionName": "0.3.21",
+  "versionCode": 26,
+  "minSdkVersion": 23,
+  "architecture": "arm64-v8a",
+  "apiBase": "https://cuecanvas.top/api/v1",
+  "certificateSha256": "81d6c07aa2d22b2e022bcc6f00148f984c8bc5aac427f60207e1233c1e8df248",
+  "sameCertificateAs0318": true,
+  "nativeBuild": "Android uni-app x vapor bytecode cloud release",
+  "nativeSecureStoreCompiled": true,
+  "clientDiagnostics": true,
+  "systemPush": false,
+  "inAppMessages": true,
+  "previewOnly": true,
+  "phoneInstalled": false,
+  "phoneBlocker": "No device acceptance requested in this build"
+}

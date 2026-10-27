@@ -3,12 +3,12 @@
 ## 已上线入口
 
 - 下载页面：**https://cuecanvas.top/download/**
-- 域名首页：**https://cuecanvas.top/**，跳转到下载页。
+- 域名首页：**https://cuecanvas.top/**，现在跳转到后台工作台；下载入口仍是固定的 `/download/`。
 - Android 安装包固定地址：https://cuecanvas.top/download/android.apk
 - 二维码图片：https://cuecanvas.top/download/qr.png
 - 版本信息：https://cuecanvas.top/download/release.json
 
-二维码编码的是固定下载页，不是某一版 APK。后续升级不换二维码、不要求重新发安装包。当前为 Android **0.3.18 / code23 体验版**，50,017,681 字节，ARM64 / Android 6.0 及以上；原云端签名，SHA256 为 `471d7f3f9bea03c3e9377c823109333a977aa23f6fbe03deb5aa41963399f4c5`。没有重新打包，也未上架应用商店。
+二维码编码的是固定下载页，不是某一版 APK。后续升级不换二维码、不要求重新发安装包。最新为 Android **0.3.19 / code24 体验版**，域名切换与签名核对见[102](102-cue-domain-registration.md)；下文记录首次上线时的0.3.18，未上架应用商店。
 
 微信中提示在外部浏览器打开；iPhone/iPad 显示未开放并阻止误下载 APK。桌面可扫码或保存二维码。安装/来源权限仍由 Android 系统确认，网页不能静默安装。发布页不请求账户或设备权限，不载入第三方字体/脚本。
 

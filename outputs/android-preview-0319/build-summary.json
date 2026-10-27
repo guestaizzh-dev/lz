@@ -1,0 +1,15 @@
+{
+  "nativeResourceExports": [
+    "android",
+    "ios"
+  ],
+  "pages": 76,
+  "androidPreviewCloudSubmit": "OK",
+  "systemPushIncludedInPreview": false,
+  "actualIosIpa": false,
+  "nativeDeviceAcceptance": false,
+  "oldApiHostAbsentFromApkAssets": true,
+  "sourceFilesCompared": 502,
+  "approvedPreviewOverrides": 2,
+  "apkSha256": "606d72470b6e368e0302c326fc70c71b1069e14e23017db3a0552b48f0ad34df"
+}

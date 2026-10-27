@@ -1,0 +1,12 @@
+{
+  "revision": 1,
+  "value": {
+    "androidVersion": "0.3.18",
+    "androidCode": 23,
+    "androidUrl": "https://cuecanvas.top/download/",
+    "iosVersion": "",
+    "iosCode": 0,
+    "iosUrl": "",
+    "notes": "Android体验版：优化课程、直播、会员、订单与阅读交互，完善页面适配及异常提示。"
+  }
+}

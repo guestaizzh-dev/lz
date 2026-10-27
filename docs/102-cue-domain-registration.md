@@ -13,10 +13,11 @@
 
 - API仍使用已发布镜像 `daoxue-api:20261025-aliyun-sms-01`，无数据库迁移或源码镜像变更。修改共享网关 cuecanvas 主机路由，转发后台、API、直播 WebSocket、媒体 Range 和分片上传；下载路径保持原样。网关 `nginx -t` 后 reload，API/edge按既有流程重建并健康。
 - 旧后台域名仍加入CORS，旧地址和新地址的 WebSocket 分别完成真实 TLS Upgrade，未授权连接按预期4401关闭；不构成直播推流/观看的全链路验收。
-- 新域名12项公网检查：健康、首页、后台登录页、分析页、下载页/海报、版本配置、直播播放器CSP，真实管理员登录、课程/直播/系统配置接口均通过，管理员会话已退出。请求记录在 `outputs/cue-domain-checks.json`。
+- 新域名12项公网检查：健康、首页、后台登录页、分析页、下载页/海报、版本配置、直播播放器CSP，真实管理员登录、课程/直播/系统配置接口均通过，接口测试会话已退出。请求记录在 `outputs/cue-domain-checks.json`。浏览器实测发现登录后访问根路径会被旧规则送到下载页；已将根路径改为跳转后台工作台，复测登录后到达 `/dashboard/analysis`，0 JS错误，下载二维码路径不变。
 - API基础与预览登录隔离测试23/23通过；登录页号码切换3/3通过。实际短信渠道返回成功不等于运营商最终送达。
 - 切换前备份 `/opt/daoxue-academy/backups/academy-20261027T021732Z-5G2Cm1.dump` 与媒体包，SHA256验证通过；前一环境及网关备份目录 `/opt/daoxue-academy/20261026-cue-domain-01-backup/`，恢复索引 `/opt/daoxue-academy/rollback-20261026-cue-domain-01.txt`。旧业务数据未还原、未清理；服务器磁盘切换前约4.3GB可用，需监测媒体容量。
-- Android 0.3.19/code24 已编译76页并使用原云端证书提交 DCloud 排队，实际APK/签名/下载入口状态以本文件后续记录为准。
+- 原正式源码 Android 和 iOS 各76页蒸汽资源导出成功（不等于原生签名包）；Android 0.3.19/code24 预览 APK 云打包成功，50,017,760字节，SHA256 `606d72470b6e368e0302c326fc70c71b1069e14e23017db3a0552b48f0ad34df`。包内355个运行资源扫描无旧API域名，确认 `https://cuecanvas.top/api/v1`；原云端证书与0.3.18一致，JAR验签通过。502文件比较仅两项已授权无系统推送预览覆盖；未安装手机。
+- 固定下载入口已原子切换到0.3.19，后台版本发布配置 revision 1→2；公网下载页200、APK Range206、二维码200，服务器完整APK SHA256与本地一致。旧二维码与分享海报继续使用，0.3.18下载目录保留；指针回退记录 `/opt/daoxue-academy/download-0319-rollback.txt`。本机APK `outputs/android/daoxue-academy-0.3.19.apk`，元数据及发布证据在 `outputs/android-preview-0319/`。下载页面6组浏览器检查通过。
 
 ## 未关闭的正式交付门禁
 

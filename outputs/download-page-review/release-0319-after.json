@@ -1,0 +1,13 @@
+{
+  "key": "release",
+  "revision": 2,
+  "value": {
+    "notes": "Android体验版：手机号登录注册、接口域名切换及登录验证优化。",
+    "iosUrl": "",
+    "iosCode": 0,
+    "androidUrl": "https://cuecanvas.top/download/",
+    "iosVersion": "",
+    "androidCode": 24,
+    "androidVersion": "0.3.19"
+  }
+}

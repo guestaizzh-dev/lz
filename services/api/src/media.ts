@@ -223,7 +223,7 @@ export class MediaService {
       if(delivery.revokedAt||delivery.startsAt>new Date()||delivery.expiresAt&&delivery.expiresAt<=new Date()||await tx.refund.count({where:{orderId:item.orderId,state:{in:['REQUESTED','APPROVED','REFUNDING','FAILED']},paymentTransactionId:payment?.id??'__no_payment__'}}))throw new ForbiddenException('资料已失效、过期或正在售后，请在原订单查看');
       if(!await tx.digitalReleaseAsset.findFirst({where:{releaseId:delivery.releaseId,assetId}}))throw new NotFoundException('数字资料不存在');
       const asset=await tx.mediaAsset.findFirst({where:{id:assetId,status:'READY',visibility:'PRIVATE'}});
-      if(!asset||['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA'].includes(String((asset.variants as {uploadPurpose?:string}|null)?.uploadPurpose)))throw new NotFoundException('数字资料暂时不可用');
+      if(!asset||['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA','HOME_HERO'].includes(String((asset.variants as {uploadPurpose?:string}|null)?.uploadPurpose)))throw new NotFoundException('数字资料暂时不可用');
       try{await stat(resolve(this.root,asset.storageKey));}catch{throw new NotFoundException('资料文件不可用，请联系书院');}
       if(begin&&!delivery.firstAccessAt){await tx.digitalDelivery.update({where:{id:deliveryId},data:{firstAccessAt:new Date(),version:{increment:1}}});await tx.auditLog.create({data:{actorId:userId,action:'digital.delivery.begin',resource:'digital_delivery',resourceId:deliveryId,changes:{orderId:item.orderId,assetId}}});}
       return asset;
@@ -319,6 +319,13 @@ export class MediaService {
     if(!asset)throw new NotFoundException('头像不存在');
     return this.deliver(asset,req,res);
   }
+  async homeHeroVideo(id:string,req:Request,res:Response){
+    const config=await this.db.featureConfig.findFirst({where:{configKey:'homeHero',effectiveAt:{lte:new Date()}},orderBy:{revision:'desc'}});
+    if((config?.value as {videoId?:string}|undefined)?.videoId!==id)throw new NotFoundException('首页视频不存在');
+    const asset=await this.db.mediaAsset.findFirst({where:{id,status:'READY',mime:'video/mp4',variants:{path:['uploadPurpose'],equals:'HOME_HERO'}}});
+    if(!asset)throw new NotFoundException('首页视频暂时不可用');
+    return this.deliver(asset,req,res);
+  }
   private async deliver(asset:{storageKey:string;mime:string},req:Request,res:Response){
     const path = resolve(this.root, asset.storageKey);
     let bytes: number;
@@ -363,7 +370,10 @@ export class MediaController {
   @Post('articles/:id/blocks/:blockId/media') @UseGuards(OptionalUserGuard) articleTicket(@Param('id',ParseUUIDPipe) id:string,@Param('blockId') blockId:string,@Req() req:AuthRequest){return this.media.articleTicket(id,blockId,req);}
   @Post('admin/articles/:id/blocks/:blockId/media') @UseGuards(AdminGuard) articlePreview(@Param('id',ParseUUIDPipe) id:string,@Param('blockId') blockId:string,@Req() req:AuthRequest){return this.media.articleTicket(id,blockId,req,true);}
   @Post('learning/lessons/:id/media') @UseGuards(OptionalUserGuard) ticket(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthRequest,@Query() query:LearningContextQuery) { return this.media.ticket(id, req,query.cohortId,query.offlineRegistrationId); }
-  @Get('media/stream') stream(@Query('ticket') ticket: string, @Req() req: Request, @Res() res: Response) { return this.media.stream(ticket, req, res); }
+  @Get('media/stream') stream(@Query('ticket') ticket: string, @Query('homeHero') hero:string|undefined, @Req() req: Request, @Res() res: Response) {
+    if(hero!==undefined){if(typeof hero!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hero))throw new BadRequestException('首页视频地址无效');return this.media.homeHeroVideo(hero,req,res);}
+    return this.media.stream(ticket, req, res);
+  }
   @Post('admin/live/sessions/:id/replay/review/preview') @UseGuards(AdminGuard) replayPreview(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.replayReviewTicket(id,req);}
   @Post('live/sessions/:id/replay-ticket') @UseGuards(UserGuard) replay(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.replayTicket(id,req);}
 }

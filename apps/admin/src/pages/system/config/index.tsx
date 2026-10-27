@@ -4,10 +4,11 @@ import { Alert, App, Button, Card, Descriptions, Drawer, Empty, Form, Input, Inp
 import { useEffect, useState } from 'react';
 import { api } from '@/api';
 import { formatChinaTime } from '@/utils/date-time';
+import HomeHeroConfig from './HomeHeroConfig';
 
 type Config={key:string;revision:number;value:Record<string,string|number|boolean>};
 type Revision={id:string;revision:number;value:unknown;reason:string;effectiveAt:string};
-const labels:Record<string,string>={release:'App版本与下载',androidVersion:'Android版本号',androidCode:'Android构建号',androidUrl:'Android下载HTTPS地址',iosVersion:'iOS版本号',iosCode:'iOS构建号',iosUrl:'App Store下载HTTPS地址',notes:'版本更新说明',site:'书院与客服信息',catalog:'首页内容展示',community:'公共讨论区',presentation:'演示内容展示',showDemoContent:'公开展示规范演示内容',academyName:'书院名称',description:'书院简介',supportPhone:'客服电话',supportEmail:'客服邮箱',supportHours:'服务时间',homeArticles:'文章数量',homeCourses:'课程数量',homeProducts:'商品数量',homeEvents:'活动数量',publicPostingEnabled:'允许公共讨论区发布新帖'};
+const labels:Record<string,string>={homeHero:'首页主图与视频',release:'App版本与下载',androidVersion:'Android版本号',androidCode:'Android构建号',androidUrl:'Android下载HTTPS地址',iosVersion:'iOS版本号',iosCode:'iOS构建号',iosUrl:'App Store下载HTTPS地址',notes:'版本更新说明',site:'书院与客服信息',catalog:'首页内容展示',community:'公共讨论区',presentation:'演示内容展示',showDemoContent:'公开展示规范演示内容',academyName:'书院名称',description:'书院简介',supportPhone:'客服电话',supportEmail:'客服邮箱',supportHours:'服务时间',homeArticles:'文章数量',homeCourses:'课程数量',homeProducts:'商品数量',homeEvents:'活动数量',publicPostingEnabled:'允许公共讨论区发布新帖'};
 function ConfigForm({item,reload,onDirty}:{item:Config;reload:()=>Promise<void>;onDirty:(value:boolean)=>void}) {
   const {setInitialState}=useModel('@@initialState'),access=useAccess(),{message,modal}=App.useApp(),[form]=Form.useForm(),[busy,setBusy]=useState(false),[history,setHistory]=useState<Revision[]>(),[error,setError]=useState('');
   useEffect(()=>{form.resetFields();form.setFieldsValue({...item.value,reason:''});onDirty(false);},[item,form,onDirty]);
@@ -35,5 +36,5 @@ export default function ConfigPage(){
   const [items,setItems]=useState<Config[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(false);
   async function load(){setLoading(true);setError('');try{setItems(await api<Config[]>('/admin/config'));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
   useEffect(()=>{void load();},[]);
-  return <PageContainer title="系统配置" subTitle="只管理已接入业务的全局参数；变更即时生效并保留版本历史">{error&&<Alert type="error" showIcon title={error} action={<Button onClick={()=>void load()}>重试</Button>}/>}<Spin spinning={loading}><Tabs activeKey={active} onChange={key=>{if(dirty)modal.confirm({title:'放弃未保存的配置？',onOk:()=>{setDirty(false);setActive(key);}});else setActive(key);}} destroyOnHidden items={items.map(item=>({key:item.key,label:labels[item.key],children:<ConfigForm item={item} reload={load} onDirty={setDirty}/>}))}/></Spin></PageContainer>;
+  return <PageContainer title="系统配置" subTitle="只管理已接入业务的全局参数；变更即时生效并保留版本历史">{error&&<Alert type="error" showIcon title={error} action={<Button onClick={()=>void load()}>重试</Button>}/>}<Spin spinning={loading}><Tabs activeKey={active} onChange={key=>{if(dirty)modal.confirm({title:'放弃未保存的配置？',onOk:()=>{setDirty(false);setActive(key);}});else setActive(key);}} destroyOnHidden items={items.map(item=>({key:item.key,label:labels[item.key],children:item.key==='homeHero'?<HomeHeroConfig item={item as unknown as {revision:number;value:{images:string[];videoId:string}}} reload={load} onDirty={setDirty}/>:<ConfigForm item={item} reload={load} onDirty={setDirty}/>}))}/></Spin></PageContainer>;
 }

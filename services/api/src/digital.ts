@@ -35,12 +35,12 @@ export class DigitalGoods {
     };
   }
 
-  files(){return this.db.$queryRaw<{id:string;name:string;mime:string;bytes:number}[]>`SELECT id,name,mime,bytes FROM "MediaAsset" WHERE status='READY' AND visibility='PRIVATE' AND coalesce(variants->>'uploadPurpose','') NOT IN ('EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA') ORDER BY "createdAt" DESC,id DESC LIMIT 200`;}
+  files(){return this.db.$queryRaw<{id:string;name:string;mime:string;bytes:number}[]>`SELECT id,name,mime,bytes FROM "MediaAsset" WHERE status='READY' AND visibility='PRIVATE' AND coalesce(variants->>'uploadPurpose','') NOT IN ('EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA','HOME_HERO') ORDER BY "createdAt" DESC,id DESC LIMIT 200`;}
 
   async checkRelease(id:string,store:Database|Prisma.TransactionClient=this.db){
     const links=await store.digitalReleaseAsset.findMany({where:{releaseId:id}});
     const assets=await store.mediaAsset.findMany({where:{id:{in:links.map(l=>l.assetId)},visibility:'PRIVATE',status:'READY'}});
-    if(!links.length||links.length!==assets.length||assets.some(a=>['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA'].includes(String((a.variants as {uploadPurpose?:string}|null)?.uploadPurpose))))throw new BadRequestException('资料包文件不完整或不可交付，请联系书院');
+    if(!links.length||links.length!==assets.length||assets.some(a=>['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA','HOME_HERO'].includes(String((a.variants as {uploadPurpose?:string}|null)?.uploadPurpose))))throw new BadRequestException('资料包文件不完整或不可交付，请联系书院');
   }
 
   async mine(userId: string) {
@@ -76,7 +76,7 @@ export class DigitalGoods {
       const product = await tx.product.findUnique({ where: { id: productId } });
       if (!product) throw new NotFoundException('商品不存在');
       if (product.type !== 'DIGITAL') throw new BadRequestException('只有数字商品可以配置资料包');
-      const candidates = await tx.mediaAsset.findMany({where:{id:{in:assetIds},status:'READY',visibility:'PRIVATE'}}),assets=candidates.filter(a=>!['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA'].includes(String((a.variants as {uploadPurpose?:string}|null)?.uploadPurpose)));
+      const candidates = await tx.mediaAsset.findMany({where:{id:{in:assetIds},status:'READY',visibility:'PRIVATE'}}),assets=candidates.filter(a=>!['EVIDENCE_FILE','PUBLIC_IMAGE','FORUM_MEDIA','HOME_HERO'].includes(String((a.variants as {uploadPurpose?:string}|null)?.uploadPurpose)));
       if (assets.length !== assetIds.length) throw new BadRequestException('资料文件必须是媒体库中已就绪的私有文件');
       await tx.$queryRaw`SELECT id FROM "Product" WHERE id=${productId} FOR UPDATE`;
       const last = await tx.digitalRelease.findFirst({ where: { productId }, orderBy: { releaseNo: 'desc' }, select: { releaseNo: true } });

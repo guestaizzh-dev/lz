@@ -37,13 +37,13 @@ export async function api<T>(path: string, method = 'GET', body?: unknown, retry
 }
 
 // Large files travel in bounded chunks; XHR exposes actual network progress and cancellation.
-export async function uploadMediaChunk<T>(id:string,offset:number,chunk:Blob,signal:AbortSignal,progress:(bytes:number)=>void,retry=true):Promise<T>{
+export async function uploadMediaChunk<T>(id:string,offset:number,chunk:Blob,signal:AbortSignal,progress:(bytes:number)=>void,retry=true,uploadPath='/admin/media/uploads'):Promise<T>{
   const owner=session?.user.id,csrf=session?.csrfToken??csrfCookie();
   if(signal.aborted)throw new DOMException('上传已暂停','AbortError');
   const response=await new Promise<{status:number;body:any}>((yes,no)=>{
     const xhr=new XMLHttpRequest(),abort=()=>xhr.abort();
     const finish=()=>signal.removeEventListener('abort',abort);
-    xhr.open('POST','/api/v1/admin/media/uploads/'+id+'/chunks/'+offset);xhr.withCredentials=true;xhr.timeout=300000;
+    xhr.open('POST','/api/v1'+uploadPath+'/'+id+'/chunks/'+offset);xhr.withCredentials=true;xhr.timeout=300000;
     if(csrf)xhr.setRequestHeader('X-CSRF-Token',csrf);
     xhr.upload.onprogress=event=>progress(Math.min(chunk.size,event.loaded));
     xhr.onload=()=>{finish();try{yes({status:xhr.status,body:JSON.parse(xhr.responseText)});}catch{no(new ApiError('上传服务返回异常，请重试',xhr.status));}};
@@ -54,7 +54,7 @@ export async function uploadMediaChunk<T>(id:string,offset:number,chunk:Blob,sig
     const body=new FormData();body.append('file',chunk,'chunk');xhr.send(body);
   });
   if(owner!==session?.user.id)throw new ApiError('登录账号已变化，请重新选择文件',409);
-  if(response.status===401&&retry){await api('/admin/media/uploads/'+id);return uploadMediaChunk<T>(id,offset,chunk,signal,progress,false);}
+  if(response.status===401&&retry){await api(uploadPath+'/'+id);return uploadMediaChunk<T>(id,offset,chunk,signal,progress,false,uploadPath);}
   if(response.status===403)window.dispatchEvent(new Event('daoxue:permissions-changed'));
   if(response.status<200||response.status>=300)throw new ApiError(response.body.message??'上传未完成，请重试',response.status);
   return response.body as T;

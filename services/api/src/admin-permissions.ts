@@ -51,6 +51,7 @@ export function routePermission(method:string,path:string,body?:Record<string,un
   if(['partner-finance','reconciliation'].includes(root??''))return read?'finance.read':'finance.refund';
   if(root==='digital-orders')return read?'orders.read':'finance.refund';
   if(root==='categories')return read?'config.read':'config.write';
+  if(root==='media'&&parts[2]==='uploads'&&parts[3]==='home-hero')return read?'config.read':'config.write';
   if(root==='media'&&parts.at(-1)==='preview')return 'media.read';
   if(root==='images')return read?'media.read':'media.write';
   if(root==='payments')return 'finance.refund';

@@ -15,7 +15,7 @@ import { Prisma } from './generated/prisma/client.js';
 export const MEDIA_CHUNK_BYTES = 8 * 1024 * 1024;
 export const MEDIA_MAX_BYTES = 2147483647;
 export const FORUM_MEDIA_MAX_BYTES = 256 * 1024 * 1024;
-type UploadPurpose='COURSE'|'FORUM_MEDIA';
+type UploadPurpose='COURSE'|'FORUM_MEDIA'|'HOME_HERO';
 const day = 86400000;
 class UploadDto {
   @IsString() @Length(1,200) name!:string;
@@ -77,6 +77,7 @@ export class MediaIngest {
   }
   async create(req:AuthRequest,dto:UploadDto,purpose:UploadPurpose='COURSE',forumSectionId?:string){
     if(purpose==='COURSE')requireRoles(req,['OPERATOR']);
+    else if(purpose==='HOME_HERO'){requireRoles(req,['ADMIN']);if(dto.mime!=='video/mp4')throw new BadRequestException('首页视频请上传 MP4 文件');}
     else if(!forumSectionId||dto.bytes>FORUM_MEDIA_MAX_BYTES)throw new BadRequestException('投稿文件不能超过256MiB');
     await this.tools();
     if(!['video/mp4','audio/mpeg','audio/mp4','audio/wav'].includes(dto.mime))throw new BadRequestException('仅支持 MP4、MP3、M4A、WAV');
@@ -101,6 +102,7 @@ export class MediaIngest {
     });
   }
   async status(req:AuthRequest,id:string,purpose:UploadPurpose='COURSE'){return this.view(await this.owned(req,id,purpose));}
+  async homeAsset(req:AuthRequest,id:string){const row=await this.owned(req,id,'HOME_HERO');if(row.state!=='READY'||!row.assetId)throw new NotFoundException('首页视频尚未处理完成');return this.db.mediaAsset.findFirstOrThrow({where:{id:row.assetId,status:'READY',variants:{path:['uploadPurpose'],equals:'HOME_HERO'}},select:{id:true,name:true,mime:true,bytes:true,durationSeconds:true}});}
   async pending(req:AuthRequest,purpose:UploadPurpose='COURSE'){
     if(purpose==='FORUM_MEDIA')return(await this.db.$queryRaw<Prisma.MediaUploadGetPayload<{}>[]>`SELECT u.* FROM "MediaUpload" u WHERE u."uploaderId"=${req.actor.id} AND u.purpose='FORUM_MEDIA' AND u.state IN ('UPLOADING','PROCESSING','FAILED','READY') AND u."expiresAt">now() AND NOT EXISTS(SELECT 1 FROM "AttachmentBinding" b WHERE b."assetId"=u."assetId") ORDER BY u."createdAt" DESC,u.id DESC LIMIT 20`).map(row=>this.view(row));
     return(await this.db.mediaUpload.findMany({where:{uploaderId:req.actor.id,purpose,state:{in:['UPLOADING','PROCESSING','FAILED']},expiresAt:{gt:new Date()}},orderBy:{createdAt:'desc'},take:20})).map(row=>this.view(row));
@@ -149,7 +151,7 @@ export class MediaIngest {
       if(row.state!=='UPLOADING'||row.expiresAt.getTime()<Date.now()||row.receivedBytes!==row.bytes)throw new ConflictException('文件尚未上传完整或任务已过期');
       if((await stat(this.source(id))).size!==row.bytes)throw new ConflictException('文件校验失败，请重新上传');
       const mime=row.mime==='video/mp4'?'video/mp4':'audio/mp4';
-      const asset=await tx.mediaAsset.create({data:{storageKey:randomUUID(),name:row.name,mime,bytes:0,status:'PROCESSING',visibility:'PRIVATE',uploaderId:req.actor.id,variants:{sourceBytes:row.bytes,...(purpose==='FORUM_MEDIA'?{uploadPurpose:purpose}:{})}}});
+      const asset=await tx.mediaAsset.create({data:{storageKey:randomUUID(),name:row.name,mime,bytes:0,status:'PROCESSING',visibility:'PRIVATE',uploaderId:req.actor.id,variants:{sourceBytes:row.bytes,...(purpose!=='COURSE'?{uploadPurpose:purpose}:{})}}});
       await tx.auditLog.create({data:{actorId:req.actor.id,action:'media.upload',resource:'media',resourceId:asset.id,changes:{name:row.name,sourceBytes:row.bytes,uploadId:id}}});
       return this.view(await tx.mediaUpload.update({where:{id},data:{state:'PROCESSING',assetId:asset.id,failure:null}}));
     });
@@ -173,7 +175,7 @@ export class MediaIngest {
       if(row.state==='CANCELLED')return;
       if(row.assetId)await tx.$queryRaw`SELECT id FROM "MediaAsset" WHERE id=${row.assetId} FOR UPDATE`;
       if(purpose==='FORUM_MEDIA'&&row.assetId&&await tx.attachmentBinding.count({where:{assetId:row.assetId}}))throw new ConflictException('媒体已提交，请到帖子详情撤回');
-      if(purpose==='COURSE'&&!['UPLOADING','FAILED'].includes(row.state))throw new ConflictException('处理中或已完成的媒体不能取消上传');
+      if(purpose!=='FORUM_MEDIA'&&!['UPLOADING','FAILED'].includes(row.state))throw new ConflictException('处理中或已完成的媒体不能取消上传');
       await tx.mediaUpload.update({where:{id},data:{state:'CANCELLED',leaseUntil:null,leaseToken:null,expiresAt:new Date(0)}});
       if(this.encodingId===id)this.encoder?.abort();
       await unlink(this.source(id)).catch(error=>{if(error.code!=='ENOENT'){if(purpose==='FORUM_MEDIA')this.logger.warn('Cancelled source cleanup pending');else throw error;}});
@@ -241,7 +243,7 @@ export class MediaIngest {
         await tx.$queryRaw`SELECT id FROM "User" WHERE id=${row.uploaderId} FOR KEY SHARE`;
         const done=await tx.mediaUpload.updateMany({where:{id,state:'PROCESSING',leaseToken:token},data:{state:'READY',failure:null,leaseUntil:null,leaseToken:null}});if(!done.count)throw new Error('MEDIA_LEASE_LOST');
         await rename(output,resolve(this.root,asset.storageKey));
-        await tx.mediaAsset.update({where:{id:asset.id},data:{status:'READY',bytes:info.size,durationSeconds:Math.ceil(actual),sha256,failureCode:null,variants:{sourceBytes:row.bytes,sourceSha256,...(row.purpose==='FORUM_MEDIA'?{uploadPurpose:row.purpose}:{}),delivery:'MP4_FASTSTART',videoCodec:video?'h264':null,audioCodec:audio?'aac':null,keyframeSeconds:video?2:null,maxVideoBitrate:video?4000000:null}}});
+        await tx.mediaAsset.update({where:{id:asset.id},data:{status:'READY',bytes:info.size,durationSeconds:Math.ceil(actual),sha256,failureCode:null,variants:{sourceBytes:row.bytes,sourceSha256,...(row.purpose!=='COURSE'?{uploadPurpose:row.purpose}:{}),delivery:'MP4_FASTSTART',videoCodec:video?'h264':null,audioCodec:audio?'aac':null,keyframeSeconds:video?2:null,maxVideoBitrate:video?4000000:null}}});
         await tx.auditLog.create({data:{actorId:row.uploaderId,action:'media.process.ready',resource:'media',resourceId:asset.id,changes:{durationSeconds:Math.ceil(actual),bytes:info.size,uploadId:id}}});
       });
       await unlink(source).catch(()=>this.logger.warn('Processed media source cleanup pending'));
@@ -284,4 +286,16 @@ export class MediaIngestController {
   @Post(':id/complete') complete(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.complete(req,id);}
   @Post(':id/retry') retry(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.retry(req,id);}
   @Post(':id/cancel') cancel(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.cancel(req,id);}
+}
+
+@Controller('admin/media/uploads/home-hero') @UseGuards(AdminGuard)
+export class HomeHeroUploadController {
+  constructor(private readonly ingest:MediaIngest){}
+  @Post() create(@Req() req:AuthRequest,@Body() dto:UploadDto){return this.ingest.create(req,dto,'HOME_HERO');}
+  @Get(':id/asset') asset(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.homeAsset(req,id);}
+  @Get(':id') status(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.status(req,id,'HOME_HERO');}
+  @Post(':id/chunks/:offset') @UseInterceptors(FileInterceptor('file',{limits:{fileSize:MEDIA_CHUNK_BYTES,files:1,fields:0}})) chunk(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string,@Param('offset',ParseIntPipe) offset:number,@UploadedFile() file:{buffer:Buffer}){return this.ingest.chunk(req,id,offset,file,'HOME_HERO');}
+  @Post(':id/complete') complete(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.complete(req,id,'HOME_HERO');}
+  @Post(':id/retry') retry(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.retry(req,id,'HOME_HERO');}
+  @Post(':id/cancel') cancel(@Req() req:AuthRequest,@Param('id',ParseUUIDPipe) id:string){return this.ingest.cancel(req,id,'HOME_HERO');}
 }

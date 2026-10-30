@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+注册名单与App五档可见性、六项诉求状态：[108](108-membership-directory-and-home-hero.md)。
+
 直播专项与 OBS 接入：[107](107-live-delivery-hardening.md)。API/后台/录制已上线，Android 新包状态见该文档。
 
 课程学习页、会员档位及商品数量本轮整改：[106](106-course-study-and-membership.md)。

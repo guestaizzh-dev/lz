@@ -7,6 +7,7 @@ import { api } from '@/api';
 import MoneyInput from '@/components/MoneyInput';
 import {PlanBenefits,MemberUsage} from './Benefits';
 import AppleProducts from '../courses/AppleProducts';
+import MemberDirectory from './MemberDirectory';
 type Plan = { id: string; version:number; title: string; tier: number; days: number; price: number; description: string; active: boolean };
 type User = { id: string; nickname: string; phone: string | null };
 type Course = { id: string; title: string };
@@ -28,6 +29,7 @@ export default function Memberships() {
   function edit(plan?:Plan){setEditingPlan(plan);form.resetFields();form.setFieldsValue(plan?{title:plan.title,tier:plan.tier,days:plan.days,price:plan.price,description:plan.description,active:plan.active}:{title:tierNames[selectedTier],tier:selectedTier,days:365,active:false});setEditing(true);}
   return <PageContainer title="会员与权益" subTitle="五个会员档位：注册会员、铜牌、银牌、金牌、钻石">
     {error&&<Alert title={error} type="error" showIcon closable onClose={()=>setError('')} style={{marginBottom:16}}/>}
+    <MemberDirectory onSelectTier={setSelectedTier} onView={setUsageUser}/>
     <Card title="会员档位" style={{marginBottom:24}}>
       <Space wrap style={{marginBottom:20}}>{tierNames.map((name,index)=><Button key={name} type={selectedTier===index?'primary':'default'} onClick={()=>setSelectedTier(index)}>第 {index+1} 档 · {name}</Button>)}</Space>
       {selectedTier===0?<Alert type="info" showIcon title="注册 App 即成为注册会员" description="无需购买或手动授权。其他四档按对应套餐配置价格和权益。"/>:<>

@@ -1,3 +1,4 @@
+export const membershipTierNames=['注册会员','铜牌会员','银牌会员','金牌会员','钻石会员'];
 export type SubtitleCue={start:number;end:number;text:string};
 export type StudyProgress = { positionSeconds: number; watchedSeconds: number; completedAt: string | null; updatedAt?:string;lastEventAt?:string|null };
 export type LiveLessonState = {id:string;roomId:string;title:string;state:string;scheduledAt:string;replayReady?:boolean;disconnected?:boolean};

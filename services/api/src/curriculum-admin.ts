@@ -16,6 +16,7 @@ import { AdminGuard, requireRoles } from './auth.js';
 import type { AuthRequest } from './auth.js';
 import { TableQuery, TransitionDto } from './admin.js';
 import type { CourseFormat, LessonFormat, PublishStatus } from './generated/prisma/client.js';
+import {Prisma} from './generated/prisma/client.js';
 
 class ChapterDto {
   @IsOptional() @IsString() @Length(0, 200000) subtitleText?: string;
@@ -72,6 +73,13 @@ class EntitlementQuery {
   @Type(() => Number) @IsInt() @Min(1) @Max(100) size = 20;
   @IsOptional() @IsUUID() userId?: string;
   @IsIn(['membership', 'course']) kind = 'membership';
+}
+class MemberDirectoryQuery {
+  @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1;
+  @Type(()=>Number) @IsInt() @Min(1) @Max(100) size=20;
+  @IsOptional() @Type(()=>Number) @IsInt() @Min(0) @Max(4) tier?:number;
+  @IsOptional() @IsIn(['ACTIVE','FROZEN']) status?:string;
+  @IsOptional() @IsString() @Length(0,80) q?:string;
 }
 class PlanDto {
   @IsOptional() @IsInt() @Min(1) expectedVersion?:number;
@@ -259,6 +267,27 @@ export class CurriculumAdminService {
     const suspended=query.kind==='membership'?(await Promise.all([...new Set(rows.map(row=>row.userId))].map(userId=>membershipRefundHolds(userId,this.db)))).flat():[];
     return { items: rows.map(row => ({ ...row,...('plan' in row?{plan:membershipPlanView(row.plan,versions.find(v=>v.id===row.planVersionId)),refundPending:suspended.includes(row.id)}:{}), user: { id: row.user.id, nickname: row.user.nickname, phone: maskedPhone(row.user) } })), total };
   }
+  async members(req:AuthRequest,query:MemberDirectoryQuery){
+    requireRoles(req,['ADMIN']);
+    // Registration is a user identity, not a paid grant. Pick one current tier per person using the same refund-hold rule as learning.
+    const members=Prisma.sql`WITH members AS (
+      SELECT u.id,u.nickname,u.phone,u."phoneCipher",u.status,u."createdAt",u."lastSeenAt",u."phoneHash",coalesce(m.tier,0)::int AS tier,m."endsAt"
+      FROM "User" u LEFT JOIN LATERAL (
+        SELECT m.tier,m."endsAt" FROM "Membership" m WHERE m."userId"=u.id AND m."revokedAt" IS NULL AND m."startsAt"<=now() AND m."endsAt">now()
+        AND NOT EXISTS (SELECT 1 FROM "RefundItem" ri JOIN "Refund" r ON r.id=ri."refundId" JOIN "PaymentTransaction" p ON p.id=r."paymentTransactionId"
+          WHERE ri."orderItemId"=m."orderItemId" AND m.source='PURCHASE' AND m."grantKey"='membership.payment:'||p.id AND p.disposition='ACCEPTED' AND ri."revokeQuantity">0 AND r.state IN ('APPROVED','REFUNDING','FAILED'))
+        ORDER BY m.tier DESC,m."endsAt" DESC,m.id LIMIT 1
+      ) m ON true WHERE u."deletedAt" IS NULL AND u.status IN ('ACTIVE','FROZEN') AND 'USER'=ANY(u.roles)
+    )`;
+    const q=query.q?.trim()??'',pattern='%'+q.replace(/[\\%_]/g,'\\$&')+'%',phoneHash=/^1[3-9]\d{9}$/.test(q)?phoneLookup(q):null;
+    const filter=Prisma.sql`WHERE true ${query.tier===undefined?Prisma.empty:Prisma.sql`AND tier=${query.tier}`} ${query.status?Prisma.sql`AND status::text=${query.status}`:Prisma.empty} ${q?Prisma.sql`AND (nickname ILIKE ${pattern} OR phone=${q} OR "phoneHash"=${phoneHash})`:Prisma.empty}`;
+    return this.db.$transaction(async tx=>{
+      const counts=await tx.$queryRaw<{tier:number;count:bigint;active:bigint;frozen:bigint}[]>`${members} SELECT tier,count(*) AS count,count(*) FILTER(WHERE status='ACTIVE') AS active,count(*) FILTER(WHERE status='FROZEN') AS frozen FROM members GROUP BY tier`;
+      const total=await tx.$queryRaw<{count:bigint}[]>`${members} SELECT count(*) AS count FROM members ${filter}`;
+      const rows=await tx.$queryRaw<{id:string;nickname:string;phone:string|null;phoneCipher:string|null;status:string;createdAt:Date;lastSeenAt:Date|null;tier:number;endsAt:Date|null}[]>`${members} SELECT id,nickname,phone,"phoneCipher",status,"createdAt","lastSeenAt",tier,"endsAt" FROM members ${filter} ORDER BY "createdAt" DESC,id DESC LIMIT ${query.size} OFFSET ${(query.page-1)*query.size}`;
+      return {items:rows.map(r=>({id:r.id,nickname:r.nickname,phone:maskedPhone(r),status:r.status,createdAt:r.createdAt,lastSeenAt:r.lastSeenAt,tier:r.tier,endsAt:r.endsAt})),total:Number(total[0]?.count??0),summary:{registeredTotal:counts.reduce((n,r)=>n+Number(r.count),0),activeTotal:counts.reduce((n,r)=>n+Number(r.active),0),frozenTotal:counts.reduce((n,r)=>n+Number(r.frozen),0),tiers:Array.from({length:5},(_,tier)=>({tier,count:Number(counts.find(r=>r.tier===tier)?.count??0)}))}};
+    },{isolationLevel:'RepeatableRead'});
+  }
   async revoke(req: AuthRequest, kind: 'membership' | 'course', id: string, reason: string) {
     requireRoles(req, ['ADMIN']);
     if (!reason.trim()) throw new BadRequestException('请填写撤销原因');
@@ -308,6 +337,7 @@ export class CurriculumAdminController {
   }
   @Post('memberships/grant') memberGrant(@Body() dto: MemberGrantDto, @Req() req: AuthRequest) { return this.service.memberGrant(req, dto); }
   @Get('memberships/plans') plans(@Req() req: AuthRequest) { requireRoles(req, ['ADMIN']); return this.db.membershipPlan.findMany({ orderBy: [{ tier: 'asc' }, { days: 'asc' }] }); }
+  @Get('memberships/users') members(@Query() query:MemberDirectoryQuery,@Req() req:AuthRequest){return this.service.members(req,query);}
   @Get('memberships/plans/:id/channel-check') planChannels(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){requireRoles(req,['ADMIN']);return this.service.planChannels(id);}
   @Post('memberships/plans') plan(@Body() dto: PlanDto, @Req() req: AuthRequest) { return this.service.plan(req, dto); }
   @Get('entitlements') entitlements(@Query() query: EntitlementQuery, @Req() req: AuthRequest) { return this.service.entitlements(req, query); }

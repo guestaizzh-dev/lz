@@ -24,8 +24,8 @@
 <AppIcon name="crown" :size="25" :active="true"/>
 </view>
 <view class="grow">
-<text class="member-strip-title">会员中心</text>
-<text class="member-strip-copy">会员中心 · 探索研习权益</text>
+<text class="member-strip-title">{{memberTitle}}</text>
+<text class="member-strip-copy">注册 · 铜牌 · 银牌 · 金牌 · 钻石</text>
 </view>
 <view class="member-open">
 <text class="member-open-label">了解会员</text>
@@ -57,7 +57,10 @@
 <script setup lang="ts">
 import InkBackdrop from '../../components/InkBackdrop.uvue';
 import SafeTop from '../../components/SafeTop.uvue';
-import {assetUrl} from '../../lib/api';import AppIcon from '../../components/AppIcon.uvue';import {currentUser,needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';
+import {assetUrl,request} from '../../lib/api';import AppIcon from '../../components/AppIcon.uvue';import {currentUser,needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';import {membershipTierNames} from '../../lib/learning';import type {Membership} from '../../lib/learning';
+const memberTitle=ref('会员中心');let membershipRequest=0;
+onShow(async()=>{const version=++membershipRequest,owner=currentUser.value?.id;memberTitle.value=owner?'正在核对会员…':'会员中心';if(!owner)return;try{const member=await request<Membership|null>('/learning/membership');if(version===membershipRequest&&owner===currentUser.value?.id)memberTitle.value=membershipTierNames[member?.tier??0]??'会员中心';}catch{if(version===membershipRequest)memberTitle.value='会员中心 · 点击查看';}});
+onUnload(()=>{membershipRequest++;});
 const menus=[{label:'公益研习',icon:'leaf',caption:'公益课程与会员',path:'marketing/charity',auth:false},{label:'课程推广',icon:'medal',caption:'邀请与佣金',path:'marketing/referrals',auth:true},{label:'书院共创',icon:'leaf',caption:'征文 · 置顶 · 案例授权',path:'marketing/community',auth:false},{label:'优惠券',icon:'medal',caption:'领券与使用记录',path:'marketing/coupons',auth:false},{label:'我的问答',icon:'chat-circle',caption:'提问与老师答复',path:'teacher/questions',auth:true},{label:'学习档案',icon:'book-open',caption:'我的课程',path:'course/library',auth:true},{label:'离线课件',icon:'book-open',caption:'本机下载',path:'course/downloads',auth:true},{label:'研习笔记',icon:'note-pencil',caption:'私人记录',path:'profile/library?kind=notes',auth:true},{label:'研习日志',icon:'leaf',caption:'记录日常',path:'profile/library?kind=practice',auth:true},{label:'阅读历史',icon:'clock-clockwise',caption:'浏览记录',path:'reading-history/reading-history',auth:true},{label:'收藏',icon:'star',caption:'',path:'profile/library?kind=favorites',auth:true},{label:'购课订单',icon:'book-open',caption:'付款与退课',path:'course/orders',auth:true},{label:'会员订单',icon:'crown',caption:'期限与售后',path:'membership/orders',auth:true},{label:'商品订单',icon:'package',caption:'查看全部',path:'shop/orders',auth:true},{label:'我的资料',icon:'book-open',caption:'资料订单与领取',path:'shop/digital',auth:true},{label:'积分',icon:'medal',caption:'',path:'profile/progression',auth:true},{label:'我的训练营',icon:'book-open',caption:'按期共学',path:'cohort/index',auth:true},{label:'在线咨询',icon:'headphones',caption:'本次预约双方',path:'booking/consultations',auth:true},{label:'我的预约',icon:'calendar-blank',caption:'咨询与报名',path:'booking/mine',auth:true},{label:'活动',icon:'calendar-blank',caption:'书院活动',path:'event/index',auth:false},{label:'消息',icon:'chat-circle',caption:'',path:'profile/messages',auth:true},{label:'客服',icon:'headphones',caption:'服务与反馈',path:'profile/feedback',auth:false},{label:'设置',icon:'gear',caption:'账号与安全',path:'profile/settings',auth:false}];
 function profile(){if(!currentUser.value)openPage('auth/login');else openPage('profile/edit');}function open(path:string,auth:boolean){if(auth&&needLogin())return;openPage(path);}
 </script>

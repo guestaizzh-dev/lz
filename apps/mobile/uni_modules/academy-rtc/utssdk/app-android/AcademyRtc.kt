@@ -35,6 +35,7 @@ object AcademyRtc {
         private val remote = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         private val local = TextureView(context)
         private val players = linkedMapOf<String, TextureView>()
+        private val activePlayers = mutableSetOf<String>()
         private var room = ""
         private var published = ""
         private var configured: JSONObject? = null
@@ -80,12 +81,22 @@ object AcademyRtc {
                 engine=ZegoExpressEngine.createEngine(profile,object: IZegoEventHandler(){
                     override fun onRoomStateChanged(roomID:String, reason:ZegoRoomStateChangedReason, errorCode:Int, extendedData:JSONObject){
                         if(owner!=id)return
-                        if(errorCode!=0){status="ERROR";issue="直播连接中断，请重新连接";stopCapture()}
+                        if(roomID!=room)return
+                        when(reason.name){
+                            "RECONNECTING" -> {status="RECONNECTING";receiving=false;activePlayers.clear();issue="网络波动，正在恢复连接"}
+                            "RECONNECTED","LOGINED" -> {status=if(published.isEmpty())"CONNECTED" else "PUBLISHING";issue=""}
+                            "LOGIN_FAILED","RECONNECT_FAILED","KICK_OUT","KICKOUT" -> {status="ERROR";receiving=false;activePlayers.clear();issue="直播连接已中断，请重新进入";stopCapture()}
+                            else -> if(errorCode!=0){status="RECONNECTING";receiving=false;activePlayers.clear();issue="网络波动，正在恢复连接"}
+                        }
                     }
                     override fun onPublisherStateUpdate(streamID:String,state:ZegoPublisherState,errorCode:Int,extendedData:JSONObject){if(owner==id){if(errorCode!=0){status="ERROR";issue="推流中断，请检查网络后重试";stopCapture()}else if(state==ZegoPublisherState.PUBLISHING)status="PUBLISHING"}}
-                    override fun onPlayerRecvAudioFirstFrame(streamID:String){if(owner==id){receiving=true;status=if(published.isEmpty())"PLAYING" else "PUBLISHING"}}
-                    override fun onPlayerRecvVideoFirstFrame(streamID:String){if(owner==id){receiving=true;status=if(published.isEmpty())"PLAYING" else "PUBLISHING"}}
-                    override fun onPlayerStateUpdate(streamID:String,state:ZegoPlayerState,errorCode:Int,extendedData:JSONObject){if(owner==id && errorCode!=0){issue="远端画面暂未到达，正在等待对方连接"}}
+                    override fun onPlayerRecvAudioFirstFrame(streamID:String){if(owner==id && players.containsKey(streamID)){activePlayers.add(streamID);receiving=true;issue="";status=if(published.isEmpty())"PLAYING" else "PUBLISHING"}}
+                    override fun onPlayerRecvVideoFirstFrame(streamID:String){if(owner==id && players.containsKey(streamID)){activePlayers.add(streamID);receiving=true;issue="";status=if(published.isEmpty())"PLAYING" else "PUBLISHING"}}
+                    override fun onPlayerStateUpdate(streamID:String,state:ZegoPlayerState,errorCode:Int,extendedData:JSONObject){
+                        if(owner!=id || !players.containsKey(streamID))return
+                        if(state==ZegoPlayerState.PLAYING){activePlayers.add(streamID);receiving=true;issue="";status=if(published.isEmpty())"PLAYING" else "PUBLISHING"}
+                        else{activePlayers.remove(streamID);receiving=activePlayers.isNotEmpty();if(!receiving && published.isEmpty()){status="CONNECTED";issue=if(errorCode!=0)"主讲画面暂时中断，正在等待恢复" else ""}}
+                    }
                 })
                 engine?.enableCamera(false);engine?.muteMicrophone(true)
             }
@@ -103,8 +114,10 @@ object AcademyRtc {
         }
         private fun reconcile(data:JSONObject) {
             val sdk=engine?:return
+            sdk.muteAllPlayAudioStreams(data.optBoolean("speakerMuted"))
             val desired=data.getJSONArray("playStreamIds");val ids=(0 until desired.length()).map{desired.getString(it)}.take(2)
-            for(stream in players.keys.toList())if(stream !in ids){sdk.stopPlayingStream(stream);remote.removeView(players.remove(stream))}
+            for(stream in players.keys.toList())if(stream !in ids){sdk.stopPlayingStream(stream);remote.removeView(players.remove(stream));activePlayers.remove(stream)}
+            receiving=activePlayers.isNotEmpty()
             for(stream in ids)if(!players.containsKey(stream)){val texture=TextureView(context);players[stream]=texture;remote.addView(texture,LinearLayout.LayoutParams(-1,0,1f));sdk.startPlayingStream(stream,ZegoCanvas(texture).apply { viewMode=if(data.optString("canvasFit")=="cover") ZegoViewMode.ASPECT_FILL else ZegoViewMode.ASPECT_FIT })}
             for((stream,texture) in players)sdk.updatePlayingCanvas(stream,ZegoCanvas(texture).apply { viewMode=if(data.optString("canvasFit")=="cover") ZegoViewMode.ASPECT_FILL else ZegoViewMode.ASPECT_FIT })
             val next=if(data.optBoolean("publishConsent"))data.optString("publishStreamId") else ""
@@ -118,7 +131,7 @@ object AcademyRtc {
         private fun stopCapture(){if(owner!=id)return;engine?.stopPublishingStream();engine?.stopPreview();engine?.enableCamera(false);engine?.muteMicrophone(true);published="";local.visibility=View.GONE}
         fun stop(){
             if(owner==id){stopCapture();for(stream in players.keys)engine?.stopPlayingStream(stream);engine?.logoutRoom(room);owner=null;destroying=true;ZegoExpressEngine.destroyEngine{ main.post{engine=null;destroying=false} }}
-            players.clear();remote.removeAllViews();room="";joining=false;configured=null;receiving=false;status="CLOSED"
+            players.clear();activePlayers.clear();remote.removeAllViews();room="";joining=false;configured=null;receiving=false;status="CLOSED"
         }
         override fun onDetachedFromWindow(){stop();super.onDetachedFromWindow()}
     }

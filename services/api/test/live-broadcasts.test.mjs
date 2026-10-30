@@ -90,5 +90,10 @@ test('admin member broadcast: publish, access, host conflict, recording recovery
       const recording=await db.liveRecording.findUniqueOrThrow({where:{id:job.id}});assert.equal(recording.state,'READY',JSON.stringify(recording));assert.ok(recording.assetId);
       assert.equal(await db.liveReplay.count({where:{sessionId:row.id}}),0);
     });
-  }finally{await app.close();}
+  }finally{
+    const actors=[root?.id,another?.id].filter(Boolean);
+    await db.liveSession.updateMany({where:{hostUserId:{in:actors},state:{in:['PREPARING','LIVE']}},data:{state:'ENDED',endedAt:new Date()}});
+    await db.liveRtcLease.updateMany({where:{userId:{in:actors},revokedAt:null},data:{revokedAt:new Date()}});
+    await app.close();
+  }
 });

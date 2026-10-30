@@ -198,7 +198,9 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
     const result=await this.db.$transaction(async tx=>{
       if(managed)await tx.$queryRaw`SELECT pg_advisory_xact_lock(20090015)::text`;
       await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${id} FOR UPDATE`;
-      const row=await this.session(id,tx);if(assignedHost)await this.hostAllowed(row,req.actor.id,tx);if(row.version!==dto.expectedVersion)throw new ConflictException('场次已变化，请刷新');
+      const row=await this.session(id,tx);if(assignedHost)await this.hostAllowed(row,req.actor.id,tx);
+      if(dto.action==='END'&&['ENDED','REPLAY_READY'].includes(row.state)||dto.action==='CANCEL'&&row.state==='CANCELLED')return row;
+      if(row.version!==dto.expectedVersion)throw new ConflictException('场次已变化，请刷新');
       const valid=dto.action==='PREPARE'?row.state==='SCHEDULED':dto.action==='CANCEL'?['SCHEDULED','PREPARING'].includes(row.state):['PREPARING','LIVE'].includes(row.state);
       if(!valid)throw new ConflictException('当前状态不支持此操作');
       if(managed){const other=await tx.$queryRaw<{id:string}[]>`SELECT s.id FROM "LiveSession" s JOIN "LiveRoom" l ON l.id=s."roomId" AND l."managedByAdmin" WHERE s.id<>${id} AND s.state IN ('PREPARING','LIVE') LIMIT 1`;if(other.length)throw new ConflictException('已有直播正在准备或进行，请先结束或取消上一场');}
@@ -251,13 +253,14 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
     if(!(await this.permissions.resolve(user.roles)).includes('teaching.write'))throw new ForbiddenException('开播权限已撤销，请联系书院运营');
     await this.discovery.publicItem(session.roomId,'LIVE',userId);
   }
-  async lease(req:AuthRequest,id:string,host=false){
+  async lease(req:AuthRequest,id:string,host=false,publisher:'BROWSER'|'OBS'='BROWSER'){
     await this.auth.rateLimit('live-join:'+req.actor.id,60,60000);
     const result=await this.db.$transaction(async tx=>{
     await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${id} FOR UPDATE`;
     const s=await this.session(id,tx);if(host)await this.hostAllowed(s,req.actor.id,tx);else await this.access(id,req.actor.id,tx);
     if(host?!['PREPARING','LIVE'].includes(s.state):s.state!=='LIVE')throw new ConflictException(host?'请先将场次设为准备开播':'本场尚未开播或已经结束');
     if(!this.zego.ready())throw new ServiceUnavailableException('ZEGO 房间权限认证或直播配置尚未完成');
+    if(host){const nextMode=publisher==='OBS'?'OBS_WHIP':null;if(publisher==='OBS')this.zego.whip('readiness',id);if(s.state==='LIVE'&&!s.disconnectedAt&&s.pushSecretRef!==nextMode)throw new ConflictException('当前直播正在使用另一种开播方式，请先停止原推流，等待断流状态后再切换');s.pushSecretRef=nextMode;await tx.liveSession.update({where:{id},data:{pushSecretRef:nextMode}});}
     if(host){const room=await tx.liveRoom.findUniqueOrThrow({where:{id:s.roomId}});if(room.managedByAdmin){const other=await tx.liveRtcLease.findFirst({where:{sessionId:id,role:'HOST',userId:{not:req.actor.id},revokedAt:null,expiresAt:{gt:new Date()},absoluteExpiresAt:{gt:new Date()}}});if(other)throw new ConflictException('另一位管理员正在开播，请先由对方退出开播台');await tx.liveSession.update({where:{id},data:{hostUserId:req.actor.id}});s.hostUserId=req.actor.id;}}
     const key=randomBytes(32).toString('base64url'),idLease=randomUUID(),rtcUserId=(host?'h_':'v_')+req.actor.id.replace(/-/g,'')+'_'+idLease.slice(0,8);
     if(host)await tx.liveRtcLease.updateMany({where:{sessionId:id,role:'HOST',revokedAt:null},data:{revokedAt:new Date()}});
@@ -282,8 +285,8 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
     await tx.$queryRaw`SELECT id FROM "LiveSession" WHERE id=${first.sessionId} FOR UPDATE`;
     const lease=await tx.liveRtcLease.findUnique({where:{id:first.id}}),now=new Date();
     if(!lease||lease.revokedAt||lease.expiresAt<=now||lease.absoluteExpiresAt<=now)throw new UnauthorizedException('直播会话已结束，请重新进入');
-    const session=await this.refreshCheck(lease,tx),mic=lease.role==='HOST'?null:await activeMic(tx,session.id,lease.id),publishStreamId=lease.role==='HOST'?rtcStreamId(session.id):mic?micStreamId(lease.id):null,token=this.zego.token(lease.rtcUserId,session.id,!!publishStreamId,publishStreamId??undefined);
-    if((await tx.liveRtcLease.updateMany({where:{id:lease.id,revokedAt:null,expiresAt:{gt:now}},data:{expiresAt:new Date(Math.min(+lease.absoluteExpiresAt,Date.now()+90000))}})).count!==1)throw new UnauthorizedException('直播会话已结束');return {...token,role:lease.role,title:session.title,publishStreamId,playStreamIds:[rtcStreamId(session.id),...(await micAudience(tx,session.id)).map(row=>row.streamId)].filter(id=>id!==publishStreamId)};
+    const session=await this.refreshCheck(lease,tx),obs=lease.role==='HOST'&&session.pushSecretRef==='OBS_WHIP',mic=lease.role==='HOST'?null:await activeMic(tx,session.id,lease.id),publishStreamId=lease.role==='HOST'&&!obs?rtcStreamId(session.id):mic?micStreamId(lease.id):null,token=this.zego.token(lease.rtcUserId,session.id,!!publishStreamId,publishStreamId??undefined);
+    if((await tx.liveRtcLease.updateMany({where:{id:lease.id,revokedAt:null,expiresAt:{gt:now}},data:{expiresAt:new Date(Math.min(+lease.absoluteExpiresAt,Date.now()+90000))}})).count!==1)throw new UnauthorizedException('直播会话已结束');return {...token,role:obs?'OBSERVER':lease.role,title:session.title,publishStreamId,playStreamIds:[rtcStreamId(session.id),...(await micAudience(tx,session.id)).map(row=>row.streamId)].filter(id=>id!==publishStreamId)};
     });
     if(watching&&result.role==='VIEWER'){
       const lease=await this.db.liveRtcLease.findUniqueOrThrow({where:{keyHash:hash(key)}});
@@ -329,8 +332,8 @@ const id=randomUUID(),s=await tx.liveSession.create({data:{id,roomId,hostUserId:
             const reservations=await tx.liveReservation.findMany({where:{sessionId:s.id,cancelledAt:null}});
             for(const r of reservations)await tx.notification.upsert({where:{userId_eventKey:{userId:r.userId,eventKey:'live:'+s.id+':started'}},create:{userId:r.userId,eventKey:'live:'+s.id+':started',kind:'LIVE',title:'预约直播已开播',body:s.title,resourceId:s.roomId},update:{}});
           }else if(event==='stream_close'&&s.state==='LIVE'&&(!s.providerStreamSid||s.providerStreamSid===String(body.stream_sid??''))){
-            const normal=String(body.type)==='0';await tx.liveSession.update({where:{id:s.id},data:{...(normal?{state:'ENDED',endedAt:eventAt,disconnectedAt:null}:{disconnectedAt:eventAt}),providerEventAt:eventAt,providerSequence:sequence,version:{increment:1}}});
-            if(normal){await tx.liveRtcLease.updateMany({where:{sessionId:s.id,revokedAt:null},data:{revokedAt:new Date()}});await endSessionMics(tx,s.id);}state='HANDLED';
+            // SDK reconnect/device recovery may deliberately stop a stream; only an explicit END or verified prolonged absence ends the class.
+            await tx.liveSession.update({where:{id:s.id},data:{disconnectedAt:s.disconnectedAt??eventAt,providerEventAt:eventAt,providerSequence:sequence,version:{increment:1}}});state='HANDLED';
           }
         }
       }

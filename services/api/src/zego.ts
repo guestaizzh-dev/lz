@@ -24,6 +24,12 @@ export class ZegoService {
     return {appId,secret,server};
   }
   ready(){try{this.config();return process.env.ZEGO_ROOM_TOKEN_AUTH_ENABLED==='true'||process.env.ZEGO_ALLOW_UNVERIFIED_TOKEN_AUTH==='true';}catch{return false;}}
+  whip(userId:string,sessionId:string){
+    const {appId}=this.config(),domain=process.env.ZEGO_WHIP_DOMAIN??'';
+    if(domain!==`i-whip${appId}.whip.zegotech.cn`)throw new ServiceUnavailableException('OBS 推流域名尚未配置，请联系书院维护人员');
+    const url=new URL(`https://${domain}/whip/v1/${appId}/${rtcStreamId(sessionId)}`);url.searchParams.set('userId',userId);url.searchParams.set('zgVer','v1');url.searchParams.set('zgExpired',String(Math.floor(Date.now()/1000)+4*3600));url.searchParams.set('zgNonce',String(Date.now()));
+    return{url:url.toString(),service:'WHIP',tokenRequired:false};
+  }
   token(userId:string,sessionId:string,host:boolean,publishStreamId?:string){
     return this.roomToken(userId,rtcRoomId(sessionId),rtcStreamId(sessionId),host,publishStreamId);
   }

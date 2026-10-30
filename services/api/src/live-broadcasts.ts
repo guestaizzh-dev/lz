@@ -6,7 +6,7 @@ import {AdminGuard,requireRoles,type AuthRequest} from './auth.js';
 import {Database} from './database.js';
 import {LiveService} from './live.js';
 import {LiveRecordings,recordingMessages} from './live-recordings.js';
-import {rtcRoomId} from './zego.js';
+import {rtcRoomId,ZegoService} from './zego.js';
 
 class BroadcastDto {
   @IsUUID() requestKey!:string;
@@ -17,18 +17,19 @@ class BroadcastDto {
   @IsOptional() @IsInt() @Min(1) expectedVersion?:number;
 }
 class BroadcastActionDto {
-  @IsIn(['ENTER','END','CANCEL','PUBLISH_REPLAY','HIDE_REPLAY','RETRY_RECORDING']) action!:string;
+  @IsIn(['ENTER','ENTER_OBS','END','CANCEL','PUBLISH_REPLAY','HIDE_REPLAY','RETRY_RECORDING']) action!:string;
   @IsInt() @Min(1) expectedVersion!:number;
 }
 const rule={mode:'MEMBER',allMembers:true};
 @Injectable()
 export class LiveBroadcasts {
-  constructor(private readonly db:Database,private readonly live:LiveService,private readonly recordings:LiveRecordings){}
+  constructor(private readonly db:Database,private readonly live:LiveService,private readonly recordings:LiveRecordings,private readonly zego:ZegoService){}
   private async managed(id:string){const s=await this.live.session(id),room=await this.db.liveRoom.findUniqueOrThrow({where:{id:s.roomId}});if(!room.managedByAdmin)throw new BadRequestException('历史课程直播请从历史直播入口处理，不能改写已购权限');return{s,room};}
   async list(req:AuthRequest){
     requireRoles(req,['ADMIN']);
-    const rows=await this.db.$queryRaw<{id:string;roomId:string;title:string;summary:string;cover:string;state:string;version:number;scheduledAt:Date;startedAt:Date|null;endedAt:Date|null;disconnectedAt:Date|null;publishState:string;reservations:number;viewers:number;recordingState:string|null;recordingFailure:string|null;replayState:string|null;replayVersion:number|null;durationSeconds:number|null}[]>`SELECT s.id,s."roomId",s.title,r.summary,l.cover,s.state,s.version,s."scheduledAt",s."startedAt",s."endedAt",s."disconnectedAt",r."publishState",(SELECT count(*)::int FROM "LiveReservation" v WHERE v."sessionId"=s.id AND v."cancelledAt" IS NULL) reservations,(SELECT count(DISTINCT v."userId")::int FROM "LiveRtcLease" v WHERE v."sessionId"=s.id AND v.role='VIEWER' AND v."revokedAt" IS NULL AND v."expiresAt">now() AND v."absoluteExpiresAt">now()) viewers,j.state AS "recordingState",j.failure AS "recordingFailure",p."reviewState" AS "replayState",p.version AS "replayVersion",p."durationSeconds" FROM "LiveSession" s JOIN "LiveRoom" l ON l.id=s."roomId" AND l."managedByAdmin" JOIN "Resource" r ON r.id=l.id LEFT JOIN "LiveRecording" j ON j."sessionId"=s.id LEFT JOIN "LiveReplay" p ON p."sessionId"=s.id ORDER BY s."scheduledAt" DESC,s.id DESC LIMIT 200`;
-    return{items:rows.map(row=>({...row,accessMode:'MEMBER',recordingMessage:row.recordingFailure?recordingMessages[row.recordingFailure]??'录制需要处理，请联系维护人员。':''})),recording:await this.recordings.readiness()};
+    const rows=await this.db.$queryRaw<{id:string;roomId:string;title:string;summary:string;cover:string;state:string;version:number;scheduledAt:Date;startedAt:Date|null;endedAt:Date|null;disconnectedAt:Date|null;publishState:string;reservations:number;viewers:number;recordingState:string|null;recordingFailure:string|null;replayState:string|null;replayVersion:number|null;durationSeconds:number|null}[]>`SELECT s.id,s."roomId",s.title,CASE WHEN s."pushSecretRef"='OBS_WHIP' THEN 'OBS' ELSE 'BROWSER' END AS publisher,r.summary,l.cover,s.state,s.version,s."scheduledAt",s."startedAt",s."endedAt",s."disconnectedAt",r."publishState",(SELECT count(*)::int FROM "LiveReservation" v WHERE v."sessionId"=s.id AND v."cancelledAt" IS NULL) reservations,(SELECT count(DISTINCT v."userId")::int FROM "LiveRtcLease" v WHERE v."sessionId"=s.id AND v.role='VIEWER' AND v."revokedAt" IS NULL AND v."expiresAt">now() AND v."absoluteExpiresAt">now()) viewers,j.state AS "recordingState",j.failure AS "recordingFailure",p."reviewState" AS "replayState",p.version AS "replayVersion",p."durationSeconds" FROM "LiveSession" s JOIN "LiveRoom" l ON l.id=s."roomId" AND l."managedByAdmin" JOIN "Resource" r ON r.id=l.id LEFT JOIN "LiveRecording" j ON j."sessionId"=s.id LEFT JOIN "LiveReplay" p ON p."sessionId"=s.id ORDER BY s."scheduledAt" DESC,s.id DESC LIMIT 200`;
+    let obsReady=false;try{this.zego.whip('readiness','readiness');obsReady=true;}catch{}
+    return{items:rows.map(row=>({...row,accessMode:'MEMBER',recordingMessage:row.recordingFailure?recordingMessages[row.recordingFailure]??'录制需要处理，请联系维护人员。':''})),recording:await this.recordings.readiness(),obs:{ready:obsReady}};
   }
   async save(req:AuthRequest,dto:BroadcastDto,id?:string){
     requireRoles(req,['ADMIN']);const title=dto.title.trim(),summary=dto.summary.trim(),scheduledAt=new Date(dto.scheduledAt),cover=(dto.cover??'').trim();
@@ -59,9 +60,11 @@ export class LiveBroadcasts {
   }
   async action(req:AuthRequest,id:string,dto:BroadcastActionDto){
     requireRoles(req,['ADMIN']);const{s}=await this.managed(id);
+    if(dto.action==='END'&&['ENDED','REPLAY_READY'].includes(s.state)||dto.action==='CANCEL'&&s.state==='CANCELLED')return s;
     if(s.version!==dto.expectedVersion)throw new ConflictException('直播状态已变化，请刷新后重试');
-    if(dto.action==='ENTER'){
+    if(dto.action==='ENTER'||dto.action==='ENTER_OBS'){
       if(!['SCHEDULED','PREPARING','LIVE'].includes(s.state))throw new ConflictException('本场已结束或取消');
+      if(dto.action==='ENTER_OBS')this.zego.whip('readiness',id);
       await this.recordings.requireReady();
       await this.db.$transaction(async tx=>{
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(20090015)::text`;
@@ -70,7 +73,9 @@ export class LiveBroadcasts {
         const current=await tx.liveSession.findUniqueOrThrow({where:{id}});if(current.version!==dto.expectedVersion)throw new ConflictException('直播状态已变化，请刷新');
         if(current.state==='SCHEDULED'){await tx.liveSession.update({where:{id},data:{state:'PREPARING',version:{increment:1}}});await tx.auditLog.create({data:{actorId:req.actor.id,action:'live.session.prepare',resource:'live',resourceId:id,changes:{before:'SCHEDULED',state:'PREPARING'}}});}
       });
-      await this.recordings.ensure(id);return this.live.lease(req,id,true);
+      await this.recordings.ensure(id);const credential=await this.live.lease(req,id,true,dto.action==='ENTER_OBS'?'OBS':'BROWSER');
+      if(dto.action!=='ENTER_OBS')return credential;
+      const verified=await this.live.refresh(credential.key);return{...credential,obs:this.zego.whip(verified.userId,id)};
     }
     if(dto.action==='END'||dto.action==='CANCEL')return this.live.state(req,id,{action:dto.action,expectedVersion:s.version,reason:dto.action==='END'?'管理员结束直播':'管理员取消直播'});
     if(dto.action==='RETRY_RECORDING'){

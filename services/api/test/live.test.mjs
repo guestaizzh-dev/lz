@@ -190,10 +190,16 @@ test('live RTC: real HTTP/state/permissions/reservations/callback/replay with an
       await db.contentRelation.updateMany({where:{fromId:room.id,toId:course.id},data:{approvedBy:null}});result=(await call('/live/sessions/'+session.id+'/offers',a)).body;assert.ok(!result.items.some(i=>i.id===course.id));
       await db.product.update({where:{id:product.id},data:{status:'ARCHIVED'}});result=(await call('/live/sessions/'+session.id+'/offers',a)).body;assert.ok(!result.items.some(i=>i.id===product.id));
     });
-    await t.test('normal provider close ends the session permanently; late creation cannot reopen it',async()=>{
+    await t.test('SDK normal close allows reconnect; explicit END is idempotent and late streams cannot reopen it',async()=>{
       await post('/live/zego/callback',event(session,host,'stream_close','8',0,{close_time_ms:String(Date.now()+10000),stream_sid:'server-stream-3'}),null);
-      session=await db.liveSession.findUniqueOrThrow({where:{id:session.id}});assert.equal(session.state,'ENDED');
+      session=await db.liveSession.findUniqueOrThrow({where:{id:session.id}});assert.equal(session.state,'LIVE');assert.ok(session.disconnectedAt);
       await post('/live/zego/callback',event(session,host,'stream_create','9',0,{create_time_ms:String(Date.now()+11000),stream_sid:'server-stream-4'}),null);
+      session=await db.liveSession.findUniqueOrThrow({where:{id:session.id}});assert.equal(session.disconnectedAt,null);
+      const end={action:'END',expectedVersion:session.version,reason:'本场课程结束'};
+      await post('/admin/live/sessions/'+session.id+'/state',end,operator);
+      assert.equal((await post('/admin/live/sessions/'+session.id+'/state',end,operator)).state,'ENDED');
+      session=await db.liveSession.findUniqueOrThrow({where:{id:session.id}});
+      await post('/live/zego/callback',event(session,host,'stream_create','10',0,{create_time_ms:String(Date.now()+12000),stream_sid:'server-stream-5'}),null);
       assert.equal((await db.liveSession.findUniqueOrThrow({where:{id:session.id}})).state,'ENDED');assert.equal((await call('/live/sessions/'+session.id+'/join',b,'POST',{})).status,409);
     });
     await t.test('independent replay review and signed ranged delivery reject stale tickets immediately',async()=>{

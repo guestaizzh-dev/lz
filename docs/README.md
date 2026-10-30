@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+直播专项与 OBS 接入：[107](107-live-delivery-hardening.md)。API/后台/录制已上线，Android 新包状态见该文档。
+
 课程学习页、会员档位及商品数量本轮整改：[106](106-course-study-and-membership.md)。
 
 线上测试业务数据已按用户要求清理：[103 清理记录](103-production-test-data-cleanup.md)。
@@ -12,13 +14,13 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新发布：**`20261025-review-polish-01`**（课程/直播/会员/订单/阅读与响应式修复），Android 0.3.18/code23；见[99 发布记录](99-review-polish-release-20261025.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
+最新API/后台发布：**`20261029-live-obs-01`**（OBS WHIP、直播稳定性与课堂体验），固定下载页当前 Android 0.3.22/code27，0.3.23/code28云打包排队；见[107](107-live-delivery-hardening.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 
 | 想知道什么 | 看哪里 |
 | --- | --- |
-| 本次发布与 APK | [99 评审优化发布（2026-10-25）](99-review-polish-release-20261025.md) |
+| 本次发布与 APK | [107 直播稳定性与 OBS 接入](107-live-delivery-hardening.md) |
 | --- | --- |
 | 上线前风险与本轮修复 | [90 上线前全量评审](90-prelaunch-review.md) |
 | 课程售卖/观看与直播链路 Review | [91 代码与交互 Review（2026-10-25）](91-code-and-interaction-review-2026-10-25.md) |

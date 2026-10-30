@@ -49,9 +49,9 @@ int main(int argc, char** argv) {
   SetCallback(&callback); SetConfig("play_loop_retry=true"); SetConfig("max_channels=1");
   SetMuxerOutType(MuxerOutTypeOnlyWriteFile); SetLogDirAndSize((directory+"/sdk").c_str(),1024*1024);
   if (!InitSDK(static_cast<unsigned int>(std::stoul(argv[1])))) return 3;
-  bool recording=false, stopping=false, finished=false;
+  bool recording=false, stopping=false, finished=false, loggedIn=false;
   unsigned int part=0; int exitCode=0;
-  const auto started=std::chrono::steady_clock::now(); auto stopTime=started;
+  const auto started=std::chrono::steady_clock::now(); auto stopTime=started, nextRecordAttempt=started;
   std::string input;
   while (!finished) {
     std::deque<Event> pending;
@@ -62,12 +62,13 @@ int main(int argc, char** argv) {
         SetToken(token.c_str(),room.c_str());
         if (!LoginRoom(room.c_str())) { exitCode=5; finished=true; break; }
       } else if (e.type=="login") {
-        emit("login",e.code); if (e.code) { exitCode=6; finished=true; }
+        emit("login",e.code); if (e.code) { exitCode=6; finished=true; } else loggedIn=true;
       } else if (e.type=="stream" && !recording && !stopping) {
         ZegoRecordSingleStreamConfig config; config.enableAdjustTimestamp=true; config.enableFillInterruption=false;
         const std::string path=directory+"/part-"+std::to_string(++part)+".mp4";
         recording=StartRecordSingleStream(callback.stream.c_str(),path.c_str(),MuxerStreamTypeBoth,2,&config,room.c_str());
-        if (!recording) { emit("error",7); exitCode=7; finished=true; }
+        nextRecordAttempt=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+        if (!recording) emit("waiting",7);
       } else if (e.type=="ended") {
         recording=false; if (stopping) finished=true; else { emit("error",e.code); exitCode=8; finished=true; }
       } else if (e.type=="disconnect") { emit("error",e.code); exitCode=9; finished=true; }
@@ -88,6 +89,8 @@ int main(int argc, char** argv) {
       }
     }
     const auto now=std::chrono::steady_clock::now();
+    // WHIP publishers may not announce in the recorder's RTC room; subscribe to the known stream explicitly.
+    if (loggedIn && !recording && !stopping && now>=nextRecordAttempt) { enqueue("stream"); nextRecordAttempt=now+std::chrono::seconds(2); }
     if (interrupted && !stopping) {
       stopping=true;stopTime=now;
       if (!recording || !StopRecordSingleStream(callback.stream.c_str())) finished=true;

@@ -58,6 +58,8 @@
 
 # 老子道学书院 App：技术调研与选型决策
 
+2026-10-29直播插入决定：用户提供已开通ZEGO WHIP域名并明确无需Bearer Token。OBS30+地址按官方格式携带用户与版本/时效/nonce参数，后台按场次生成；OBS监看使用不具备推流权限的RTC令牌，开播状态仍由服务端实际查流确认。沿用官方Linux本地录制，主动订阅已知主讲流，避免WHIP没有房间流通知时漏录。SDK主动停流进入恢复期，明确结束或确认持续断流才结束授课。真实协议/录制、界面与发行边界见[107](107-live-delivery-hardening.md)。
+
 2026-10-19 Android预览例外：用户明确同意先生成不含系统推送SDK的独立预览包。`scripts/prepare-android-preview.mjs`复制App到`.runtime/android-preview-039`，仅在副本移除推送API引用、调整设置页说明；正式App推送实现保持，站内消息沿线上原接口。0.3.9/code14沿原包名与DCloud云证书、生产HTTPS地址打包。完整推送版仍须开通uni-push2，不能将本预览包算作推送交付。此决定覆盖65/67中“不得移除SDK绕过”的本次预览限制，正式交付限制保持。
 
 2026-10-12分日解锁决定：新增CohortLessonSchedule专用流程表，复合外键绑定营期/课程/固定版本/章节；opensOnDay按开营时刻加24小时计算，CourseCohort.scheduleFrozenAt首次报名开放后不可改写。保存/开放共用营期行锁与expectedVersion，触发器防冻结后改写；目录、正文、媒体票据复验和进度事务共用排程校验，缺安排拒绝访问。第31手写迁移事务回填历史第1天安排，本地已应用；115回归及8实际页面通过，Web为VDOM编译，不替代蒸汽原生/云媒体验收。见[43](43-cohort-chapter-schedule.md)。

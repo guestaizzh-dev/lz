@@ -3,18 +3,18 @@
 <view :id="elementId" :style="{height:height+'px'}"/>
 <!-- #endif -->
 <!-- #ifdef APP-ANDROID || APP-IOS -->
-<NativeRtc :key="source" :leaseKey="source.split('#')[1]??''" mode="LIVE" :height="height" :fit="fit" :immersive="immersive" :controlsVisible="controlsVisible" @closeControls="emit('closeControls')" @roomState="value=>emit('roomState',value)" @error="value=>emit('error',value)" @reconnect="emit('reconnect')"/>
+<NativeRtc :key="source" :leaseKey="source.split('#')[1]??''" mode="LIVE" :height="height" :fit="fit" :speakerMuted="muted" :immersive="immersive" :controlsVisible="controlsVisible" @closeControls="emit('closeControls')" @roomState="value=>emit('roomState',value)" @error="value=>emit('error',value)" @reconnect="emit('reconnect')"/>
 <!-- #endif -->
 </view></template>
 <script setup lang="ts">
 import {onMounted,onUnmounted,watch} from 'vue';
 import NativeRtc from './NativeRtc.uvue';
-const props=defineProps<{source:string;height:number;immersive?:boolean;controlsVisible?:boolean;fit?:string}>(),emit=defineEmits<{error:[message:string];reconnect:[];closeControls:[];roomState:[value:{state:string;micState:string;consent:boolean;message?:string}]}>(),elementId='live-'+Math.random().toString(36).slice(2);
+const props=defineProps<{source:string;height:number;immersive?:boolean;controlsVisible?:boolean;fit?:string;muted?:boolean}>(),emit=defineEmits<{error:[message:string];reconnect:[];closeControls:[];roomState:[value:{state:string;micState:string;consent:boolean;message?:string}]}>(),elementId='live-'+Math.random().toString(36).slice(2);
 // #ifdef WEB
 let frame:HTMLIFrameElement|null=null;
 function control(action:string){if(!frame)return;frame.contentWindow?.postMessage({type:'studio',action},new URL(props.source,location.href).origin);}
 function render(){const root=document.getElementById(elementId);if(!root)return;root.replaceChildren();const next=document.createElement('iframe');next.title='书院直播画面';next.src=props.source;next.allow='autoplay; fullscreen';next.referrerPolicy='no-referrer';next.style.cssText='width:100%;height:100%;border:0;border-radius:'+(props.immersive?'0':'6px')+';';next.onload=()=>{control(props.fit==='contain'?'fit':'fill');control('state');};root.append(next);frame=next;}
 function stateMessage(event:MessageEvent){if(!frame||event.source!==frame.contentWindow||event.origin!==new URL(props.source,location.href).origin||event.data?.type!=='studio-state')return;emit('roomState',{state:event.data.state??'CONNECTING',micState:'',consent:false,message:typeof event.data.status==='string'?event.data.status:''});}
-onMounted(()=>{render();window.addEventListener('message',stateMessage);});watch(()=>props.source,render);watch(()=>props.fit,()=>control(props.fit==='contain'?'fit':'fill'));onUnmounted(()=>{window.removeEventListener('message',stateMessage);frame?.remove();frame=null;});
+onMounted(()=>{render();window.addEventListener('message',stateMessage);});watch(()=>props.source,render);watch(()=>props.fit,()=>control(props.fit==='contain'?'fit':'fill'));watch(()=>props.muted,()=>control(props.muted?'muteSound':'sound'));onUnmounted(()=>{window.removeEventListener('message',stateMessage);frame?.remove();frame=null;});
 // #endif
 </script>

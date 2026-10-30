@@ -1,6 +1,6 @@
 # 线上数据状态补充
 
-直播最高优先级专项（代金券/支付暂停）：OBS WHIP、观看与授课端交互、断流恢复及服务器主动订阅录制已实现；78专项、首轮14页面与真实WHIP→RTC→Linux录制通过。API/Pro/录制已发布`20261029-live-obs-01`，17类业务计数保持；Android0.3.23排队，最终交付见[107](107-live-delivery-hardening.md)。
+直播最高优先级专项（代金券/支付暂停）：OBS WHIP、观看与授课端交互、断流恢复及服务器主动订阅录制已实现；78专项、16页面与真实WHIP→RTC→Linux录制通过。API/Pro/录制已发布`20261029-live-obs-01`，17类业务计数保持；Android0.3.23/code28已同签名发布固定扫码下载页，公网整包哈希/Range206通过。双端真机与长时弱网边界见[107](107-live-delivery-hardening.md)。
 
 课程学习、五档会员及商品数量控件插入整改：后台/API 已发布 `20261026-course-member-01`；Android 0.3.22/code27 已打包并同步固定扫码下载页，公网整包哈希与 Range 206 通过。代码、验证及交付证据见 [106](106-course-study-and-membership.md)；不改变正式渠道与原生验收状态。
 

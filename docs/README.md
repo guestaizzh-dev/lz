@@ -14,7 +14,7 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新API/后台发布：**`20261029-live-obs-01`**（OBS WHIP、直播稳定性与课堂体验），固定下载页当前 Android 0.3.22/code27，0.3.23/code28云打包排队；见[107](107-live-delivery-hardening.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
+最新API/后台发布：**`20261029-live-obs-01`**（OBS WHIP、直播稳定性与课堂体验），Android **0.3.23/code28** 已同步固定下载页；见[107](107-live-delivery-hardening.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 

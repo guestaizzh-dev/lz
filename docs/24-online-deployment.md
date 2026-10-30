@@ -1,4 +1,4 @@
-最新直播专项：API/Pro/录制已发布 `20261029-live-obs-01`，无新增迁移；OBS WHIP 实际推拉流、Linux SDK 13.316秒H.264/AAC录制、78专项及16页面流程通过。备份校验、17类业务计数保持、公网健康/OBS与录制ready、定时器正常，磁盘约8.6GB可用。当前固定下载Android0.3.22，0.3.23正在云端排队，详[107](107-live-delivery-hardening.md)。
+最新直播专项：API/Pro/录制已发布 `20261029-live-obs-01`，无新增迁移；OBS WHIP 实际推拉流、Linux SDK 13.316秒H.264/AAC录制、78专项及16页面流程通过。备份校验、17类业务计数保持、公网健康/OBS与录制ready、定时器正常，磁盘约8.6GB可用。Android0.3.23/code28已云打包并同步扫码下载页，同证书/JAR签名和公网整包哈希/Range206通过；后台release revision6，详[107](107-live-delivery-hardening.md)。
 
 固定下载入口历史：cuecanvas.top域名路由已补回，https://cuecanvas.top/download/曾发布Android0.3.18。该批API为20261025-aliyun-sms-01、无新迁移，下载独立持久目录挂载，release配置revision1，回退与证据见[101](101-fixed-app-download.md)。
 

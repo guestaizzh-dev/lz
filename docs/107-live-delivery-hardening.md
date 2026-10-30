@@ -11,7 +11,7 @@
 - [x] 服务端：停止推流不再直接结束授课；明确结束或持续断流且服务商确认无流才结束。重复结束不重复写通知/版本；原会员与课程准入保持。
 - [x] 验证：78项专项、16组最终页面流程、API/Pro/App Web 构建、Android Kotlin实际SDK编译通过。页面流程包含OBS地址、无采集监看、390px布局及明确结束；0个脚本异常。见 `outputs/live-hardening/ui/checks.json`。
 - [x] OBS：已接入提供的 WHIP 域名，无 Bearer Token；后台生成本场地址与监看入口，监看令牌仅拉流，复用原准入/录制/结束流程。真实协议与服务器录制通过。
-- [ ] Android 0.3.23/code28：已完成75页云编译并提交DCloud，当前排队；在成包校验和固定下载页发布前，不声称用户已获得新App。
+- [x] Android 0.3.23/code28：75页云编译及成包、原签名/JAR校验完成，固定下载页已发布；公网完整APK哈希与Range206通过，后台release配置revision6。
 
 ## OBS 官方约束
 
@@ -42,7 +42,11 @@
 
 API、Pro后台与Linux录制程序已发布 `20261029-live-obs-01`，无新增数据库迁移。备份校验通过；17类业务表计数前后一致。公网健康、OBS就绪、录制就绪及备份/监控定时器正常。环境只改镜像标签与WHIP域名，未开启支付/模拟收款或改会员规则。
 
-回退记录 `/opt/daoxue-academy/rollback-20261029-live-obs-01.txt`，原镜像保留。旧版本不识别OBS监看模式，已有OBS场次启用后须优先前向修复，不恢复旧库覆盖业务。线上证据：`outputs/live-hardening/online/checks.json`；服务器构建/切换/核查日志在 `.runtime/live-obs-*.log`，含运维信息，不提交原始日志或私有环境文件。
+本轮实现提交 `ed05ee5` 已推送 GitHub `feat/v0.3-content-reading`；发行包运行源码/静态文件已与工作区逐文件比对。部署前备份 `academy-20261030T071514Z-4M5GrO.dump` 及同名媒体包均通过SHA256校验。
+
+Android包保存在 `outputs/android/daoxue-academy-0.3.23.apk`：50,006,745字节，SHA256 `fe6916890e9b30b26d89551178feb179bd7c31d6ce58a54694afcf01c93fa150`，ARM64、minSDK23，连接 `https://cuecanvas.top/api/v1`。与0.3.18—0.3.22同证书可覆盖；501文件核对仅两项既有无系统推送预览覆盖，原生RTC/离线/安全存储类及JAR签名通过。扫码入口 `https://cuecanvas.top/download/` 已切到0.3.23，原二维码不变；后台release revision6，旧包与下载回退记录保留。下载证据 `outputs/live-hardening/online/android-download.json`。
+
+回退记录 `/opt/daoxue-academy/rollback-20261029-live-obs-01.txt`，原镜像保留。旧版本不识别OBS监看模式，已有OBS场次启用后须优先前向修复，不恢复旧库覆盖业务。线上证据：`outputs/live-hardening/online/checks.json`、`browser.json`（实际线上直播页及OBS指南，无脚本异常）；服务器构建/切换/核查日志在 `.runtime/live-obs-*.log`，含运维信息，不提交原始日志或私有环境文件。
 
 ## 验收边界
 

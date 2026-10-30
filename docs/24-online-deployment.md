@@ -1,3 +1,5 @@
+最新会员名单与App展示修订：API/Pro已发布 `20261030-member-directory-01`（源码7297dc2），84迁移保持；17类业务表计数保持、环境仅API_IMAGE_TAG变化，线上人数/名单/首页主图入口/OBS/录制及健康正常，定时器active。Android0.3.24/code29已同签名更新固定扫码下载页，release revision7；备份与回退记录见[108](108-membership-directory-and-home-hero.md)。
+
 最新直播专项：API/Pro/录制已发布 `20261029-live-obs-01`，无新增迁移；OBS WHIP 实际推拉流、Linux SDK 13.316秒H.264/AAC录制、78专项及16页面流程通过。备份校验、17类业务计数保持、公网健康/OBS与录制ready、定时器正常，磁盘约8.6GB可用。Android0.3.23/code28已云打包并同步扫码下载页，同证书/JAR签名和公网整包哈希/Range206通过；后台release revision6，详[107](107-live-delivery-hardening.md)。
 
 固定下载入口历史：cuecanvas.top域名路由已补回，https://cuecanvas.top/download/曾发布Android0.3.18。该批API为20261025-aliyun-sms-01、无新迁移，下载独立持久目录挂载，release配置revision1，回退与证据见[101](101-fixed-app-download.md)。

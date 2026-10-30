@@ -21,7 +21,20 @@ App「我的」显示本人实际档位，会员中心始终显示「注册会�
 - [x] API专项5项通过：无购买注册、每人去重、最高档位、未来/过期/撤销/退款暂停、加密搜索与脱敏、筛选分页、权限及非法参数。
 - [x] API及Ant Design Pro生产构建通过，App Web官方编译通过；Web由DCloud当前编译器使用VDOM输出，Android保留蒸汽字节码模式。
 - [x] 隔离库7项真实页面流程通过，0个JavaScript异常：人数、档位筛选、注册用户权益、手机号查询、主图入口、本人身份、五档与未开放提示；App320/390/768布局无溢出。证据 `outputs/member-directory/checks.json` 与同目录截图，复跑脚本 `scripts/browser/member-directory.mjs`。
-- [ ] API/后台上线及公网复核，完成后填写发行版本与数据保持证据。
-- [ ] Android0.3.24/code29蒸汽字节码75页编译成功，DCloud云签名排队；APK下载、同证书检查与固定下载页更新尚待云任务完成。
+- [x] API/后台已发布 `20261030-member-directory-01`（源码 `7297dc2`），84次迁移不变，无待执行迁移；17类业务表计数保持，环境仅API_IMAGE_TAG变化。线上人数/名单、主图入口、OBS/录制ready及健康检查通过，0个页面JavaScript异常；备份与监控定时器active。证据 `outputs/member-directory/online/checks.json` 与同目录截图。
+- [x] Android0.3.24/code29蒸汽字节码75页编译和DCloud云签名成功；501文件核对仅2项已授权无系统推送预览覆盖，ZIP、版本、生产地址、会员页面新资源、原生模块、同证书与JAR签名通过；固定下载页与后台release revision7已更新，公网页面/元数据、HEAD长度、Range206与本机包前1024字节一致，服务器云下载整包SHA256通过。证据 `outputs/member-directory/online/android-download.json`。
 
 未进行手机/iOS验收；不以本次名单和展示修订替代真实支付、上架与长期直播容量验收，商用基线保持。
+
+发布前备份 `academy-20261030T085959Z-ZLN9R9.dump` 校验通过，回退 `/opt/daoxue-academy/rollback-20261030-member-directory-01.txt`；旧发行 `20261029-live-obs-01` 保留。发布后磁盘约7.8GB可用，未清理业务媒体。线上实测5位注册用户均为注册会员，付费四档人数为0，未创建演示用户或授予会员。
+
+Android本机包：`outputs/android/daoxue-academy-0.3.24.apk`，50,007,759字节，SHA256 `00180576bf9ea9bcd1dafd11471df63cf6e9dcd0576dd7e6d05278bfd8a530c8`。仍为原证书、生产HTTPS、无系统推送预览包；站内消息保持。下载 `https://cuecanvas.top/download/`，原二维码不变，旧包及下载回退记录保留。
+
+| 原六项 | 当前状态 |
+| --- | --- |
+| 1 OBS直播 | 已上线，详107；本批发布后OBS与录制仍ready |
+| 2 五档与注册会员名单 | 本批补齐后台人数/名单及App固定五档展示，已上线与更新Android |
+| 3 会员代金券 | 用户明确暂停，不擅自恢复 |
+| 4 真实支付 | 用户明确暂停，不擅自恢复或开放收款 |
+| 5 首页主图/轮播/视频 | 已上线，入口与操作说明见上文，保留现有素材 |
+| 6 安卓上架 | 用户要求暂不处理，预览包更新不代表已上架 |

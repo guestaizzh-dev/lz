@@ -16,13 +16,13 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新API/后台发布：**`20261029-live-obs-01`**（OBS WHIP、直播稳定性与课堂体验），Android **0.3.23/code28** 已同步固定下载页；见[107](107-live-delivery-hardening.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
+最新API/后台发布：**`20261030-member-directory-01`**（注册会员人数/名单、App五档可见性，保留OBS直播），Android **0.3.24/code29** 已同步固定下载页；见[108](108-membership-directory-and-home-hero.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 
 | 想知道什么 | 看哪里 |
 | --- | --- |
-| 本次发布与 APK | [107 直播稳定性与 OBS 接入](107-live-delivery-hardening.md) |
+| 本次发布与 APK | [108 注册名单、五档展示与六项诉求状态](108-membership-directory-and-home-hero.md) |
 | --- | --- |
 | 上线前风险与本轮修复 | [90 上线前全量评审](90-prelaunch-review.md) |
 | 课程售卖/观看与直播链路 Review | [91 代码与交互 Review（2026-10-25）](91-code-and-interaction-review-2026-10-25.md) |

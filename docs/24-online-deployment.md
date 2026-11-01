@@ -1,3 +1,5 @@
+2026-10-31 微信Native上线：`20261031-wechat-native-01`（源码`1f32f6f`），84迁移不变，17类业务计数保持。新增Native与私有商户配置，关闭模拟支付、保留App SDK关闭；生产Node签名/公钥验签查单、财务/指南、回调/图片票据拒绝及OBS/录制就绪通过。备份`academy-20261101T064341Z-sOukGE.dump`及媒体包SHA256通过，回退`/opt/daoxue-academy/rollback-20261031-wechat-native-01.txt`，约5.4GB可用。Android0.3.25/code30已同证书更新固定下载，完整服务端云下载SHA及公网Range/版本通过，配置revision8。真实扫码扣款、通知解密、原路退款到账与手机/iOS验收未做；详[109](109-wechat-native-payment.md)。
+
 最新会员名单与App展示修订：API/Pro已发布 `20261030-member-directory-01`（源码7297dc2），84迁移保持；17类业务表计数保持、环境仅API_IMAGE_TAG变化，线上人数/名单/首页主图入口/OBS/录制及健康正常，定时器active。Android0.3.24/code29已同签名更新固定扫码下载页，release revision7；备份与回退记录见[108](108-membership-directory-and-home-hero.md)。
 
 最新直播专项：API/Pro/录制已发布 `20261029-live-obs-01`，无新增迁移；OBS WHIP 实际推拉流、Linux SDK 13.316秒H.264/AAC录制、78专项及16页面流程通过。备份校验、17类业务计数保持、公网健康/OBS与录制ready、定时器正常，磁盘约8.6GB可用。Android0.3.23/code28已云打包并同步扫码下载页，同证书/JAR签名和公网整包哈希/Range206通过；后台release revision6，详[107](107-live-delivery-hardening.md)。

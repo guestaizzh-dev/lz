@@ -1,0 +1,13 @@
+{
+  "page": "https://cuecanvas.top/download/",
+  "version": "0.3.25",
+  "code": 30,
+  "bytes": 50033602,
+  "sha256": "ac98731d8333a8e3e8510f1bf02132a59c45064eb3ae1d4a0c937251f024ed67",
+  "metadataMatches": true,
+  "headMatches": true,
+  "range206MatchesLocal": true,
+  "serverFullCloudHashVerified": true,
+  "publicFullDownloadRepeated": false,
+  "QRDestinationUnchanged": true
+}

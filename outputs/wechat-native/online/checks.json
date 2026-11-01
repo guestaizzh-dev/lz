@@ -1,0 +1,16 @@
+{
+  "health": true,
+  "nativeConfigured": true,
+  "sdkDisabled": true,
+  "simulationDisabled": true,
+  "merchantName": "北京华夏知古文化院",
+  "financeRendered": true,
+  "guideRendered": true,
+  "invalidQRRejected": true,
+  "forgedCallbackRejected": true,
+  "obsReady": true,
+  "recordingReady": true,
+  "registeredUsers": 5,
+  "errors": [],
+  "businessMutation": false
+}

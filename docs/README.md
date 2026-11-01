@@ -1,5 +1,7 @@
 # 老子道学书院 · 文档入口
 
+微信Native扫码、收银台UI与Android0.3.25：[109](109-wechat-native-payment.md)。API/后台已上线，固定二维码可下载新版；实际扫码收退款仍待一笔真实交易验收。
+
 注册名单与App五档可见性、六项诉求状态：[108](108-membership-directory-and-home-hero.md)。
 
 直播专项与 OBS 接入：[107](107-live-delivery-hardening.md)。API/后台/录制已上线，Android 新包状态见该文档。
@@ -16,7 +18,7 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新API/后台发布：**`20261030-member-directory-01`**（注册会员人数/名单、App五档可见性，保留OBS直播），Android **0.3.24/code29** 已同步固定下载页；见[108](108-membership-directory-and-home-hero.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
+最新API/后台发布：**`20261031-wechat-native-01`**（Native支付、收银台及财务/指南，保留会员与OBS直播），Android **0.3.25/code30** 已同步固定下载页；见[109](109-wechat-native-payment.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 

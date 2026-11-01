@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "后台微信渠道与收款主体明确显示",
+    "付款码实际加载、金额正确，320/390/768无溢出",
+    "订单信息按需展开与收起",
+    "点击已付款不伪造收款",
+    "查询失败可重试并提醒避免重复付款",
+    "真实查单编排后才发课程权益并隐藏付款码",
+    "付款后返回原课程订单与研习入口",
+    "后台内置扫码收退款操作指南"
+  ],
+  "errors": [],
+  "actualAPI": true,
+  "isolatedDatabase": true,
+  "externalGateway": "fixture",
+  "nativeDeviceAcceptance": false
+}

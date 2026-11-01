@@ -132,7 +132,7 @@
 | 手机短信 | **腾讯云 SMS** | 正式短信签名和模板；开发环境只在非生产允许固定测试验证码 |
 | 内容审核 | **腾讯云内容安全 + 人工审核后台** | 文本/图片自动检查，公开音视频送审或人工复核；第三方判断不替代运营复核 |
 | 推送 | **uni-push 2.0；NestJS → 小型 uniCloud 签名网关 → uni-cloud-push** | 使用官方客户端能力；uniCloud 只承担推送桥接，不承载订单、用户或会员数据库 |
-| 支付 | **Android 微信 App 支付/支付宝 App 支付；iOS 数字内容 StoreKit 内购，实物/线下服务走外部支付** | 支付路由按平台和商品性质确定，不能所有商品共用一个第三方收款入口 |
+| 支付 | **Android 当前按用户指定采用微信 Native 扫码；微信 App SDK/支付宝保留独立接入；iOS 数字内容 StoreKit 内购** | Native按原订单生成二维码、验签回调/查单后交付，不将Native商户AppID直接用作Android SDK身份；iOS继续按商品性质与内购门禁路由 |
 | 部署 | **Linux + Docker Compose + Nginx + 独立备份** | 单体 API/worker、后台静态资源、PostgreSQL/Redis；不引入 Kubernetes、服务网格 |
 | 文档与测试 | **OpenAPI；Node 内置测试优先；后台 Vitest/必要的 Playwright；App 官方自动化 + 真机** | 测试资金、权限、库存和主要业务流程；不机械地为每个 getter 写测试 |
 

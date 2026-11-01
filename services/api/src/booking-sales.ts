@@ -7,7 +7,7 @@ import {IsBoolean,IsIn,IsInt,IsOptional,IsString,IsUUID,Length,Matches,Max,Min} 
 import {createHash,randomUUID} from 'node:crypto';
 import {AdminGuard,UserGuard,requireRoles,type AuthRequest} from './auth.js';
 import {Database} from './database.js';
-import {PaymentChannels,type AppPaymentChannel} from './payment-channels.js';
+import {PaymentChannels,paymentProvider,paymentTradeType,type AppPaymentChannel} from './payment-channels.js';
 import {Prisma,type TradeOrder} from './generated/prisma/client.js';
 import {encryptPrivate,decryptPrivate} from './private-data.js';
 import {publicContentScope} from './public-content.js';
@@ -33,7 +33,7 @@ class ConfirmationDto extends QuoteDto {
 class CheckoutDto extends QuoteDto {
   @IsUUID() requestKey!:string;
   @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string;
-  @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel!:AppPaymentChannel;
+  @IsIn(['WECHAT_APP','WECHAT_NATIVE','ALIPAY_APP','SIMULATED']) channel!:AppPaymentChannel;
   @IsString() @Length(1,50) @Matches(/\S/) name!:string;
   @IsString() @Matches(/^1[3-9]\d{9}$/) phone!:string;
   @IsBoolean() contactConsent!:boolean;
@@ -64,7 +64,7 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
   constructor(private readonly db:Database,private readonly channels:PaymentChannels){}
   async onModuleInit(){
     if(process.env.BOOKING_SALES_ENABLED==='true'){
-      const enabled=this.channels.choices().filter(c=>c.enabled),codes=['BOOKING_REVENUE','BOOKING_ADVANCE','BOOKING_REFUND_PAYABLE',...enabled.map(c=>c.channel==='WECHAT_APP'?'WECHAT_RECEIVABLE':'ALIPAY_RECEIVABLE')];
+      const enabled=this.channels.choices().filter(c=>c.enabled),codes=['BOOKING_REVENUE','BOOKING_ADVANCE','BOOKING_REFUND_PAYABLE',...new Set(enabled.map(c=>c.channel==='ALIPAY_APP'?'ALIPAY_RECEIVABLE':'WECHAT_RECEIVABLE'))];
       if(!enabled.length||await this.db.financeAccount.count({where:{code:{in:codes}}})!==codes.length)throw Error('Booking payments require verified channels and posting accounts');
       if(process.env.NODE_ENV==='production'&&process.env.BOOKING_PAYMENT_WORKER_ENABLED==='false')throw Error('Booking payments require the recovery worker');
     }
@@ -263,7 +263,7 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
       if(old&&(!old.lastQueriedAt||old.lastQueriedAt<old.updatedAt||old.failureCode))throw new ConflictException('请先查询上次支付结果，勿重复付款');
       if(old)await tx.paymentAttempt.update({where:{id:old.id},data:{state:'CREATED',updatedAt:new Date()}});else await tx.paymentAttempt.create({data:{orderId:id,channel,requestKey:'booking.pay:'+id,externalRequestId:order.orderNo,state:'CREATED',amount:order.payableTotal,currency:'CNY',expiresAt:order.expiresAt}});return s;
     });
-    try{const orderInfo=await this.channels.resolve(channel).prepay(order.orderNo,snapshot.title,Number(order.payableTotal),order.expiresAt);await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING'}});return{orderId:id,channel,provider:channel==='WECHAT_APP'?'wxpay':'alipay',orderInfo,amount:String(order.payableTotal)};}
+    try{const orderInfo=await this.channels.resolve(channel).prepay(order.orderNo,snapshot.title,Number(order.payableTotal),order.expiresAt);await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING'}});return{orderId:id,channel,provider:paymentProvider(channel),orderInfo,amount:String(order.payableTotal)};}
     catch(e){await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING',failureCode:'PROVIDER_RESULT_UNKNOWN'}});throw e;}
   }
   async cancel(id:string,userId:string,reason='USER_CANCEL'){
@@ -298,13 +298,13 @@ export class BookingSalesService implements OnModuleInit,OnModuleDestroy {
     return this.detail(id,userId);
   }
   private async journal(tx:Tx,order:TradeOrder,paymentId:string,amount:bigint,incoming:boolean,anomaly:boolean,channel:AppPaymentChannel,refundId?:string){
-    const journal=await tx.financeJournal.create({data:{eventKey:incoming?'booking.payment:'+paymentId:'booking.refunded:'+refundId,kind:incoming?'BOOKING_PAYMENT':'BOOKING_REFUND',orderId:order.id,transactionId:paymentId,refundId,currency:'CNY',postedAt:new Date(),description:incoming?'预约活动已验证收款':'预约活动已验证退款'}}),income=anomaly?'BOOKING_REFUND_PAYABLE':'BOOKING_ADVANCE',receivable=channel==='WECHAT_APP'?'WECHAT_RECEIVABLE':'ALIPAY_RECEIVABLE';
+    const journal=await tx.financeJournal.create({data:{eventKey:incoming?'booking.payment:'+paymentId:'booking.refunded:'+refundId,kind:incoming?'BOOKING_PAYMENT':'BOOKING_REFUND',orderId:order.id,transactionId:paymentId,refundId,currency:'CNY',postedAt:new Date(),description:incoming?'预约活动已验证收款':'预约活动已验证退款'}}),income=anomaly?'BOOKING_REFUND_PAYABLE':'BOOKING_ADVANCE',receivable=channel==='ALIPAY_APP'?'ALIPAY_RECEIVABLE':'WECHAT_RECEIVABLE';
     if(!incoming&&!anomaly)await serviceRefundEntries(tx,order,journal.id,receivable,amount);else await tx.financeEntry.createMany({data:[{journalId:journal.id,accountCode:incoming?receivable:income,debit:amount,userId:order.userId},{journalId:journal.id,accountCode:incoming?income:receivable,credit:amount,userId:order.userId}]});
   }
   private async refundJob(tx:Tx,id:string){await tx.outboxJob.upsert({where:{eventKey:'booking.refund:'+id},create:{eventKey:'booking.refund:'+id,kind:'BOOKING_REFUND',aggregateType:'BOOKING_REFUND',aggregateId:id,payload:{},availableAt:new Date()},update:{state:'READY',availableAt:new Date(),lockedUntil:null,lastErrorCode:null,attempts:0}});}
   async confirmPayment(data:WechatTransaction,callback?:{id:string;payloadHash:string},channel:AppPaymentChannel='WECHAT_APP'){
     const identity=this.channels.resolve(channel).identity();
-    if(data.appid!==identity.appid||data.mchid!==identity.mchid||data.trade_type!=='APP'||data.trade_state!=='SUCCESS'||typeof data.transaction_id!=='string'||!data.transaction_id||data.transaction_id.length>128||!Number.isSafeInteger(data.amount?.total)||data.amount!.total<=0||data.amount!.currency!=='CNY'||!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('预约活动收款事实无效');
+    if(data.appid!==identity.appid||data.mchid!==identity.mchid||data.trade_type!==paymentTradeType(channel)||data.trade_state!=='SUCCESS'||typeof data.transaction_id!=='string'||!data.transaction_id||data.transaction_id.length>128||!Number.isSafeInteger(data.amount?.total)||data.amount!.total<=0||data.amount!.currency!=='CNY'||!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('预约活动收款事实无效');
     const initial=await this.db.tradeOrder.findUnique({where:{orderNo:data.out_trade_no}});if(!initial||!kinds.includes(initial.kind))throw new NotFoundException('预约活动订单不存在');
     return this.db.$transaction(async tx=>{
       await this.lock(tx,initial);const order=await tx.tradeOrder.findUniqueOrThrow({where:{id:initial.id}}),item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:order.id}}),s=item.itemSnapshot as unknown as Snapshot;await this.lockResource(tx,s);

@@ -1,3 +1,4 @@
+import {openNativePayment} from './native-payment';
 import {request} from './api';
 export type ProductLine={promotion?:{title:string;endsAt:string}|null;id:string;skuId:string;title:string;skuTitle:string;cover:string;unitPrice:number;quantity:number;subtotal:number;payable:string;shipping:string;shippedQuantity:number;refundedQuantity:number;refundOnlyQuantity:number;refundMoneyQuantity:number;refundedAmount:string};
 export type ProductQuote={shippingMode:string;priorityAvailable:boolean;priorityFee:number;priorityOptionFee:number|null;priorityDescription:string|null;quoteHash:string;items:ProductLine[];address:{recipient:string;phone:string;province:string;city:string;district:string;detail:string};subtotal:number;shipping:number;total:number;discount:number;shippingDiscount:number;shippingSurcharge:number;paymentEnabled:boolean;refundPolicy:string;unavailableReason:string;channels:{channel:string;provider:string;label:string;enabled:boolean}[]};
@@ -8,6 +9,7 @@ export const productOrderLabel=(order:ProductOrder)=>Number(order.refundedAmount
 export const productRefundLabel=(state:string)=>({APPROVED:'换货待发出',REQUESTED:'待审核',RETURNING:'请寄回商品',REVIEW:'退货已收，等待财务核查',REFUNDING:'原路退款中',SUCCEEDED:'退款成功',FAILED:'退款处理中，请联系书院',REJECTED:'申请未通过',CANCELLED:'已取消'} as Record<string,string>)[state]??'处理中';
 export const carrierChoices=[{value:'shunfeng',label:'顺丰速运'},{value:'zhongtong',label:'中通快递'},{value:'yuantong',label:'圆通速递'},{value:'shentong',label:'申通快递'},{value:'yunda',label:'韵达快递'},{value:'ems',label:'邮政EMS'},{value:'jd',label:'京东物流'}];
 export async function payProductOrder(order:ProductOrder):Promise<{order:ProductOrder;notice:string}>{
+  if(order.channel==='WECHAT_NATIVE'){await openNativePayment('PHYSICAL',order.id);return{order,notice:'请在微信完成扫码付款，返回后可查询原订单。'};}
   const payment=await request<{provider:string;orderInfo:string}>('/commerce/product-orders/'+order.id+'/payment',{method:'POST'});let hint='';
   // #ifdef APP
   await new Promise<void>(resolve=>{uni.requestPayment({provider:payment.provider,orderInfo:payment.orderInfo,success:()=>resolve(),fail:e=>{hint=e.errCode===700601?'已取消支付，请先查询订单。':'支付结果待确认，请先查询订单，勿重复付款。';resolve();}});});

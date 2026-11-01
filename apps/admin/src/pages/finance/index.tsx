@@ -26,6 +26,7 @@ export default function Finance() {
   const [kind, setKind] = useState<string>(), [channel, setChannel] = useState<string>(), [q, setQ] = useState(''), [view, setView] = useState<View>('payments');
   const [detail, setDetail] = useState<Detail>(), [opening, setOpening] = useState(false), [error, setError] = useState('');
   const filters = new URLSearchParams({ from: `${dates[0]}T00:00:00+08:00`, to: `${dayjs(dates[1]).add(1, 'day').format('YYYY-MM-DD')}T00:00:00+08:00`, ...(kind ? { kind } : {}), ...(channel ? { channel } : {}), ...(q ? { q } : {}) }).toString();
+  const paymentChannels=useQuery({queryKey:['finance-channels'],queryFn:()=>api<{merchantName:string;channels:{channel:string;label:string;enabled:boolean}[]}>('/admin/finance/channels'),enabled:access.canFinanceRead});
   const summary = useQuery({ queryKey: ['finance-summary', filters], queryFn: () => api<Summary>('/admin/finance/summary?' + filters), enabled: access.canFinanceRead });
   async function open(id: string) {
     const current = ++sequence.current; setOpening(true); setError('');
@@ -59,6 +60,7 @@ export default function Finance() {
       <Input.Search aria-label="搜索财务订单" allowClear placeholder="输入订单编号" style={{ width: 260 }} onSearch={setQ} onChange={e => { if (!e.target.value) setQ(''); }} />
       <Button loading={summary.isFetching} onClick={() => { table.current?.reload(); void summary.refetch(); }}>刷新</Button>
     </Space><Typography.Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>北京时间，最多366天。收款按实际收款日统计，确认退款按渠道成功日、撤回按反向记账日统计；退款列表按申请日检索。不同币种分开显示。</Typography.Paragraph></Card>
+    {paymentChannels.data && <Card title="收款渠道" style={{marginBottom:20}}><Space wrap>{paymentChannels.data.channels.filter(c=>c.channel!=='SIMULATED').map(c=><Tag key={c.channel} color={c.enabled?'green':'default'}>{c.label} · {c.enabled?'已配置':'未开放'}</Tag>)}</Space>{paymentChannels.data.merchantName&&<Typography.Paragraph style={{marginTop:12,marginBottom:0}}>微信收款主体：{paymentChannels.data.merchantName}。扫码支付以微信签名回调或查单确认，系统自动记账并按原订单交付。退款请从下方订单详情办理。</Typography.Paragraph>}</Card>}
     {summary.isLoading && <Card loading style={{ marginBottom: 20 }} />}
     {summary.data?.currencies.map(row => <Card key={row.currency} title={`${row.currency === 'CNY' ? '人民币' : row.currency} · 所选范围资金事实`} style={{ marginBottom: 20 }}>
       <Row gutter={[20, 20]}>{[

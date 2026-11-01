@@ -13,7 +13,7 @@ const refundStates:Record<string,string>={REQUESTED:'待审核',APPROVED:'待学
 type Assessment={assessedAt:string;startsAt:string;endsAt:string;quantity:number;checkedCount:number;withdrawalScope:string;deductionAmount?:string};
 type Refund={assessmentSnapshot:Assessment|null;acceptedAt:string|null;id:string;state:string;version:number;requestedAmount:string;approvedAmount:string|null;reasonCode:string;description:string;reviewNote:string|null;createdAt:string};
 type Order={id:string;orderNo:string;state:string;amount:string;paidAmount:string;refundedAmount:string;createdAt:string;expiresAt:string;channel:string;nickname?:string;booking:{kind:string;title:string;teacherName?:string;ticketTitle?:string;quantity:number;startsAt:string;endsAt:string;cancelDeadline:string;location:string;deliveryPolicy:string;refundPolicy:string;state:string;originalStartsAt:string;originalEndsAt:string;originalLocation:string;changeReason:string|null;schedulePending:boolean;cancelled:boolean};refunds:Refund[];payments?:{id:string;channel:string;externalTransactionId:string;amount:string;disposition:string}[];recoveryJobs?:{kind:string;state:string;attempts:number;lastErrorCode:string|null}[]};
-const channels=(v:string)=>v==='ALIPAY_APP'?'支付宝':v==='WECHAT_APP'?'微信支付':'待核查';
+const channels=(v:string)=>v==='ALIPAY_APP'?'支付宝':v==='WECHAT_NATIVE'?'微信扫码支付':v==='WECHAT_APP'?'微信支付':'待核查';
 export default function BookingOrders(){
   const access=useAccess(),{message,modal}=App.useApp(),table=useRef<ActionType>(undefined),[form]=Form.useForm();
   const [selected,setSelected]=useState<Order>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[opening,setOpening]=useState(false),[action,setAction]=useState<{refund:Refund;kind:string}>();const revision=useRef(0);

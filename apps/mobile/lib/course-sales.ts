@@ -17,7 +17,7 @@ export function purchasePlatform():string {
 }
 export const orderLabel=(order:CourseOrder):string=>Number(order.refundedAmount)>0?'已退款':order.state==='COMPLETED'?'已支付':order.state==='CLOSED'?'已关闭':order.paymentStatus==='EXPIRED'?'支付已超时':'待支付';
 export const refundLabel=(state:string):string=>({REQUESTED:'待审核',APPROVED:'方案待本人确认',REFUNDING:'原路退款中',SUCCEEDED:'退款已完成',REVERSED:'Apple已撤回退款',FAILED:'退款需人工处理',REJECTED:'申请未通过',CANCELLED:'已取消'} as Record<string,string>)[state]??'处理中';
-export const paymentChannelLabel=(channel:string):string=>channel==='APPLE_IAP'?'Apple内购':channel==='ALIPAY_APP'?'支付宝':channel==='WECHAT_APP'?'微信支付':'待核查渠道';
+export const paymentChannelLabel=(channel:string):string=>channel==='WECHAT_NATIVE'?'微信扫码支付':channel==='APPLE_IAP'?'Apple内购':channel==='ALIPAY_APP'?'支付宝':channel==='WECHAT_APP'?'微信支付':'待核查渠道';
 export function coursePurchaseAction(order:CourseOrder|null,quote:CourseQuote|null,canPay:boolean,agreed:boolean,clock:number):{kind:string;label:string;enabled:boolean}{
   if(order){
     if(order.refunds.some(r=>r.state==='REFUNDING'))return{kind:'QUERY',label:'查询退课进度',enabled:true};

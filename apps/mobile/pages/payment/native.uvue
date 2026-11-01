@@ -1,0 +1,126 @@
+<template>
+<view class="page"><PageHead title="确认付款"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content pay-content">
+<ContentState v-if="loading&&!order" :loading="true"/>
+<view v-else-if="order" class="pay-card">
+  <view class="pay-summary">
+    <text class="pay-heading">{{paid?'付款已确认':closed?'订单已关闭':expired?'付款已超时':'应付金额'}}</text>
+    <view class="pay-money"><text class="pay-currency">¥</text><text class="pay-amount">{{money(Number(order.amount??order.payableTotal??0))}}</text></view>
+    <text class="pay-subject">{{subject}}</text>
+  </view>
+  <view class="pay-sheet">
+    <view class="pay-method-row"><view class="pay-method-name"><view class="pay-method-mark"></view><text class="pay-method">微信支付</text></view><text v-if="!paid&&!closed&&!expired&&payment" class="pay-time">剩余 {{countdown}}</text><text v-else-if="paid" class="pay-complete">已到账</text></view>
+    <view v-if="paid" class="pay-result"><view class="pay-success-circle"><AppIcon name="check" :size="28" :active="true"/></view><text class="pay-result-title">支付成功</text><text class="pay-copy">可返回订单，查看课程或会员权益</text></view>
+    <view v-else-if="closed||expired" class="pay-result"><text class="pay-result-title">{{closed?'本单已关闭':'付款码已失效'}}</text><text class="pay-copy">如已扣款，请查询最终结果，勿重复付款。</text></view>
+    <view v-else-if="payment" class="pay-code"><image v-if="!imageError" class="pay-image" :src="payment!.qrImageUrl" mode="aspectFit" :show-menu-by-longpress="true" @error="imageError=true"/><view v-else class="pay-image-error"><text class="pay-copy">付款码未能加载</text><button class="pay-inline" :disabled="busy" @click="generate">重新加载</button></view><text class="pay-scan-hint">打开微信「扫一扫」付款</text></view>
+    <view v-else class="pay-result"><text class="pay-copy">{{busy?'正在准备付款码…':'付款码暂不可用'}}</text></view>
+    <view class="pay-merchant-row"><text class="pay-merchant-label">收款方</text><text class="pay-merchant">{{payment?.merchantName??'北京华夏知古文化院'}}</text></view>
+  </view>
+  <text v-if="notice" class="pay-notice">{{notice}}</text>
+  <view class="pay-actions">
+    <button v-if="payment&&!paid&&!closed&&!expired" class="pay-primary" :disabled="saving||imageError" @click="saveCode">{{saving?'正在保存…':'保存付款码'}}</button>
+    <text v-if="payment&&!paid&&!closed&&!expired" class="pay-guide">微信扫一扫 → 相册 → 选择付款码</text>
+    <button v-if="!paid" class="pay-secondary" :disabled="busy" @click="check(true)">{{busy?'正在核实付款…':'我已付款，查询结果'}}</button>
+    <button v-if="!payment&&!paid&&!closed&&!expired" class="pay-secondary pay-retry" :disabled="busy" @click="generate">重新获取付款码</button>
+    <button v-if="paid" class="pay-primary" @click="returnOrder">返回订单，查看交付</button>
+  </view>
+  <view class="pay-detail-section"><button class="pay-detail-toggle" @click="showDetails=!showDetails"><view class="pay-detail-row"><text class="pay-detail-label">订单信息</text><text class="pay-detail-action">{{showDetails?'收起 −':'展开 ＋'}}</text></view></button><view v-if="showDetails" class="pay-details"><text class="pay-detail-caption">订单编号</text><text class="pay-order" :user-select="true">{{order.orderNo}}</text><button class="pay-inline" @click="copyOrder">复制订单号</button></view></view>
+  <view v-if="!paid" class="pay-footer"><text class="pay-footnote">付款后自动核实，请勿重复支付</text><button class="pay-return" @click="returnOrder">返回原订单</button></view>
+</view>
+<ContentState v-else :error="notice||'未找到付款订单'" @retry="start"/>
+</view></scroll-view></view>
+</template>
+<script setup lang="ts">
+import PageHead from '../../components/PageHead.uvue';
+import AppIcon from '../../components/AppIcon.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import {request,money,apiBase} from '../../lib/api';
+import {currentUser,needLogin} from '../../lib/session';
+import {nativeOrderPaths} from '../../lib/native-payment';
+type NativeCode={codeUrl:string;qrImageUrl:string;expiresAt:string;merchantName:string};
+type PaymentOrder={id:string;orderNo:string;state:string;channel?:string;amount?:string;payableTotal?:string;paidAmount?:string;paidTotal?:string;expiresAt:string;serverTime?:string;course?:{title:string};plan?:{title:string};booking?:{title:string};cohort?:{title:string};pack?:{title:string};items?:{title?:string}[]};
+const order=ref<PaymentOrder|null>(null),payment=ref<NativeCode|null>(null),loading=ref(true),busy=ref(false),saving=ref(false),notice=ref(''),imageError=ref(false),showDetails=ref(false),clock=ref(Date.now());
+let id='',kind='',owner='',visible=false,generation=0,offset=0,timer:ReturnType<typeof setInterval>|null=null,lastCheck=0;
+const paid=computed(()=>!!order.value&&Number(order.value.paidAmount??order.value.paidTotal??0)>0),closed=computed(()=>order.value?.state==='CLOSED'),expired=computed(()=>!!order.value&&Date.parse(order.value.expiresAt)<=clock.value),countdown=computed(()=>{const seconds=Math.max(0,Math.ceil((Date.parse(payment.value?.expiresAt??order.value?.expiresAt??'')-clock.value)/1000));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');});
+const subject=computed(()=>order.value?.course?.title??order.value?.plan?.title??order.value?.booking?.title??order.value?.cohort?.title??order.value?.pack?.title??order.value?.items?.[0]?.title??'书院订单');
+function copyOrder(){if(order.value)uni.setClipboardData({data:order.value.orderNo});}
+function active(turn:number){return turn===generation&&owner===currentUser.value?.id&&visible;}
+function path(){const base=nativeOrderPaths[kind];if(!base||!/^[0-9a-f-]{36}$/i.test(id))throw Error('付款入口无效，请返回原订单');return base+id;}
+function assign(row:PaymentOrder){order.value=row;if(row.serverTime&&Number.isFinite(Date.parse(row.serverTime)))offset=Date.parse(row.serverTime)-Date.now();clock.value=Date.now()+offset;if(paid.value||closed.value||expired.value)payment.value=null;}
+async function check(manual=false){if(busy.value||!order.value||paid.value||!visible)return;const turn=generation;busy.value=true;lastCheck=Date.now();try{const row=await request<PaymentOrder>(path()+'/refresh',{method:'POST'});if(!active(turn))return;assign(row);notice.value=paid.value?'':closed.value?'订单已关闭':expired.value?'已超过付款期限，请返回订单查看最终状态':manual?'暂未确认到账。如已扣款，请稍后再查，勿重复付款。':'';}catch(e){if(active(turn))notice.value=(e as Error).message+'；请勿重复付款。';}finally{if(active(turn))busy.value=false;}}
+async function generate(){if(busy.value||!visible)return;const turn=generation;busy.value=true;notice.value='';try{
+ const row=await request<PaymentOrder>(path()+'/refresh',{method:'POST'});if(!active(turn))return;assign(row);if(paid.value||closed.value||expired.value)return;
+ if(row.channel!=='WECHAT_NATIVE')throw Error('此订单不属于微信扫码支付，请返回原订单');
+ const result=await request<{provider:string;orderInfo:string}>(path()+'/payment',{method:'POST'});if(!active(turn))return;
+ if(result.provider!=='wxnative')throw Error('付款方式不匹配，请返回原订单');const code=JSON.parse(result.orderInfo) as NativeCode;
+ if(!code.qrImageUrl.startsWith(apiBase+'/payments/wechat/native-qr?ticket=')||!Number.isFinite(Date.parse(code.expiresAt)))throw Error('付款码暂不可用，请返回订单查询');
+ payment.value=code;imageError.value=false;lastCheck=Date.now();
+}catch(e){if(active(turn))notice.value=(e as Error).message+'；订单已保留，请先查询结果。';}finally{if(active(turn)){busy.value=false;loading.value=false;}}}
+async function start(){if(needLogin('/pages/payment/native?kind='+kind+'&id='+id))return;owner=currentUser.value?.id??'';loading.value=true;try{path();await generate();}catch(e){notice.value=(e as Error).message;loading.value=false;}}
+async function saveCode(){if(!payment.value||saving.value||paid.value||closed.value||expired.value)return;saving.value=true;const turn=generation;
+ // #ifdef APP
+ try{const image=await new Promise<string>((resolve,reject)=>uni.downloadFile({url:payment.value!.qrImageUrl,timeout:15000,success:r=>r.statusCode===200?resolve(r.tempFilePath):reject(Error('付款码已失效，请刷新订单')),fail:()=>reject(Error('图片下载失败，请检查网络后重试'))}));if(!active(turn))return;await new Promise<void>((resolve,reject)=>uni.saveImageToPhotosAlbum({filePath:image,success:()=>resolve(),fail:()=>reject(Error('未能保存图片，请允许相册权限，或截屏后用微信识别'))}));if(active(turn))notice.value='已保存，请打开微信扫一扫，从相册选择付款码。';}catch(e){if(active(turn))notice.value=(e as Error).message;}
+ // #endif
+ // #ifndef APP
+ notice.value='可长按或右键保存付款码，也可使用另一台手机微信扫码。';
+ // #endif
+ if(active(turn))saving.value=false;
+}
+function returnOrder(){const pages:Record<string,string>={COURSE:'course/purchase?orderId=',MEMBERSHIP:'membership/purchase?orderId=',PHYSICAL:'shop/order-detail?id=',DIGITAL:'shop/digital-order?id=',BOOKING:'booking/purchase?orderId=',COHORT:'cohort/purchase?orderId='};const target=pages[kind];if(target)uni.redirectTo({url:'/pages/'+target+encodeURIComponent(id)});else uni.navigateBack();}
+function stop(){visible=false;generation++;busy.value=false;saving.value=false;if(timer)clearInterval(timer);timer=null;}
+watch(()=>currentUser.value?.id,value=>{if(owner&&owner!==value){stop();order.value=null;payment.value=null;loading.value=false;notice.value='账号已变化，请返回本人订单重新付款';}});
+onLoad(options=>{id=options?.id??'';kind=options?.kind??'';});
+onShow(()=>{visible=true;clock.value=Date.now()+offset;if(!timer)timer=setInterval(()=>{clock.value=Date.now()+offset;if(Date.now()-lastCheck>=6000)void check();},1000);if(!order.value)void start();else void check();});
+onHide(stop);onUnload(stop);
+</script>
+<style>
+@import '../../styles/app.css';
+.pay-content{padding:8px 24px 24px;}
+.pay-card{align-items:stretch;}
+.pay-summary{align-items:center;padding:8px 8px 22px;}
+.pay-heading{font-family:AcademySans;font-size:13px;line-height:22px;color:#6A7578;}
+.pay-money{flex-direction:row;align-items:flex-end;justify-content:center;margin-top:6px;}
+.pay-currency{font-family:AcademySans;font-size:24px;line-height:36px;color:#182B31;margin-right:5px;padding-bottom:5px;font-weight:500;}
+.pay-amount{font-family:AcademySans;font-size:48px;line-height:60px;font-weight:600;color:#182B31;letter-spacing:-1px;}
+.pay-subject{font-family:AcademySerif;font-size:14px;line-height:23px;color:#52656A;text-align:center;margin-top:5px;}
+.pay-sheet{padding:18px 18px 0;border-radius:18px;background-color:#FFFFFF;border-style:solid;border-width:1px;border-color:#E8E2D8;}
+.pay-method-row{flex-direction:row;align-items:center;justify-content:space-between;}
+.pay-method-name{flex-direction:row;align-items:center;}
+.pay-method-mark{width:6px;height:6px;border-radius:3px;background-color:#23A65A;margin-right:8px;}
+.pay-method{font-family:AcademySans;font-size:14px;line-height:22px;font-weight:600;color:#182B31;}
+.pay-time{font-family:AcademySans;font-size:11px;line-height:20px;color:#6A7578;}
+.pay-code{align-items:center;padding-top:6px;padding-bottom:18px;}
+.pay-image{width:216px;height:216px;}
+.pay-scan-hint{font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;}
+.pay-merchant-row{flex-direction:row;align-items:center;justify-content:space-between;padding:14px 0;border-top-width:1px;border-top-style:solid;border-top-color:#F0EDE7;}
+.pay-merchant-label{font-family:AcademySans;font-size:11px;line-height:20px;color:#929995;flex-shrink:0;margin-right:12px;}
+.pay-merchant{flex:1;font-family:AcademySans;font-size:11px;line-height:20px;color:#52656A;text-align:right;}
+.pay-actions{padding-top:20px;}
+.pay-primary{font-family:AcademySans;width:100%;height:48px;line-height:48px;border-radius:12px;font-size:15px;font-weight:600;color:#FCF9F2;background-color:#235663;border-style:solid;border-width:0;}
+.pay-guide{font-family:AcademySans;font-size:11px;line-height:20px;color:#7C878A;text-align:center;margin-top:8px;margin-bottom:14px;}
+.pay-secondary{font-family:AcademySans;width:100%;height:46px;line-height:44px;border-radius:12px;font-size:14px;color:#344C54;background-color:transparent;border-width:1px;border-style:solid;border-color:#D8D4CA;}
+.pay-retry{margin-top:10px;}
+.pay-primary[disabled],.pay-secondary[disabled]{opacity:0.55;}
+.pay-detail-section{border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;margin-top:22px;}
+.pay-detail-toggle{flex-direction:row;align-items:center;justify-content:space-between;background-color:transparent;padding:0;min-height:44px;border-style:solid;border-width:0;}
+.pay-detail-row{flex-direction:row;align-items:center;justify-content:space-between;width:100%;min-height:44px;}
+.pay-detail-label{font-family:AcademySans;font-size:12px;line-height:20px;color:#52656A;}
+.pay-detail-action{font-family:AcademySans;font-size:11px;line-height:20px;color:#929995;}
+.pay-details{padding:4px 0 12px;align-items:flex-start;}
+.pay-detail-caption{font-family:AcademySans;font-size:11px;line-height:20px;color:#929995;}
+.pay-order{font-family:AcademySans;font-size:12px;line-height:21px;color:#52656A;word-break:break-all;}
+.pay-inline{font-family:AcademySans;font-size:12px;line-height:42px;color:#235663;background-color:transparent;margin:0;padding:0;border-style:solid;border-width:0;}
+.pay-footer{align-items:center;margin-top:8px;}
+.pay-footnote{font-family:AcademySans;font-size:11px;line-height:20px;color:#929995;text-align:center;}
+.pay-return{font-family:AcademySans;font-size:12px;line-height:44px;color:#52656A;background-color:transparent;margin:0;padding:0;border-style:solid;border-width:0;}
+.pay-notice{font-family:AcademySans;font-size:12px;line-height:21px;color:#9A543D;background-color:#F5EBE2;border-radius:10px;padding:12px;margin-top:14px;}
+.pay-result{padding:32px 0;align-items:center;}
+.pay-success-circle{width:56px;height:56px;border-radius:28px;background-color:#E6EDE9;align-items:center;justify-content:center;margin-bottom:16px;}
+.pay-complete{font-family:AcademySans;font-size:12px;line-height:20px;color:#235663;}
+.pay-result-title{font-family:AcademySans;font-size:19px;line-height:30px;color:#182B31;font-weight:600;}
+.pay-copy{font-family:AcademySans;font-size:12px;line-height:22px;color:#6A7578;text-align:center;margin-top:6px;}
+.pay-image-error{width:216px;height:216px;align-items:center;justify-content:center;}
+/* #ifdef WEB */
+.pay-content{max-width:420px;margin-left:auto;margin-right:auto;}
+.pay-heading,.pay-currency,.pay-amount,.pay-method,.pay-time,.pay-scan-hint,.pay-merchant-label,.pay-merchant,.pay-primary,.pay-guide,.pay-secondary,.pay-detail-label,.pay-detail-action,.pay-detail-caption,.pay-order,.pay-inline,.pay-footnote,.pay-return,.pay-notice,.pay-complete,.pay-result-title,.pay-copy{font-family:AcademySans,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+/* #endif */
+</style>

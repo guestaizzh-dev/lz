@@ -10,7 +10,7 @@ const money=(value:string)=>'¥'+(Number(value)/100).toFixed(2);
 const states:Record<string,string>={PENDING:'待支付',COMPLETED:'已支付',CLOSED:'已关闭'};
 const refunds:Record<string,string>={REQUESTED:'待审核',APPROVED:'待学员确认方案',REFUNDING:'原路退款中',FAILED:'退款需处理',SUCCEEDED:'已退款',REJECTED:'申请未通过',CANCELLED:'已取消',REVERSED:'Apple已撤回退款'};
 const periods:Record<string,string>={ACTIVE:'当前有效',QUEUED:'待生效',EXPIRED:'已到期',REVOKED:'已撤销',REFUND_PENDING:'退款办理中 · 暂停'};
-const channel=(value:string)=>value==='WECHAT_APP'?'微信支付':value==='ALIPAY_APP'?'支付宝':value==='APPLE_IAP'?'Apple内购':'待核查渠道';
+const channel=(value:string)=>value==='WECHAT_NATIVE'?'微信扫码支付':value==='WECHAT_APP'?'微信支付':value==='ALIPAY_APP'?'支付宝':value==='APPLE_IAP'?'Apple内购':'待核查渠道';
 type Refund={id:string;state:string;version:number;requestedAmount:string;approvedAmount:string|null;acceptedAt:string|null;assessmentSnapshot:{suggestedAmount:string;deductionAmount?:string;assessedAt:string;usage:{name:string;quantity:number;state:string}[]}|null;reasonCode:string;description:string;reviewNote:string|null;createdAt:string};
 type Order={id:string;orderNo:string;state:string;nickname?:string;channel:string;amount:string;paidAmount:string;refundedAmount:string;createdAt:string;plan:{title:string;days:number;description:string;refundPolicy:string;planVersionId:string};membership:{state:string;startsAt:string;endsAt:string}|null;refunds:Refund[];payments?:{id:string;externalTransactionId:string;channel:string;amount:string;disposition:string}[];recoveryJobs?:{kind:string;state:string;attempts:number;lastErrorCode:string|null}[]};
 export default function MembershipOrders(){

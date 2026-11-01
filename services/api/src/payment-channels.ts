@@ -3,7 +3,9 @@ import { WechatPayService } from './wechat-pay.js';
 import { AlipayService } from './alipay.js';
 import type { WechatRefund, WechatTransaction } from './wechat-pay.js';
 
-export type AppPaymentChannel = 'WECHAT_APP'|'ALIPAY_APP'|'SIMULATED';
+export type AppPaymentChannel = 'WECHAT_APP'|'WECHAT_NATIVE'|'ALIPAY_APP'|'SIMULATED';
+export const paymentProvider=(channel:string)=>channel==='WECHAT_NATIVE'?'wxnative':channel==='ALIPAY_APP'?'alipay':'wxpay';
+export const paymentTradeType=(channel:string)=>channel==='WECHAT_NATIVE'?'NATIVE':'APP';
 export type RefundContext = {transactionId:string;orderNo:string;total:number};
 export interface AppPaymentAdapter {
   identity():{appid:string;mchid:string};
@@ -34,12 +36,21 @@ export class PaymentChannels {
   private readonly simulated = new SimulatedAdapter();
   constructor(private readonly wechat: WechatPayService, private readonly alipay:AlipayService) {}
   resolve(channel: string): AppPaymentAdapter {
-    if (channel === 'WECHAT_APP') return this.wechat;
+    if (channel === 'WECHAT_APP' || channel === 'WECHAT_NATIVE') {
+      const mode=channel==='WECHAT_NATIVE'?'NATIVE':'APP';
+      return {
+        identity:()=>this.wechat.identity(mode),availability:()=>this.wechat.availability(mode),
+        prepay:(...args)=>mode==='NATIVE'?this.wechat.nativePrepay(...args):this.wechat.prepay(...args),
+        query:no=>this.wechat.query(no,mode),close:no=>this.wechat.close(no,mode),
+        refund:(id,no,amount,total)=>this.wechat.refund(id,no,amount,total,mode),queryRefund:no=>this.wechat.queryRefund(no,mode),
+      };
+    }
     if (channel === 'ALIPAY_APP') return this.alipay;
     if (channel === 'SIMULATED' && simulationOn()) return this.simulated;
     throw new ServiceUnavailableException('此订单的支付渠道尚未接入，请联系书院核查，勿重复付款');
   }
-  choices(){const rows=(['WECHAT_APP','ALIPAY_APP'] as const).map(channel=>({channel,provider:channel==='WECHAT_APP'?'wxpay':'alipay',label:channel==='WECHAT_APP'?'微信支付':'支付宝',...this.resolve(channel).availability()}));return simulationOn()?[...rows,{channel:'SIMULATED',provider:'simulated',label:'模拟支付（演示）',...this.simulated.availability()}]:rows;}
+  choices(){const rows=(['WECHAT_APP','WECHAT_NATIVE','ALIPAY_APP'] as const).map(channel=>({channel,provider:paymentProvider(channel),label:channel==='WECHAT_NATIVE'?'微信扫码支付':channel==='WECHAT_APP'?'微信支付':'支付宝',...this.resolve(channel).availability()}));return simulationOn()?[...rows,{channel:'SIMULATED',provider:'simulated',label:'模拟支付（演示）',...this.simulated.availability()}]:rows;}
+  nativeQr(ticket:string){return this.wechat.nativeQr(ticket);}
   wechatNotification(headers:Record<string,string|string[]|undefined>,raw:Buffer){return this.wechat.notification(headers,raw);}
   alipayNotification(raw:Buffer){return this.alipay.notification(raw);}
 }

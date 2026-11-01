@@ -1,5 +1,6 @@
 {
   "pages": [
+    {"path":"pages/payment/native","style":{"navigationStyle":"custom"}},
     {
       "path": "pages/index/index",
       "style": {

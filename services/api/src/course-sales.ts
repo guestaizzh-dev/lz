@@ -5,12 +5,12 @@ import {Referrals} from './referrals.js';
 import {GroupPurchases} from './group-purchases.js';
 import {MarketingService,marketingHash} from './marketing.js';
 import { demoScope } from './public-content.js';
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, HttpCode, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, HttpCode, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, Param, ParseUUIDPipe, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min } from 'class-validator';
 import { createHash, randomUUID } from 'node:crypto';
 import type { RawBodyRequest } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { stat } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { AdminGuard, OptionalUserGuard, UserGuard, requireRoles, type AuthRequest } from './auth.js';
@@ -18,13 +18,13 @@ import { Database } from './database.js';
 import { LearningService } from './learning.js';
 import { Prisma, type TradeOrder, type Lesson } from './generated/prisma/client.js';
 import type { WechatTransaction, WechatRefund } from './wechat-pay.js';
-import { PaymentChannels, type AppPaymentChannel } from './payment-channels.js';
+import { PaymentChannels, paymentProvider, paymentTradeType, type AppPaymentChannel } from './payment-channels.js';
 import { ModuleRef } from '@nestjs/core';
 
 const hash=(value:unknown)=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const safe=(value:unknown)=>JSON.parse(JSON.stringify(value,(_,v)=>typeof v==='bigint'?v.toString():v));
 const now=()=>new Date();
-class QuoteQuery { @IsOptional() @IsUUID() groupOfferId?:string; @IsOptional() @IsUUID() groupId?:string; @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; @IsOptional() @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED']) channel:AppPaymentChannel='WECHAT_APP'; }
+class QuoteQuery { @IsOptional() @IsUUID() groupOfferId?:string; @IsOptional() @IsUUID() groupId?:string; @IsIn(['ANDROID','IOS','WEB']) platform='WEB'; @IsOptional() @IsIn(['WECHAT_APP','WECHAT_NATIVE','ALIPAY_APP','SIMULATED']) channel:AppPaymentChannel='WECHAT_APP'; }
 class CheckoutDto extends QuoteQuery { @IsUUID() courseId!:string; @IsUUID() requestKey!:string; @IsString() @Matches(/^[a-f0-9]{64}$/) quoteHash!:string; }
 class OrderPage {
   @IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(10000) page=1;
@@ -43,9 +43,9 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   constructor(private readonly db:Database,private readonly learning:LearningService,private readonly channels:PaymentChannels,private readonly moduleRef:ModuleRef,private readonly marketing:MarketingService,private readonly groups:GroupPurchases,private readonly referrals:Referrals,private readonly charity:Charity){}
   async onModuleInit(){
     const enabled=this.channels.choices().filter(c=>c.enabled);
-    for(const [flag,channel] of [['COURSE_WECHAT_ENABLED','WECHAT_APP'],['COURSE_ALIPAY_ENABLED','ALIPAY_APP']])if(process.env[flag!]==='true')this.channels.resolve(channel!).identity();
+    for(const [flag,channel] of [['COURSE_WECHAT_ENABLED','WECHAT_APP'],['WECHAT_NATIVE_ENABLED','WECHAT_NATIVE'],['COURSE_ALIPAY_ENABLED','ALIPAY_APP']])if(process.env[flag!]==='true')this.channels.resolve(channel!).identity();
     if(enabled.length){
-      const codes=['COURSE_REVENUE','COURSE_REFUND_PAYABLE',...enabled.map(c=>c.channel==='ALIPAY_APP'?'ALIPAY_RECEIVABLE':'WECHAT_RECEIVABLE')];
+      const codes=['COURSE_REVENUE','COURSE_REFUND_PAYABLE',...new Set(enabled.map(c=>c.channel==='ALIPAY_APP'?'ALIPAY_RECEIVABLE':'WECHAT_RECEIVABLE'))];
       if(await this.db.financeAccount.count({where:{code:{in:codes}}})!==codes.length)throw new Error('Course payment posting accounts are missing; apply migrations before enabling sales');
       if(process.env.NODE_ENV==='production'&&process.env.COURSE_PAYMENT_WORKER_ENABLED==='false')throw new Error('Production course payments require the recovery worker');
     }
@@ -117,7 +117,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   async checkout(userId:string,dto:CheckoutDto){
     if(dto.platform!=='ANDROID')throw new BadRequestException('当前仅开放Android App课程支付，iOS须使用内购');
     const channel=dto.channel??'WECHAT_APP';this.channels.resolve(channel).identity();
-    const requestHash=hash({courseId:dto.courseId,quoteHash:dto.quoteHash,platform:dto.platform,...(dto.groupId?{groupId:dto.groupId}:{}),...(dto.groupOfferId?{groupOfferId:dto.groupOfferId}:{}),...(channel==='ALIPAY_APP'?{channel}:{})});
+    const requestHash=hash({courseId:dto.courseId,quoteHash:dto.quoteHash,platform:dto.platform,...(dto.groupId?{groupId:dto.groupId}:{}),...(dto.groupOfferId?{groupOfferId:dto.groupOfferId}:{}),...(channel!=='WECHAT_APP'?{channel}:{})});
     const row=await this.db.$transaction(async tx=>{
       if(dto.groupId)await tx.$queryRaw`SELECT id FROM "GroupBuy" WHERE id=${dto.groupId} FOR UPDATE`;
       const users=await tx.$queryRaw<{id:string}[]>`SELECT id FROM "User" WHERE id=${userId} AND status='ACTIVE' FOR UPDATE`;
@@ -163,7 +163,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
     const canPay=await courseMemberPriceReady(this.db,order)&&await this.charity.ready(this.db,order.id)&&await this.groups.canPay(this.db,item.id)&&order.state==='PENDING'&&order.expiresAt>now()&&checked&&saleReady&&this.channels.resolve(channel).availability().enabled;
     const paymentStatus=order.state!=='PENDING'?order.state:order.expiresAt<=now()?'EXPIRED':!checked?'CHECK_REQUIRED':canPay?'READY':'UNAVAILABLE';
     const groupMember=await this.db.groupBuyMember.findFirst({where:{orderItemId:item.id}}),group=groupMember?await this.groups.detail(groupMember.groupId,userId):null;
-    return safe({memberBenefit:(order.pricingSnapshot as {memberBenefit?:unknown}).memberBenefit??null,charity:publicCharityPrice((order.pricingSnapshot as {charity?:CharityPrice}).charity),group,id:order.id,orderNo:order.orderNo,state:order.state,version:order.version,amount:order.payableTotal,paidAmount:order.paidTotal,refundedAmount:order.refundedTotal,currency:order.currency,originalPrice:order.subtotal,discount:order.discountTotal,coupon:(order.pricingSnapshot as {coupon?:unknown}).coupon??null,createdAt:order.createdAt,expiresAt:order.expiresAt,paidAt:order.paidAt,closeReason:order.closeReason,course:item.itemSnapshot,channel,canPay,paymentStatus,deliveryBlocked:!!deliveryRelease?.withdrawnAt,deliveryReason:deliveryRelease?.withdrawalReason??null,canRefund:refundable,refundUnavailableReason:applePayment?'Apple内购由Apple审核退款，请前往Apple报告问题页面申请；书院可协助核查交易。':pending?'已有退款申请，请查看办理进度':started?'已开始付费章节，可通过客服处理退课问题':payment&&!refundable?'已超过默认退课期限，请联系书院客服':'',refunds:refunds.map(r=>({id:r.id,state:r.state,version:r.version,amount:r.requestedAmount,reason:r.description,reviewNote:r.reviewNote,createdAt:r.createdAt,automatic:r.reasonCode==='APPLE_REVOKED'?!payment:!['COURSE_RETURN','COURSE_WITHDRAWAL'].includes(r.reasonCode)})),access:enrollment&&!enrollment.revokedAt&&enrollment.startsAt<=now()&&(!enrollment.expiresAt||enrollment.expiresAt>now())});
+    return safe({serverTime:now(),memberBenefit:(order.pricingSnapshot as {memberBenefit?:unknown}).memberBenefit??null,charity:publicCharityPrice((order.pricingSnapshot as {charity?:CharityPrice}).charity),group,id:order.id,orderNo:order.orderNo,state:order.state,version:order.version,amount:order.payableTotal,paidAmount:order.paidTotal,refundedAmount:order.refundedTotal,currency:order.currency,originalPrice:order.subtotal,discount:order.discountTotal,coupon:(order.pricingSnapshot as {coupon?:unknown}).coupon??null,createdAt:order.createdAt,expiresAt:order.expiresAt,paidAt:order.paidAt,closeReason:order.closeReason,course:item.itemSnapshot,channel,canPay,paymentStatus,deliveryBlocked:!!deliveryRelease?.withdrawnAt,deliveryReason:deliveryRelease?.withdrawalReason??null,canRefund:refundable,refundUnavailableReason:applePayment?'Apple内购由Apple审核退款，请前往Apple报告问题页面申请；书院可协助核查交易。':pending?'已有退款申请，请查看办理进度':started?'已开始付费章节，可通过客服处理退课问题':payment&&!refundable?'已超过默认退课期限，请联系书院客服':'',refunds:refunds.map(r=>({id:r.id,state:r.state,version:r.version,amount:r.requestedAmount,reason:r.description,reviewNote:r.reviewNote,createdAt:r.createdAt,automatic:r.reasonCode==='APPLE_REVOKED'?!payment:!['COURSE_RETURN','COURSE_WITHDRAWAL'].includes(r.reasonCode)})),access:enrollment&&!enrollment.revokedAt&&enrollment.startsAt<=now()&&(!enrollment.expiresAt||enrollment.expiresAt>now())});
   }
   async list(userId:string,q:OrderPage){const where={userId,kind:'COURSE',...(q.state?{state:q.state}:{})};const [rows,total]=await this.db.$transaction([this.db.tradeOrder.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],skip:(q.page-1)*q.size,take:q.size}),this.db.tradeOrder.count({where})]);return{items:await Promise.all(rows.map(r=>this.detail(r.id,userId))),total};}
   async prepay(id:string,userId:string){
@@ -190,7 +190,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
       const snapshot=(order.pricingSnapshot as {course:{title:string}}).course,orderInfo=await this.channels.resolve(channel).prepay(order.orderNo,snapshot.title,Number(order.payableTotal),order.expiresAt);
       await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING',updatedAt:now()}});
       if((await this.owned(id,userId)).state!=='PENDING')throw new ConflictException('订单状态已变化，请刷新');
-      return{provider:channel==='ALIPAY_APP'?'alipay':'wxpay',orderInfo};
+      return{provider:paymentProvider(channel),orderInfo};
     }catch(e){await this.db.paymentAttempt.updateMany({where:{orderId:id,state:'CREATED'},data:{state:'PENDING',failureCode:'PROVIDER_RESULT_UNKNOWN',updatedAt:now()}});throw e;}
   }
   async refresh(id:string,userId:string){
@@ -237,7 +237,7 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   }
   async confirmPayment(data:WechatTransaction,callback?:{id:string;payloadHash:string},channel:AppPaymentChannel='WECHAT_APP'){
     const identity=this.channels.resolve(channel).identity();
-    if(data.appid!==identity.appid||data.mchid!==identity.mchid||data.trade_type!=='APP'||data.trade_state!=='SUCCESS'||typeof data.transaction_id!=='string'||!data.transaction_id||data.transaction_id.length>128||!Number.isSafeInteger(data.amount?.total)||data.amount!.total<=0||data.amount!.currency!=='CNY'||!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('收款的商户、应用、金额或交易状态无效');
+    if(data.appid!==identity.appid||data.mchid!==identity.mchid||data.trade_type!==paymentTradeType(channel)||data.trade_state!=='SUCCESS'||typeof data.transaction_id!=='string'||!data.transaction_id||data.transaction_id.length>128||!Number.isSafeInteger(data.amount?.total)||data.amount!.total<=0||data.amount!.currency!=='CNY'||!data.success_time||!Number.isFinite(Date.parse(data.success_time))||Date.parse(data.success_time)>Date.now()+300000)throw new BadRequestException('收款的商户、应用、金额或交易状态无效');
     const initial=await this.db.tradeOrder.findUnique({where:{orderNo:data.out_trade_no}});if(!initial||initial.kind!=='COURSE')throw new NotFoundException('课程订单不存在');
     return this.db.$transaction(async tx=>{
       await this.lock(tx,initial);const order=await tx.tradeOrder.findUniqueOrThrow({where:{id:initial.id}}),item=await tx.tradeOrderItem.findFirstOrThrow({where:{orderId:order.id}});
@@ -350,7 +350,17 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
     if(order?.kind==='MEMBERSHIP'&&await this.db.tradeOrderItem.findFirst({where:{orderId:order.id,membershipVersionId:{not:null}}}))return this.moduleRef.get<Pick<CourseSalesService,'confirmPayment'|'confirmRefund'>>('MEMBERSHIP_SALES',{strict:false});
     return this;
   }
-  async notify(req:RawBodyRequest<Request>){const envelope=await this.channels.wechatNotification(req.headers,req.rawBody!),domain=await this.paymentDomain(envelope.data.out_trade_no);if(envelope.eventType==='TRANSACTION.SUCCESS')await domain.confirmPayment(envelope.data,{id:envelope.id,payloadHash:hash(req.rawBody!.toString())});else await domain.confirmRefund(envelope.data);}
+  async notify(req:RawBodyRequest<Request>){
+    const envelope=await this.channels.wechatNotification(req.headers,req.rawBody!),domain=await this.paymentDomain(envelope.data.out_trade_no);
+    if(envelope.eventType==='TRANSACTION.SUCCESS'){
+      const channel=envelope.data.trade_type==='NATIVE'?'WECHAT_NATIVE':'WECHAT_APP';
+      await domain.confirmPayment(envelope.data,{id:envelope.id,payloadHash:hash(req.rawBody!.toString())},channel);
+    }else{
+      const payment=await this.db.paymentTransaction.findFirst({where:{externalTransactionId:envelope.data.transaction_id,channel:{in:['WECHAT_APP','WECHAT_NATIVE']}}});
+      if(!payment)throw new BadRequestException('退款未找到原微信收款记录');
+      await domain.confirmRefund(envelope.data,payment.channel as AppPaymentChannel);
+    }
+  }
   async notifyAlipay(req:RawBodyRequest<Request>){
     if(!req.is('application/x-www-form-urlencoded'))throw new BadRequestException('支付宝通知格式无效');
     const envelope=this.channels.alipayNotification(req.rawBody!);
@@ -414,7 +424,8 @@ export class CourseSalesService implements OnModuleInit,OnModuleDestroy {
   @Post('course-orders/:id/refund') @UseGuards(UserGuard) refund(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest,@Body() dto:RefundDto){return this.sales.requestRefund(id,req.actor.id,dto);}
 }
 @Controller('payments/wechat') export class WechatCallbackController {
-  constructor(private readonly sales:CourseSalesService){}
+  constructor(private readonly sales:CourseSalesService,private readonly channels:PaymentChannels){}
+  @Get('native-qr') async qr(@Query('ticket') ticket:string,@Res() res:Response){const png=await this.channels.nativeQr(ticket);res.set({'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});res.send(png);}
   @Post('notify') @HttpCode(204) async notify(@Req() req:RawBodyRequest<Request>){await this.sales.notify(req);}
 }
 @Controller('payments/alipay') export class AlipayCallbackController {

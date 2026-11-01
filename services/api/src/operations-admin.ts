@@ -1,3 +1,4 @@
+import {PaymentChannels} from './payment-channels.js';
 import { BadRequestException, Body, ConflictException, Controller, Get, Injectable, NotFoundException, Param, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsISO8601, IsOptional, IsString, Length, Max, Min } from 'class-validator';
@@ -32,7 +33,7 @@ class FinanceQuery {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50) size = 20;
   @IsOptional() @IsString() @Length(0, 80) q?: string;
   @IsOptional() @IsIn(['COURSE', 'MEMBERSHIP', 'PHYSICAL', 'DIGITAL', 'CONSULTATION', 'EVENT', 'COHORT', 'GIFT']) kind?: string;
-  @IsOptional() @IsIn(['WECHAT_APP', 'ALIPAY_APP', 'APPLE_IAP']) channel?: string;
+  @IsOptional() @IsIn(['WECHAT_APP','WECHAT_NATIVE', 'ALIPAY_APP', 'APPLE_IAP']) channel?: string;
   @IsOptional() @IsISO8601() from?: string;
   @IsOptional() @IsISO8601() to?: string;
 }
@@ -195,7 +196,8 @@ export class OperationsAdmin {
 
 @Controller('admin/operations') @UseGuards(AdminGuard)
 export class OperationsAdminController {
-  constructor(private readonly operations: OperationsAdmin) {}
+  constructor(private readonly operations: OperationsAdmin,private readonly channels:PaymentChannels) {}
+  @Get('channels') channelsStatus(){return{merchantName:process.env.WECHAT_PAY_MERCHANT_NAME||'',channels:this.channels.choices(),callbackPath:'/api/v1/payments/wechat/notify'};}
   @Get('summary') summary() { return this.operations.jobSummary(); }
   @Get('jobs') jobs(@Query() query: OperationsQuery) { return this.operations.jobs(query); }
   @Get('jobs/:id') job(@Param('id', ParseUUIDPipe) id: string) { return this.operations.job(id); }
@@ -204,7 +206,8 @@ export class OperationsAdminController {
 
 @Controller('admin/finance') @UseGuards(AdminGuard)
 export class FinanceAdminController {
-  constructor(private readonly operations: OperationsAdmin) {}
+  constructor(private readonly operations: OperationsAdmin,private readonly channels:PaymentChannels) {}
+  @Get('channels') channelsStatus(){return{merchantName:process.env.WECHAT_PAY_MERCHANT_NAME||'',channels:this.channels.choices(),callbackPath:'/api/v1/payments/wechat/notify'};}
   @Get('summary') summary(@Query() query: FinanceQuery) { return this.operations.financeSummary(query); }
   @Get('payments') payments(@Query() query: FinanceQuery) { return this.operations.financeList('payments', query); }
   @Get('refunds') refunds(@Query() query: FinanceQuery) { return this.operations.financeList('refunds', query); }

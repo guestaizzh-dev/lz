@@ -20,7 +20,7 @@ class CouponDto {
   @IsInt() @Min(1) @Max(1000000) totalLimit!:number;
   @IsInt() @Min(1) @Max(20) perUserLimit!:number;
   @IsOptional() @IsInt() @Min(1) @Max(366) validDays?:number;
-  @IsArray() @ArrayMaxSize(3) @ArrayUnique() @IsIn(['WECHAT_APP','ALIPAY_APP','SIMULATED'],{each:true}) allowedChannels!:string[];
+  @IsArray() @ArrayMaxSize(4) @ArrayUnique() @IsIn(['WECHAT_APP','WECHAT_NATIVE','ALIPAY_APP','SIMULATED'],{each:true}) allowedChannels!:string[];
   @IsArray() @ArrayMaxSize(100) @ArrayUnique() @IsUUID(undefined,{each:true}) courseIds!:string[];
   @IsBoolean() active!:boolean;
   @IsString() @Length(2,500) @Matches(/\S/) reason!:string;

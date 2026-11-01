@@ -6,7 +6,7 @@ import { Alert, App, Button, Descriptions, Drawer, Form, Input, Modal, Space, Ta
 import { useRef, useState } from 'react';
 import { api } from '@/api';
 import AppleTransactions from './AppleTransactions';
-const channelLabel=(channel:string)=>channel==='APPLE_IAP'?'Apple内购':channel==='ALIPAY_APP'?'支付宝':channel==='WECHAT_APP'?'微信支付':channel;
+const channelLabel=(channel:string)=>channel==='WECHAT_NATIVE'?'微信扫码支付':channel==='APPLE_IAP'?'Apple内购':channel==='ALIPAY_APP'?'支付宝':channel==='WECHAT_APP'?'微信支付':channel;
 
 type Refund = {id:string;version:number;state:string;amount:string;reason:string;reviewNote:string|null;createdAt:string;automatic:boolean};
 type Order = {id:string;orderNo:string;state:string;amount:string;paidAmount:string;refundedAmount:string;createdAt:string;paidAt:string|null;nickname:string;access:boolean;channel:string;paymentStatus:string;course:{title:string;teacherName:string;releaseId:string;accessDays:number|null;refundPolicy:string};refunds:Refund[];payments?:{id:string;channel:string;externalTransactionId:string;amount:string;disposition:string;paidAt:string}[];recoveryJobs?:{kind:string;state:string;attempts:number;lastErrorCode:string|null}[]};

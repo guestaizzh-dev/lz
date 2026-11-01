@@ -26,7 +26,7 @@ import { AppleStoreService } from './apple-store.js';
 import type { AppleTransactionState } from './generated/prisma/client.js';
 import { Database } from './database.js';
 import { AuthService, AdminGuard, UserGuard, requireRoles, type AuthRequest } from './auth.js';
-import { PaymentChannels, type AppPaymentChannel } from './payment-channels.js';
+import { PaymentChannels, paymentProvider, paymentTradeType, type AppPaymentChannel } from './payment-channels.js';
 import type { LiveService } from './live.js';
 import type { WechatTransaction, WechatRefund } from './wechat-pay.js';
 import { Prisma, type TradeOrder, type GiftLedger, type PaymentTransaction } from './generated/prisma/client.js';
@@ -61,7 +61,7 @@ class TopupDto extends PackQuery {
   @IsString()
   @Matches(/^[a-f0-9]{64}$/)
   quoteHash!: string;
-  @IsIn(['WECHAT_APP', 'ALIPAY_APP'])
+  @IsIn(['WECHAT_APP','WECHAT_NATIVE', 'ALIPAY_APP'])
   channel!: AppPaymentChannel;
   @IsBoolean()
   accepted!: boolean;
@@ -235,7 +235,7 @@ export class Gifts implements OnModuleInit, OnModuleDestroy {
   private receivable(channel: string) {
     if (channel === 'APPLE_IAP') return 'APPLE_RECEIVABLE';
     if (channel === 'ALIPAY_APP') return 'ALIPAY_RECEIVABLE';
-    if (channel === 'WECHAT_APP') return 'WECHAT_RECEIVABLE';
+    if (channel === 'WECHAT_APP' || channel === 'WECHAT_NATIVE') return 'WECHAT_RECEIVABLE';
     throw new BadRequestException('原支付渠道无效');
   }
   async balance(userId: string, q: GiftPage) {
@@ -478,7 +478,7 @@ export class Gifts implements OnModuleInit, OnModuleDestroy {
         Number(initial.payableTotal),
         initial.expiresAt,
       );
-      return { provider: channel === 'ALIPAY_APP' ? 'alipay' : 'wxpay', channel, orderInfo };
+      return { provider: paymentProvider(channel), channel, orderInfo };
     } catch {
       await this.db.paymentAttempt.update({
         where: { id: attempt.id },
@@ -499,7 +499,7 @@ export class Gifts implements OnModuleInit, OnModuleDestroy {
     if (
       data.appid !== identity.appid ||
       data.mchid !== identity.mchid ||
-      data.trade_type !== 'APP' ||
+      data.trade_type !== paymentTradeType(channel) ||
       data.trade_state !== 'SUCCESS' ||
       !data.transaction_id ||
       data.transaction_id.length > 128 ||

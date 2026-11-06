@@ -1,6 +1,123 @@
-<template><view class="page"><PageHead title="在线咨询"/><scroll-view class="page-scroll" direction="vertical"><view class="content"><text class="list-toolbar-copy">本次预约双方可进入 · 北京时间</text><ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/><ContentState v-else-if="!items.length" title="暂无在线咨询" description="与老师预约线上交流后，可在这里进入本次咨询。" actionLabel="查看名师" @action="openPage('teacher/index')"/><view v-for="item in items" :key="item.id" class="consult-card"><text class="tag">{{item.role==='TEACHER'?'我负责的咨询':'我的咨询预约'}}</text><text class="section-heading">{{item.title}}</text><text class="meta">{{formatChinaTime(item.startsAt)}} — {{formatChinaTime(item.endsAt)}}</text><text class="body-copy">{{bookingStates[item.state]??'状态待确认'}}</text><button v-if="item.ready" class="primary-button" @click="openPage('booking/consult?id='+item.id)">进入本次咨询</button><text v-else class="footer-note">{{item.state==='CONFIRMED'?'在开始前5分钟至结束后5分钟内进入。安排变更时请先确认新安排。':'本次预约暂不可进入咨询。'}}</text><button v-if="item.role==='STUDENT'" class="retry" @click="openPage('booking/mine?bookingId='+item.id)">查看预约与安排 ›</button></view><button v-if="items.length" class="text-button" :disabled="loading" @click="load">刷新安排</button></view></scroll-view></view></template>
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="在线咨询" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      ><view class="content"
+        ><text class="ui-text list-toolbar-copy">本次预约双方可进入 · 北京时间</text
+        ><ContentState
+          v-if="loading || error"
+          :loading="loading"
+          :error="error"
+          :error-title="error.includes('网络') ? '暂时无法加载' : '无法查看在线咨询'"
+          :retryable="error.includes('网络')"
+          :action-label="error.includes('网络') ? '' : '返回我的预约'"
+          @retry="load"
+          @action="openPage('booking/mine')"
+        /><ContentState
+          v-else-if="!items.length"
+          title="暂无在线咨询"
+          description="与老师预约线上交流后，可在这里进入本次咨询。"
+          actionLabel="查看名师"
+          @action="openPage('teacher/index')"
+        /><view v-for="item in items" :key="item.id" class="consult-card"
+          ><text class="ui-text tag">{{
+            item.role === 'TEACHER' ? '我负责的咨询' : '我的咨询预约'
+          }}</text
+          ><text class="ui-text section-heading">{{ item.title }}</text
+          ><text class="ui-text consult-time"
+            >{{ formatChinaTime(item.startsAt) }} —
+            {{ formatChinaTime(item.endsAt).slice(11) }}</text
+          ><text class="ui-text body-copy">{{ bookingStates[item.state] ?? '状态待确认' }}</text
+          ><button
+            v-if="item.ready"
+            class="ui-button primary-button"
+            @click="openPage('booking/consult?id=' + item.id)"
+            >进入本次咨询</button
+          ><text v-else class="ui-text footer-note">{{
+            item.state === 'CONFIRMED'
+              ? '在开始前5分钟至结束后5分钟内进入。安排变更时请先确认新安排。'
+              : '本次预约暂不可进入咨询。'
+          }}</text
+          ><button
+            v-if="item.role === 'STUDENT'"
+            class="ui-button retry"
+            @click="openPage('booking/mine?bookingId=' + item.id)"
+            >查看预约与安排 ›</button
+          ></view
+        ><button v-if="items.length" class="ui-button text-button" :disabled="loading" @click="load"
+          >刷新安排</button
+        ></view
+      ></scroll-view
+    ></view
+  >
+</template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import {needLogin,currentUser} from '../../lib/session';import {formatChinaTime} from '../../lib/date-time';import {openPage} from '../../lib/presentation';import {bookingStates} from '../../lib/bookings';
-type Item={id:string;title:string;state:string;startsAt:string;endsAt:string;role:string;ready:boolean};const items=ref<Item[]>([]),loading=ref(false),error=ref('');let owner='';
-async function load(){if(needLogin('/pages/booking/consultations'))return;loading.value=true;error.value='';try{items.value=(await request<{items:Item[]}>('/rtc/consultations/mine')).items;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}onShow(()=>{if(owner!==currentUser.value?.id){owner=currentUser.value?.id??'';items.value=[];}void load();});
-</script><style>@import '../../styles/app.css';.consult-card{padding:20px 0;border-bottom-width:1px;border-bottom-color:#E3DCCF;}</style>
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { pageRefresh } from '../../lib/page-refresh';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request } from '../../lib/api';
+import { needLogin, currentUser } from '../../lib/session';
+import { formatChinaTime } from '../../lib/date-time';
+import { openPage } from '../../lib/presentation';
+import { bookingStates } from '../../lib/bookings';
+type Item = {
+  id: string;
+  title: string;
+  state: string;
+  startsAt: string;
+  endsAt: string;
+  role: string;
+  ready: boolean;
+};
+const items = ref<Item[]>([]),
+  loading = ref(false),
+  error = ref('');
+let owner = '';
+async function load() {
+  if (needLogin('/pages/booking/consultations')) return;
+  loading.value = true;
+  error.value = '';
+  try {
+    items.value = (await request<{ items: Item[] }>('/rtc/consultations/mine')).items;
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+onShow(() => {
+  if (owner !== currentUser.value?.id) {
+    owner = currentUser.value?.id ?? '';
+    items.value = [];
+  }
+  void refreshPage();
+});
+
+const refreshPage = pageRefresh(
+  async () => {
+    await load();
+  },
+  () => !error.value && !loading.value,
+  60000,
+);
+</script>
+<style>
+@import '../../styles/app.css';
+.content {
+  padding-top: 16px;
+}
+.consult-card {
+  padding: 16px 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.consult-time {
+  font-size: 15px;
+  line-height: 26px;
+  color: #344c54;
+  margin-top: 4px;
+}
+</style>

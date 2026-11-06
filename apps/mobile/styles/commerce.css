@@ -1,0 +1,130 @@
+.commerce-panel {
+  padding: 16px;
+  margin-bottom: 14px;
+  background-color: #fcf9f2;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5ded1;
+  border-radius: 14px;
+}
+.commerce-heading {
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #182b31;
+}
+.commerce-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 8px 0;
+}
+.commerce-label {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #6a7578;
+  margin-right: 14px;
+}
+.commerce-value {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #344c54;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+.commerce-amount {
+  font-family: sans-serif;
+  font-size: 21px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #b4533f;
+}
+.commerce-copy {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 23px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.commerce-muted {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #6a7578;
+  margin-top: 6px;
+}
+.commerce-notice {
+  padding: 14px 16px;
+  background-color: #e6ede9;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+.commerce-notice-title {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+  color: #235663;
+  font-weight: 600;
+}
+.commerce-alert {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #a84935;
+  background-color: #f5e8e3;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.commerce-action-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.commerce-action-cell {
+  flex: 1;
+  min-width: 0;
+  margin-right: 8px;
+}
+.commerce-consent {
+  flex-direction: row;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 0;
+  margin-bottom: 12px;
+}
+.commerce-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #c9bfad;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.commerce-check-on {
+  background-color: #235663;
+  border-color: #235663;
+}
+.commerce-check-mark {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  color: #fcf9f2;
+}
+.commerce-consent-copy {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-left: 10px;
+  flex: 1;
+  min-width: 0;
+}

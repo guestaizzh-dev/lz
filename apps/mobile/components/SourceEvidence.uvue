@@ -1,20 +1,71 @@
 <template>
-<view v-if="items.length" class="evidence-panel">
-<text class="section-heading">{{title??'来源与授权'}}</text>
-<view v-for="item in items" :key="item.id" class="evidence-item">
-<text class="item-title">{{item.title}}</text>
-<text v-if="item.isDemo" class="evidence-demo">演示来源 · 不作为真实资质证明</text>
-<text class="meta">{{[item.author,item.edition].filter(Boolean).join(' · ')}}</text>
-<text class="evidence-body" :user-select="true">{{item.rightsHolder?'权利人：'+item.rightsHolder+'\n':''}}{{item.licenseScope??''}}</text>
-<text v-if="item.validUntil" class="meta">有效至 {{formatChinaDate(item.validUntil)}}</text>
-<button v-if="item.sourceUrl" class="evidence-copy" @click="copy(item.sourceUrl)">复制公开来源链接</button>
-</view>
-</view>
+  <view v-if="items.length" class="evidence-panel">
+    <text class="ui-text section-heading">{{ title ?? '来源与授权' }}</text>
+    <view v-for="item in items" :key="item.id" class="evidence-item">
+      <text class="ui-text item-title">{{ item.title }}</text>
+
+      <text class="ui-text meta">{{
+        [item.author, item.edition].filter(Boolean).join(' · ')
+      }}</text>
+      <text class="ui-text evidence-body" :user-select="true"
+        >{{ item.rightsHolder ? '权利人：' + item.rightsHolder + '\n' : ''
+        }}{{ item.licenseScope ?? '' }}</text
+      >
+      <text v-if="item.validUntil" class="ui-text meta"
+        >有效至 {{ formatChinaDate(item.validUntil) }}</text
+      >
+      <button v-if="item.sourceUrl" class="ui-button evidence-copy" @click="copy(item.sourceUrl)"
+        >复制公开来源链接</button
+      >
+    </view>
+  </view>
 </template>
 <script setup lang="ts">
-import {formatChinaDate} from '../lib/date-time';
-import type {PublicEvidence} from '../lib/api';
-defineProps<{items:PublicEvidence[];title?:string}>();
-function copy(url:string){uni.setClipboardData({data:url});}
+import { formatChinaDate } from '../lib/date-time';
+import type { PublicEvidence } from '../lib/api';
+defineProps<{ items: PublicEvidence[]; title?: string }>();
+function copy(url: string) {
+  uni.setClipboardData({ data: url });
+}
 </script>
-<style>@import '../styles/app.css';.evidence-panel{margin-top:30px;padding-top:24px;border-top-style:solid;border-top-width:1px;border-top-color:#D3C9B8;}.evidence-item{padding-top:16px;}.evidence-demo{font-size:11px;line-height:18px;color:#8A6635;margin-top:6px;}.evidence-body{font-family:AcademySans;font-size:14px;line-height:24px;color:#4A5B5F;margin-top:6px;}.evidence-copy{align-self:flex-start;margin-top:14px;min-height:44px;padding:11px 18px;border-style:solid;border-width:1px;border-color:#C9BFAD;border-radius:22px;background-color:transparent;color:#235663;font-family:AcademySans;font-size:13px;line-height:20px;}</style>
+<style>
+@import '../styles/app.css';
+.evidence-panel {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #d3c9b8;
+}
+.evidence-item {
+  padding-top: 16px;
+}
+.evidence-demo {
+  font-size: 11px;
+  line-height: 18px;
+  color: #8a6635;
+  margin-top: 6px;
+}
+.evidence-body {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 24px;
+  color: #4a5b5f;
+  margin-top: 6px;
+}
+.evidence-copy {
+  align-self: flex-start;
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #c9bfad;
+  border-radius: 22px;
+  background-color: transparent;
+  color: #235663;
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+</style>

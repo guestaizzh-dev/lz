@@ -1,18 +1,146 @@
 <template>
-<view v-if="items.length" class="recommendations">
-<view class="section-head"><text class="section-heading">继续探索</text><button class="recommendation-refresh" :disabled="loading" @click="refresh">{{loading?'加载中…':'刷新推荐'}}</button></view>
-<text class="meta">{{personalized?'从你的收藏、点赞与研习足迹中发现':'从书院精选内容开始'}}</text>
-<view v-for="item in items.slice(0,4)" :key="item.id" class="recommendation" @click="openContent(item)">
-<text class="tag">{{typeNames[item.type]}} · {{item.reason}}</text><text class="item-title recommendation-title">{{item.title}}</text><text class="article-summary recommendation-summary">{{item.summary}}</text>
-</view>
-</view>
+  <view v-if="cards.length" class="recommendations">
+    <view class="section-head"
+      ><text class="ui-text section-heading">继续探索</text
+      ><button class="ui-button recommendation-refresh" :disabled="loading" @click="refresh">{{
+        loading ? '加载中…' : '刷新推荐'
+      }}</button></view
+    >
+    <view class="product-grid">
+      <view
+        v-for="item in cards"
+        :key="item.type + ':' + item.id"
+        class="recommendation"
+        hover-class="row-pressed"
+        @click="openContent(item)"
+      >
+        <ArtImage
+          v-if="item.cover"
+          :src="item.cover"
+          :kind="artwork(item.cover)"
+          :width="cardWidth"
+          :height="imageHeight"
+          :radius="0"
+          fit="aspectFit"
+          :natural="true"
+        />
+        <view v-else class="recommendation-placeholder" :style="{ height: imageHeight + 'px' }">
+          <AppIcon :name="coverIcons[item.type] ?? 'book-open'" :size="28" />
+        </view>
+        <view class="recommendation-copy">
+          <text class="ui-text recommendation-type">{{ typeNames[item.type] }}</text>
+          <text class="ui-text recommendation-title">{{ item.title }}</text>
+        </view>
+      </view>
+    </view>
+  </view>
 </template>
 <script setup lang="ts">
-import {request} from '../lib/api';
-import {currentUser} from '../lib/session';
-import {openContent,typeNames} from '../lib/discovery';import type {DiscoveryItem} from '../lib/discovery';
-const items=ref<DiscoveryItem[]>([]),personalized=ref(false),loading=ref(false);let generation=0;
-async function refresh(){if(loading.value)return;const turn=++generation;loading.value=true;try{const r=await request<{items:DiscoveryItem[];personalized:boolean}>('/discovery/recommendations');if(turn===generation){items.value=r.items;personalized.value=r.personalized;}}catch{if(turn===generation)items.value=[];}finally{if(turn===generation)loading.value=false;}}
-onMounted(refresh);watch(()=>currentUser.value?.id,()=>{generation++;loading.value=false;items.value=[];refresh();});defineExpose({refresh});
+import ArtImage from './ArtImage.uvue';
+import AppIcon from './AppIcon.uvue';
+import { request } from '../lib/api';
+import { currentUser } from '../lib/session';
+import { openContent, typeNames } from '../lib/discovery';
+import type { DiscoveryItem } from '../lib/discovery';
+import { artwork } from '../lib/presentation';
+const props = defineProps<{ width: number }>();
+const cardWidth = computed(() => props.width * 0.485 - 2);
+const imageHeight = computed(() => Math.round(cardWidth.value * 0.72));
+const coverIcons: Record<string, string> = {
+  ARTICLE: 'note-pencil',
+  COURSE: 'book-open',
+  EVENT: 'calendar-blank',
+  PRODUCT: 'bag',
+  TEACHER: 'user',
+  THREAD: 'chat-circle',
+};
+const items = ref<DiscoveryItem[]>([]),
+  loading = ref(false);
+const cards = computed(() => {
+  const displayed = new Set<string>();
+  return items.value
+    .filter((item) => {
+      if (item.type === 'LIVE') return false;
+
+      const key = item.type + ':' + item.title.trim();
+      if (displayed.has(key)) return false;
+      displayed.add(key);
+      return true;
+    })
+    .slice(0, 4);
+});
+let generation = 0;
+async function refresh() {
+  if (loading.value) return;
+  const turn = ++generation;
+  loading.value = true;
+  try {
+    const r = await request<{ items: DiscoveryItem[] }>('/discovery/recommendations');
+    if (turn === generation) items.value = r.items;
+  } catch {
+    if (turn === generation && cards.value.length)
+      uni.showToast({ title: '推荐暂未更新，请重试', icon: 'none' });
+  } finally {
+    if (turn === generation) loading.value = false;
+  }
+}
+onMounted(refresh);
+watch(
+  () => currentUser.value?.id,
+  () => {
+    generation++;
+    loading.value = false;
+    items.value = [];
+    refresh();
+  },
+);
 </script>
-<style>@import '../styles/app.css';.recommendations{margin-top:24px;}.recommendation{padding:16px 0;border-bottom-style:solid;border-bottom-width:1px;border-bottom-color:#E3DCCF;}.recommendation-refresh{font-size:12px;line-height:20px;color:#235663;background-color:transparent;border-width:0;padding:10px 0;min-height:40px;margin:0;}.recommendation-title{max-height:56px;overflow:hidden;text-overflow:ellipsis;}.recommendation-summary{max-height:44px;overflow:hidden;text-overflow:ellipsis;}</style>
+<style>
+@import '../styles/app.css';
+.recommendations {
+  margin-top: 24px;
+}
+.recommendation {
+  width: 48.5%;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #e7dfd2;
+  overflow: hidden;
+  background-color: #fffdf8;
+}
+.recommendation-placeholder {
+  align-items: center;
+  justify-content: center;
+  background-color: #e6ede9;
+}
+.recommendation-copy {
+  padding: 8px 10px 10px;
+}
+.recommendation-type {
+  font-size: 11px;
+  line-height: 18px;
+  color: #657a73;
+}
+.recommendation-refresh {
+  font-size: 12px;
+  line-height: 20px;
+  color: #235663;
+  background-color: transparent;
+  border-width: 0;
+  padding: 10px 0;
+  min-height: 44px;
+  margin: 0;
+}
+.recommendation-title {
+  color: #182b31;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  margin-top: 2px;
+  max-height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

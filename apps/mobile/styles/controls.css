@@ -1,0 +1,53 @@
+/* Native and Web controls start from the same values. Page classes override these. */
+.ui-text {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #344c54;
+}
+.ui-button {
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  margin: 0;
+  padding: 10px 16px;
+  min-height: 44px;
+  min-width: 0;
+  border-width: 0;
+  border-style: solid;
+  border-radius: 10px;
+  background-color: transparent;
+  color: #235663;
+}
+.ui-input {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+  color: #182b31;
+  background-color: transparent;
+  min-width: 0;
+}
+/* #ifdef WEB */
+.ui-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+.ui-button::after {
+  border: 0;
+}
+.ui-button:focus-visible {
+  outline: 2px solid #235663;
+  outline-offset: 3px;
+}
+.ui-text,
+.ui-button,
+.ui-input {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+/* #endif */

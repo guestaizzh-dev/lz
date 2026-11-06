@@ -1,25 +1,637 @@
 <template>
-<view class="page"><PageHead title="确认订单"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
-<ContentState v-if="loading" :loading="true"/>
-<view v-else><view class="checkout-address" @click="chooseAddress"><text class="item-title">{{address?address!.recipient+'　'+address!.phone:'选择收货地址 ›'}}</text><text class="meta">{{address?addressText(address!):'先添加用于本次配送的收货地址'}}</text><text class="footer-note">更换地址 ›</text></view>
-<text v-if="error" class="form-feedback">{{error}}</text><button v-if="error" class="text-button" @click="openPage('shop/orders')">查看我的商品订单</button><button v-if="error&&shippingMode==='PRIORITY'" class="secondary-button" @click="chooseShipping('STANDARD')">改用普通配送重新核算</button><button v-if="error" class="secondary-button" @click="load">重新核算订单</button>
-<template v-if="quote"><view v-for="line in quote!.items" :key="line.skuId" class="checkout-line row"><ArtImage :src="line.cover" :kind="artwork(line.cover)" :width="72" :height="78"/><view class="grow checkout-copy"><text class="item-title">{{line.title}}</text><text class="meta">{{line.skuTitle}}　× {{line.quantity}}</text><text class="price">¥{{money(line.subtotal)}}</text></view></view>
-<view v-if="quote!.priorityAvailable" class="checkout-section"><text class="section-heading">配送方式</text><button class="secondary-button" :class="busy?'is-disabled':''" @click="chooseShipping('STANDARD')">{{shippingMode==='STANDARD'?'✓ ':''}}普通配送</button><button class="secondary-button" :class="busy?'is-disabled':''" @click="chooseShipping('PRIORITY')">{{shippingMode==='PRIORITY'?'✓ ':''}}优先配送 · 另加 ¥{{money(quote!.priorityOptionFee??0)}}</button><text class="footer-note">{{quote!.priorityDescription}}</text></view><view class="menu-row"><text class="menu-label">商品金额</text><text class="menu-value">¥{{money(quote!.subtotal)}}</text></view><view class="menu-row"><text class="menu-label">配送费</text><text class="menu-value">{{quote!.shipping===0?'免配送费':'¥'+money(quote!.shipping)}}</text></view>
-<view v-if="quote!.discount>0" class="menu-row"><text class="menu-label">商品优惠（已择优）</text><text class="menu-value">−¥{{money(quote!.discount)}}</text></view>
-<text v-if="quote!.shippingDiscount>0" class="footer-note">会员已减免基础配送费 ¥{{money(quote!.shippingDiscount)}}，特殊地区附加配送费另计。</text><text v-if="quote!.shippingSurcharge>0" class="footer-note">配送费含本地区附加费用 ¥{{money(quote!.shippingSurcharge)}}。</text>
-<view v-if="quote!.paymentEnabled" class="checkout-section"><text class="section-heading">支付方式</text><view v-for="choice in quote!.channels.filter(c=>c.enabled)" :key="choice.channel" class="menu-row" @click="channel=choice.channel"><text class="menu-label">{{choice.label}}</text><text class="menu-value">{{channel===choice.channel?'已选择':'选择'}}</text></view></view>
-<ConsumptionReward :eligible="Number(quote?.total??0)>0"/><view class="checkout-section"><text class="section-heading">配送与售后</text><text class="body-copy" :user-select="true">{{quote!.refundPolicy}}</text><view class="consent-row row" @click="agreed=!agreed"><view :class="['consent-box',agreed?'consent-box-on':'']"><text v-if="agreed" class="consent-check">✓</text></view><text class="meta grow">我已确认商品规格、数量、收货信息和售后规则</text></view></view><text v-if="!quote!.paymentEnabled" class="footer-note">{{quote!.unavailableReason}}</text></template>
-</view></view></scroll-view><BottomBar v-if="quote"><text class="checkout-total">合计 ¥{{money(quote!.total)}}</text><button class="bar-primary" :class="busy||!agreed||!quote!.paymentEnabled?'is-disabled':''" @click="submit">{{busy?'正在确认…':quote!.paymentEnabled?'确认下单':'收款尚未开放'}}</button></BottomBar></view>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="确认订单" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <ContentState v-if="loading" :loading="true" />
+        <view v-else class="checkout-body">
+          <view class="card" @click="chooseAddress"
+            ><view class="row between"
+              ><text class="ui-text card-eyebrow">收货地址</text
+              ><text class="ui-text card-action">{{ address ? '更换 ›' : '添加 ›' }}</text></view
+            ><template v-if="address"
+              ><text class="ui-text address-recipient"
+                >{{ address!.recipient }}　{{ address!.phone }}</text
+              ><text class="ui-text address-detail" :user-select="true">{{
+                addressText(address!)
+              }}</text></template
+            ><text v-else class="ui-text address-empty"
+              >还没有收货地址。添加后即可核算配送费用与可售商品。</text
+            ></view
+          >
+          <view v-if="error" class="checkout-error"
+            ><text class="ui-text error-title">{{
+              errorTone(error) === 'net'
+                ? '网络连接中断'
+                : errorTone(error) === 'gone'
+                  ? '订单信息已失效'
+                  : '订单需要重新确认'
+            }}</text
+            ><text class="ui-text error-copy">{{ error }}</text
+            ><view class="error-actions"
+              ><button class="ui-button error-primary" @click="load">重新核算订单</button
+              ><button class="ui-button error-outline" @click="openPage('shop/orders')"
+                >查看商品订单</button
+              ></view
+            ><button
+              v-if="shippingMode === 'PRIORITY'"
+              class="ui-button error-link"
+              @click="chooseShipping('STANDARD')"
+              >改用普通配送重新核算</button
+            ><text class="ui-text error-note"
+              >已提交过的订单请先到商品订单查看结果，避免重复下单。</text
+            ></view
+          >
+          <view v-if="quote" class="card checkout-section"
+            ><text class="ui-text section-heading">商品</text
+            ><view v-for="line in quote!.items" :key="line.skuId" class="goods-row"
+              ><ArtImage
+                :src="line.cover"
+                :kind="artwork(line.cover)"
+                :width="72"
+                :height="78"
+              /><view class="grow goods-copy"
+                ><text class="ui-text item-title">{{ line.title }}</text
+                ><text class="ui-text meta">{{ line.skuTitle }}　× {{ line.quantity }}</text
+                ><text class="ui-text goods-price">¥{{ money(line.subtotal) }}</text></view
+              ></view
+            ></view
+          >
+          <view class="card checkout-section"
+            ><text class="ui-text section-heading">费用</text
+            ><template v-if="quote"
+              ><view class="sum-row"
+                ><text class="ui-text sum-label">商品金额</text
+                ><text class="ui-text sum-value">¥{{ money(quote!.subtotal) }}</text></view
+              ><view class="sum-row"
+                ><text class="ui-text sum-label">配送费</text
+                ><text class="ui-text sum-value">{{
+                  quote!.shipping === 0 ? '免配送费' : '¥' + money(quote!.shipping)
+                }}</text></view
+              ><view v-if="quote!.discount > 0" class="sum-row"
+                ><text class="ui-text sum-label">商品优惠（已择优）</text
+                ><text class="ui-text sum-value">−¥{{ money(quote!.discount) }}</text></view
+              ></template
+            ><template v-else
+              ><view class="sum-row"
+                ><text class="ui-text sum-label">商品金额</text
+                ><text class="ui-text sum-value">核算后显示</text></view
+              ><view class="sum-row"
+                ><text class="ui-text sum-label">配送费</text
+                ><text class="ui-text sum-value">核算后显示</text></view
+              ></template
+            ><view class="sum-row sum-row-last"
+              ><text class="ui-text sum-label-total">合计</text
+              ><text class="ui-text sum-value-total">{{
+                quote ? '¥' + money(quote!.total) : '—'
+              }}</text></view
+            ><text v-if="quote && quote!.shippingDiscount > 0" class="ui-text fee-note"
+              >会员已减免基础配送费 ¥{{
+                money(quote!.shippingDiscount)
+              }}，特殊地区附加配送费另计。</text
+            ><text v-if="quote && quote!.shippingSurcharge > 0" class="ui-text fee-note"
+              >配送费含本地区附加费用 ¥{{ money(quote!.shippingSurcharge) }}。</text
+            ><text v-if="!quote && address" class="ui-text fee-note"
+              >正在按当前地址核算金额与库存。</text
+            ><text v-if="!quote && !address" class="ui-text fee-note"
+              >填写收货地址后，这里显示商品金额、配送费与合计。</text
+            ></view
+          >
+          <view v-if="quote && quote!.priorityAvailable" class="card checkout-section"
+            ><text class="ui-text section-heading">配送方式</text
+            ><button
+              class="ui-button secondary-button mode-button"
+              :class="busy ? 'is-disabled' : ''"
+              @click="chooseShipping('STANDARD')"
+              >{{ shippingMode === 'STANDARD' ? '✓ 普通配送' : '普通配送' }}</button
+            ><button
+              class="ui-button secondary-button mode-button"
+              :class="busy ? 'is-disabled' : ''"
+              @click="chooseShipping('PRIORITY')"
+              >{{ shippingMode === 'PRIORITY' ? '✓ ' : '' }}优先配送 · 另加 ¥{{
+                money(quote!.priorityOptionFee ?? 0)
+              }}</button
+            ><text class="ui-text section-note">{{ quote!.priorityDescription }}</text></view
+          >
+          <view v-if="quote && quote!.paymentEnabled" class="card checkout-section"
+            ><text class="ui-text section-heading">支付方式</text
+            ><view
+              v-for="choice in quote!.channels.filter((c) => c.enabled)"
+              :key="choice.channel"
+              class="channel-row"
+              @click="channel = choice.channel"
+              ><text class="ui-text channel-label">{{ choice.label }}</text
+              ><text
+                :class="[
+                  'ui-text',
+                  'channel-state',
+                  channel === choice.channel ? 'channel-state-on' : '',
+                ]"
+                >{{ channel === choice.channel ? '已选择' : '选择' }}</text
+              ></view
+            ></view
+          >
+          <ConsumptionReward :eligible="Number(quote?.total ?? 0) > 0" />
+          <view class="card checkout-section"
+            ><text class="ui-text section-heading">配送与售后</text
+            ><text class="ui-text term-copy" :user-select="true">{{
+              quote
+                ? quote!.refundPolicy
+                : '配送时长、售后与退款规则以提交订单时的核算结果为准，下单前会再次展示。'
+            }}</text
+            ><view class="consent-row" @click="agreed = !agreed"
+              ><view :class="['consent-box', agreed ? 'consent-box-on' : '']"
+                ><text v-if="agreed" class="ui-text consent-check">✓</text></view
+              ><text class="ui-text consent-text grow"
+                >我已确认商品规格、数量、收货信息和售后规则</text
+              ></view
+            ></view
+          >
+          <text v-if="quote && !quote!.paymentEnabled" class="ui-text fee-note">{{
+            quote!.unavailableReason
+          }}</text>
+        </view>
+      </view></scroll-view
+    ><BottomBar
+      ><text class="ui-text checkout-total">{{
+        quote ? '合计 ¥' + money(quote!.total) : '待核算'
+      }}</text
+      ><button
+        class="ui-button bar-primary"
+        :class="
+          busy || loading || (quote && (!agreed || !quote!.paymentEnabled)) ? 'is-disabled' : ''
+        "
+        @click="!address ? chooseAddress() : !quote ? load() : !agreed ? (agreed = true) : submit()"
+        >{{
+          busy
+            ? '正在确认…'
+            : !address
+              ? '添加收货地址后继续'
+              : !quote
+                ? error
+                  ? '重新核算配送与费用'
+                  : '正在核算配送与费用…'
+                : !agreed
+                  ? '勾选售后规则后确认下单'
+                  : quote!.paymentEnabled
+                    ? '确认下单'
+                    : '收款尚未开放'
+        }}</button
+      ></BottomBar
+    ></view
+  >
 </template>
 <script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
 import ConsumptionReward from '../../components/ConsumptionReward.uvue';
-import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import BottomBar from '../../components/BottomBar.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {artwork,openPage} from '../../lib/presentation';import {studyEventId} from '../../lib/learning';import {purchasePlatform} from '../../lib/course-sales';import {addressText} from '../../lib/shopping';import type {Address} from '../../lib/shopping';import type {ProductQuote,ProductOrder} from '../../lib/product-sales';
-const addresses=ref<Address[]>([]),address=ref<Address|null>(null),quote=ref<ProductQuote|null>(null),loading=ref(false),busy=ref(false),error=ref(''),agreed=ref(false),channel=ref('WECHAT_APP'),shippingMode=ref('STANDARD');let pending:Record<string,unknown>|null=null;let items:{skuId:string;quantity:number}[]=[],key=studyEventId(),generation=0,owner='';
-async function load(){if(busy.value||needLogin())return;const turn=++generation,newOwner=currentUser.value?.id??'';if(owner!==newOwner){shippingMode.value='STANDARD';address.value=null;quote.value=null;key=studyEventId();owner=newOwner;pending=null;}loading.value=true;error.value='';try{const list=await request<Address[]>('/shopping/addresses');if(turn!==generation)return;addresses.value=list;address.value=list.find(a=>a.id===address.value?.id)??list.find(a=>a.isDefault)??list[0]??null;if(!address.value){quote.value=null;return;}if(!items.length)throw new Error('未选择商品，请返回商品或购物车重新选择');const payload:Record<string,unknown>={addressId:address.value.id,platform:purchasePlatform(),items};if(shippingMode.value==='PRIORITY')payload.shippingMode='PRIORITY';const next=await request<ProductQuote>('/commerce/products/quote',{method:'POST',data:payload});if(turn!==generation)return;if(quote.value?.quoteHash!==next.quoteHash){agreed.value=false;if(!pending)key=studyEventId();}quote.value=next;if(!next.channels.some(c=>c.channel===channel.value&&c.enabled))channel.value=next.channels.find(c=>c.enabled)?.channel??'WECHAT_APP';}catch(e){if(turn===generation){quote.value=null;error.value=(e as Error).message;}}finally{if(turn===generation)loading.value=false;}}
-async function chooseShipping(value:string){if(busy.value||pending)return;shippingMode.value=value;await load();}
-function chooseAddress(){if(busy.value)return;if(pending){uni.showToast({title:'请先核查前次提交的订单',icon:'none'});return;}if(!addresses.value.length){openPage('shop/addresses');return;}uni.showActionSheet({itemList:[...addresses.value.map(a=>a.recipient+' '+a.phone.slice(-4)+' · '+a.province+a.city),'添加或管理地址'],success:result=>{if(result.tapIndex===addresses.value.length){openPage('shop/addresses');return;}address.value=addresses.value[result.tapIndex]??null;void load();}});}
-async function submit(){if(busy.value||!quote.value||!address.value||!agreed.value||!quote.value.paymentEnabled||needLogin())return;busy.value=true;error.value='';pending=pending??{...(shippingMode.value==='PRIORITY'?{shippingMode:'PRIORITY'}:{}),addressId:address.value.id,platform:purchasePlatform(),items,quoteHash:quote.value.quoteHash,requestKey:key,channel:channel.value};try{const row=await request<ProductOrder>('/commerce/product-orders',{method:'POST',data:pending});pending=null;uni.redirectTo({url:'/pages/shop/order-detail?id='+encodeURIComponent(row.id)});}catch(e){try{const existing=await request<ProductOrder>('/commerce/product-orders/request/'+key);pending=null;uni.redirectTo({url:'/pages/shop/order-detail?id='+existing.id});}catch{const status=(e as Error&{status:number}).status;if(status>=400&&status<500){pending=null;error.value=(e as Error).message;}else error.value=(e as Error).message+'；请先查看商品订单或重试同一次提交，勿重复下单。';agreed.value=false;}}finally{busy.value=false;}}
+import PageHead from '../../components/PageHead.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import BottomBar from '../../components/BottomBar.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import { currentUser, needLogin } from '../../lib/session';
+import { artwork, openPage } from '../../lib/presentation';
+import { studyEventId } from '../../lib/learning';
+import { purchasePlatform } from '../../lib/course-sales';
+import { addressText } from '../../lib/shopping';
+import type { Address } from '../../lib/shopping';
+import type { ProductQuote, ProductOrder } from '../../lib/product-sales';
+const addresses = ref<Address[]>([]),
+  address = ref<Address | null>(null),
+  quote = ref<ProductQuote | null>(null),
+  loading = ref(false),
+  busy = ref(false),
+  error = ref(''),
+  agreed = ref(false),
+  channel = ref('WECHAT_APP'),
+  shippingMode = ref('STANDARD');
+let pending: Record<string, unknown> | null = null;
+// 只做展示分档，不参与请求、金额与权限判断。
+const errorTone = (text: string) =>
+  /网络|中断|超时|繁忙|连接/.test(text)
+    ? 'net'
+    : /不存在|无法打开|已删除|已失效|无效/.test(text)
+      ? 'gone'
+      : 'bad';
+let items: { skuId: string; quantity: number }[] = [],
+  key = studyEventId(),
+  generation = 0,
+  owner = '';
+async function load() {
+  if (busy.value || needLogin()) return;
+  const turn = ++generation,
+    newOwner = currentUser.value?.id ?? '';
+  if (owner !== newOwner) {
+    shippingMode.value = 'STANDARD';
+    address.value = null;
+    quote.value = null;
+    key = studyEventId();
+    owner = newOwner;
+    pending = null;
+  }
+  loading.value = true;
+  error.value = '';
+  try {
+    const list = await request<Address[]>('/shopping/addresses');
+    if (turn !== generation) return;
+    addresses.value = list;
+    address.value =
+      list.find((a) => a.id === address.value?.id) ??
+      list.find((a) => a.isDefault) ??
+      list[0] ??
+      null;
+    if (!address.value) {
+      quote.value = null;
+      return;
+    }
+    if (!items.length) throw new Error('未选择商品，请返回商品或购物车重新选择');
+    const payload: Record<string, unknown> = {
+      addressId: address.value.id,
+      platform: purchasePlatform(),
+      items,
+    };
+    if (shippingMode.value === 'PRIORITY') payload.shippingMode = 'PRIORITY';
+    const next = await request<ProductQuote>('/commerce/products/quote', {
+      method: 'POST',
+      data: payload,
+    });
+    if (turn !== generation) return;
+    if (quote.value?.quoteHash !== next.quoteHash) {
+      agreed.value = false;
+      if (!pending) key = studyEventId();
+    }
+    quote.value = next;
+    if (!next.channels.some((c) => c.channel === channel.value && c.enabled))
+      channel.value = next.channels.find((c) => c.enabled)?.channel ?? 'WECHAT_APP';
+  } catch (e) {
+    if (turn === generation) {
+      quote.value = null;
+      error.value = (e as Error).message;
+    }
+  } finally {
+    if (turn === generation) loading.value = false;
+  }
+}
+async function chooseShipping(value: string) {
+  if (busy.value || pending) return;
+  shippingMode.value = value;
+  await load();
+}
+function chooseAddress() {
+  if (busy.value) return;
+  if (pending) {
+    uni.showToast({ title: '请先核查前次提交的订单', icon: 'none' });
+    return;
+  }
+  if (!addresses.value.length) {
+    openPage('shop/addresses');
+    return;
+  }
+  uni.showActionSheet({
+    itemList: [
+      ...addresses.value.map(
+        (a) => a.recipient + ' ' + a.phone.slice(-4) + ' · ' + a.province + a.city,
+      ),
+      '添加或管理地址',
+    ],
+    success: (result) => {
+      if (result.tapIndex === addresses.value.length) {
+        openPage('shop/addresses');
+        return;
+      }
+      address.value = addresses.value[result.tapIndex] ?? null;
+      void load();
+    },
+  });
+}
+async function submit() {
+  if (
+    busy.value ||
+    !quote.value ||
+    !address.value ||
+    !agreed.value ||
+    !quote.value.paymentEnabled ||
+    needLogin()
+  )
+    return;
+  busy.value = true;
+  error.value = '';
+  pending = pending ?? {
+    ...(shippingMode.value === 'PRIORITY' ? { shippingMode: 'PRIORITY' } : {}),
+    addressId: address.value.id,
+    platform: purchasePlatform(),
+    items,
+    quoteHash: quote.value.quoteHash,
+    requestKey: key,
+    channel: channel.value,
+  };
+  try {
+    const row = await request<ProductOrder>('/commerce/product-orders', {
+      method: 'POST',
+      data: pending,
+    });
+    pending = null;
+    uni.redirectTo({ url: '/pages/shop/order-detail?id=' + encodeURIComponent(row.id) });
+  } catch (e) {
+    try {
+      const existing = await request<ProductOrder>('/commerce/product-orders/request/' + key);
+      pending = null;
+      uni.redirectTo({ url: '/pages/shop/order-detail?id=' + existing.id });
+    } catch {
+      const status = (e as Error & { status: number }).status;
+      if (status >= 400 && status < 500) {
+        pending = null;
+        error.value = (e as Error).message;
+      } else
+        error.value = (e as Error).message + '；请先查看商品订单或重试同一次提交，勿重复下单。';
+      agreed.value = false;
+    }
+  } finally {
+    busy.value = false;
+  }
+}
 
-onLoad(o=>{if(o?.type!=='product'&&!o?.items){uni.redirectTo({url:'/pages/course/purchase?courseId='+encodeURIComponent(o?.id??'')});return;}try{items=o?.items?(JSON.parse((decodeURIComponent(o.items??'')??'[]'))??[]) as {skuId:string;quantity:number}[]:[{skuId:o?.skuId??'',quantity:Math.max(1,Math.min(99,parseInt(o?.quantity??'1')||1))}];}catch{items=[];}});onShow(()=>void load());onUnload(()=>{generation++;});
+onLoad((o) => {
+  if (o?.type !== 'product' && !o?.items) {
+    uni.redirectTo({ url: '/pages/course/purchase?courseId=' + encodeURIComponent(o?.id ?? '') });
+    return;
+  }
+  try {
+    items = o?.items
+      ? ((JSON.parse(decodeURIComponent(o.items ?? '') ?? '[]') ?? []) as {
+          skuId: string;
+          quantity: number;
+        }[])
+      : [
+          {
+            skuId: o?.skuId ?? '',
+            quantity: Math.max(1, Math.min(99, parseInt(o?.quantity ?? '1') || 1)),
+          },
+        ];
+  } catch {
+    items = [];
+  }
+});
+onShow(() => void load());
+onUnload(() => {
+  generation++;
+});
 </script>
-<style>@import '../../styles/app.css';.checkout-address{padding:16px;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;margin-top:8px;}.checkout-line{padding:12px;margin-top:12px;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;}.checkout-copy{padding-left:14px;}.checkout-section{padding:16px;background-color:#FCF9F2;border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;margin-top:12px;}.checkout-total{color:#B4533F;font-size:15px;line-height:24px;margin-right:12px;}.consent-row{padding:14px 0 4px;}.consent-box{width:20px;height:20px;border-width:1px;border-style:solid;border-color:#A3AEAB;border-radius:4px;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0;}.consent-box-on{background-color:#235663;border-color:#235663;}.consent-check{color:#FCF9F2;font-size:14px;line-height:18px;}</style>
+<style>
+@import '../../styles/app.css';
+.checkout-body {
+  padding-top: 16px;
+}
+.card-eyebrow {
+  font-size: 11px;
+  line-height: 17px;
+  color: #8a6635;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+}
+.card-action {
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  padding-left: 12px;
+}
+.address-recipient {
+  font-family: AcademySerif;
+  font-size: 16px;
+  line-height: 24px;
+  color: #182b31;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.address-detail {
+  font-size: 14px;
+  line-height: 24px;
+  color: #344c54;
+  margin-top: 6px;
+}
+.address-empty {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.checkout-error {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f1e8d8;
+  border-radius: 14px;
+}
+.error-title {
+  font-size: 15px;
+  line-height: 26px;
+  color: #b4533f;
+  font-weight: 600;
+}
+.error-copy {
+  font-size: 13px;
+  line-height: 22px;
+  color: #344c54;
+  margin-top: 6px;
+}
+.error-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.error-primary {
+  min-height: 44px;
+  padding: 10px 18px;
+  margin: 0 8px 0 0;
+  border-radius: 23px;
+  background-color: #235663;
+  color: #fcf9f2;
+  font-size: 14px;
+  line-height: 24px;
+}
+.error-outline {
+  min-height: 44px;
+  padding: 10px 18px;
+  margin: 0;
+  border-radius: 23px;
+  background-color: transparent;
+  color: #235663;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #c9bfad;
+  font-size: 14px;
+  line-height: 24px;
+}
+.error-link {
+  min-height: 44px;
+  padding: 11px 0;
+  margin: 4px 0 0;
+  background-color: transparent;
+  color: #235663;
+  font-size: 13px;
+  line-height: 22px;
+  text-align: left;
+  border-style: solid;
+  border-width: 0;
+}
+.error-note {
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.checkout-section {
+  margin-top: 16px;
+}
+.goods-row {
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 14px 0 0;
+}
+.goods-copy {
+  padding-left: 13px;
+}
+.goods-price {
+  font-family: AcademySerif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #b4533f;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.sum-row {
+  flex-direction: row;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.sum-row-last {
+  border-bottom-width: 0;
+  padding-bottom: 0;
+}
+.sum-label {
+  flex: 1;
+  font-size: 14px;
+  line-height: 24px;
+  color: #344c54;
+  margin-top: 0;
+}
+.sum-value {
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  text-align: right;
+  margin-left: 12px;
+  width: 62%;
+}
+.sum-label-total {
+  flex: 1;
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  font-weight: 600;
+}
+.sum-value-total {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #b4533f;
+  font-weight: 600;
+  text-align: right;
+  margin-left: 12px;
+}
+.fee-note {
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 10px;
+}
+.mode-button {
+  min-height: 46px;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 24px;
+}
+.section-note {
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.channel-row {
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.channel-label {
+  flex: 1;
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  margin-top: 0;
+}
+.channel-state {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.channel-state-on {
+  color: #235663;
+  font-weight: 600;
+}
+.term-copy {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 10px;
+}
+.consent-row {
+  flex-direction: row;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 14px 0 0;
+}
+.consent-box {
+  width: 22px;
+  height: 22px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #cfc5b1;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.consent-box-on {
+  background-color: #235663;
+  border-color: #235663;
+}
+.consent-check {
+  color: #fcf9f2;
+  font-size: 13px;
+  line-height: 18px;
+}
+.consent-text {
+  font-size: 13px;
+  line-height: 22px;
+  color: #344c54;
+  margin-top: 0;
+}
+.checkout-total {
+  font-family: AcademySerif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #b4533f;
+  font-weight: 600;
+  margin-right: 12px;
+}
+</style>

@@ -1,31 +1,116 @@
 <template>
-  <view class="art-window" :style="{ width: frameWidth + 'px', height: height + 'px', borderRadius: radius + 'px', transform: mirror ? 'scaleX(-1)' : 'scaleX(1)' }">
-    <image v-if="src && !isReference && !failed" class="art-original" :src="src" mode="aspectFill" @error="failed=true" />
-    <image v-else class="art-sheet" src="/static/editorial/design-reference.png" mode="scaleToFill" :style="sheetStyle" />
+  <view
+    class="art-window"
+    :style="{
+      width: frameWidth + 'px',
+      height: frameHeight + 'px',
+      borderRadius: radius + 'px',
+      transform: mirror ? 'scaleX(-1)' : 'scaleX(1)',
+    }"
+  >
+    <image
+      v-if="src && !isReference && !failed"
+      class="art-original"
+      :src="src"
+      :mode="fit"
+      @load="loaded"
+      @error="failed = true"
+    />
+    <image
+      v-else
+      class="art-sheet"
+      src="/static/editorial/design-reference.png"
+      mode="scaleToFill"
+      :style="sheetStyle"
+    />
   </view>
 </template>
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ kind?: string; src?: string; width?: number; height?: number; radius?: number; mirror?: boolean }>(), { kind: 'landscape', src: '', width: 0, height: 160, radius: 4, mirror: false });
+const props = withDefaults(
+  defineProps<{
+    fit?: string;
+    natural?: boolean;
+    kind?: string;
+    src?: string;
+    width?: number;
+    height?: number;
+    radius?: number;
+    mirror?: boolean;
+  }>(),
+  {
+    fit: 'aspectFill',
+    natural: false,
+    kind: 'landscape',
+    src: '',
+    width: 0,
+    height: 160,
+    radius: 4,
+    mirror: false,
+  },
+);
 // Use the user's original art as an atlas; native views clip only the artwork.
 // Uploaded production images take precedence over this development fallback.
 const regions: Record<string, number[]> = {
-  landscape: [957, 87, 293, 135], hero: [432, 112, 144, 121],
-  book: [289, 845, 137, 85], tea: [439, 845, 132, 85],
-  tools: [289, 996, 137, 85], room: [438, 996, 134, 85],
-  study: [438, 845, 133, 86], boat: [959, 1117, 286, 60],
+  landscape: [957, 87, 293, 135],
+  hero: [432, 112, 144, 121],
+  book: [289, 845, 137, 85],
+  tea: [439, 845, 132, 85],
+  tools: [289, 996, 137, 85],
+  room: [438, 996, 134, 85],
+  study: [438, 845, 133, 86],
+  boat: [959, 1117, 286, 60],
   portrait: [631, 736, 41, 41],
 };
-const failed=ref(false);watch(()=>props.src,()=>{failed.value=false;});
-const frameWidth = computed(() => props.width || Math.max(280, uni.getWindowInfo().windowWidth - 32));
+const failed = ref(false);
+const ratio = ref(0);
+function loaded(event: { detail: { width: number; height: number } }) {
+  if (event.detail.width > 0 && event.detail.height > 0)
+    ratio.value = event.detail.width / event.detail.height;
+}
+watch(
+  () => props.src,
+  () => {
+    failed.value = false;
+    ratio.value = 0;
+  },
+);
+const requestedWidth = computed(
+  () => props.width || Math.max(280, uni.getWindowInfo().windowWidth - 32),
+);
+const frameWidth = computed(() =>
+  !props.natural && props.fit === 'aspectFit' && ratio.value > 0
+    ? Math.min(requestedWidth.value, props.height * ratio.value)
+    : requestedWidth.value,
+);
+const frameHeight = computed(() =>
+  ratio.value > 0 && (props.natural || props.fit === 'aspectFit')
+    ? frameWidth.value / ratio.value
+    : props.height,
+);
 const isReference = computed(() => !props.src || props.src.startsWith('/static/art/'));
 const sheetStyle = computed(() => {
   const r = regions[props.kind] ?? regions.landscape;
   const scale = Math.max(frameWidth.value / r[2], props.height / r[3]);
-  return { width: 1312 * scale + 'px', height: 1199 * scale + 'px', left: (-r[0] * scale - (r[2] * scale - frameWidth.value) / 2) + 'px', top: (-r[1] * scale - (r[3] * scale - props.height) / 2) + 'px' };
+  return {
+    width: 1312 * scale + 'px',
+    height: 1199 * scale + 'px',
+    left: -r[0] * scale - (r[2] * scale - frameWidth.value) / 2 + 'px',
+    top: -r[1] * scale - (r[3] * scale - props.height) / 2 + 'px',
+  };
 });
 </script>
 <style>
-.art-window { position: relative; overflow: hidden; flex-shrink: 0; background-color: #EFE9DC; }
-.art-sheet { position: absolute; }
-.art-original { width: 100%; height: 100%; }
+.art-window {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #efe9dc;
+}
+.art-sheet {
+  position: absolute;
+}
+.art-original {
+  width: 100%;
+  height: 100%;
+}
 </style>

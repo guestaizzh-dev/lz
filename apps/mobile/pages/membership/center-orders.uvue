@@ -1,0 +1,115 @@
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="会员与购券记录" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content"
+        ><ContentState
+          v-if="loading || error"
+          :loading="loading"
+          :error="error"
+          @retry="load(false)"
+        /><ContentState
+          v-else-if="!items.length"
+          title="暂无购买记录"
+          description="会员开通、升级和代金券购买都会在这里留存。"
+          action-label="去会员中心"
+          @action="openPage('membership/index')"
+        /><view
+          v-for="item in items"
+          :key="item.id"
+          class="commerce-panel"
+          @click="openPage('membership/center-purchase?id=' + item.id)"
+          ><view class="row between"
+            ><text class="commerce-heading">{{ item.terms.title }}</text
+            ><text class="order-state">{{
+              item.refunds.some((r) => r.state === 'REFUNDING' || r.state === 'REQUESTED')
+                ? '退款办理中'
+                : Number(item.refundedAmount) >= Number(item.amount)
+                  ? '已退款'
+                  : item.state === 'COMPLETED'
+                    ? '已完成'
+                    : item.state === 'CLOSED'
+                      ? '已关闭'
+                      : '待付款'
+            }}</text></view
+          ><text class="commerce-copy">{{
+            item.terms.kind === 'VIDEO_VOUCHER'
+              ? item.terms.quantity + '份 · 长期有效'
+              : item.terms.previousId
+                ? '补差升级 · 长期有效'
+                : '一次开通 · 长期有效'
+          }}</text
+          ><view class="commerce-row"
+            ><text class="commerce-muted">{{ formatChinaTime(item.createdAt) }}</text
+            ><text class="commerce-amount">¥{{ money(Number(item.amount)) }}</text></view
+          ></view
+        ><button
+          v-if="items.length < total"
+          class="ui-button outline-action"
+          :disabled="loadingMore"
+          @click="load(true)"
+          >{{ loadingMore ? '加载中…' : '查看更多记录' }}</button
+        ></view
+      ></scroll-view
+    ></view
+  >
+</template>
+<script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import { openPage } from '../../lib/presentation';
+import { needLogin } from '../../lib/session';
+import { formatChinaTime } from '../../lib/date-time';
+import type { CenterOrder } from '../../lib/member-center';
+const items = ref<CenterOrder[]>([]),
+  loading = ref(false),
+  loadingMore = ref(false),
+  error = ref(''),
+  total = ref(0);
+let page = 1,
+  revision = 0;
+async function load(append = false) {
+  if (loading.value || loadingMore.value || needLogin('/pages/membership/center-orders')) return;
+  const turn = ++revision;
+  loading.value = !append;
+  loadingMore.value = append;
+  error.value = '';
+  try {
+    const next = append ? page + 1 : 1,
+      result = await request<{ items: CenterOrder[]; total: number }>(
+        '/membership-center/orders?page=' + next,
+      );
+    if (turn === revision) {
+      items.value = append ? [...items.value, ...result.items] : result.items;
+      page = next;
+      total.value = result.total;
+    }
+  } catch (e) {
+    if (turn === revision) error.value = (e as Error).message;
+  } finally {
+    if (turn === revision) {
+      loading.value = false;
+      loadingMore.value = false;
+    }
+  }
+}
+onShow(() => void load());
+onUnload(() => {
+  revision++;
+});
+</script>
+<style>
+@import '../../styles/app.css';
+@import '../../styles/commerce.css';
+.order-state {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #235663;
+  margin-left: 12px;
+}
+</style>

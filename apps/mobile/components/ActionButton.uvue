@@ -1,0 +1,109 @@
+<template>
+  <button
+    :class="[
+      'action-button',
+      'action-' + (tone ?? 'primary'),
+      disabled || loading ? 'action-unavailable' : '',
+    ]"
+    :disabled="disabled || loading"
+    hover-class="action-pressed"
+    @click="activate"
+    ><text
+      :class="[
+        'action-label',
+        'action-label-' + (tone ?? 'primary'),
+        disabled || loading ? 'action-label-muted' : '',
+      ]"
+      >{{ loading ? '处理中…' : label }}</text
+    ></button
+  >
+</template>
+<script setup lang="ts">
+const props = withDefaults(
+  defineProps<{ label: string; tone?: string; disabled?: boolean; loading?: boolean }>(),
+  { tone: 'primary', disabled: false, loading: false },
+);
+const emit = defineEmits<{ click: [] }>();
+function activate() {
+  if (!props.disabled && !props.loading) emit('click');
+}
+</script>
+<style>
+.action-button {
+  min-height: 48px;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 0 18px;
+  margin: 0;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+}
+.action-primary {
+  background-color: #235663;
+}
+.action-secondary {
+  background-color: #e6ede9;
+  border-color: #d6e1dc;
+}
+.action-danger {
+  background-color: #f5e8e3;
+  border-color: #ebcfc5;
+}
+.action-ghost {
+  background-color: transparent;
+  border-color: #d8d0c1;
+}
+.action-label {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 48px;
+  text-align: center;
+  font-weight: 600;
+}
+.action-label-primary {
+  color: #fcf9f2;
+}
+.action-label-secondary,
+.action-label-ghost {
+  color: #235663;
+}
+.action-label-danger {
+  color: #a84935;
+}
+.action-unavailable {
+  opacity: 1;
+  background-color: #e4ded2;
+  border-color: #e4ded2;
+}
+.action-label-muted {
+  color: #7a847f;
+}
+.action-pressed {
+  opacity: 0.78;
+}
+/* #ifdef WEB */
+.action-button {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+}
+.action-button::after {
+  border: 0;
+}
+.action-button[disabled] {
+  background-color: #e4ded2;
+  border-color: #e4ded2;
+  opacity: 1;
+  cursor: not-allowed;
+}
+.action-button:focus-visible {
+  outline: 2px solid #235663;
+  outline-offset: 3px;
+}
+/* #endif */
+</style>

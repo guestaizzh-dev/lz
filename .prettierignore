@@ -1,0 +1,13 @@
+**/node_modules/**
+**/dist/**
+**/unpackage/**
+**/.umi*/**
+services/api/src/generated/**
+services/api/prisma/migrations/**
+services/api/public/live/sdk.js
+.runtime/**
+outputs/**
+work/**
+docs/**
+infra/payment-keys/**
+pnpm-lock.yaml

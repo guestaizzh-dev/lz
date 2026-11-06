@@ -1,12 +1,260 @@
 <template>
-<view class="page"><PageHead title="商品订单"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><scroll-view direction="horizontal" :show-scrollbar="false" class="horizontal-scroll order-tabs row"><text v-for="tab in tabs" :key="tab.value" :class="state===tab.value?'order-tab active':'order-tab'" @click="state=tab.value;rows.value=[];total.value=0;load()">{{tab.label}}</text></scroll-view>
-<ContentState v-if="loading&&!rows.length||error" :loading="loading" :error="error" @retry="load()"/><view v-for="order in rows" :key="order.id" class="order-card" @click="openPage('shop/order-detail?id='+order.id)"><view class="row between"><text class="meta">{{formatChinaTime(order.createdAt)}}</text><text class="order-state">{{productOrderLabel(order)}}</text></view><view v-for="line in order.items" :key="line.id" class="row order-line"><ArtImage :src="line.cover" :kind="artwork(line.cover)" :width="62" :height="68"/><view class="grow order-copy"><text class="item-title">{{line.title}}</text><text class="meta">{{line.skuTitle}}　× {{line.quantity}}</text></view></view><view class="row between"><text class="meta">查看付款、配送与售后 ›</text><text class="price">¥{{money(Number(order.amount))}}</text></view></view>
-<ContentState v-if="ready&&!loading&&!error&&!rows.length" title="还没有这类商品订单" description="选择喜欢的好物，确认规格与收货信息后再下单。" actionLabel="去看看好物" @action="openPage('shop/index')"/><button v-if="rows.length<total" class="secondary-button" :disabled="loading" @click="load(true)">{{loading?'加载中…':'加载更多'}}</button><button class="text-action" @click="openPage('profile/service?kind=orders')">查看旧订单记录</button></view></scroll-view></view>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="商品订单" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <scroll-view
+          direction="horizontal"
+          :show-scrollbar="false"
+          class="horizontal-scroll order-tabs"
+          ><text
+            class="ui-text"
+            v-for="tab in tabs"
+            :key="tab.value"
+            :class="state === tab.value ? 'order-tab order-tab-active' : 'order-tab'"
+            @click="changeState(tab.value)"
+            >{{ tab.label }}</text
+          ></scroll-view
+        >
+        <ContentState v-if="loading && !rows.length" :loading="true" />
+        <ContentState
+          v-else-if="error && !rows.length"
+          :error="error"
+          :error-title="
+            errorTone(error) === 'net'
+              ? '网络连接中断'
+              : errorTone(error) === 'gone'
+                ? '订单内容不存在'
+                : '订单列表需要重新确认'
+          "
+          :retryable="errorTone(error) === 'net'"
+          :action-label="errorTone(error) === 'net' ? '' : '去看看好物'"
+          @retry="load()"
+          @action="openPage('shop/index')"
+        />
+        <text v-if="error && rows.length" class="ui-text list-error">{{ error }}</text>
+        <view
+          v-for="order in rows"
+          :key="order.id"
+          class="order-card"
+          @click="openPage('shop/order-detail?id=' + order.id)"
+          ><view class="row between order-card-head"
+            ><text class="ui-text meta">{{ formatChinaTime(order.createdAt) }}</text
+            ><text class="ui-text order-state">{{ productOrderLabel(order) }}</text></view
+          ><view v-for="line in order.items" :key="line.id" class="row order-line"
+            ><ArtImage
+              :src="line.cover"
+              :kind="artwork(line.cover)"
+              :width="62"
+              :height="68"
+            /><view class="grow order-copy"
+              ><text class="ui-text item-title">{{ line.title }}</text
+              ><text class="ui-text meta">{{ line.skuTitle }}　× {{ line.quantity }}</text></view
+            ></view
+          ><view class="sum-row order-total-row"
+            ><text class="ui-text sum-label">查看付款、配送与售后 ›</text
+            ><text class="ui-text sum-value-total">¥{{ money(Number(order.amount)) }}</text></view
+          ></view
+        >
+        <ContentState
+          v-if="ready && !loading && !error && !rows.length"
+          title="还没有这类商品订单"
+          description="选择喜欢的好物，确认规格与收货信息后再下单。"
+          actionLabel="去看看好物"
+          @action="openPage('shop/index')"
+        /><button
+          v-if="rows.length < total"
+          class="ui-button secondary-button"
+          :class="loading ? 'is-disabled' : ''"
+          :disabled="loading"
+          @click="load(true)"
+          >{{ loading ? '加载中…' : '加载更多' }}</button
+        ><button
+          class="ui-button text-action order-legacy"
+          @click="openPage('profile/service?kind=orders')"
+          >查看旧订单记录</button
+        ></view
+      ></scroll-view
+    ></view
+  >
 </template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';import {openPage,artwork} from '../../lib/presentation';import {formatChinaTime} from '../../lib/date-time';import {productOrderLabel} from '../../lib/product-sales';import type {ProductOrder} from '../../lib/product-sales';
-const rows=ref<ProductOrder[]>([]),state=ref(''),loading=ref(false),error=ref(''),total=ref(0),ready=ref(false),tabs=[{value:'',label:'全部'},{value:'PENDING',label:'待付款'},{value:'PAID',label:'待发货'},{value:'FULFILLING',label:'配送中'},{value:'COMPLETED',label:'已签收'}];let page=1,generation=0,owner='';
-async function load(append=false){if(needLogin()||append&&loading.value)return;const newOwner=currentUser.value?.id??'';if(owner!==newOwner){rows.value=[];owner=newOwner;}const turn=++generation,next=append?page+1:1;loading.value=true;error.value='';try{const result=await request<{items:ProductOrder[];total:number}>('/commerce/product-orders?page='+next+(state.value?'&state='+state.value:''));if(turn!==generation)return;rows.value=append?[...rows.value,...result.items]:result.items;page=next;total.value=result.total;}catch(e){if(turn===generation)error.value=(e as Error).message;}finally{if(turn===generation){loading.value=false;ready.value=true;}}}
-onShow(()=>void load());onUnload(()=>{generation++;});
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import { currentUser, needLogin } from '../../lib/session';
+import { openPage, artwork } from '../../lib/presentation';
+import { formatChinaTime } from '../../lib/date-time';
+import { productOrderLabel } from '../../lib/product-sales';
+import type { ProductOrder } from '../../lib/product-sales';
+const rows = ref<ProductOrder[]>([]),
+  state = ref(''),
+  loading = ref(false),
+  error = ref(''),
+  total = ref(0),
+  ready = ref(false),
+  tabs = [
+    { value: '', label: '全部' },
+    { value: 'PENDING', label: '待付款' },
+    { value: 'PAID', label: '待发货' },
+    { value: 'FULFILLING', label: '配送中' },
+    { value: 'COMPLETED', label: '已签收' },
+  ];
+let page = 1,
+  generation = 0,
+  owner = '';
+// 只做展示分档，不参与请求、金额与权限判断。
+const errorTone = (text: string) =>
+  /网络|中断|超时|繁忙|连接/.test(text)
+    ? 'net'
+    : /不存在|无法打开|已删除|已失效|无效/.test(text)
+      ? 'gone'
+      : 'bad';
+async function load(append = false) {
+  if (needLogin() || (append && loading.value)) return;
+  const newOwner = currentUser.value?.id ?? '';
+  if (owner !== newOwner) {
+    rows.value = [];
+    owner = newOwner;
+  }
+  const turn = ++generation,
+    next = append ? page + 1 : 1;
+  loading.value = true;
+  error.value = '';
+  try {
+    const result = await request<{ items: ProductOrder[]; total: number }>(
+      '/commerce/product-orders?page=' + next + (state.value ? '&state=' + state.value : ''),
+    );
+    if (turn !== generation) return;
+    rows.value = append ? [...rows.value, ...result.items] : result.items;
+    page = next;
+    total.value = result.total;
+  } catch (e) {
+    if (turn === generation) error.value = (e as Error).message;
+  } finally {
+    if (turn === generation) {
+      loading.value = false;
+      ready.value = true;
+    }
+  }
+}
+function changeState(value: string) {
+  if (state.value === value) return;
+  state.value = value;
+  rows.value = [];
+  total.value = 0;
+  ready.value = false;
+  void load();
+}
+onShow(() => void load());
+onUnload(() => {
+  generation++;
+});
 </script>
-<style>@import '../../styles/app.css';.order-tabs{padding:8px 0 18px;}.order-tab{flex-shrink:0;font-size:13px;line-height:24px;color:#6A7578;margin-right:22px;padding:8px 0;}.active{color:#235663;border-bottom-width:2px;border-bottom-style:solid;border-bottom-color:#235663;}.order-card{padding:20px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#E3DCCF;}.order-line{margin:16px 0;}.order-copy{min-width:0;padding-left:12px;}.order-state{font-size:12px;color:#235663;line-height:22px;}</style>
+<style>
+@import '../../styles/app.css';
+.order-tabs {
+  padding: 0 0 8px;
+}
+.order-tab {
+  flex-shrink: 0;
+  min-width: 44px;
+  font-size: 15px;
+  line-height: 46px;
+  color: #5c6869;
+  text-align: center;
+  padding: 0 6px;
+  margin-right: 14px;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+}
+.order-tab-active {
+  color: #182b31;
+  font-weight: 600;
+  border-bottom-color: #235663;
+}
+.order-card {
+  padding: 16px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e0d8c8;
+}
+.order-card-head {
+  margin-bottom: 4px;
+}
+.order-line {
+  margin-top: 12px;
+  align-items: flex-start;
+}
+.order-copy {
+  min-width: 0;
+  padding-left: 12px;
+}
+.order-state {
+  font-size: 12px;
+  line-height: 20px;
+  color: #235663;
+  font-weight: 600;
+}
+.sum-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e0d8c8;
+}
+.sum-row-last {
+  border-bottom-width: 0;
+  padding-bottom: 0;
+}
+.sum-label {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.sum-value {
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  text-align: right;
+  margin-left: 12px;
+}
+.sum-value-total {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #b4533f;
+  font-weight: 600;
+  text-align: right;
+  margin-left: 12px;
+}
+.order-total-row {
+  margin-top: 12px;
+  border-bottom-width: 0;
+  padding: 12px 0 0;
+}
+.order-legacy {
+  font-size: 13px;
+  line-height: 22px;
+  min-height: 44px;
+  padding: 11px 0;
+  color: #235663;
+  margin-top: 8px;
+}
+.list-error {
+  font-size: 13px;
+  line-height: 22px;
+  color: #b4533f;
+  background-color: #f1e8d8;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+</style>

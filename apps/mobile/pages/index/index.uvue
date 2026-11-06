@@ -1,93 +1,165 @@
 <template>
-<view class="page">
-<InkBackdrop/>
-<view :style="{height:safeTop+'px'}"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
- <view class="row between brand-row">
-<view class="row"><text class="brand">老子道学书院</text><AcademySeal/></view>
-<view class="icon-button icon-control"><AppIcon name="bell" :size="20"/><button class="icon-hit-target" aria-label="我的消息" @click="openPage('profile/messages')"></button></view>
-</view>
- <view class="search">
-<AppIcon name="magnifying-glass" :size="15"/>
-<input class="search-input" placeholder="搜索经典、课程、文章、名师…" v-model="searchText" @confirm="search"/>
-</view>
- <view v-if="hero.video&&pageVisible" class="home-hero">
-<video :key="heroVideoKey" id="homeHeroVideo" class="hero-video" :src="assetUrl(hero.video)" :controls="true" :autoplay="true" :muted="true" :loop="true" object-fit="cover" @error="heroVideoError=true"/>
-<view v-if="heroVideoError" class="hero-error"><text class="hero-error-text">视频暂时无法播放</text><button class="hero-retry" @click="reloadHero">重试</button></view>
-</view>
-<view v-else-if="hero.images.length===1" class="home-hero"><image class="hero-image" :src="assetUrl(hero.images[0])" mode="aspectFill"/></view>
-<view v-else-if="hero.images.length>1" class="home-hero"><swiper class="hero-swiper" :autoplay="true" :circular="true" :indicator-dots="true" :interval="5000"><swiper-item v-for="url in hero.images" :key="url"><image class="hero-image" :src="assetUrl(url)" mode="aspectFill"/></swiper-item></swiper></view>
- <view v-else class="home-hero" @click="readClassic">
-<ArtImage kind="landscape" :mirror="true" :width="width" :height="160"/>
-<view class="hero-overlay">
-<text class="ink-title">上善若水</text>
-<text class="ink-subtitle">《道德经》第八章</text>
-<text class="ink-caption">水善利万物而不争</text>
-<view class="read-pill">
-<text class="read-label">阅读经典</text>
-</view>
-</view>
-</view>
- <view class="home-shortcuts">
-<view v-for="item in shortcuts" :key="item.label" class="shortcut" @click="shortcut(item.path)">
-<AppIcon :name="item.icon" :size="21"/>
-<text class="shortcut-label">{{item.label}}</text>
-</view>
-</view>
- <ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
- <view v-else>
-<view class="section-head">
-<view><text class="eyebrow">书院选读</text><text class="section-heading">精选经典</text></view>
-<text class="section-link" @click="switchPage('discover')">更多 ›</text>
-</view>
- <view v-if="data.articles.length" class="classic-card" @click="readClassic">
-<ArtImage kind="book" :width="88" :height="79"/>
-<view class="classic-copy">
-<text class="item-title">{{data.articles[0].title}}</text>
-<text class="article-summary">{{data.articles[0].summary}}</text>
-</view>
-</view>
-<ContentState v-else title="经典内容正在整理"/>
- <view class="section">
-<view class="section-head">
-<view><text class="eyebrow">研习路径</text><text class="section-heading">推荐课程</text></view>
-<text class="section-link" @click="switchPage('academy')">更多 ›</text>
-</view>
-<CourseRow v-for="course in data.courses.slice(0,1)" :key="course.id" :course="course"/>
-<ContentState v-if="!data.courses.length" title="课程正在筹备"/>
-</view>
- <ScrollDivider/>
-<view class="section">
-<view class="section-head">
-<view><text class="eyebrow">书院师承</text><text class="section-heading">名师</text></view>
-<text class="section-link" @click="openPage('teacher/index')">更多 ›</text>
-</view>
-<view class="row home-teachers">
-<view v-for="teacher in teacherList.slice(0,3)" :key="teacher.id" class="home-teacher" @click="openPage('teacher/detail?id='+teacher.id)">
-<TeacherAvatar :portrait="teacher.portrait" :demo="teacher.isDemo" :size="42"/>
-<text class="teacher-name">{{teacher.name.replace('（示例）','')}}</text>
-</view>
-<text v-if="!teacherList.length" class="meta">名师内容待发布</text>
-</view>
-</view>
-<view class="section">
-<view class="section-head">
-<view><text class="eyebrow">LIVE</text><text class="section-heading">直播预告</text></view>
-<text class="section-link" @click="openPage('live/index')">更多 ›</text>
-</view>
-<view class="live-preview" @click="livePreview?openContent(livePreview!):openPage('live/index')">
-<view class="row"><AppIcon name="video-camera" :size="18"/><text class="live-copy">{{livePreview?.title??'暂无直播安排'}}</text></view>
-<text class="meta">{{livePreview?.summary||'发布后可查看开播时间'}}</text>
-</view>
-</view>
- <Recommendations/>
- <SponsoredContent surface="HOME"/>
-<text v-if="data.demoContentVisible" class="demo-note">示例内容仅供体验 · 正式交易尚未开放</text>
-</view>
- </view>
-</scroll-view>
-</view>
+  <view class="page">
+    <InkBackdrop :opacity="0.22" />
+    <view :style="{ height: safeTop + 'px' }" />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+      <view class="content">
+        <view class="row between brand-row">
+          <view class="row"><text class="brand">老子道学书院</text><AcademySeal /></view>
+          <view class="icon-button icon-control"
+            ><AppIcon name="bell" :size="20" /><button
+              class="icon-hit-target"
+              aria-label="我的消息"
+              @click="openPage('profile/messages')"
+            ></button
+          ></view>
+        </view>
+        <view class="search">
+          <AppIcon name="magnifying-glass" :size="15" />
+          <input
+            class="search-input"
+            placeholder="搜索经典、课程、文章、名师…"
+            v-model="searchText"
+            @confirm="search"
+          />
+        </view>
+        <view v-if="hero.video && pageVisible" class="home-hero">
+          <video
+            :key="heroVideoKey"
+            id="homeHeroVideo"
+            class="hero-video"
+            :src="assetUrl(hero.video)"
+            :controls="true"
+            :autoplay="true"
+            :muted="true"
+            :loop="true"
+            object-fit="cover"
+            @error="heroVideoError = true"
+          />
+          <view v-if="heroVideoError" class="hero-error"
+            ><text class="hero-error-text">视频暂时无法播放</text
+            ><button class="hero-retry" @click="reloadHero">重试</button></view
+          >
+        </view>
+        <view v-else-if="hero.images.length === 1" class="home-hero"
+          ><image class="hero-image" :src="assetUrl(hero.images[0])" mode="aspectFill"
+        /></view>
+        <view v-else-if="hero.images.length > 1" class="home-hero"
+          ><swiper
+            class="hero-swiper"
+            :autoplay="true"
+            :circular="true"
+            :indicator-dots="true"
+            :interval="5000"
+            ><swiper-item v-for="url in hero.images" :key="url"
+              ><image
+                class="hero-image"
+                :src="assetUrl(url)"
+                mode="aspectFill" /></swiper-item></swiper
+        ></view>
+        <view v-else class="home-hero" @click="readClassic">
+          <ArtImage kind="landscape" :mirror="true" :width="width" :height="160" />
+          <view class="hero-overlay">
+            <view class="grow"
+              ><text class="ink-title">上善若水</text
+              ><text class="ink-subtitle">《道德经》第八章 · 水善利万物而不争</text></view
+            >
+            <view class="read-pill"><text class="read-label">阅读经典</text></view>
+          </view>
+        </view>
+        <view class="home-shortcuts">
+          <view
+            v-for="item in shortcuts"
+            :key="item.label"
+            class="shortcut"
+            @click="shortcut(item.path)"
+          >
+            <view class="shortcut-icon"><AppIcon :name="item.icon" :size="20" /></view>
+            <text class="shortcut-label">{{ item.label }}</text>
+          </view>
+        </view>
+        <ContentState v-if="loading || error" :loading="loading" :error="error" @retry="load" />
+        <view v-else>
+          <view class="section-head home-first">
+            <view
+              ><text class="eyebrow">书院选读</text
+              ><text class="section-heading">精选经典</text></view
+            >
+            <text class="section-link" @click="switchPage('discover')">更多 ›</text>
+          </view>
+          <view v-if="featuredArticle" class="classic-card" @click="goArticle(featuredArticle.id)">
+            <ArtImage
+              :src="featuredArticle.cover"
+              kind="book"
+              :width="96"
+              :height="72"
+              fit="aspectFit"
+            />
+            <view class="classic-copy">
+              <text class="item-title classic-title">{{ featuredArticle.title }}</text>
+              <text class="article-summary">{{ featuredArticle.summary }}</text>
+            </view>
+          </view>
+          <ContentState v-else title="经典内容正在整理" />
+          <view class="section">
+            <view class="section-head">
+              <view
+                ><text class="eyebrow">研习路径</text
+                ><text class="section-heading">推荐课程</text></view
+              >
+              <text class="section-link" @click="switchPage('academy')">更多 ›</text>
+            </view>
+            <CourseRow
+              v-for="course in data.courses.slice(0, 1)"
+              :key="course.id"
+              :course="course"
+            />
+            <ContentState v-if="!data.courses.length" title="课程正在筹备" />
+          </view>
+          <ScrollDivider />
+          <view class="section">
+            <view class="section-head">
+              <view
+                ><text class="eyebrow">书院师承</text
+                ><text class="section-heading">名师</text></view
+              >
+              <text class="section-link" @click="openPage('teacher/index')">更多 ›</text>
+            </view>
+            <view class="row home-teachers">
+              <view
+                v-for="teacher in teacherList.slice(0, 3)"
+                :key="teacher.id"
+                class="home-teacher"
+                @click="openPage('teacher/detail?id=' + teacher.id)"
+              >
+                <TeacherAvatar :portrait="teacher.portrait" :demo="teacher.isDemo" :size="42" />
+                <text class="teacher-name">{{ teacher.name.replace('（示例）', '') }}</text>
+              </view>
+              <text v-if="!teacherList.length" class="meta">名师内容待发布</text>
+            </view>
+          </view>
+          <view v-if="livePreview" class="section">
+            <view class="section-head">
+              <text class="section-heading">{{
+                livePreview?.liveState === 'LIVE' ? '正在直播' : '直播预告'
+              }}</text>
+              <text class="section-link" @click="openPage('live/index')">更多 ›</text>
+            </view>
+            <view class="live-preview" @click="openContent(livePreview!)">
+              <view class="row"
+                ><AppIcon name="video-camera" :size="18" /><text class="live-copy">{{
+                  livePreview?.title
+                }}</text></view
+              >
+              <text class="meta live-meta">{{ livePreviewDescription }}</text>
+            </view>
+          </view>
+          <Recommendations :width="width" />
+          <SponsoredContent surface="HOME" />
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </template>
 <script setup lang="ts">
 import InkBackdrop from '../../components/InkBackdrop.uvue';
@@ -95,14 +167,282 @@ import AcademySeal from '../../components/AcademySeal.uvue';
 import ScrollDivider from '../../components/ScrollDivider.uvue';
 import Recommendations from '../../components/Recommendations.uvue';
 import SponsoredContent from '../../components/SponsoredContent.uvue';
-import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import CourseRow from '../../components/CourseRow.uvue';import ContentState from '../../components/ContentState.uvue';import TeacherAvatar from '../../components/TeacherAvatar.uvue';
-import type {DiscoveryItem} from '../../lib/discovery';import {openContent} from '../../lib/discovery';import {request,goArticle,assetUrl} from '../../lib/api';import type {HomeData,Teacher} from '../../lib/api';import {viewWidth,openPage,teachers} from '../../lib/presentation';
-const width=viewWidth(),safeTop=Math.max(16,uni.getWindowInfo().statusBarHeight||0),data=ref<HomeData>({articles:[],courses:[],products:[],events:[],development:false}),teacherList=ref<Teacher[]>([]),loading=ref(true),error=ref(''),searchText=ref(''),livePreview=ref<DiscoveryItem|null>(null);const classic=computed(()=>data.value.articles.find(a=>a.category==='经典原文'));
-const shortcuts=[{label:'文章',icon:'note-pencil',path:'tab:discover'},{label:'名师',icon:'user',path:'teacher/index'},{label:'课程',icon:'book-open',path:'tab:academy'},{label:'直播',icon:'video-camera',path:'live/index'},{label:'社区',icon:'chat-circle',path:'community/index'},{label:'商城',icon:'bag',path:'tab:shop'},{label:'会员',icon:'crown',path:'membership/index'}];
-function switchPage(name:string){uni.switchTab({url:'/pages/'+name+'/index'});}function shortcut(path:string){if(path.startsWith('tab:'))switchPage(path.slice(4));else openPage(path);}
-function readClassic(){if(classic.value)goArticle(classic.value.id);else switchPage('discover');}function search(){openPage('search/index?q='+encodeURIComponent(searchText.value));}
-const hero=ref<{images:string[];video:string}>({images:[],video:''}),pageVisible=ref(false),heroVideoError=ref(false),heroVideoKey=ref(0);
-async function reloadHero(){heroVideoError.value=false;heroVideoKey.value++;try{hero.value=await request<{images:string[];video:string}>('/configuration/home-hero');}catch{hero.value={images:[],video:''};}}
-async function load(){loading.value=true;error.value='';try{data.value=await request<HomeData>('/catalog/home');const [people,live]=await Promise.all([teachers(),request<{items:DiscoveryItem[]}>('/discovery/search?type=LIVE&size=1&sort=recent')]);teacherList.value=people;livePreview.value=live.items[0]??null;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}onLoad(load);onShow(()=>{pageVisible.value=true;void reloadHero();});onHide(()=>{pageVisible.value=false;});
+import AppIcon from '../../components/AppIcon.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import CourseRow from '../../components/CourseRow.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import TeacherAvatar from '../../components/TeacherAvatar.uvue';
+import type { DiscoveryItem } from '../../lib/discovery';
+import { openContent } from '../../lib/discovery';
+import { request, goArticle, assetUrl } from '../../lib/api';
+import type { HomeData, Teacher } from '../../lib/api';
+import { viewWidth, openPage, teachers } from '../../lib/presentation';
+const width = ref(viewWidth()),
+  safeTop = Math.max(16, uni.getWindowInfo().statusBarHeight || 0),
+  data = ref<HomeData>({ articles: [], courses: [], products: [], events: [], development: false }),
+  teacherList = ref<Teacher[]>([]),
+  loading = ref(true),
+  error = ref(''),
+  searchText = ref(''),
+  livePreview = ref<DiscoveryItem | null>(null);
+const livePreviewDescription = computed(() => {
+  const preview = livePreview.value;
+  const summary = preview?.summary.trim() ?? '';
+  if (summary && summary !== (preview?.title.trim() ?? '')) return summary;
+  return preview?.liveState === 'LIVE' ? '正在直播' : '查看直播安排';
+});
+const classic = computed(() => data.value.articles.find((a) => a.category === '经典原文'));
+const featuredArticle = computed(() => classic.value ?? data.value.articles[0]);
+const shortcuts = [
+  { label: '文章', icon: 'note-pencil', path: 'tab:discover' },
+  { label: '名师', icon: 'user', path: 'teacher/index' },
+  { label: '课程', icon: 'book-open', path: 'tab:academy' },
+  { label: '直播', icon: 'video-camera', path: 'live/index' },
+  { label: '社区', icon: 'chat-circle', path: 'community/index' },
+  { label: '商城', icon: 'bag', path: 'tab:shop' },
+  { label: '会员', icon: 'crown', path: 'membership/index' },
+];
+function switchPage(name: string) {
+  uni.switchTab({ url: '/pages/' + name + '/index' });
+}
+function shortcut(path: string) {
+  if (path.startsWith('tab:')) switchPage(path.slice(4));
+  else openPage(path);
+}
+function readClassic() {
+  if (classic.value) goArticle(classic.value.id);
+  else switchPage('discover');
+}
+function search() {
+  openPage('search/index?q=' + encodeURIComponent(searchText.value));
+}
+const hero = ref<{ images: string[]; video: string }>({ images: [], video: '' }),
+  pageVisible = ref(false),
+  heroVideoError = ref(false),
+  heroVideoKey = ref(0);
+async function reloadHero() {
+  heroVideoError.value = false;
+  heroVideoKey.value++;
+  try {
+    hero.value = await request<{ images: string[]; video: string }>('/configuration/home-hero');
+  } catch {
+    hero.value = { images: [], video: '' };
+  }
+}
+async function load() {
+  loading.value = true;
+  error.value = '';
+  try {
+    data.value = await request<HomeData>('/catalog/home');
+    const [people, live] = await Promise.all([
+      teachers(),
+      request<{ items: DiscoveryItem[] }>('/discovery/search?type=LIVE&size=12&sort=recent'),
+    ]);
+    teacherList.value = people;
+    livePreview.value =
+      live.items.find((item) => item.liveState === 'LIVE') ??
+      live.items.find(
+        (item) =>
+          item.liveState === 'PREPARING' ||
+          (item.liveState === 'SCHEDULED' && Date.parse(item.scheduledAt ?? '') >= Date.now()),
+      ) ??
+      null;
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+onLoad(load);
+onResize((event) => {
+  width.value = viewWidth(event.size.windowWidth);
+});
+onShow(() => {
+  width.value = viewWidth();
+  pageVisible.value = true;
+  void reloadHero();
+});
+onHide(() => {
+  pageVisible.value = false;
+});
 </script>
-<style>@import '../../styles/app.css';.home-hero{position:relative;border-radius:12px;overflow:hidden;}.hero-image,.hero-video,.hero-swiper{width:100%;height:160px;}.hero-video{background-color:#182B31;}.hero-error{position:absolute;left:0;right:0;top:0;bottom:0;align-items:center;justify-content:center;background-color:#182B31;}.hero-error-text{color:#fff;font-size:13px;}.hero-retry{color:#fff;background-color:#235663;margin-top:8px;font-size:12px;}.hero-overlay{position:absolute;left:22px;top:19px;}.ink-title{font-family:AcademyCalligraphy;font-size:34px;line-height:42px;color:#182B31;letter-spacing:4px;}.ink-subtitle{font-family:AcademySerif;font-size:12px;line-height:18px;letter-spacing:2px;color:#344C54;margin-top:5px;}.ink-caption{font-family:AcademySerif;font-size:11px;line-height:18px;color:#344C54;margin-top:12px;}.read-pill{background-color:#235663;border-radius:17px;padding:6px 15px;align-self:flex-start;margin-top:12px;}.read-label{font-family:AcademySans;color:#FCF9F2;font-size:12px;line-height:17px;}.home-shortcuts{flex-direction:row;justify-content:space-between;padding:12px 0 10px;}.shortcut{align-items:center;flex:1;min-height:40px;}.shortcut-label{font-family:AcademySans;font-size:11px;color:#235663;margin-top:7px;line-height:15px;}.classic-card{border-style:solid;border-width:1px;border-color:#E3DCCF;flex-direction:row;padding:10px;border-radius:12px;background-color:#FCF9F2;}.classic-copy{flex:1;padding-left:12px;justify-content:center;}.home-columns{flex-direction:row;}.teacher-column{flex:1;padding-right:10px;}.live-column{flex:1;}.home-teachers{flex-direction:row;align-items:flex-start;}.home-teacher{align-items:center;margin-right:26px;max-width:86px;}.teacher-name{font-family:AcademySans;font-size:11px;color:#5F6A6D;margin-top:6px;max-height:32px;overflow:hidden;line-height:16px;text-align:center;}.live-preview{border-style:solid;border-width:1px;border-color:#E3DCCF;border-radius:12px;padding:14px 16px;background-color:#FCF9F2;}.live-copy{font-family:AcademySans;font-size:14px;font-weight:600;color:#235663;margin-left:8px;line-height:22px;}</style>
+<style>
+@import '../../styles/app.css';
+.home-hero {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #f0eadd;
+}
+.hero-image,
+.hero-video,
+.hero-swiper {
+  width: 100%;
+  height: 160px;
+}
+.hero-video {
+  background-color: #182b31;
+}
+.hero-error {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  background-color: #182b31;
+}
+.hero-error-text {
+  color: #fcf9f2;
+  font-size: 13px;
+  line-height: 22px;
+}
+.hero-retry {
+  color: #fcf9f2;
+  background-color: #235663;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 22px;
+  min-height: 44px;
+  border-radius: 23px;
+  padding: 11px 20px;
+}
+.hero-overlay {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 16px;
+  flex-direction: row;
+  align-items: center;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.ink-title {
+  font-family: AcademyCalligraphy;
+  font-size: 26px;
+  line-height: 36px;
+  color: #182b31;
+  letter-spacing: 2px;
+}
+.ink-subtitle {
+  font-family: AcademySerif;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 1px;
+  color: #5c6869;
+  margin-top: 4px;
+}
+.read-pill {
+  background-color: #235663;
+  border-radius: 10px;
+  height: 44px;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.read-label {
+  font-size: 15px;
+  line-height: 24px;
+  color: #fcf9f2;
+}
+.home-shortcuts {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 12px 0 4px;
+}
+.shortcut {
+  width: 14.28%;
+  align-items: center;
+  justify-content: center;
+  min-height: 66px;
+}
+.shortcut-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background-color: #eae4d8;
+  align-items: center;
+  justify-content: center;
+}
+.shortcut-label {
+  font-size: 11px;
+  line-height: 18px;
+  color: #235663;
+  margin-top: 4px;
+}
+.classic-card {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+  border-radius: 14px;
+  background-color: #fcf9f2;
+}
+.classic-copy {
+  flex: 1;
+  min-width: 0;
+  padding-left: 12px;
+  justify-content: center;
+}
+.home-teachers {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.home-teacher {
+  align-items: center;
+  margin-right: 24px;
+  max-width: 88px;
+}
+.teacher-name {
+  font-size: 12px;
+  color: #5c6869;
+  margin-top: 8px;
+  max-height: 40px;
+  overflow: hidden;
+  line-height: 20px;
+  text-align: center;
+}
+.live-preview {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+  padding: 16px;
+  background-color: #fcf9f2;
+}
+.live-copy {
+  font-size: 16px;
+  font-weight: 600;
+  color: #182b31;
+  margin-left: 8px;
+  line-height: 24px;
+}
+.live-meta {
+  margin-top: 8px;
+}
+.home-first {
+  margin-top: 20px;
+}
+.classic-title {
+  max-height: 48px;
+  overflow: hidden;
+}
+.article-summary {
+  color: #5c6869;
+  max-height: 44px;
+  overflow: hidden;
+}
+.brand {
+  font-size: 26px;
+  line-height: 36px;
+}
+</style>

@@ -1,63 +1,403 @@
 <template>
-<view class="page">
-<InkBackdrop/>
-<SafeTop/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<view class="row between shop-heading">
-<text class="page-title">好物</text>
-<view class="search shop-search">
-<AppIcon name="magnifying-glass" :size="15"/>
-<input class="search-input" placeholder="搜索商品" v-model="query" @confirm="load()"/>
-</view>
-<view class="icon-button icon-control"><AppIcon name="shopping-cart" :size="20"/><button class="icon-hit-target" aria-label="购物车" @click="openPage('shop/cart')"></button></view>
-</view>
-<view class="category-grid">
-<view v-for="item in categories" :key="item.label" class="category-item" @click="category=category===item.code?'全部':item.code">
-<view :class="['category-circle',category===item.code?'category-circle-selected':'']">
-<AppIcon :name="item.icon" :size="23" :active="category===item.code"/>
-</view>
-<text :class="['category-label',category===item.code?'category-label-selected':'']">{{item.label}}</text>
-</view>
-</view>
-<view class="chips shop-filters">
-<view :class="['chip',sort==='recent'?'chip-active':'']" @click="sort='recent'"><text :class="['chip-text',sort==='recent'?'chip-text-active':'']">最新</text></view>
-<view :class="['chip',sort==='popular'?'chip-active':'']" @click="sort='popular'"><text :class="['chip-text',sort==='popular'?'chip-text-active':'']">热销</text></view>
-<view class="grow"/>
-<view class="chip" @click="sort=sort==='priceAsc'?'priceDesc':'priceAsc'">
-<text class="chip-text">价格 {{['recent','popular'].includes(sort)?'↕':sort==='priceAsc'?'↑':'↓'}}</text>
-</view>
-</view>
-<text v-if="categoryError" class="muted" @click="refreshCategories()">{{categoryError}}</text>
-<ContentState v-if="loading&&!products.length||error" :loading="loading" :error="error" @retry="retry()"/>
-<view v-if="!error&&(!loading||products.length)">
-<view class="product-grid">
-<view v-for="product in sorted" :key="product.id" class="product-card" @click="goProduct(product.id)">
-<ArtImage :src="product.cover" :kind="artwork(product.cover,product.category)" :width="cardWidth" :height="132"/>
-<view class="product-copy">
-<text class="product-title">{{product.title}}</text>
-<text class="product-caption">{{product.subtitle}}</text>
-<view class="row between">
-<text class="price">¥{{money(product.price)}}</text>
-<view class="product-cart icon-control"><AppIcon name="shopping-cart" :size="19"/><button class="icon-hit-target" aria-label="查看商品规格" @click.stop="goProduct(product.id)"></button></view>
-</view>
-</view>
-</view>
-</view>
-<ContentState v-if="!products.length" title="这一类好物正在筹备"/>
-<button v-if="nextCursor" :class="['retry',loadingMore?'is-disabled':'']" @click="load(true)">更多好物</button>
-</view>
-</view>
-</scroll-view>
-</view>
+  <view class="page">
+    <InkBackdrop :opacity="0.18" />
+    <SafeTop />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+      <view class="content">
+        <view class="row between shop-heading">
+          <text class="ui-text page-title">好物</text>
+          <view class="search shop-search">
+            <AppIcon name="magnifying-glass" :size="15" />
+            <input
+              class="ui-input search-input"
+              placeholder="搜索商品"
+              v-model="query"
+              @confirm="load()"
+            />
+          </view>
+          <view class="icon-button icon-control"
+            ><AppIcon name="shopping-cart" :size="20" /><button
+              class="ui-button icon-hit-target"
+              aria-label="购物车"
+              @click="openPage('shop/cart')"
+            ></button
+          ></view>
+        </view>
+        <ContentState v-if="categoryError" :error="categoryError" @retry="refreshCategories()" />
+        <ContentState v-if="!categoryError && !mallCategories.length" title="商城正在准备" />
+        <view class="mall-sections">
+          <view
+            v-for="item in mallCategories"
+            :key="item.code"
+            :class="['mall-section', category === item.code ? 'mall-section-active' : '']"
+            @click="category = item.code"
+          >
+            <text
+              :class="[
+                'ui-text mall-section-label',
+                category === item.code ? 'mall-section-label-active' : '',
+              ]"
+              >{{ item.label }}</text
+            >
+            <view v-if="category === item.code" class="mall-section-indicator" />
+          </view>
+        </view>
+        <view class="chips shop-filters">
+          <view :class="['chip', sort === 'recent' ? 'chip-active' : '']" @click="sort = 'recent'"
+            ><text
+              class="ui-text"
+              :class="['chip-text', sort === 'recent' ? 'chip-text-active' : '']"
+              >最新</text
+            ></view
+          >
+          <view :class="['chip', sort === 'popular' ? 'chip-active' : '']" @click="sort = 'popular'"
+            ><text
+              class="ui-text"
+              :class="['chip-text', sort === 'popular' ? 'chip-text-active' : '']"
+              >热销</text
+            ></view
+          >
+          <view class="grow" />
+          <view class="sort-chip" @click="sort = sort === 'priceAsc' ? 'priceDesc' : 'priceAsc'">
+            <text
+              class="ui-text"
+              :class="[
+                'sort-chip-text',
+                sort === 'priceAsc' || sort === 'priceDesc' ? 'sort-chip-active' : '',
+              ]"
+              >价格
+              {{
+                ['recent', 'popular'].includes(sort) ? '↕' : sort === 'priceAsc' ? '↑' : '↓'
+              }}</text
+            >
+          </view>
+        </view>
+        <ContentState
+          v-if="!activeCount && (loading || error)"
+          :loading="loading"
+          :error="error"
+          @retry="retry()"
+        />
+        <view v-if="error && activeCount" class="list-warning"
+          ><text class="ui-text list-warning-copy">内容暂未更新，已保留当前列表。</text
+          ><button class="ui-button text-button" @click="retry()">重试</button></view
+        >
+        <view v-if="category && (activeCount || (!loading && !error))">
+          <view class="shop-feed">
+            <view v-for="(column, index) in columns" :key="index" class="shop-column">
+              <view
+                v-for="product in column"
+                :key="product.id"
+                class="product-card"
+                @click="goProduct(product.id)"
+              >
+                <ArtImage
+                  :src="assetUrl(product.cover)"
+                  :kind="artwork(product.cover, product.category)"
+                  :width="cardWidth"
+                  :height="Math.round(cardWidth * 0.8)"
+                  :radius="0"
+                  fit="aspectFit"
+                  :natural="true"
+                />
+                <view
+                  v-if="
+                    product.skus &&
+                    product.skus.length &&
+                    product.skus.every((s) => s.available <= 0)
+                  "
+                  class="pill pill-muted product-stock"
+                  ><text class="ui-text pill-text product-stock-text">售罄</text></view
+                >
+                <view class="product-copy">
+                  <view>
+                    <text class="ui-text product-title">{{ product.title }}</text>
+                    <text
+                      v-if="
+                        product.subtitle.trim() && product.subtitle.trim() !== product.title.trim()
+                      "
+                      class="ui-text product-caption"
+                      >{{ product.subtitle }}</text
+                    >
+                  </view>
+                  <view class="row between product-foot">
+                    <text class="ui-text price">¥{{ money(product.price) }}</text>
+                    <view class="product-action icon-control"
+                      ><view class="product-action-mark"
+                        ><AppIcon name="arrow-right" :size="16" /></view
+                      ><button
+                        class="ui-button icon-hit-target"
+                        aria-label="查看商品详情"
+                        @click.stop="goProduct(product.id)"
+                      ></button
+                    ></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <ContentState
+            v-if="!activeCount"
+            :title="category === 'VIDEO' ? '视频课件正在筹备' : '这一类商品正在筹备'"
+          />
+          <button
+            class="ui-button"
+            v-if="nextCursor"
+            :class="['retry', loadingMore ? 'is-disabled' : '']"
+            @click="load(true)"
+            >更多好物</button
+          >
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </template>
 <script setup lang="ts">
-import {useCategories} from '../../lib/categories';
 import InkBackdrop from '../../components/InkBackdrop.uvue';
 
 import SafeTop from '../../components/SafeTop.uvue';
-import AppIcon from '../../components/AppIcon.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {money,goProduct} from '../../lib/api';import {useCatalog} from '../../lib/catalog';import {artwork,viewWidth,openPage} from '../../lib/presentation';import type {Product} from '../../lib/api';
-const {categories,categoryError,refreshCategories}=useCategories('PRODUCT',false);const cardWidth=viewWidth()*0.485-2,category=ref('全部'),query=ref(''),sort=ref('recent');
-const {items:products,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Product>('products',()=>({category:category.value,q:query.value,sort:sort.value}));const sorted=computed(()=>products.value);watch([category,sort],()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());onShow(async()=>{await refreshCategories();if(category.value!=='全部'&&!categories.value.some(item=>item.code===category.value))category.value='全部';});
+import AppIcon from '../../components/AppIcon.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { assetUrl, money, goProduct } from '../../lib/api';
+import { useCatalog } from '../../lib/catalog';
+import { artwork, openPage, viewWidth } from '../../lib/presentation';
+import type { Product } from '../../lib/api';
+import { useCategories } from '../../lib/categories';
+const {
+  categories: mallCategories,
+  categoryError,
+  refreshCategories,
+} = useCategories('MALL', false);
+const category = ref('LIFESTYLE'),
+  query = ref(''),
+  sort = ref('recent'),
+  width = ref(viewWidth());
+const goods = useCatalog<Product>('products', () => ({
+  category: '全部',
+  mallCategory: category.value,
+  q: query.value,
+  sort: sort.value,
+}));
+const products = goods.items,
+  loading = goods.loading,
+  loadingMore = goods.loadingMore,
+  error = goods.error,
+  nextCursor = goods.nextCursor,
+  activeCount = computed(() => products.value.length),
+  cardWidth = computed(() => width.value * 0.485 - 2);
+const columns = computed(() => {
+  const left: Product[] = [];
+  const right: Product[] = [];
+  products.value.forEach((product, index) => {
+    (index % 2 === 0 ? left : right).push(product);
+  });
+  return [left, right];
+});
+function load(append = false) {
+  return goods.load(append);
+}
+function retry() {
+  return goods.retry();
+}
+watch(category, () => {
+  void load();
+});
+watch(sort, () => load());
+let timer: ReturnType<typeof setTimeout> | null = null;
+watch(query, () => {
+  if (timer !== null) clearTimeout(timer);
+  timer = setTimeout(() => load(), 300);
+});
+onUnload(() => {
+  if (timer !== null) clearTimeout(timer);
+});
+onResize((event) => {
+  width.value = viewWidth(event.size.windowWidth);
+});
+onShow(async () => {
+  width.value = viewWidth();
+  await refreshCategories();
+  if (!mallCategories.value.some((c) => c.code === category.value))
+    category.value = mallCategories.value[0]?.code ?? '';
+  if (category.value) void load();
+});
 </script>
-<style>@import '../../styles/app.css';.category-grid{flex-wrap:wrap;}.shop-search{flex:1;margin:0 0 0 14px;}.shop-heading{margin-bottom:16px;}.shop-filters{border-style:solid;border-width:0;margin-bottom:10px;border-bottom-width:1px;border-bottom-color:#E3DCCF;}.product-title{min-height:46px;}.product-caption{font-family:AcademySans;font-size:12px;color:#6A7578;line-height:19px;margin-top:2px;height:38px;overflow:hidden;}.product-cart{border-style:solid;border-width:0;background-color:transparent;border-width:0;width:31px;height:32px;padding:0;margin:0;align-items:center;justify-content:center;}</style>
+<style>
+@import '../../styles/app.css';
+.page-title {
+  font-size: 24px;
+  line-height: 34px;
+  letter-spacing: 0.3px;
+}
+.shop-heading {
+  margin-bottom: 8px;
+  align-items: center;
+}
+.shop-search {
+  flex: 1;
+  min-width: 0;
+  margin: 0 0 0 12px;
+}
+.mall-sections {
+  flex-direction: row;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #ded9cf;
+}
+.mall-section {
+  flex: 1;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 10px 4px;
+}
+.mall-section-label {
+  font-size: 16px;
+  line-height: 26px;
+  color: #687374;
+}
+.mall-section-label-active {
+  color: #182b31;
+  font-weight: 600;
+}
+.mall-section-indicator {
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: #235663;
+}
+.shop-filters {
+  flex-direction: row;
+  align-items: center;
+  min-height: 48px;
+  padding-bottom: 0;
+  margin-bottom: 12px;
+  border-style: solid;
+  border-width: 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.chip {
+  border-style: solid;
+  border-width: 0;
+  min-height: 44px;
+  justify-content: center;
+  padding: 10px 12px;
+  margin-right: 8px;
+  background-color: transparent;
+  border-bottom-width: 2px;
+  border-bottom-color: transparent;
+  flex-shrink: 0;
+}
+.chip-active {
+  border-bottom-color: #235663;
+}
+.chip-text {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.chip-text-active {
+  color: #182b31;
+  font-weight: 600;
+}
+.shop-feed {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.shop-column {
+  width: 48.5%;
+}
+.product-card {
+  position: relative;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #e7dfd2;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fffdf8;
+}
+.product-stock {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background-color: #f0eadd;
+}
+.product-stock-text {
+  color: #5c6869;
+  font-weight: 600;
+}
+.sort-chip {
+  min-height: 44px;
+  justify-content: center;
+  padding: 0 8px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.sort-chip-text {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.sort-chip-active {
+  color: #235663;
+  font-weight: 600;
+}
+.product-copy {
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
+  padding: 8px 10px 10px;
+}
+.product-title {
+  font-family: sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  max-height: 44px;
+  overflow: hidden;
+}
+.product-caption {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  color: #5c6869;
+  margin-top: 4px;
+  max-height: 18px;
+  overflow: hidden;
+}
+.product-foot {
+  align-items: center;
+  margin-top: 4px;
+}
+.product-action {
+  border-style: solid;
+  border-width: 0;
+  background-color: transparent;
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px -8px 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.product-action-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  background-color: #e6ede9;
+}
+</style>

@@ -1,11 +1,11 @@
-import App from './App.uvue'
+import App from './App.uvue';
 
-import { createSSRApp } from 'vue'
-import {restoreSession} from './lib/session'
+import { createSSRApp } from 'vue';
+import { restoreSession } from './lib/session';
 export function createApp() {
-	restoreSession()
-	const app = createSSRApp(App)
-	return {
-		app
-	}
+  restoreSession();
+  const app = createSSRApp(App);
+  return {
+    app,
+  };
 }

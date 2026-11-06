@@ -27,3 +27,19 @@
 /apps.zip
 /outputs/android/*.apk
 /node_modules.c-move-backup*/
+
+# Local merchant tooling and extracted desktop runtimes are not application source.
+/WXCertUtil/
+/cert/
+/CA/
+/bearer/
+/iconengines/
+/imageformats/
+/platforms/
+/styles/
+/translations/
+/*.dll
+/*.lib
+/*.exe
+
+/.tmp-ui/

@@ -1,62 +1,110 @@
 <template>
-<view><ReportModal v-if="reportComment" :resourceId="resourceId" :commentId="reportComment" @close="reportComment=''"/><view class="comment-section">
-<view class="section-header">
-<text class="section-title">评论</text>
-<button class="write-comment" @click="emit('reply',null,null,null)">写评论</button>
-</view>
-<view v-for="item in mine" :key="item.id" class="my-comment"><view class="comment-header"><text class="comment-author">我的{{item.parentId?'回复':'评论'}}</text><text class="comment-time">{{item.reviewState==='PENDING'?'待审核 · 仅自己可见':'未通过审核 · 仅自己可见'}}</text></view><text class="comment-body" :user-select="true">{{item.body}}</text><button class="withdraw-comment withdraw-mine" @click="remove(item.id)">{{item.reviewState==='PENDING'?'撤回':'删除'}}</button></view>
-<view v-if="ready&&comments.length===0&&mine.length===0&&!loading&&!error" class="empty-state">
-<text class="empty-text">暂无评论，快来发表你的见解吧</text>
-</view>
-<view v-for="c in comments" :key="c.id" class="comment-item">
-<view class="comment-avatar"><image v-if="c.author?.avatar" :src="assetUrl(c.author?.avatar)" class="comment-avatar-image" mode="aspectFill"/><AppIcon v-else name="user" :size="20"/></view>
-<view class="comment-content">
-<view class="comment-header">
-<text class="comment-author">{{c.author?.nickname??'匿名'}}</text>
-<text class="comment-time">{{formatTime(c.createdAt)}}</text>
-</view>
-<text class="comment-body" :user-select="true">{{c.body}}</text>
-<view v-if="c.quoteSnapshot" class="comment-quote">
-<text class="quote-text" :user-select="true">引用 · {{c.quoteSnapshot}}</text>
-</view>
-<view class="comment-actions"><button v-if="c.author?.id!==currentUser?.id" class="withdraw-comment" @click="report(c.id)">举报</button><button v-if="c.author?.id===currentUser?.id" class="withdraw-comment" @click="remove(c.id)">删除</button>
-<view class="action-btn" @click="replyTo(c.id,c.author?.nickname??'')">
-<AppIcon name="arrow-bend-up-left" :size="14"/>
-<text class="action-label">回复</text>
-</view>
-</view>
-<button v-if="c.replyCount>(c.replies?.length??0)||c.repliesCursor" class="load-more-text" @click="allReplies(c)">查看更多回复</button>
-<view v-if="c.replies&&c.replies.length>0" class="replies">
-<view v-for="r in c.replies" :key="r.id" class="reply-item">
-<view class="reply-avatar"><AppIcon name="user" :size="18"/></view>
-<view class="reply-content">
-<text class="reply-author">{{r.author?.nickname??'匿名'}}</text>
-<text class="reply-body" :user-select="true">{{r.body}}</text>
-</view>
-</view>
-</view>
-</view>
-</view>
-<text v-if="error" class="empty-text" @click="load(failedAppend)">{{error}} · 点击重试</text>
-<view v-if="hasMore&&!loading" class="load-more" @click="loadMore">
-<text class="load-more-text">加载更多评论</text>
-</view>
-<view v-if="loading" class="loading-indicator">
-<text class="loading-text">加载中...</text>
-</view>
-</view>
-</view></template>
+  <view
+    ><ReportModal
+      v-if="reportComment"
+      :resourceId="resourceId"
+      :commentId="reportComment"
+      @close="reportComment = ''"
+    /><view class="comment-section">
+      <view class="section-header">
+        <text class="ui-text section-title">评论</text>
+        <button class="ui-button write-comment" @click="emit('reply', null, null, null)"
+          >写评论</button
+        >
+      </view>
+      <view v-for="item in mine" :key="item.id" class="my-comment"
+        ><view class="comment-header"
+          ><text class="ui-text comment-author">我的{{ item.parentId ? '回复' : '评论' }}</text
+          ><text class="ui-text comment-time">{{
+            item.reviewState === 'PENDING' ? '待审核 · 仅自己可见' : '未通过审核 · 仅自己可见'
+          }}</text></view
+        ><text class="ui-text comment-body" :user-select="true">{{ item.body }}</text
+        ><button class="ui-button withdraw-comment withdraw-mine" @click="remove(item.id)">{{
+          item.reviewState === 'PENDING' ? '撤回' : '删除'
+        }}</button></view
+      >
+      <view
+        v-if="ready && comments.length === 0 && mine.length === 0 && !loading && !error"
+        class="empty-state"
+      >
+        <text class="ui-text empty-text">暂无评论，快来发表你的见解吧</text>
+      </view>
+      <view v-for="c in comments" :key="c.id" class="comment-item">
+        <view class="comment-avatar"
+          ><image
+            v-if="c.author?.avatar"
+            :src="assetUrl(c.author?.avatar)"
+            class="comment-avatar-image"
+            mode="aspectFill" /><AppIcon v-else name="user" :size="20"
+        /></view>
+        <view class="comment-content">
+          <view class="comment-header">
+            <text class="ui-text comment-author">{{ c.author?.nickname ?? '匿名' }}</text>
+            <text class="ui-text comment-time">{{ formatTime(c.createdAt) }}</text>
+          </view>
+          <text class="ui-text comment-body" :user-select="true">{{ c.body }}</text>
+          <view v-if="c.quoteSnapshot" class="comment-quote">
+            <text class="ui-text quote-text" :user-select="true">引用 · {{ c.quoteSnapshot }}</text>
+          </view>
+          <view class="comment-actions"
+            ><button
+              v-if="c.author?.id !== currentUser?.id"
+              class="ui-button withdraw-comment"
+              @click="report(c.id)"
+              >举报</button
+            ><button
+              v-if="c.author?.id === currentUser?.id"
+              class="ui-button withdraw-comment"
+              @click="remove(c.id)"
+              >删除</button
+            >
+            <view class="action-btn" @click="replyTo(c.id, c.author?.nickname ?? '')">
+              <AppIcon name="arrow-bend-up-left" :size="14" />
+              <text class="ui-text action-label">回复</text>
+            </view>
+          </view>
+          <button
+            v-if="c.replyCount > (c.replies?.length ?? 0) || c.repliesCursor"
+            class="ui-button load-more-text"
+            @click="allReplies(c)"
+            >查看更多回复</button
+          >
+          <view v-if="c.replies && c.replies.length > 0" class="replies">
+            <view v-for="r in c.replies" :key="r.id" class="reply-item">
+              <view class="reply-avatar"><AppIcon name="user" :size="18" /></view>
+              <view class="reply-content">
+                <text class="ui-text reply-author">{{ r.author?.nickname ?? '匿名' }}</text>
+                <text class="ui-text reply-body" :user-select="true">{{ r.body }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <text v-if="error" class="ui-text empty-text" @click="load(failedAppend)"
+        >{{ error }} · 点击重试</text
+      >
+      <view v-if="hasMore && !loading" class="load-more" @click="loadMore">
+        <text class="ui-text load-more-text">加载更多评论</text>
+      </view>
+      <view v-if="loading" class="loading-indicator">
+        <text class="ui-text loading-text">加载中...</text>
+      </view>
+    </view>
+  </view>
+</template>
 <script setup lang="ts">
-import {formatChinaDate} from '../../lib/date-time';
+import { formatChinaDate } from '../../lib/date-time';
 import { ref } from 'vue';
-import { request,assetUrl } from '../../lib/api';
+import { request, assetUrl } from '../../lib/api';
 import AppIcon from '../../components/AppIcon.uvue';
-import ReportModal from '../../components/report-modal.uvue';import {needLogin} from '../../lib/session';import {currentUser} from '../../lib/session';
+import ReportModal from '../../components/report-modal.uvue';
+import { needLogin } from '../../lib/session';
+import { currentUser } from '../../lib/session';
 
 interface Author {
   id: string;
   nickname: string;
-  avatar: string|null;
+  avatar: string | null;
 }
 
 interface Reply {
@@ -71,10 +119,10 @@ interface Comment {
   id: string;
   body: string;
   authorId: string;
-  quoteSnapshot: string|null;
-  replyCount:number;
-  repliesCursor?:string|null;
-  expanded?:boolean;
+  quoteSnapshot: string | null;
+  replyCount: number;
+  repliesCursor?: string | null;
+  expanded?: boolean;
   createdAt: string;
   author?: Author;
   replies?: Reply[];
@@ -82,7 +130,7 @@ interface Comment {
 
 interface CommentsResponse {
   items: Comment[];
-  nextCursor: string|null;
+  nextCursor: string | null;
 }
 
 const props = defineProps<{
@@ -90,32 +138,44 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  reply: [parentId: string|null, parentAuthor: string|null, quotedBlockId: string|null];
+  reply: [parentId: string | null, parentAuthor: string | null, quotedBlockId: string | null];
 }>();
 
-const reportComment=ref('');function report(id:string){if(!needLogin())reportComment.value=id;}
-const comments = ref<Comment[]>([]),mine=ref<{id:string;body:string;reviewState:string;parentId:string|null}[]>([]);
-const cursor = ref<string|null>(null);
+const reportComment = ref('');
+function report(id: string) {
+  if (!needLogin()) reportComment.value = id;
+}
+const comments = ref<Comment[]>([]),
+  mine = ref<{ id: string; body: string; reviewState: string; parentId: string | null }[]>([]);
+const cursor = ref<string | null>(null);
 const hasMore = ref(false);
 const loading = ref(false);
-const error=ref('');
-const ready=ref(false);let failedAppend=false;
+const error = ref('');
+const ready = ref(false);
+let failedAppend = false;
 
-async function load(append=false) {
+async function load(append = false) {
   if (loading.value) return;
-  loading.value = true;failedAppend=append;
+  loading.value = true;
+  failedAppend = append;
   try {
-    if(!append)cursor.value=null;
-    error.value='';
+    if (!append) cursor.value = null;
+    error.value = '';
     const params = cursor.value ? `?cursor=${cursor.value}` : '';
     const res = await request<CommentsResponse>(`/articles/${props.resourceId}/comments${params}`);
     comments.value = cursor.value ? [...comments.value, ...res.items] : res.items;
     cursor.value = res.nextCursor;
-    hasMore.value = !!res.nextCursor;if(!append){mine.value=currentUser.value?await request('/articles/'+props.resourceId+'/comments/mine'):[];}
+    hasMore.value = !!res.nextCursor;
+    if (!append) {
+      mine.value = currentUser.value
+        ? await request('/articles/' + props.resourceId + '/comments/mine')
+        : [];
+    }
   } catch (e) {
-    error.value=(e as Error).message;
+    error.value = (e as Error).message;
   } finally {
-    loading.value = false;ready.value=true;
+    loading.value = false;
+    ready.value = true;
   }
 }
 
@@ -123,9 +183,44 @@ function loadMore() {
   if (hasMore.value && !loading.value) load(true);
 }
 
-async function allReplies(c:Comment){try{const data=await request<{items:Reply[];nextCursor:string|null}>('/articles/'+props.resourceId+'/comments?parentId='+c.id+(c.repliesCursor?'&cursor='+c.repliesCursor:''));c.replies=c.expanded?[...(c.replies??[]),...data.items]:data.items;c.expanded=true;c.repliesCursor=data.nextCursor;}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}
-function remove(id:string){uni.showModal({title:'删除这条评论？',content:'删除后无法恢复。',confirmText:'删除',confirmColor:'#B4533F',success:async r=>{if(!r.confirm)return;try{await request('/articles/'+props.resourceId+'/comments/'+id,{method:'DELETE'});load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}}});}
-onMounted(()=>load());watch(()=>currentUser.value?.id,()=>load());
+async function allReplies(c: Comment) {
+  try {
+    const data = await request<{ items: Reply[]; nextCursor: string | null }>(
+      '/articles/' +
+        props.resourceId +
+        '/comments?parentId=' +
+        c.id +
+        (c.repliesCursor ? '&cursor=' + c.repliesCursor : ''),
+    );
+    c.replies = c.expanded ? [...(c.replies ?? []), ...data.items] : data.items;
+    c.expanded = true;
+    c.repliesCursor = data.nextCursor;
+  } catch (e) {
+    uni.showToast({ title: (e as Error).message, icon: 'none' });
+  }
+}
+function remove(id: string) {
+  uni.showModal({
+    title: '删除这条评论？',
+    content: '删除后无法恢复。',
+    confirmText: '删除',
+    confirmColor: '#B4533F',
+    success: async (r) => {
+      if (!r.confirm) return;
+      try {
+        await request('/articles/' + props.resourceId + '/comments/' + id, { method: 'DELETE' });
+        load();
+      } catch (e) {
+        uni.showToast({ title: (e as Error).message, icon: 'none' });
+      }
+    },
+  });
+}
+onMounted(() => load());
+watch(
+  () => currentUser.value?.id,
+  () => load(),
+);
 function replyTo(parentId: string, parentAuthor: string) {
   emit('reply', parentId, parentAuthor, null);
 }
@@ -149,36 +244,194 @@ function formatTime(iso: string): string {
 defineExpose({ load });
 </script>
 <style>
-.comment-section{padding:26px 0 4px;}
-.section-header{flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.section-title{font-family:AcademySerif;font-size:18px;line-height:28px;font-weight:600;color:#182B31;}
-.empty-state{padding:28px 0;align-items:center;}
-.empty-text{font-size:13px;line-height:22px;color:#6A7578;}
-.comment-item{flex-direction:row;margin-bottom:0;padding:18px 0;border-bottom-width:1px;border-bottom-color:#E3DCCF;border-bottom-style:solid;}
-.comment-avatar{width:36px;height:36px;border-radius:18px;margin-right:12px;background-color:#EFE9DC;align-items:center;justify-content:center;}
-.comment-avatar-image{width:36px;height:36px;border-radius:18px;}
-.comment-content{flex:1;min-width:0;}
-.comment-header{flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.comment-author{font-size:14px;font-weight:600;line-height:22px;color:#182B31;}
-.comment-time{font-size:12px;line-height:22px;color:#7C878A;}
-.comment-body{font-size:15px;line-height:25px;color:#182B31;}
-.comment-quote{background-color:#EFE9DC;padding:10px 12px;border-radius:6px;margin-top:8px;}
-.quote-text{font-size:13px;color:#5F6A6D;line-height:22px;}
-.comment-actions{flex-direction:row;align-items:center;margin-top:2px;}
-.withdraw-comment{font-size:13px;line-height:22px;color:#7C878A;padding:9px 0;min-height:40px;margin:0 20px 0 0;background-color:transparent;border-width:0;}
-.action-btn{flex-direction:row;align-items:center;padding:9px 0;min-height:40px;margin-right:0;}
-.action-label{font-size:13px;line-height:22px;color:#5F6A6D;margin-left:4px;}
-.replies{margin-top:2px;padding-left:12px;border-left-width:2px;border-left-color:#E3DCCF;border-left-style:solid;}
-.reply-item{flex-direction:row;padding:10px 0 2px;}
-.reply-avatar{width:26px;height:26px;border-radius:13px;margin-right:8px;background-color:#EFE9DC;align-items:center;justify-content:center;}
-.reply-content{flex:1;min-width:0;}
-.reply-author{font-size:13px;font-weight:600;line-height:20px;color:#182B31;}
-.reply-body{font-size:14px;line-height:23px;color:#344C54;margin-top:2px;}
-.load-more{padding:14px 0;align-items:center;}
-.load-more-text{font-size:13px;line-height:22px;color:#235663;background-color:transparent;border-width:0;padding:9px 0;min-height:40px;margin:0;}
-.loading-indicator{padding:14px 0;align-items:center;}
-.loading-text{font-size:12px;color:#7C878A;}
-.my-comment{background-color:#EFE9DC;padding:14px;border-radius:8px;margin-bottom:14px;}
-.write-comment{font-size:13px;line-height:22px;color:#235663;padding:10px 0;min-height:44px;margin:0;background-color:transparent;border-width:0;}
-.withdraw-mine{align-self:flex-start;margin-right:0;}
+.comment-section {
+  padding: 26px 0 4px;
+}
+.section-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: AcademySerif;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #182b31;
+}
+.empty-state {
+  padding: 28px 0;
+  align-items: center;
+}
+.empty-text {
+  font-size: 13px;
+  line-height: 22px;
+  color: #6a7578;
+}
+.comment-item {
+  flex-direction: row;
+  margin-bottom: 0;
+  padding: 18px 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #e3dccf;
+  border-bottom-style: solid;
+}
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  margin-right: 12px;
+  background-color: #efe9dc;
+  align-items: center;
+  justify-content: center;
+}
+.comment-avatar-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+}
+.comment-content {
+  flex: 1;
+  min-width: 0;
+}
+.comment-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.comment-author {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #182b31;
+}
+.comment-time {
+  font-size: 12px;
+  line-height: 22px;
+  color: #7c878a;
+}
+.comment-body {
+  font-size: 15px;
+  line-height: 25px;
+  color: #182b31;
+}
+.comment-quote {
+  background-color: #efe9dc;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+.quote-text {
+  font-size: 13px;
+  color: #5f6a6d;
+  line-height: 22px;
+}
+.comment-actions {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 2px;
+}
+.withdraw-comment {
+  font-size: 13px;
+  line-height: 22px;
+  color: #7c878a;
+  padding: 9px 0;
+  min-height: 40px;
+  margin: 0 20px 0 0;
+  background-color: transparent;
+  border-width: 0;
+}
+.action-btn {
+  flex-direction: row;
+  align-items: center;
+  padding: 9px 0;
+  min-height: 40px;
+  margin-right: 0;
+}
+.action-label {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5f6a6d;
+  margin-left: 4px;
+}
+.replies {
+  margin-top: 2px;
+  padding-left: 12px;
+  border-left-width: 2px;
+  border-left-color: #e3dccf;
+  border-left-style: solid;
+}
+.reply-item {
+  flex-direction: row;
+  padding: 10px 0 2px;
+}
+.reply-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  margin-right: 8px;
+  background-color: #efe9dc;
+  align-items: center;
+  justify-content: center;
+}
+.reply-content {
+  flex: 1;
+  min-width: 0;
+}
+.reply-author {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #182b31;
+}
+.reply-body {
+  font-size: 14px;
+  line-height: 23px;
+  color: #344c54;
+  margin-top: 2px;
+}
+.load-more {
+  padding: 14px 0;
+  align-items: center;
+}
+.load-more-text {
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  background-color: transparent;
+  border-width: 0;
+  padding: 9px 0;
+  min-height: 40px;
+  margin: 0;
+}
+.loading-indicator {
+  padding: 14px 0;
+  align-items: center;
+}
+.loading-text {
+  font-size: 12px;
+  color: #7c878a;
+}
+.my-comment {
+  background-color: #efe9dc;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.write-comment {
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  padding: 10px 0;
+  min-height: 44px;
+  margin: 0;
+  background-color: transparent;
+  border-width: 0;
+}
+.withdraw-mine {
+  align-self: flex-start;
+  margin-right: 0;
+}
 </style>

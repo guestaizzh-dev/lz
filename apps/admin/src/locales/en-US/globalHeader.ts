@@ -6,8 +6,7 @@ export default {
   'component.globalHeader.help': 'Help',
   'component.globalHeader.historyVersion': 'Previous Versions',
   'component.globalHeader.notification': 'Notification',
-  'component.globalHeader.notification.empty':
-    'You have viewed all notifications.',
+  'component.globalHeader.notification.empty': 'You have viewed all notifications.',
   'component.globalHeader.message': 'Message',
   'component.globalHeader.message.empty': 'You have viewed all messsages.',
   'component.globalHeader.event': 'Event',

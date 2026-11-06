@@ -1,19 +1,7 @@
-import {
-  LockOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import {
-  LoginForm,
-  ProFormText,
-} from '@ant-design/pro-components';
-import {
-  FormattedMessage,
-  Helmet,
-  SelectLang,
-  useIntl,
-  useModel,
-} from '@umijs/max';
-import { Alert, App, Tabs } from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LoginForm, ProFormText } from '@ant-design/pro-components';
+import { FormattedMessage, Helmet, useIntl, useModel } from '@umijs/max';
+import { Alert, App } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
@@ -67,23 +55,10 @@ const useStyles = createStyles(({ token }) => {
       flexDirection: 'column',
       minHeight: '100dvh',
       overflow: 'auto',
-      backgroundImage:
-        "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
-      backgroundSize: '100% 100%',
+      backgroundColor: '#F5F1E8',
     },
   };
 });
-
-
-const Lang = () => {
-  const { styles } = useStyles();
-
-  return (
-    <div className={styles.lang} data-lang>
-      {SelectLang && <SelectLang />}
-    </div>
-  );
-};
 
 const LoginMessage: React.FC<{
   content: string;
@@ -159,7 +134,6 @@ const Login: React.FC = () => {
           {Settings.title && ` - ${Settings.title}`}
         </title>
       </Helmet>
-      <Lang />
       <div
         style={{
           flex: '1',
@@ -172,31 +146,15 @@ const Login: React.FC = () => {
             minWidth: 0,
             maxWidth: '100%',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
+          logo={<img alt="logo" src="/logo.svg" style={{ height: 56 }} />}
           title="老子道学书院"
           subTitle="运营管理后台"
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}
         >
-          <Tabs
-            activeKey={type}
-            centered
-            items={[
-              {
-                key: 'account',
-                label: intl.formatMessage({
-                  id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
-                }),
-              },
-            ]}
-          />
-
           {status === 'error' && loginType === 'account' && (
-            <LoginMessage
-              content="账户或密码错误"
-            />
+            <LoginMessage content="账户或密码错误" />
           )}
           {type === 'account' && (
             <>
@@ -240,7 +198,6 @@ const Login: React.FC = () => {
               />
             </>
           )}
-
         </LoginForm>
       </div>
       <Footer />

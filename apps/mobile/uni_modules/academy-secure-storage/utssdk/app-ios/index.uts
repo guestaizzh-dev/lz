@@ -1,3 +1,9 @@
-export function secureRead(key: string): string { return AcademySecureStore.read(key) }
-export function secureWrite(key: string, value: string): string { return AcademySecureStore.write(key, value) }
-export function secureRemove(key: string): string { return AcademySecureStore.remove(key) }
+export function secureRead(key: string): string {
+  return AcademySecureStore.read(key);
+}
+export function secureWrite(key: string, value: string): string {
+  return AcademySecureStore.write(key, value);
+}
+export function secureRemove(key: string): string {
+  return AcademySecureStore.remove(key);
+}

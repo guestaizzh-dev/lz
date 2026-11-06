@@ -1,9 +1,196 @@
-<template><view class="page"><PageHead title="研习完成记录"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/><view v-if="certificate" class="certificate-paper"><view class="row between"><text class="certificate-brand">老子道学书院</text><AcademySeal/></view><ScrollDivider/><text class="certificate-title">研习完成记录</text><text v-if="certificate!.cohortTitle" class="tag">{{certificate!.cohortTitle}}</text><text class="certificate-name">{{certificate!.nickname}}</text><text class="body-copy">已完成《{{certificate!.courseTitle}}》本版本 {{certificate!.lessonCount}} 讲必修章节的研习。</text><text class="meta">完成日期 · {{formatChinaDate(certificate!.completedAt)}}</text><ScrollDivider/><text class="certificate-code" :user-select="true">{{number}}</text><button class="secondary-button" @click="copy">复制记录编号</button></view></view></scroll-view></view></template>
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="研习完成记录" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content"
+        ><ContentState
+          v-if="loading || error"
+          :loading="loading"
+          :error="error"
+          :error-title="
+            error.indexOf('登录') >= 0
+              ? '请先登录'
+              : error.indexOf('权限') >= 0 || error.indexOf('完成') >= 0
+                ? '完成记录尚未生成'
+                : '完成记录未能加载'
+          "
+          :retryable="
+            error.indexOf('登录') < 0 && error.indexOf('权限') < 0 && error.indexOf('完成') < 0
+          "
+          :action-label="
+            error.indexOf('权限') >= 0 || error.indexOf('完成') >= 0 ? '返回学习档案' : ''
+          "
+          @action="uni.navigateTo({ url: '/pages/course/library' })"
+          @retry="load"
+        /><ContentState
+          v-if="!certificate && !loading && !error"
+          title="完成记录尚未生成"
+          description="完成本课程全部必修讲次后，这里会生成带编号的完成记录。"
+          action-label="返回学习档案"
+          @action="uni.navigateTo({ url: '/pages/course/library' })"
+        /><view v-if="certificate" class="certificate-paper"
+          ><view class="row between"
+            ><text class="ui-text certificate-brand">老子道学书院</text><AcademySeal /></view
+          ><ScrollDivider /><text class="ui-text certificate-title">研习完成记录</text
+          ><text v-if="certificate!.cohortTitle" class="ui-text tag certificate-paper-tag">{{
+            certificate!.cohortTitle
+          }}</text
+          ><text class="ui-text certificate-name">{{ certificate!.nickname }}</text
+          ><text class="ui-text body-copy certificate-paper-body-copy"
+            >已完成《{{ certificate!.courseTitle }}》本版本
+            {{ certificate!.lessonCount }} 讲必修章节的研习。</text
+          ><text class="ui-text meta certificate-paper-meta"
+            >完成日期 · {{ formatChinaDate(certificate!.completedAt) }}</text
+          ><ScrollDivider /><text class="ui-text certificate-code" :user-select="true">{{
+            number
+          }}</text
+          ><button
+            class="ui-button secondary-button certificate-paper-secondary-button"
+            @click="copy"
+            >复制记录编号</button
+          ></view
+        ></view
+      ></scroll-view
+    ></view
+  >
+</template>
 <script setup lang="ts">
-import {formatChinaDate} from '../../lib/date-time';
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import AcademySeal from '../../components/AcademySeal.uvue';import ScrollDivider from '../../components/ScrollDivider.uvue';import {request} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';
-type Certificate={id:string;courseTitle:string;lessonCount:number;completedAt:string;nickname:string;cohortTitle?:string};const certificate=ref<Certificate|null>(null),loading=ref(false),error=ref(''),number=computed(()=>certificate.value?'LZ-'+certificate.value.id.replace(/-/g,'').toUpperCase():'');let id='',cohortId='',owner='';
-async function load(){if(owner!==(currentUser.value?.id??'')){owner=currentUser.value?.id??'';certificate.value=null;}if(needLogin()||loading.value)return;loading.value=true;error.value='';try{certificate.value=await request<Certificate>('/learning/courses/'+id+'/certificate'+(cohortId?'?cohortId='+encodeURIComponent(cohortId):''),{method:'POST'});}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
-function copy(){uni.setClipboardData({data:number.value});}onLoad(options=>{id=options?.id??'';cohortId=options?.cohortId??'';});onShow(()=>load());
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { formatChinaDate } from '../../lib/date-time';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import AcademySeal from '../../components/AcademySeal.uvue';
+import ScrollDivider from '../../components/ScrollDivider.uvue';
+import { request } from '../../lib/api';
+import { currentUser, needLogin } from '../../lib/session';
+type Certificate = {
+  id: string;
+  courseTitle: string;
+  lessonCount: number;
+  completedAt: string;
+  nickname: string;
+  cohortTitle?: string;
+};
+const certificate = ref<Certificate | null>(null),
+  loading = ref(false),
+  error = ref(''),
+  number = computed(() =>
+    certificate.value ? 'LZ-' + certificate.value.id.replace(/-/g, '').toUpperCase() : '',
+  );
+let id = '',
+  cohortId = '',
+  owner = '';
+async function load() {
+  if (owner !== (currentUser.value?.id ?? '')) {
+    owner = currentUser.value?.id ?? '';
+    certificate.value = null;
+  }
+  if (needLogin() || loading.value) return;
+  loading.value = true;
+  error.value = '';
+  try {
+    certificate.value = await request<Certificate>(
+      '/learning/courses/' +
+        id +
+        '/certificate' +
+        (cohortId ? '?cohortId=' + encodeURIComponent(cohortId) : ''),
+      { method: 'POST' },
+    );
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+function copy() {
+  uni.setClipboardData({ data: number.value });
+}
+onLoad((options) => {
+  id = options?.id ?? '';
+  cohortId = options?.cohortId ?? '';
+});
+onShow(() => load());
 </script>
-<style>@import '../../styles/app.css';.certificate-paper{padding:28px 22px;margin-top:20px;border-width:1px;border-style:solid;border-color:#D3C9B8;background-color:#FCF9F2;}.certificate-brand{font-family:AcademySerif;color:#6A7578;font-size:16px;line-height:28px;}.certificate-title{font-family:AcademySerif;font-size:26px;line-height:40px;color:#182B31;margin:22px 0;}.certificate-name{font-family:AcademySerif;font-size:20px;line-height:32px;color:#235663;}.certificate-code{font-size:11px;line-height:20px;color:#6A7578;margin:16px 0;}</style>
+<style>
+@import '../../styles/app.css';
+/* 完成记录：纸面 16 内边距、圆角 14，标题 24/34，姓名 19/28，编号 12/20。 */
+.content {
+  padding-top: 16px;
+  padding-bottom: 40px;
+}
+.certificate-paper {
+  padding: 24px 16px;
+  margin-top: 16px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+  background-color: #fcf9f2;
+  align-items: center;
+}
+.certificate-brand {
+  font-family: AcademySerif;
+  color: #235663;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 1px;
+  flex: 1;
+}
+.certificate-title {
+  font-family: AcademySerif;
+  font-size: 24px;
+  line-height: 34px;
+  color: #182b31;
+  margin: 24px 0 12px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-align: center;
+}
+.certificate-paper-tag {
+  font-family: sans-serif;
+  font-size: 11px;
+  line-height: 17px;
+  color: #8a6635;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.certificate-name {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #235663;
+  margin-bottom: 12px;
+}
+.certificate-paper-body-copy {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  text-align: center;
+}
+.certificate-paper-meta {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 12px;
+  text-align: center;
+}
+.certificate-code {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin: 16px 0;
+  text-align: center;
+  letter-spacing: 0.6px;
+}
+.certificate-paper-secondary-button {
+  margin-top: 0;
+  align-self: center;
+  min-height: 46px;
+  font-size: 13px;
+}
+</style>

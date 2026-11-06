@@ -1,56 +1,164 @@
 <template>
-<view class="page">
-<PageHead title="活动详情" action="share" @action="share"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<ContentState v-if="!event" :loading="!error" :error="error" @retry="load"/>
-<view v-else>
-<ArtImage :src="event!.cover" kind="room" :width="width" :height="190"/>
-<text class="detail-title">{{event!.title}}</text>
-<text class="meta">时间：{{formatChinaTime(event!.startsAt)}}</text>
-<text class="meta">地点：{{event!.location}}</text>
-<text class="footer-note">选择开放场次报名，具体名额和取消规则以确认页为准。</text><text class="price event-price">{{event!.price?'¥'+money(event!.price):'免费活动'}}</text>
-<view class="section">
-<text class="section-heading">活动介绍</text>
-<text class="body-copy" :user-select="true">{{event!.description}}</text><view v-if="event!.studyTour" class="section"><text class="section-heading">研学行程与参加说明</text><text class="body-copy" :user-select="true">{{event!.studyTourBrief}}</text><text class="meta">优先报名仅在场次公布的会员开放窗内生效，名额共用；公众开放后可报名剩余席位，不减免票价、不保证获位。</text></view>
-</view>
-<RelatedContent ref="relatedRef" v-if="event" :resourceId="id"/>
-</view>
-</view></scroll-view>
-<BottomBar v-if="event">
-<button class="bar-primary" @click="book">查看场次与报名</button>
-</BottomBar>
-</view>
+  <view class="page"
+    ><InkBackdrop />
+    <PageHead title="活动详情" action="share" @action="share" />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+      <view class="content">
+        <ContentState
+          v-if="!event"
+          :loading="!error"
+          :error="error"
+          :error-title="
+            error.indexOf('不存在') >= 0
+              ? '活动不存在或已结束'
+              : error.indexOf('权') >= 0
+                ? '无权查看本活动'
+                : '活动信息暂时无法读取'
+          "
+          :retryable="error.indexOf('不存在') < 0 && error.indexOf('权') < 0"
+          :action-label="
+            error.indexOf('不存在') >= 0 || error.indexOf('权') >= 0 ? '返回活动列表' : ''
+          "
+          @action="openPage('event/index')"
+          @retry="load"
+        />
+        <view v-else>
+          <ArtImage :src="event!.cover" kind="room" :width="width" :height="190" />
+          <text class="ui-text detail-title">{{ event!.title }}</text>
+          <view class="event-facts"
+            ><view class="event-fact"
+              ><text class="ui-text event-fact-label">时间</text
+              ><text class="ui-text event-fact-value">{{
+                formatChinaTime(event!.startsAt)
+              }}</text></view
+            ><view class="event-fact"
+              ><text class="ui-text event-fact-label">地点</text
+              ><text class="ui-text event-fact-value">{{ event!.location }}</text></view
+            ></view
+          >
+          <text class="ui-text price event-price">{{
+            event!.price ? '¥' + money(event!.price) : '免费活动'
+          }}</text
+          ><text class="ui-text footer-note"
+            >选择开放场次报名，具体名额和取消规则以确认页为准。</text
+          >
+          <view class="section">
+            <text class="ui-text section-heading">活动介绍</text>
+            <text class="ui-text body-copy" :user-select="true">{{ event!.description }}</text
+            ><view v-if="event!.studyTour" class="section"
+              ><text class="ui-text section-heading">研学行程与参加说明</text
+              ><text class="ui-text body-copy" :user-select="true">{{ event!.studyTourBrief }}</text
+              ><text class="ui-text meta"
+                >优先报名仅在场次公布的会员开放窗内生效，名额共用；公众开放后可报名剩余席位，不减免票价、不保证获位。</text
+              ></view
+            >
+          </view>
+          <RelatedContent ref="relatedRef" v-if="event" :resourceId="id" />
+        </view> </view
+    ></scroll-view>
+    <BottomBar v-if="event">
+      <button class="ui-button bar-primary" @click="book">查看场次与报名</button>
+    </BottomBar>
+  </view>
 </template>
 <script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
 import RelatedContent from '../../components/RelatedContent.uvue';
-import {formatChinaTime} from '../../lib/date-time';
-import BottomBar from '../../components/BottomBar.uvue';import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {AcademyEvent} from '../../lib/api';import {viewWidth,openPage} from '../../lib/presentation';import {needLogin} from '../../lib/session';const width=viewWidth(),event=ref<AcademyEvent|null>(null),error=ref('');let id='';async function load(){error.value='';try{event.value=await request<AcademyEvent>('/catalog/events/'+encodeURIComponent(id));}catch(e){error.value=(e as Error).message;}}function book(){openPage('booking/confirm?eventId='+id);}
-async function share(){
-  if(!event.value)return;
-  try{
-    const result=await request<{url:string,shortUrl:string}>('/share/links',{
-      method:'POST',
-      data:{
-        resourceType:'EVENT',
-        resourceId:id,
-        title:event.value.title,
-        description:event.value.description,
-        coverUrl:event.value.cover
-      }
-    });
-    uni.setClipboardData({
-      data:result.shortUrl,
-      success:()=>{
-        uni.showToast({title:'分享链接已复制',icon:'success'});
-      }
-    });
-  }catch(e){
-    uni.showToast({title:'生成分享链接失败',icon:'none'});
+import { formatChinaTime } from '../../lib/date-time';
+import BottomBar from '../../components/BottomBar.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import type { AcademyEvent } from '../../lib/api';
+import { viewWidth, openPage } from '../../lib/presentation';
+const width = viewWidth(),
+  event = ref<AcademyEvent | null>(null),
+  error = ref('');
+let id = '';
+async function load() {
+  error.value = '';
+  try {
+    event.value = await request<AcademyEvent>('/catalog/events/' + encodeURIComponent(id));
+  } catch (e) {
+    error.value = (e as Error).message;
   }
 }
-onLoad(options=>{id=options?.id??'';load();});
-const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
-onShow(()=>{relatedRef.value?.refresh();});
+function book() {
+  openPage('booking/confirm?eventId=' + id);
+}
+async function share() {
+  if (!event.value) return;
+  try {
+    const result = await request<{ url: string; shortUrl: string }>('/share/links', {
+      method: 'POST',
+      data: {
+        resourceType: 'EVENT',
+        resourceId: id,
+        title: event.value.title,
+        description: event.value.description,
+        coverUrl: event.value.cover,
+      },
+    });
+    uni.setClipboardData({
+      data: result.shortUrl,
+      success: () => {
+        uni.showToast({ title: '分享链接已复制', icon: 'success' });
+      },
+    });
+  } catch (e) {
+    uni.showToast({ title: '生成分享链接失败', icon: 'none' });
+  }
+}
+onLoad((options) => {
+  id = options?.id ?? '';
+  load();
+});
+const relatedRef = ref<InstanceType<typeof RelatedContent> | null>(null);
+onShow(() => {
+  relatedRef.value?.refresh();
+});
 </script>
-<style>@import '../../styles/app.css';.event-price{margin-top:18px;}</style>
+<style>
+@import '../../styles/app.css';
+.event-facts {
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.event-fact {
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 4px 0;
+}
+.event-fact-label {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #8a6635;
+  letter-spacing: 0.4px;
+}
+.event-fact-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 22px;
+  color: #344c54;
+}
+.event-price {
+  margin-top: 16px;
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 27px;
+  color: #b4533f;
+  font-weight: 600;
+}
+.event-copy {
+  margin-top: 16px;
+}
+</style>

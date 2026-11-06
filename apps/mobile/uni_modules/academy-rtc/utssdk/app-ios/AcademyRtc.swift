@@ -14,11 +14,12 @@ public class AcademyRtc {
 }
 private final class CallView: UIView, ZegoEventHandler {
     let id:String
+    var videoSizes:[String:CGSize]=[:]
     let remote=UIStackView(),local=UIView()
     var players:[String:UIView]=[:],activePlayers=Set<String>(),room="",published="",status="IDLE",issue="",receiving=false,joining=false,configured:[String:Any]?=nil,permissionPending=false
     init(_ id:String){self.id=id;super.init(frame:.zero);backgroundColor=UIColor(red:0.106,green:0.133,blue:0.125,alpha:1);remote.axis = .vertical;remote.distribution = .fillEqually;addSubview(remote);addSubview(local);remote.translatesAutoresizingMaskIntoConstraints=false;local.translatesAutoresizingMaskIntoConstraints=false;NSLayoutConstraint.activate([remote.topAnchor.constraint(equalTo:topAnchor),remote.leadingAnchor.constraint(equalTo:leadingAnchor),remote.trailingAnchor.constraint(equalTo:trailingAnchor),remote.bottomAnchor.constraint(equalTo:bottomAnchor),local.topAnchor.constraint(equalTo:topAnchor,constant:12),local.trailingAnchor.constraint(equalTo:trailingAnchor,constant:-12),local.widthAnchor.constraint(equalToConstant:112),local.heightAnchor.constraint(equalToConstant:84)]);local.isHidden=true}
     required init?(coder:NSCoder){fatalError("init(coder:) is unavailable")}
-    func snapshot()->String{let value:[String:Any]=["state":status,"error":issue,"receiving":receiving,"publishing":!published.isEmpty];return String(data:(try? JSONSerialization.data(withJSONObject:value)) ?? Data(),encoding:.utf8) ?? "{}"}
+    func snapshot()->String{let size=players.keys.sorted().first.flatMap { videoSizes[$0] } ?? .zero;let value:[String:Any]=["state":status,"error":issue,"receiving":receiving,"publishing":!published.isEmpty,"videoWidth":size.width,"videoHeight":size.height];return String(data:(try? JSONSerialization.data(withJSONObject:value)) ?? Data(),encoding:.utf8) ?? "{}"}
     func command(_ raw:String){guard let data=raw.data(using:.utf8),let value=(try? JSONSerialization.jsonObject(with:data)) as? [String:Any] else{return}
         switch value["action"] as? String {
         case "STOP":stop()
@@ -41,7 +42,7 @@ private final class CallView: UIView, ZegoEventHandler {
             }};return
         }
         guard let roomId=data["roomId"] as? String,let userId=data["userId"] as? String,let token=data["token"] as? String,let appId=data["appId"] as? NSNumber else{status="ERROR";issue="实时连接凭证不完整";return}
-        if AcademyRtc.owner==nil{let profile=ZegoEngineProfile();profile.appID=appId.uint32Value;profile.appSign="";profile.scenario = .broadcast;ZegoExpressEngine.createEngine(with:profile,eventHandler:self);ZegoExpressEngine.shared().enableCamera(false);ZegoExpressEngine.shared().muteMicrophone(true);AcademyRtc.owner=id}
+        if AcademyRtc.owner==nil{let profile=ZegoEngineProfile();profile.appID=appId.uint32Value;profile.appSign="";profile.scenario = .broadcast;ZegoExpressEngine.createEngine(with:profile,eventHandler:self);if (data["mode"] as? String)=="LIVE"{ZegoExpressEngine.shared().enableCheckPoc(false);ZegoExpressEngine.shared().enableHardwareDecoder(false)};ZegoExpressEngine.shared().enableCamera(false);ZegoExpressEngine.shared().muteMicrophone(true);AcademyRtc.owner=id}
         if room.isEmpty && !joining{room=roomId;joining=true;status="CONNECTING";let config=ZegoRoomConfig();config.token=token;config.isUserStatusNotify=true;ZegoExpressEngine.shared().loginRoom(room,user:ZegoUser(userID:userId),config:config){[weak self] code,_ in
             guard let self=self,AcademyRtc.owner==self.id else{return};self.joining=false
             if code==0{self.status="CONNECTED";if let latest=self.configured{self.reconcile(latest)}}else{self.status="ERROR";self.issue="加入房间失败，请重新进入";self.stopCapture()}
@@ -60,7 +61,7 @@ private final class CallView: UIView, ZegoEventHandler {
         issue=""
     }
     private func stopCapture(){guard AcademyRtc.owner==id else{return};let engine=ZegoExpressEngine.shared();engine.stopPublishingStream();engine.stopPreview();engine.enableCamera(false);engine.muteMicrophone(true);published="";local.isHidden=true}
-    func stop(){if AcademyRtc.owner==id{stopCapture();let engine=ZegoExpressEngine.shared();for stream in players.keys{engine.stopPlayingStream(stream)};engine.logoutRoom(room);AcademyRtc.owner=nil;AcademyRtc.destroying=true;ZegoExpressEngine.destroyEngine{AcademyRtc.destroying=false}};for view in players.values{view.removeFromSuperview()};players.removeAll();activePlayers.removeAll();room="";configured=nil;receiving=false;status="CLOSED"}
+    func stop(){if AcademyRtc.owner==id{stopCapture();let engine=ZegoExpressEngine.shared();for stream in players.keys{engine.stopPlayingStream(stream)};engine.logoutRoom(room);AcademyRtc.owner=nil;AcademyRtc.destroying=true;ZegoExpressEngine.destroyEngine{AcademyRtc.destroying=false}};for view in players.values{view.removeFromSuperview()};players.removeAll();videoSizes.removeAll();activePlayers.removeAll();room="";configured=nil;receiving=false;status="CLOSED"}
     func onRoomStateChanged(_ reason:ZegoRoomStateChangedReason,errorCode:Int32,extendedData:[AnyHashable:Any],roomID:String){
         guard AcademyRtc.owner==id,roomID==room else{return}
         switch reason {
@@ -71,12 +72,13 @@ private final class CallView: UIView, ZegoEventHandler {
         }
     }
     func onPublisherStateUpdate(_ state:ZegoPublisherState,errorCode:Int32,extendedData:[AnyHashable:Any],streamID:String){guard AcademyRtc.owner==id else{return};if errorCode != 0{status="ERROR";issue="推流中断，请重试";stopCapture()}else if state == .publishing{status="PUBLISHING"}}
-    func onPlayerRecvAudioFirstFrame(_ streamID:String){guard AcademyRtc.owner==id,players[streamID] != nil else{return};activePlayers.insert(streamID);receiving=true;issue="";status=published.isEmpty ? "PLAYING":"PUBLISHING"}
-    func onPlayerRecvVideoFirstFrame(_ streamID:String){guard AcademyRtc.owner==id,players[streamID] != nil else{return};activePlayers.insert(streamID);receiving=true;issue="";status=published.isEmpty ? "PLAYING":"PUBLISHING"}
+    func onPlayerRecvAudioFirstFrame(_ streamID:String){if !(configured?["requireVideo"] as? Bool ?? false) || !streamID.hasPrefix("lecture_"){markPlaying(streamID)}}
+    func onPlayerVideoSizeChanged(_ size:CGSize,streamID:String){if AcademyRtc.owner==id,players[streamID] != nil{videoSizes[streamID]=size}}
+    func onPlayerRenderVideoFirstFrame(_ streamID:String){markPlaying(streamID)}
+    private func markPlaying(_ streamID:String){guard AcademyRtc.owner==id,players[streamID] != nil else{return};activePlayers.insert(streamID);receiving=true;issue="";status=published.isEmpty ? "PLAYING":"PUBLISHING"}
     func onPlayerStateUpdate(_ state:ZegoPlayerState,errorCode:Int32,extendedData:[AnyHashable:Any],streamID:String){
         guard AcademyRtc.owner==id,players[streamID] != nil else{return}
-        if state == .playing{activePlayers.insert(streamID);receiving=true;issue="";status=published.isEmpty ? "PLAYING":"PUBLISHING"}
-        else{activePlayers.remove(streamID);receiving = !activePlayers.isEmpty;if !receiving && published.isEmpty{status="CONNECTED";issue=errorCode != 0 ? "主讲画面暂时中断，正在等待恢复":""}}
+        if state != .playing || errorCode != 0{activePlayers.remove(streamID);receiving = !activePlayers.isEmpty;if !receiving && published.isEmpty{status="CONNECTED";issue=errorCode != 0 ? "主讲画面暂时中断，正在等待恢复":""}}
     }
     override func didMoveToWindow(){super.didMoveToWindow();if window==nil{stop()}}
 }

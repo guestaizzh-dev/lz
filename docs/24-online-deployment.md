@@ -1,3 +1,11 @@
+当前直播黑屏整改与发布：[119](119-live-media-and-lifecycle-fixes.md)。真实Windows OBS 1280×720/375帧解码与用户手机有画面已确认；修正B帧兼容及上一场地址，WHIP Bearer留空。API/后台20261102-live-media-0335、Android0.3.35/code40与release revision16已上线，85迁移/21类业务计数保持。评论即时公开；用户已确认新包UI及约30秒Android后台聆听/回前台恢复；双端连麦与长时/锁屏/省电验收仍待，iOS后台尚未实现，38/131保持。
+
+2026-11-02（APK下载页北京时间11-03）：API/后台20261102-member-quality-0333已发布，工作区542文件快照、后台补包及85迁移，19类原业务数量保持，20项公网/6页浏览器核查通过。会员栏目增加独立“视频代金券”。Android0.3.33/code38已原子发布 https://cuecanvas.top/download/ ，50,150,455字节，SHA256 c53139a08ea3f528cc94f90db67f83fe35b991d2676372c29632c80b6f066279，同证书/v1/v2签名、会员页面资源、公网完整下载与Range206通过，release revision14。备份academy-20261102T155709Z-amyd0H.dump及媒体校验通过；清理/备份去重后约17GB可用/72%，所有原恢复路径保留。回退及新交易前向修复约束见[117](117-member-quality-release-0333.md)，真实资金/双端与38/131保持。
+
+2026-11-01 App启动/学堂返修：Android **0.3.30/code35** 已原子更新 https://cuecanvas.top/download/ ，50,098,771字节、SHA256 `73844c155cff172b4bbc3f9a56d241532cefa251e65408f2c146a323c58e30e5`，同签名，release revision12。恢复学堂圆形分类按钮、首页重新设为启动页，1测试/5浏览器/实际APK检查通过；API/Pro保持20261101-payment-ui-03。回退 `/opt/daoxue-academy/rollback-download-0330.txt`，磁盘约4.4GB，未做真机/iOS；见[113](113-home-launch-and-academy-icons.md)。
+
+2026-11-01 支付/轮播/截图整改已发布：API/Pro当前 `20261101-payment-ui-03`，修复混合课件付款误拦截，区分轮播校验错误并确认原四图已保存；Android **0.3.28/code33** 已更新固定下载页，含五页截图调整和付款按钮居中。84迁移不变、17类业务计数一致，轮播4项/付款页8项及公网APK整包哈希通过。真实收退款、双端真机与iOS仍待，商用38/131保持；证据和回退见[112](112-payment-carousel-and-release-0328.md)。
+
 2026-10-31 微信Native上线：`20261031-wechat-native-01`（源码`1f32f6f`），84迁移不变，17类业务计数保持。新增Native与私有商户配置，关闭模拟支付、保留App SDK关闭；生产Node签名/公钥验签查单、财务/指南、回调/图片票据拒绝及OBS/录制就绪通过。备份`academy-20261101T064341Z-sOukGE.dump`及媒体包SHA256通过，回退`/opt/daoxue-academy/rollback-20261031-wechat-native-01.txt`，约5.4GB可用。Android0.3.25/code30已同证书更新固定下载，完整服务端云下载SHA及公网Range/版本通过，配置revision8。真实扫码扣款、通知解密、原路退款到账与手机/iOS验收未做；详[109](109-wechat-native-payment.md)。
 
 最新会员名单与App展示修订：API/Pro已发布 `20261030-member-directory-01`（源码7297dc2），84迁移保持；17类业务表计数保持、环境仅API_IMAGE_TAG变化，线上人数/名单/首页主图入口/OBS/录制及健康正常，定时器active。Android0.3.24/code29已同签名更新固定扫码下载页，release revision7；备份与回退记录见[108](108-membership-directory-and-home-hero.md)。
@@ -139,3 +147,42 @@ curl -f https://academy.43-160-229-173.sslip.io/api/v1/health
 - 清理旧镜像与退出容器后磁盘约 9.7GB（83%）；`academy-watch.timer`、`academy-backup.timer` active。
 - Android 0.3.18/code23 已云打包：50,017,681 字节，SHA256 `471d7f3f…`，与 0.3.17 同证书、无系统推送；未手机/iOS 验收。
 - 证据 `outputs/deploy-2026-10-25-review/`、`outputs/android-preview-0318/`、`outputs/android/daoxue-academy-0.3.18.*`；完整说明见 [99](99-review-polish-release-20261025.md)。
+
+## 2026-11-01 全站 UI 重构上线（20261101-ui-rework-01）
+
+- 发行 **`20261101-ui-rework-01`**，替换 `20261031-wechat-native-01`；源码 `7c4aaab`（工作区含未提交改动，按当前文件打包）；84 迁移无新增；API 镜像 `daoxue-api:20261101-ui-rework-01`（2.78GB），容器 healthy。
+- 发布前备份 `academy-20261101T091727Z-tHrJhd.dump` 及 media 包，sha256 校验通过；17 类业务表计数前后一致（User 5 / Article 1 / Course 2 / Teacher 1 / Product 1 / LiveRoom 2 / Lesson 2 / MediaAsset 25 / CatalogCategory 18 等，差异 0）。
+- 环境仅 `API_IMAGE_TAG` 变更；回滚文件 `/opt/daoxue-academy/rollback-20261101-ui-rework-01.txt`，环境备份 `production.env.before-20261101-ui-rework-01`。
+- 公网检查：`/api/v1/health` ok、`/catalog/home` 200、后台 `admin.cuecanvas.top` 200（新 logo/favicon 生效）、`/download/` 200；`academy-watch.timer`、`academy-backup.timer` active。磁盘清理旧镜像后 91%（5.2GB 可用）。
+- Android **0.3.26/code31** 云打包（蒸汽字节码、云端证书）：50,102,548 字节，SHA256 `da6debc29d5933a220a1a6e6b119f16006c7d647a82dbc67cb7831c6d752160e`，证书 SHA256 `81d6c07a…` 与 0.3.25 相同，`aapt2` 确认 `cn.daoxue.academy / 31 / 0.3.26`、minSdk 23。
+- 下载页已发布：`https://cuecanvas.top/download/` 的 `release.json` 为 0.3.26/31，APK 经 `publish-app-download-0319.sh` 校验（sha256、字节数、静态文件齐全、build 递增）。
+- 版本提示配置 `FeatureConfig` release 追加 revision 9：`androidVersion 0.3.26 / androidCode 31 / androidUrl https://cuecanvas.top/download/`，`/configuration/release` 已返回新值。
+- 证据：`outputs/android/daoxue-academy-0.3.26.apk`、同名 `.json`、`outputs/app-download-0326/`、`.runtime/ui-rework-switch.log`、`.runtime/android-0326-pack.log`、`outputs/android-preview-0326/`。
+- 未完成：真机安装验收（无设备）、iOS 未构建、线上真实支付/短信未在本轮触碰。
+
+### 2026-11-01 后台水印移除（静态资源热更新）
+
+- 用户反馈后台每页叠加「书院管理员」水印。移除 `apps/admin/src/app.tsx` 的 `waterMarkProps`（内容为当前登录人姓名，`fontColor rgba(31,58,61,0.06)`），重新 `pnpm --filter @daoxue/admin build`。
+- 只替换 `current/apps/admin/dist`（该目录以 bind mount 挂进 `daoxue-edge-1:/srv/admin`）。**注意**：用 `rm -rf` + 重建目录会让容器继续指向旧 inode，nginx 报 `rewrite or internal redirection cycle` 返回 500；必须 `docker compose ... up -d --no-build --no-deps edge` 重建容器重新挂载，或改成在目录内覆盖文件。
+- 旧 dist 备份：`/opt/daoxue-academy/admin-dist-backup-20261101T095106Z`。
+- 验证：远程 `index.html` 与本地构建 sha256 一致（`025a0200…`），dist 内已无 `fontColor:rgba(31,58,61` 引用，`admin.cuecanvas.top` 200，API health 200。
+
+## 2026-11-02 Android 0.3.29/code34（支付返回、消息白底按钮、单行入口）
+
+- 用户真机截图反馈四项：付款页「返回原订单」触发"再按一次退出应用"；书院消息空态出现白底按钮；付款页两个按钮文字不垂直居中；首页与学堂七个入口被改成 4+3 两行。均已修改：`returnOrder()` 无页面栈时 `switchTab` 首页；「全部已读」仅在 `unread>0` 时渲染；付款按钮标签行高与按钮同高（48px）；首页 `.shortcut` 14.28% 单行七等分、学堂 `.category-item{flex:1}` 单行七等分且分类块改竖排。
+- 云打包首次因 DCloud 账号需重新验证手机号被拒（`2848339989@qq.com`），验证后重跑成功。
+- APK：50,103,765 字节，SHA256 `98a18b8e16504303627f03bf613971aeb0d8ced285fb94f4de7fc4b8e1a461f3`，`cn.daoxue.academy / 34 / 0.3.29`，minSdk 23，证书 `81d6c07a…` 与 0.3.25/0.3.28 相同。
+- 下载页已发布（`publish-app-download-0319.sh`，build 33→34 递增校验）：`/download/release.json` = 0.3.29/34，`android.apk` HEAD 字节数一致。
+- `FeatureConfig` release 追加 revision 11：androidVersion 0.3.29 / androidCode 34；`/configuration/release` 已返回新值。
+- 证据：`outputs/android/daoxue-academy-0.3.29.apk`、同名 `.json`、`outputs/app-download-0329/`、`.runtime/android-0329-status.json`、`.runtime/android-0329-poll.log`。
+- 未做：真机安装验收（等待用户安装反馈）、iOS。
+
+## 2026-11-02 Android 0.3.31/code36 发布（用户自打包）
+
+- 用户提供本地包 `outputs/android/daoxue-academy-0.3.31.apk`，要求推到线上；此前 0.3.31 仅本地交付、线上为 0.3.30/code35。
+- 校验：ZIP 完整、2234 条目；`aapt2` → `cn.daoxue.academy / 36 / 0.3.31`，minSdk 23；证书 SHA256 `81:D6:C0:7A…:F2:48`（与 0.3.25/0.3.28/0.3.29/0.3.30 相同，可覆盖升级）；50,101,330 字节，SHA256 `9534eeacfd1db0595388f9a062cceec7c32d33bd8803498d49e3bc058e87ce77`。
+- 下载页：`download-0331` 阶段经 `publish-app-download-0319.sh` 校验（sha256、字节、静态文件齐全、build 35→36 递增）后发布，`/download/release.json` = 0.3.31/36，`android.apk` HEAD 字节一致，页面已显示 0.3.31。
+- 版本提示：`FeatureConfig` release 追加 revision 13（androidVersion 0.3.31 / androidCode 36），`/configuration/release` 已返回新值；`/api/v1/health` ok。
+- 证据：`outputs/android/daoxue-academy-0.3.31.json`、`outputs/app-download-0331/`、`.runtime/download-0331-page.tar.gz`。
+- 发布过程一次 SSH banner 读取失败（连接瞬断），重连后完成；无数据写入。
+- 未做：真机安装验收、iOS。

@@ -1,26 +1,608 @@
-<template><view class="page"><PageHead title="写研习帖子"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><text class="meta">审核后发布。课程帖子仅本课学员可见，私人笔记不会自动公开。</text><view v-if="sourceKind" class="private-share"><text class="section-heading">从私人记录分享心得</text><text class="intro">删减下方正文，只分享你希望公开的部分。私人原件保持不变；附件须重新选择上传。提交后先由书院审核，可在帖子详情撤回。</text><text v-if="sourceLoading" class="meta">读取私人记录…</text><button v-if="sourceError" class="small-action" @click="loadSource">{{sourceError}} · 重新读取</button><button class="small-action" @click="chooseSection">发布到：{{sectionTitle||'请选择公共讨论区'}}</button><view v-if="source?.canIncludeQuote"><button class="share-check" :aria-checked="includeQuote" role="checkbox" @click="includeQuote=!includeQuote">{{includeQuote?'☑':'□'}} 同时引用已公开原文</button><text v-if="includeQuote" class="share-quote" :user-select="true">{{source!.quote}}</text></view><text v-else-if="source" class="meta">本次只分享自己的心得，不附原文片段。</text><button class="share-check" :aria-checked="shareConsent" role="checkbox" @click="shareConsent=!shareConsent">{{shareConsent?'☑':'□'}} 我同意将当前选定正文及新上传附件提交公开审核</button></view><input class="thread-title" v-model="title" :disabled="saving" maxlength="120" placeholder="给这次分享起个标题"/><textarea class="thread-body" v-model="body" :disabled="saving" maxlength="10000" placeholder="写下你的研习、实践与思考…"/><text class="meta">{{body.length}} / 10000</text>
-<view class="thread-images"><view v-for="(image,index) in images" :key="image.id"><image class="thread-image" :src="image.path" mode="aspectFill" @click="preview(image.path)"/><button class="small-action" :disabled="saving||uploading" @click="images.splice(index,1)">移除</button></view></view><button class="secondary-button" :disabled="saving||uploading||images.length>=6" @click="choose">{{uploading?'正在上传…':'添加图片（最多6张）'}}</button>
-<ForumMediaUpload :sectionId="sectionId" :disabled="saving" v-model="mediaIds" @busy="mediaBusy=$event"/><text v-if="draftNotice" class="meta">{{draftNotice}}</text>
-<text class="field-label">话题标签（选填）</text><input class="thread-tags" v-model="tagText" :disabled="saving" maxlength="150" placeholder="用逗号分隔，最多5个话题"/>
-<text class="field-label">引用书院文章（选填）</text><button class="small-action" :disabled="saving" @click="citationVisible=!citationVisible">{{articleTitle||'选择公开文章'}}{{articleId?' · 点击更换':''}}</button><view v-if="citationVisible"><input class="thread-tags" v-model="articleQuery" placeholder="搜索文章标题" @confirm="searchArticles"/><button class="small-action" :disabled="articleLoading" @click="searchArticles">{{articleLoading?'搜索中…':'搜索文章'}}</button><text v-if="articleError" class="form-error">{{articleError}}</text><button v-for="article in articles" :key="article.id" class="citation-option" @click="articleId=article.id;articleTitle=article.title;citationVisible=false">{{article.title}}</button><button v-if="articleId" class="small-action" @click="articleId='';articleTitle='';citationVisible=false">取消引用</button></view>
-<text v-if="error" class="form-error">{{error}}</text></view></scroll-view><BottomBar><button class="bar-primary" :disabled="saving||uploading||mediaBusy||sourceLoading||!!sourceError||!!sourceKind&&(!source||!shareConsent||!sectionId)||title.trim().length<2||!body.trim()" @click="submit">{{saving?'提交中…':'提交审核'}}</button></BottomBar></view></template>
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="写研习帖子" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content"
+        ><text class="ui-text editor-intro"
+          >审核后发布。课程帖子仅本课学员可见，私人笔记不会自动公开。</text
+        ><view v-if="sourceKind" class="private-share"
+          ><text class="ui-text section-heading">从私人记录分享心得</text
+          ><text class="ui-text intro"
+            >删减下方正文，只分享你希望公开的部分。私人原件保持不变；附件须重新选择上传。提交后先由书院审核，可在帖子详情撤回。</text
+          ><text v-if="sourceLoading" class="ui-text meta">读取私人记录…</text
+          ><button v-if="sourceError" class="ui-button small-action" @click="loadSource"
+            >{{ sourceError }} · 重新读取</button
+          ><button class="ui-button small-action" @click="chooseSection"
+            >发布到：{{ sectionTitle || '请选择公共讨论区' }}</button
+          ><view v-if="source?.canIncludeQuote"
+            ><button
+              class="ui-button share-check"
+              :aria-checked="includeQuote"
+              role="checkbox"
+              @click="includeQuote = !includeQuote"
+              >{{ includeQuote ? '☑' : '□' }} 同时引用已公开原文</button
+            ><text v-if="includeQuote" class="ui-text share-quote" :user-select="true">{{
+              source!.quote
+            }}</text></view
+          ><text v-else-if="source" class="ui-text meta">本次只分享自己的心得，不附原文片段。</text
+          ><button
+            class="ui-button share-check"
+            :aria-checked="shareConsent"
+            role="checkbox"
+            @click="shareConsent = !shareConsent"
+            >{{ shareConsent ? '☑' : '□' }} 我同意将当前选定正文及新上传附件提交公开审核</button
+          ></view
+        ><input
+          class="ui-input thread-title"
+          v-model="title"
+          :disabled="saving"
+          maxlength="120"
+          placeholder="给这次分享起个标题"
+        /><textarea
+          class="ui-input thread-body"
+          v-model="body"
+          :disabled="saving"
+          maxlength="10000"
+          placeholder="写下你的研习、实践与思考…"
+        /><text class="ui-text meta">{{ body.length }} / 10000</text>
+        <view class="thread-images"
+          ><view v-for="(image, index) in images" :key="image.id"
+            ><image
+              class="thread-image"
+              :src="image.path"
+              mode="aspectFill"
+              @click="preview(image.path)"
+            /><button
+              class="ui-button small-action"
+              :disabled="saving || uploading"
+              @click="images.splice(index, 1)"
+              >移除</button
+            ></view
+          ></view
+        ><button
+          class="ui-button upload-card"
+          :disabled="saving || uploading || images.length >= 6"
+          @click="choose"
+          ><text class="ui-text upload-title">{{ uploading ? '正在上传图片…' : '添加图片' }}</text
+          ><text class="ui-text upload-hint"
+            >已选 {{ images.length }} / 6 张，支持拍照或从相册选择</text
+          ></button
+        >
+        <ForumMediaUpload
+          :sectionId="sectionId"
+          :disabled="saving"
+          v-model="mediaIds"
+          @busy="mediaBusy = $event"
+        /><text v-if="draftNotice" class="ui-text meta">{{ draftNotice }}</text>
+        <text class="ui-text field-label">话题标签（选填）</text
+        ><input
+          class="ui-input thread-tags"
+          v-model="tagText"
+          :disabled="saving"
+          maxlength="150"
+          placeholder="用逗号分隔，最多5个话题"
+        />
+        <text class="ui-text field-label">引用书院文章（选填）</text
+        ><button
+          class="ui-button small-action"
+          :disabled="saving"
+          @click="citationVisible = !citationVisible"
+          >{{ articleTitle || '选择公开文章' }}{{ articleId ? ' · 点击更换' : '' }}</button
+        ><view v-if="citationVisible"
+          ><input
+            class="ui-input thread-tags"
+            v-model="articleQuery"
+            placeholder="搜索文章标题"
+            @confirm="searchArticles"
+          /><button
+            class="ui-button small-action"
+            :disabled="articleLoading"
+            @click="searchArticles"
+            >{{ articleLoading ? '搜索中…' : '搜索文章' }}</button
+          ><text v-if="articleError" class="ui-text form-error">{{ articleError }}</text
+          ><button
+            v-for="article in articles"
+            :key="article.id"
+            class="ui-button citation-option"
+            @click="
+              articleId = article.id;
+              articleTitle = article.title;
+              citationVisible = false;
+            "
+            >{{ article.title }}</button
+          ><button
+            v-if="articleId"
+            class="ui-button small-action"
+            @click="
+              articleId = '';
+              articleTitle = '';
+              citationVisible = false;
+            "
+            >取消引用</button
+          ></view
+        >
+        <text v-if="error" class="ui-text form-error">{{ error }}</text></view
+      ></scroll-view
+    ><BottomBar
+      ><button
+        class="ui-button bar-primary"
+        :class="
+          saving ||
+          uploading ||
+          mediaBusy ||
+          sourceLoading ||
+          !!sourceError ||
+          (!!sourceKind && (!source || !shareConsent || !sectionId)) ||
+          title.trim().length < 2 ||
+          !body.trim()
+            ? 'is-disabled'
+            : ''
+        "
+        :disabled="
+          saving ||
+          uploading ||
+          mediaBusy ||
+          sourceLoading ||
+          !!sourceError ||
+          (!!sourceKind && (!source || !shareConsent || !sectionId)) ||
+          title.trim().length < 2 ||
+          !body.trim()
+        "
+        @click="submit"
+        >{{ saving ? '提交中…' : '提交审核' }}</button
+      ></BottomBar
+    ></view
+  >
+</template>
 <script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
 import ForumMediaUpload from '../../components/ForumMediaUpload.uvue';
-import {privateStore} from '../../lib/secure-storage';
-import PageHead from '../../components/PageHead.uvue';import BottomBar from '../../components/BottomBar.uvue';import {request} from '../../lib/api';import {studyEventId} from '../../lib/learning';import {currentUser,needLogin} from '../../lib/session';import {uploadHomeworkImage} from '../../lib/teaching';
-const title=ref(''),body=ref(''),tagText=ref(''),images=ref<{id:string;path:string}[]>([]),saving=ref(false),uploading=ref(false),error=ref(''),articleId=ref(''),articleTitle=ref(''),articleQuery=ref(''),articleLoading=ref(false),articleError=ref(''),citationVisible=ref(false),articles=ref<{id:string;title:string}[]>([]);const sectionId=ref(''),mediaIds=ref<string[]>([]),mediaBusy=ref(false),draftNotice=ref('');let key='',payload='',owner='',articleSequence=0;
-type PrivateSource={kind:string;id:string;version:number;text:string;title:string;quote:string;canIncludeQuote:boolean};
-let submitted=false,draftTimer:ReturnType<typeof setTimeout>|null=null;
-function draftKey(){return 'forum-draft|'+owner+'|'+sectionId.value+'|'+sourceKind.value+'|'+sourceId;}
-function saveDraft(){if(submitted||!owner||owner!==currentUser.value?.id||!sectionId.value)return;try{privateStore.write(draftKey(),JSON.stringify({title:title.value,body:body.value,tagText:tagText.value,articleId:articleId.value,articleTitle:articleTitle.value}));}catch{draftNotice.value='无法保存本机草稿，请先保留正文，当前页面仍可继续编辑。';}}
-function restoreDraft(){try{const raw=privateStore.read(draftKey());if(!raw)return;const d=JSON.parse(raw) as {title:string;body:string;tagText:string;articleId:string;articleTitle:string};if(typeof d.title!=='string'||typeof d.body!=='string')return;title.value=d.title.slice(0,120);body.value=d.body.slice(0,10000);tagText.value=(d.tagText??'').slice(0,150);articleId.value=d.articleId??'';articleTitle.value=d.articleTitle??'';draftNotice.value='已恢复当前账号的未提交草稿。';}catch{draftNotice.value='本机草稿暂时无法读取，仍可继续编辑。';}}
-watch(()=>[title.value,body.value,tagText.value,articleId.value],()=>{if(draftTimer)clearTimeout(draftTimer);draftTimer=setTimeout(saveDraft,400);});
-onHide(()=>saveDraft());onUnload(()=>{if(draftTimer)clearTimeout(draftTimer);saveDraft();articleSequence++;sourceSequence++;});
-const source=ref<PrivateSource|null>(null),sourceKind=ref(''),sourceLoading=ref(false),sourceError=ref(''),shareConsent=ref(false),includeQuote=ref(false),sectionTitle=ref('');let sourceId='',sourceSequence=0;
-async function loadSource(){if(!sourceKind.value||needLogin())return;const sequence=++sourceSequence,user=currentUser.value?.id;sourceLoading.value=true;sourceError.value='';shareConsent.value=false;includeQuote.value=false;try{const result=await request<PrivateSource>('/forum/private-sources/'+sourceKind.value+'/'+sourceId);if(sequence!==sourceSequence||user!==currentUser.value?.id)return;source.value=result;title.value=result.title.slice(0,120);body.value=result.text;key='';payload='';}catch(e){if(sequence===sourceSequence)sourceError.value=(e as Error).message;}finally{if(sequence===sourceSequence)sourceLoading.value=false;}}
-async function chooseSection(){try{const result=await request<{items:{id:string;title:string;scope:string;cohortId?:string|null}[]}>('/forum/sections'),sections=result.items.filter(s=>s.scope==='PUBLIC'&&!s.cohortId);if(!sections.length){error.value='公共讨论区暂未开放，私人记录已保留。';return;}uni.showActionSheet({itemList:sections.map(s=>s.title),success:r=>{sectionId.value=sections[r.tapIndex].id;sectionTitle.value=sections[r.tapIndex].title;}});}catch(e){error.value=(e as Error).message;}}
-function preview(path:string){uni.previewImage({current:path,urls:images.value.map(i=>i.path)});}function choose(){if(saving.value||uploading.value)return;uni.chooseImage({count:6-images.value.length,sizeType:['compressed'],success:async data=>{uploading.value=true;error.value='';try{for(const path of data.tempFilePaths){const asset=await uploadHomeworkImage(path,'/forum/images');images.value.push({id:asset.id,path});}}catch(e){error.value=(e as Error).message;}finally{uploading.value=false;}}});}
-async function searchArticles(){const seq=++articleSequence;articleLoading.value=true;articleError.value='';try{const result=await request<{items:{id:string;title:string;visibility:string}[]}>('/catalog/articles?size=20&q='+encodeURIComponent(articleQuery.value.trim()));if(seq===articleSequence){articles.value=result.items.filter(a=>a.visibility==='PUBLIC');if(!articles.value.length)articleError.value='没有找到可引用的公开文章';}}catch(e){if(seq===articleSequence)articleError.value=(e as Error).message;}finally{if(seq===articleSequence)articleLoading.value=false;}}
-async function submit(){if(saving.value||uploading.value||mediaBusy.value||needLogin())return;if(sourceKind.value&&(!source.value||!shareConsent.value||!sectionId.value||sourceError.value)){error.value='请读取记录、选择讨论区并确认分享授权';return;}const tags=[...new Set(tagText.value.split(/[,，、]/).map(s=>s.trim()).filter(Boolean))];if(tags.length>5||tags.some(t=>t.length>30)){error.value='最多5个话题，每个不超过30字';return;}const data={sectionId:sectionId.value,mediaIds:mediaIds.value,title:title.value.trim(),body:body.value.trim(),assetIds:images.value.map(i=>i.id),tags,...(source.value?{privateSource:{kind:source.value.kind,id:source.value.id,version:source.value.version,consent:shareConsent.value,includeQuote:includeQuote.value}}:{}),...(articleId.value?{articleId:articleId.value}:{})};const signature=JSON.stringify(data);if(signature!==payload){key=studyEventId();payload=signature;}saving.value=true;error.value='';try{const result=await request<{id:string}>('/forum/threads',{method:'POST',data:{...data,requestKey:key}});submitted=true;try{privateStore.remove(draftKey());}catch{}uni.redirectTo({url:'/pages/community/detail?id='+result.id});}catch(e){error.value=(e as Error).message;}finally{saving.value=false;}}
-onLoad(options=>{sectionId.value=options?.sectionId??'';owner=currentUser.value?.id??'';sourceKind.value=['NOTE','JOURNAL'].includes(options?.sourceKind??'')?options!.sourceKind!:'';sourceId=options?.sourceId??'';if(sourceKind.value)loadSource();else restoreDraft();});onShow(()=>{if(owner!==(currentUser.value?.id??'')){owner=currentUser.value?.id??'';title.value='';body.value='';images.value=[];tagText.value='';key='';payload='';source.value=null;shareConsent.value=false;includeQuote.value=false;sourceError.value='';sourceSequence++;mediaIds.value=[];mediaBusy.value=false;submitted=false;draftNotice.value='';if(sourceKind.value&&currentUser.value)loadSource();else if(currentUser.value)restoreDraft();}needLogin();});
-</script><style>@import '../../styles/app.css';.private-share{margin-top:12px;padding:16px;background-color:#EFE9DC;border-radius:8px;}.share-check{min-height:44px;font-size:14px;line-height:24px;text-align:left;white-space:normal;background-color:transparent;color:#235663;border-width:0;margin:4px 0;padding:10px 0;}.share-quote{font-size:14px;line-height:25px;color:#6A7578;padding:12px;background-color:#FCF9F2;}.thread-title{font-family:AcademySerif;font-size:20px;line-height:32px;min-height:64px;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#E3DCCF;}.thread-body{font-family:AcademySans;font-size:16px;line-height:28px;height:260px;width:100%;padding:16px 0;color:#182B31;}.thread-tags{font-family:AcademySans;font-size:14px;min-height:48px;padding:10px 12px;background-color:#EFE9DC;border-radius:6px;margin-top:8px;}.thread-images{flex-direction:row;flex-wrap:wrap;margin-top:16px;}.thread-image{width:76px;height:76px;border-radius:6px;margin-right:10px;}.small-action,.citation-option{min-height:44px;padding:10px 0;font-size:13px;line-height:24px;color:#235663;background-color:transparent;border-width:0;margin:0;align-self:flex-start;}.field-label{margin-top:20px;}.form-error{font-size:13px;line-height:24px;color:#B4533F;margin-top:12px;}</style>
+import { privateStore } from '../../lib/secure-storage';
+import PageHead from '../../components/PageHead.uvue';
+import BottomBar from '../../components/BottomBar.uvue';
+import { request } from '../../lib/api';
+import { studyEventId } from '../../lib/learning';
+import { currentUser, needLogin } from '../../lib/session';
+import { uploadHomeworkImage } from '../../lib/teaching';
+const title = ref(''),
+  body = ref(''),
+  tagText = ref(''),
+  images = ref<{ id: string; path: string }[]>([]),
+  saving = ref(false),
+  uploading = ref(false),
+  error = ref(''),
+  articleId = ref(''),
+  articleTitle = ref(''),
+  articleQuery = ref(''),
+  articleLoading = ref(false),
+  articleError = ref(''),
+  citationVisible = ref(false),
+  articles = ref<{ id: string; title: string }[]>([]);
+const sectionId = ref(''),
+  mediaIds = ref<string[]>([]),
+  mediaBusy = ref(false),
+  draftNotice = ref('');
+let key = '',
+  payload = '',
+  owner = '',
+  articleSequence = 0;
+type PrivateSource = {
+  kind: string;
+  id: string;
+  version: number;
+  text: string;
+  title: string;
+  quote: string;
+  canIncludeQuote: boolean;
+};
+let submitted = false,
+  draftTimer: ReturnType<typeof setTimeout> | null = null;
+function draftKey() {
+  return 'forum-draft|' + owner + '|' + sectionId.value + '|' + sourceKind.value + '|' + sourceId;
+}
+function saveDraft() {
+  if (submitted || !owner || owner !== currentUser.value?.id || !sectionId.value) return;
+  try {
+    privateStore.write(
+      draftKey(),
+      JSON.stringify({
+        title: title.value,
+        body: body.value,
+        tagText: tagText.value,
+        articleId: articleId.value,
+        articleTitle: articleTitle.value,
+      }),
+    );
+  } catch {
+    draftNotice.value = '无法保存本机草稿，请先保留正文，当前页面仍可继续编辑。';
+  }
+}
+function restoreDraft() {
+  try {
+    const raw = privateStore.read(draftKey());
+    if (!raw) return;
+    const d = JSON.parse(raw) as {
+      title: string;
+      body: string;
+      tagText: string;
+      articleId: string;
+      articleTitle: string;
+    };
+    if (typeof d.title !== 'string' || typeof d.body !== 'string') return;
+    title.value = d.title.slice(0, 120);
+    body.value = d.body.slice(0, 10000);
+    tagText.value = (d.tagText ?? '').slice(0, 150);
+    articleId.value = d.articleId ?? '';
+    articleTitle.value = d.articleTitle ?? '';
+    draftNotice.value = '已恢复当前账号的未提交草稿。';
+  } catch {
+    draftNotice.value = '本机草稿暂时无法读取，仍可继续编辑。';
+  }
+}
+watch(
+  () => [title.value, body.value, tagText.value, articleId.value],
+  () => {
+    if (draftTimer) clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 400);
+  },
+);
+onHide(() => saveDraft());
+onUnload(() => {
+  if (draftTimer) clearTimeout(draftTimer);
+  saveDraft();
+  articleSequence++;
+  sourceSequence++;
+});
+const source = ref<PrivateSource | null>(null),
+  sourceKind = ref(''),
+  sourceLoading = ref(false),
+  sourceError = ref(''),
+  shareConsent = ref(false),
+  includeQuote = ref(false),
+  sectionTitle = ref('');
+let sourceId = '',
+  sourceSequence = 0;
+async function loadSource() {
+  if (!sourceKind.value || needLogin()) return;
+  const sequence = ++sourceSequence,
+    user = currentUser.value?.id;
+  sourceLoading.value = true;
+  sourceError.value = '';
+  shareConsent.value = false;
+  includeQuote.value = false;
+  try {
+    const result = await request<PrivateSource>(
+      '/forum/private-sources/' + sourceKind.value + '/' + sourceId,
+    );
+    if (sequence !== sourceSequence || user !== currentUser.value?.id) return;
+    source.value = result;
+    title.value = result.title.slice(0, 120);
+    body.value = result.text;
+    key = '';
+    payload = '';
+  } catch (e) {
+    if (sequence === sourceSequence) sourceError.value = (e as Error).message;
+  } finally {
+    if (sequence === sourceSequence) sourceLoading.value = false;
+  }
+}
+async function chooseSection() {
+  try {
+    const result = await request<{
+        items: { id: string; title: string; scope: string; cohortId?: string | null }[];
+      }>('/forum/sections'),
+      sections = result.items.filter((s) => s.scope === 'PUBLIC' && !s.cohortId);
+    if (!sections.length) {
+      error.value = '公共讨论区暂未开放，私人记录已保留。';
+      return;
+    }
+    uni.showActionSheet({
+      itemList: sections.map((s) => s.title),
+      success: (r) => {
+        sectionId.value = sections[r.tapIndex].id;
+        sectionTitle.value = sections[r.tapIndex].title;
+      },
+    });
+  } catch (e) {
+    error.value = (e as Error).message;
+  }
+}
+function preview(path: string) {
+  uni.previewImage({ current: path, urls: images.value.map((i) => i.path) });
+}
+function choose() {
+  if (saving.value || uploading.value) return;
+  uni.chooseImage({
+    count: 6 - images.value.length,
+    sizeType: ['compressed'],
+    success: async (data) => {
+      uploading.value = true;
+      error.value = '';
+      try {
+        for (const path of data.tempFilePaths) {
+          const asset = await uploadHomeworkImage(path, '/forum/images');
+          images.value.push({ id: asset.id, path });
+        }
+      } catch (e) {
+        error.value = (e as Error).message;
+      } finally {
+        uploading.value = false;
+      }
+    },
+  });
+}
+async function searchArticles() {
+  const seq = ++articleSequence;
+  articleLoading.value = true;
+  articleError.value = '';
+  try {
+    const result = await request<{ items: { id: string; title: string; visibility: string }[] }>(
+      '/catalog/articles?size=20&q=' + encodeURIComponent(articleQuery.value.trim()),
+    );
+    if (seq === articleSequence) {
+      articles.value = result.items.filter((a) => a.visibility === 'PUBLIC');
+      if (!articles.value.length) articleError.value = '没有找到可引用的公开文章';
+    }
+  } catch (e) {
+    if (seq === articleSequence) articleError.value = (e as Error).message;
+  } finally {
+    if (seq === articleSequence) articleLoading.value = false;
+  }
+}
+async function submit() {
+  if (saving.value || uploading.value || mediaBusy.value || needLogin()) return;
+  if (
+    sourceKind.value &&
+    (!source.value || !shareConsent.value || !sectionId.value || sourceError.value)
+  ) {
+    error.value = '请读取记录、选择讨论区并确认分享授权';
+    return;
+  }
+  const tags = [
+    ...new Set(
+      tagText.value
+        .split(/[,，、]/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  ];
+  if (tags.length > 5 || tags.some((t) => t.length > 30)) {
+    error.value = '最多5个话题，每个不超过30字';
+    return;
+  }
+  const data = {
+    sectionId: sectionId.value,
+    mediaIds: mediaIds.value,
+    title: title.value.trim(),
+    body: body.value.trim(),
+    assetIds: images.value.map((i) => i.id),
+    tags,
+    ...(source.value
+      ? {
+          privateSource: {
+            kind: source.value.kind,
+            id: source.value.id,
+            version: source.value.version,
+            consent: shareConsent.value,
+            includeQuote: includeQuote.value,
+          },
+        }
+      : {}),
+    ...(articleId.value ? { articleId: articleId.value } : {}),
+  };
+  const signature = JSON.stringify(data);
+  if (signature !== payload) {
+    key = studyEventId();
+    payload = signature;
+  }
+  saving.value = true;
+  error.value = '';
+  try {
+    const result = await request<{ id: string }>('/forum/threads', {
+      method: 'POST',
+      data: { ...data, requestKey: key },
+    });
+    submitted = true;
+    try {
+      privateStore.remove(draftKey());
+    } catch {}
+    uni.redirectTo({ url: '/pages/community/detail?id=' + result.id });
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    saving.value = false;
+  }
+}
+onLoad((options) => {
+  sectionId.value = options?.sectionId ?? '';
+  owner = currentUser.value?.id ?? '';
+  sourceKind.value = ['NOTE', 'JOURNAL'].includes(options?.sourceKind ?? '')
+    ? options!.sourceKind!
+    : '';
+  sourceId = options?.sourceId ?? '';
+  if (sourceKind.value) loadSource();
+  else restoreDraft();
+});
+onShow(() => {
+  if (owner !== (currentUser.value?.id ?? '')) {
+    owner = currentUser.value?.id ?? '';
+    title.value = '';
+    body.value = '';
+    images.value = [];
+    tagText.value = '';
+    key = '';
+    payload = '';
+    source.value = null;
+    shareConsent.value = false;
+    includeQuote.value = false;
+    sourceError.value = '';
+    sourceSequence++;
+    mediaIds.value = [];
+    mediaBusy.value = false;
+    submitted = false;
+    draftNotice.value = '';
+    if (sourceKind.value && currentUser.value) loadSource();
+    else if (currentUser.value) restoreDraft();
+  }
+  needLogin();
+});
+</script>
+<style>
+@import '../../styles/app.css';
+.editor-intro {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  padding: 0 0 12px;
+}
+.private-share {
+  margin-top: 12px;
+  padding: 16px;
+  background-color: #f0eadd;
+  border-radius: 14px;
+}
+.share-check {
+  align-self: stretch;
+  min-height: 44px;
+  margin: 4px 0;
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 22px;
+  text-align: left;
+  white-space: normal;
+  background-color: transparent;
+  color: #235663;
+  border-width: 0;
+}
+.share-quote {
+  margin-top: 8px;
+  padding: 12px 14px;
+  background-color: #fcf9f2;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.thread-title {
+  font-family: AcademySerif;
+  font-size: 15px;
+  line-height: 24px;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 10px;
+  color: #182b31;
+}
+.thread-body {
+  width: 100%;
+  height: 240px;
+  margin-top: 8px;
+  padding: 12px;
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 10px;
+}
+.thread-images {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.thread-image {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  margin: 0 8px 8px 0;
+}
+/* 图片上传区：虚线描边卡。
+   shortcut: 音视频附件卡（ForumMediaUpload）与引用文章列表仍在各自组件/纯文字按钮里，样式不统一，改共享组件时再并过来。 */
+.upload-card {
+  align-items: flex-start;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 12px;
+  padding: 16px;
+  background-color: #fcf9f2;
+  border-style: dashed;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+}
+.upload-title {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 24px;
+  color: #235663;
+  text-align: left;
+}
+.upload-hint {
+  margin-top: 4px;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  text-align: left;
+}
+.field-label {
+  margin-top: 24px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #8a6635;
+  letter-spacing: 0.4px;
+}
+.thread-tags {
+  margin-top: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 10px;
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+  color: #182b31;
+}
+.citation-option {
+  align-self: stretch;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  background-color: transparent;
+  border-width: 0;
+  text-align: left;
+  white-space: normal;
+}
+.small-action {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  background-color: transparent;
+  border-width: 0;
+}
+.form-error {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 22px;
+  color: #b4533f;
+}
+</style>

@@ -1,57 +1,527 @@
 <template>
-<view class="page"><PageHead :title="title"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical"><view class="content">
-<view class="library-header"><text class="library-description">{{kind==='practice'?'记录每天的研习与实践，只对自己可见。':kind==='notes'?'把读到的文字，留成自己的理解。':'喜欢的文章，随时回来接着读。'}}</text><view class="library-tools"><button v-if="kind==='practice'" class="new-entry" @click="writeJournal()">＋ 写日志</button><button v-else class="export-entry" :disabled="exporting" @click="exportAll">{{exporting?'导出中…':'导出笔记'}}</button><text class="library-count">{{items.length}}{{nextCursor?'+':''}} 条记录</text></view></view>
-<ContentState v-if="loading&&!items.length||error" :loading="loading&&!items.length" :error="error" @retry="load(failedAppend)"/>
-<view v-for="item in items" :key="item.id" class="record-card">
-<view v-if="kind==='favorites'" @click="open(item)"><view class="record-heading"><text class="record-title">{{item.article?.title??'内容已下架'}}</text><AppIcon v-if="item.article" name="arrow-right" :size="16"/></view><text class="record-copy">{{item.article?.summary??'原文已不可阅读，你可以移除收藏。'}}</text></view>
-<view v-else-if="kind==='notes'" @click="editNote(item)"><text class="record-source">{{item.articleTitle}}</text><text v-if="item.quote" class="record-quote" :user-select="true">{{item.quote}}</text><text v-if="item.text" class="record-copy" :user-select="true">{{item.text}}</text><text v-else class="record-hint">已划线 · 点击添加想法</text></view>
-<view v-else @click="writeJournal(item)"><view class="record-heading"><text class="record-date">{{formatDay(item.day??'')}}</text><text class="record-source">{{item.day===today?'今天':'研习日志'}}</text></view><text class="record-copy" :user-select="true">{{item.text}}</text></view>
-<view class="record-actions"><text class="record-time">{{item.createdAt?formatChinaDate(item.createdAt):''}}</text><button v-if="kind==='notes'&&item.articleId" class="record-action" @click="goArticle(item.articleId!)">查看原文</button><button v-if="kind!=='favorites'" class="record-action" @click="kind==='notes'?editNote(item):writeJournal(item)">编辑</button><button v-if="kind!=='favorites'" class="record-action" @click="shareRecord(item)">分享心得</button><button v-if="kind!=='favorites'" class="record-action" @click="openCase(item.id)">授权课程案例</button><button v-if="kind!=='practice'&&item.articleId" class="record-action" @click="exportArticle(item)">导出本篇</button><button class="record-action" @click="copy(item)">复制</button><button class="record-action record-remove" :disabled="deleting===item.id" @click="remove(item)">{{kind==='favorites'?'取消收藏':'删除'}}</button></view>
-</view>
-<ContentState v-if="!loading&&!error&&!items.length" :title="kind==='notes'?'还没有笔记':kind==='favorites'?'还没有收藏':'写下第一篇研习日志'" :description="kind==='notes'?'在文章里长按选中文字，点“笔记”即可记录。':kind==='favorites'?'阅读文章时点收藏，就能在这里找到。':'一句感受、一段实践，都值得记录。'"/>
-<button v-if="!loading&&!error&&!items.length&&kind!=='practice'" class="secondary-button" @click="browse">去读文章</button>
-<button v-if="nextCursor" class="secondary-button" :disabled="loading" @click="load(true)">{{loading?'加载中…':'查看更多记录'}}</button>
-</view></scroll-view>
-<ComposeSheet :visible="editorVisible" :title="kind==='practice'?'研习日志':'编辑笔记'" subtitle="仅自己可见" :quote="kind==='notes'?selected?.quote??'':''" v-model="draft" :saving="saving" :error="editorError" :disabled="kind==='practice'&&!draft.trim()" @close="editorVisible=false" @submit="save">
-<JournalDate v-if="kind==='practice'" v-model="selectedDay" :today="today"/>
-</ComposeSheet></view>
+  <view class="page"
+    ><InkBackdrop /><PageHead :title="title" />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical"
+      ><view class="content">
+        <view class="library-header"
+          ><text class="ui-text library-description">{{
+            kind === 'practice'
+              ? '记录每天的研习与实践，只对自己可见。'
+              : kind === 'notes'
+                ? '把读到的文字，留成自己的理解。'
+                : '喜欢的文章，随时回来接着读。'
+          }}</text
+          ><view class="library-tools"
+            ><button v-if="kind === 'practice'" class="ui-button new-entry" @click="writeJournal()"
+              >＋ 写日志</button
+            ><button
+              v-else
+              :class="['ui-button', 'export-entry', items.length ? '' : 'export-entry-off']"
+              :disabled="exporting || !items.length"
+              @click="exportAll"
+              >{{ exporting ? '导出中…' : '导出笔记' }}</button
+            ><text class="ui-text library-count"
+              >{{ items.length }}{{ nextCursor ? '+' : '' }} 条记录</text
+            ></view
+          ></view
+        >
+        <ContentState
+          v-if="(loading && !items.length) || error"
+          :loading="loading && !items.length"
+          :error="error"
+          @retry="load(failedAppend)"
+        />
+        <view v-for="item in items" :key="item.id" class="record-card">
+          <view v-if="kind === 'favorites'" @click="open(item)"
+            ><view class="record-heading"
+              ><text class="ui-text record-title">{{ item.article?.title ?? '内容已下架' }}</text
+              ><AppIcon v-if="item.article" name="arrow-right" :size="16" /></view
+            ><text class="ui-text record-copy">{{
+              item.article?.summary ?? '原文已不可阅读，你可以移除收藏。'
+            }}</text></view
+          >
+          <view v-else-if="kind === 'notes'" @click="editNote(item)"
+            ><text class="ui-text record-source">{{ item.articleTitle }}</text
+            ><text v-if="item.quote" class="ui-text record-quote" :user-select="true">{{
+              item.quote
+            }}</text
+            ><text v-if="item.text" class="ui-text record-copy" :user-select="true">{{
+              item.text
+            }}</text
+            ><text v-else class="ui-text record-hint">已划线 · 点击添加想法</text></view
+          >
+          <view v-else @click="writeJournal(item)"
+            ><view class="record-heading"
+              ><text class="ui-text record-date">{{ formatDay(item.day ?? '') }}</text
+              ><text class="ui-text record-source">{{
+                item.day === today ? '今天' : '研习日志'
+              }}</text></view
+            ><text class="ui-text record-copy" :user-select="true">{{ item.text }}</text></view
+          >
+          <view class="record-actions"
+            ><text class="ui-text record-time">{{
+              item.createdAt ? formatChinaDate(item.createdAt) : ''
+            }}</text
+            ><button
+              v-if="kind === 'notes' && item.articleId"
+              class="ui-button record-action"
+              @click="goArticle(item.articleId!)"
+              >查看原文</button
+            ><button
+              v-if="kind !== 'favorites'"
+              class="ui-button record-action"
+              @click="kind === 'notes' ? editNote(item) : writeJournal(item)"
+              >编辑</button
+            ><button
+              v-if="kind !== 'favorites'"
+              class="ui-button record-action"
+              @click="shareRecord(item)"
+              >分享心得</button
+            ><button
+              v-if="kind !== 'favorites'"
+              class="ui-button record-action"
+              @click="openCase(item.id)"
+              >授权课程案例</button
+            ><button
+              v-if="kind !== 'practice' && item.articleId"
+              class="ui-button record-action"
+              @click="exportArticle(item)"
+              >导出本篇</button
+            ><button class="ui-button record-action" @click="copy(item)">复制</button
+            ><button
+              class="ui-button record-action record-remove"
+              :disabled="deleting === item.id"
+              @click="remove(item)"
+              >{{ kind === 'favorites' ? '取消收藏' : '删除' }}</button
+            ></view
+          >
+        </view>
+        <ContentState
+          v-if="!loading && !error && !items.length"
+          :title="
+            kind === 'notes'
+              ? '还没有笔记'
+              : kind === 'favorites'
+                ? '还没有收藏'
+                : '写下第一篇研习日志'
+          "
+          :description="
+            kind === 'notes'
+              ? '在文章里长按选中文字，点“笔记”即可记录。'
+              : kind === 'favorites'
+                ? '阅读文章时点收藏，就能在这里找到。'
+                : '一句感受、一段实践，都值得记录。'
+          "
+          :actionLabel="kind === 'practice' ? '写下第一篇' : '去读文章'"
+          @action="kind === 'practice' ? writeJournal() : browse()"
+        />
+        <button
+          v-if="nextCursor"
+          class="ui-button secondary-button"
+          :disabled="loading"
+          @click="load(true)"
+          >{{ loading ? '加载中…' : '查看更多记录' }}</button
+        >
+      </view></scroll-view
+    >
+    <ComposeSheet
+      :visible="editorVisible"
+      :title="kind === 'practice' ? '研习日志' : '编辑笔记'"
+      subtitle="仅自己可见"
+      :quote="kind === 'notes' ? (selected?.quote ?? '') : ''"
+      v-model="draft"
+      :saving="saving"
+      :error="editorError"
+      :disabled="kind === 'practice' && !draft.trim()"
+      @close="editorVisible = false"
+      @submit="save"
+    >
+      <JournalDate v-if="kind === 'practice'" v-model="selectedDay" :today="today" /> </ComposeSheet
+  ></view>
 </template>
 <script setup lang="ts">
-function openCase(id:string){openPage('marketing/case-authorize?kind='+(kind.value==='notes'?'NOTE':'JOURNAL')+'&id='+id);}
-import {openPage} from '../../lib/presentation';
-import {chinaDay,formatChinaDate} from '../../lib/date-time';
-import PageHead from '../../components/PageHead.uvue';import AppIcon from '../../components/AppIcon.uvue';import ContentState from '../../components/ContentState.uvue';import ComposeSheet from '../../components/ComposeSheet.uvue';import JournalDate from '../../components/JournalDate.uvue';
-import {request,goArticle} from '../../lib/api';import type {ContentPage} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';
-type SavedArticle={title:string;summary:string};type PrivateItem={id:string;articleId?:string;articleTitle?:string;quote?:string;text?:string;day?:string;createdAt?:string;version?:number;article?:SavedArticle|null};
-const kind=ref('notes'),title=computed(()=>kind.value==='favorites'?'我的收藏':kind.value==='practice'?'研习日志':'研习笔记'),items=ref<PrivateItem[]>([]),loading=ref(false),error=ref(''),nextCursor=ref<string|null>(null),exporting=ref(false),deleting=ref('');
-const today=chinaDay(),selectedDay=ref(today),selected=ref<PrivateItem|null>(null),draft=ref(''),editorVisible=ref(false),editorError=ref(''),saving=ref(false);let owner='',draftDay=today;const journalDrafts=new Map<string,string>();
-function shareRecord(item:PrivateItem){uni.navigateTo({url:'/pages/community/editor?sourceKind='+(kind.value==='notes'?'NOTE':'JOURNAL')+'&sourceId='+item.id});}
-function formatDay(day:string){return day.replace(/-/g,' / ');}
-function browse(){uni.switchTab({url:'/pages/discover/index'});}
-let failedAppend=false;
-async function load(append=false){if(needLogin()||loading.value)return;failedAppend=append;loading.value=true;error.value='';try{const data=await request<ContentPage<PrivateItem>>('/me/'+kind.value+'?size=20'+(append&&nextCursor.value?'&cursor='+nextCursor.value:''));items.value=append?[...items.value,...data.items]:data.items;nextCursor.value=data.nextCursor;}catch(e){error.value=(e as Error).message;}finally{loading.value=false;}}
-function editNote(item:PrivateItem){if(selected.value?.id!==item.id){draft.value=item.text??'';selected.value=item;}editorError.value='';editorVisible.value=true;}
-function writeJournal(item?:PrivateItem){
- if(editorVisible.value)journalDrafts.set(draftDay,draft.value);
- const day=item?.day??today;selected.value=item??items.value.find(r=>r.day===day)??null;
- draftDay=day;selectedDay.value=day;draft.value=journalDrafts.get(day)??selected.value?.text??'';
- editorError.value='';editorVisible.value=true;
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { pageRefresh } from '../../lib/page-refresh';
+function openCase(id: string) {
+  openPage(
+    'marketing/case-authorize?kind=' + (kind.value === 'notes' ? 'NOTE' : 'JOURNAL') + '&id=' + id,
+  );
 }
-watch(draft,value=>{if(kind.value==='practice')journalDrafts.set(draftDay,value);});
-watch(selectedDay,day=>{if(!editorVisible.value||day===draftDay)return;
- journalDrafts.set(draftDay,draft.value);selected.value=items.value.find(r=>r.day===day)??null;
- draftDay=day;draft.value=journalDrafts.get(day)??selected.value?.text??'';editorError.value='';
+import { openPage } from '../../lib/presentation';
+import { chinaDay, formatChinaDate } from '../../lib/date-time';
+import PageHead from '../../components/PageHead.uvue';
+import AppIcon from '../../components/AppIcon.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import ComposeSheet from '../../components/ComposeSheet.uvue';
+import JournalDate from '../../components/JournalDate.uvue';
+import { request, goArticle } from '../../lib/api';
+import type { ContentPage } from '../../lib/api';
+import { currentUser, needLogin } from '../../lib/session';
+type SavedArticle = { title: string; summary: string };
+type PrivateItem = {
+  id: string;
+  articleId?: string;
+  articleTitle?: string;
+  quote?: string;
+  text?: string;
+  day?: string;
+  createdAt?: string;
+  version?: number;
+  article?: SavedArticle | null;
+};
+const kind = ref('notes'),
+  title = computed(() =>
+    kind.value === 'favorites' ? '我的收藏' : kind.value === 'practice' ? '研习日志' : '研习笔记',
+  ),
+  items = ref<PrivateItem[]>([]),
+  loading = ref(false),
+  error = ref(''),
+  nextCursor = ref<string | null>(null),
+  exporting = ref(false),
+  deleting = ref('');
+const today = chinaDay(),
+  selectedDay = ref(today),
+  selected = ref<PrivateItem | null>(null),
+  draft = ref(''),
+  editorVisible = ref(false),
+  editorError = ref(''),
+  saving = ref(false);
+let owner = '',
+  draftDay = today;
+const journalDrafts = new Map<string, string>();
+function shareRecord(item: PrivateItem) {
+  uni.navigateTo({
+    url:
+      '/pages/community/editor?sourceKind=' +
+      (kind.value === 'notes' ? 'NOTE' : 'JOURNAL') +
+      '&sourceId=' +
+      item.id,
+  });
+}
+function formatDay(day: string) {
+  return day.replace(/-/g, ' / ');
+}
+function browse() {
+  uni.switchTab({ url: '/pages/discover/index' });
+}
+let failedAppend = false;
+async function load(append = false) {
+  if (needLogin() || loading.value) return;
+  failedAppend = append;
+  loading.value = true;
+  error.value = '';
+  try {
+    const data = await request<ContentPage<PrivateItem>>(
+      '/me/' +
+        kind.value +
+        '?size=20' +
+        (append && nextCursor.value ? '&cursor=' + nextCursor.value : ''),
+    );
+    items.value = append ? [...items.value, ...data.items] : data.items;
+    nextCursor.value = data.nextCursor;
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+  }
+}
+function editNote(item: PrivateItem) {
+  if (selected.value?.id !== item.id) {
+    draft.value = item.text ?? '';
+    selected.value = item;
+  }
+  editorError.value = '';
+  editorVisible.value = true;
+}
+function writeJournal(item?: PrivateItem) {
+  if (editorVisible.value) journalDrafts.set(draftDay, draft.value);
+  const day = item?.day ?? today;
+  selected.value = item ?? items.value.find((r) => r.day === day) ?? null;
+  draftDay = day;
+  selectedDay.value = day;
+  draft.value = journalDrafts.get(day) ?? selected.value?.text ?? '';
+  editorError.value = '';
+  editorVisible.value = true;
+}
+watch(draft, (value) => {
+  if (kind.value === 'practice') journalDrafts.set(draftDay, value);
 });
-async function save(){if(saving.value||needLogin())return;saving.value=true;editorError.value='';try{if(kind.value==='notes'&&selected.value)await request('/me/notes/'+selected.value.id,{method:'PATCH',data:{text:draft.value}});else{const existing=items.value.find(r=>r.day===selectedDay.value);if(existing&&existing.id!==selected.value?.id){editorError.value='该日期已有日志，请打开那篇日志编辑，避免覆盖。';return;}await request('/me/practice',{method:'PUT',data:{day:selectedDay.value,text:draft.value.trim(),expectedVersion:selected.value?.version??0}});}editorVisible.value=false;draft.value='';journalDrafts.delete(draftDay);selected.value=null;await load();uni.showToast({title:'已保存',icon:'none'});}catch(e){editorError.value=(e as Error).message;}finally{saving.value=false;}}
-function exportAll(){if(!needLogin())uni.navigateTo({url:'/pages/profile/note-export'+(kind.value==='favorites'?'?scope=favorites':'')});}
-function exportArticle(item:PrivateItem){if(item.articleId)uni.navigateTo({url:'/pages/profile/note-export?articleId='+item.articleId+'&title='+encodeURIComponent(item.articleTitle??item.article?.title??'所选文章')});}
-function copy(item:PrivateItem){uni.setClipboardData({data:[item.article?.title??item.articleTitle??item.day,item.quote,item.text??item.article?.summary].filter(Boolean).join('\n\n')});}
-function open(item:PrivateItem){if(item.article&&item.articleId)goArticle(item.articleId);}
-function remove(item:PrivateItem){if(deleting.value)return;uni.showModal({title:kind.value==='favorites'?'取消收藏？':'删除这条记录？',content:kind.value==='favorites'?'原文不受影响，你可以再次收藏。':'删除后无法恢复。',confirmText:'确认删除',confirmColor:'#B4533F',success:async r=>{if(!r.confirm)return;deleting.value=item.id;try{await request('/me/'+kind.value+'/'+(kind.value==='favorites'?item.articleId:item.id),{method:'DELETE'});if(selected.value?.id===item.id){draft.value='';selected.value=null;}await load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{deleting.value='';}}});}
-onLoad(o=>{kind.value=['notes','practice','favorites'].includes(o?.kind??'')?(o?.kind??'notes'):'notes';});
-onShow(()=>{if(owner!==currentUser.value?.id){owner=currentUser.value?.id??'';items.value=[];draft.value='';journalDrafts.clear();selected.value=null;editorVisible.value=false;nextCursor.value=null;}if(!saving.value&&!editorVisible.value)load();});
+watch(selectedDay, (day) => {
+  if (!editorVisible.value || day === draftDay) return;
+  journalDrafts.set(draftDay, draft.value);
+  selected.value = items.value.find((r) => r.day === day) ?? null;
+  draftDay = day;
+  draft.value = journalDrafts.get(day) ?? selected.value?.text ?? '';
+  editorError.value = '';
+});
+async function save() {
+  if (saving.value || needLogin()) return;
+  saving.value = true;
+  editorError.value = '';
+  try {
+    if (kind.value === 'notes' && selected.value)
+      await request('/me/notes/' + selected.value.id, {
+        method: 'PATCH',
+        data: { text: draft.value },
+      });
+    else {
+      const existing = items.value.find((r) => r.day === selectedDay.value);
+      if (existing && existing.id !== selected.value?.id) {
+        editorError.value = '该日期已有日志，请打开那篇日志编辑，避免覆盖。';
+        return;
+      }
+      await request('/me/practice', {
+        method: 'PUT',
+        data: {
+          day: selectedDay.value,
+          text: draft.value.trim(),
+          expectedVersion: selected.value?.version ?? 0,
+        },
+      });
+    }
+    editorVisible.value = false;
+    draft.value = '';
+    journalDrafts.delete(draftDay);
+    selected.value = null;
+    await load();
+    uni.showToast({ title: '已保存', icon: 'none' });
+  } catch (e) {
+    editorError.value = (e as Error).message;
+  } finally {
+    saving.value = false;
+  }
+}
+function exportAll() {
+  if (!needLogin())
+    uni.navigateTo({
+      url: '/pages/profile/note-export' + (kind.value === 'favorites' ? '?scope=favorites' : ''),
+    });
+}
+function exportArticle(item: PrivateItem) {
+  if (item.articleId)
+    uni.navigateTo({
+      url:
+        '/pages/profile/note-export?articleId=' +
+        item.articleId +
+        '&title=' +
+        encodeURIComponent(item.articleTitle ?? item.article?.title ?? '所选文章'),
+    });
+}
+function copy(item: PrivateItem) {
+  uni.setClipboardData({
+    data: [
+      item.article?.title ?? item.articleTitle ?? item.day,
+      item.quote,
+      item.text ?? item.article?.summary,
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
+  });
+}
+function open(item: PrivateItem) {
+  if (item.article && item.articleId) goArticle(item.articleId);
+}
+function remove(item: PrivateItem) {
+  if (deleting.value) return;
+  uni.showModal({
+    title: kind.value === 'favorites' ? '取消收藏？' : '删除这条记录？',
+    content: kind.value === 'favorites' ? '原文不受影响，你可以再次收藏。' : '删除后无法恢复。',
+    confirmText: '确认删除',
+    confirmColor: '#B4533F',
+    success: async (r) => {
+      if (!r.confirm) return;
+      deleting.value = item.id;
+      try {
+        await request(
+          '/me/' + kind.value + '/' + (kind.value === 'favorites' ? item.articleId : item.id),
+          { method: 'DELETE' },
+        );
+        if (selected.value?.id === item.id) {
+          draft.value = '';
+          selected.value = null;
+        }
+        await load();
+      } catch (e) {
+        uni.showToast({ title: (e as Error).message, icon: 'none' });
+      } finally {
+        deleting.value = '';
+      }
+    },
+  });
+}
+onLoad((o) => {
+  kind.value = ['notes', 'practice', 'favorites'].includes(o?.kind ?? '')
+    ? (o?.kind ?? 'notes')
+    : 'notes';
+});
+onShow(() => {
+  if (owner !== currentUser.value?.id) {
+    owner = currentUser.value?.id ?? '';
+    items.value = [];
+    draft.value = '';
+    journalDrafts.clear();
+    selected.value = null;
+    editorVisible.value = false;
+    nextCursor.value = null;
+  }
+  if (!saving.value && !editorVisible.value) void refreshPage();
+});
+
+const refreshPage = pageRefresh(
+  async () => {
+    await load();
+  },
+  () => !error.value && !loading.value,
+  60000,
+);
 </script>
-<style>@import '../../styles/app.css';
-.library-header{padding:10px 0 16px;}.library-description{font-size:14px;line-height:24px;color:#6A7578;}.library-tools{flex-direction:row;align-items:center;justify-content:space-between;margin-top:14px;}.new-entry{color:#FCF9F2;font-size:14px;line-height:24px;background-color:#235663;border-width:0;border-radius:22px;padding:10px 16px;min-height:44px;margin:0;}.export-entry{background-color:transparent;border-width:1px;border-style:solid;border-color:#D3C9B8;border-radius:22px;min-height:44px;padding:10px 16px;font-size:13px;color:#235663;margin:0;}.library-count{font-size:12px;color:#7C878A;}.record-card{border-width:1px;border-style:solid;border-color:#E4DED3;padding:16px;background-color:#FCF9F2;border-radius:8px;margin-bottom:12px;}.record-heading{flex-direction:row;align-items:center;justify-content:space-between;}.record-title{min-width:0;font-family:AcademySerif;font-size:17px;line-height:27px;color:#182B31;flex:1;}.record-source{min-width:0;flex-shrink:1;font-family:AcademySans;font-size:12px;line-height:21px;color:#6A7578;}.record-date{font-family:AcademySerif;font-size:19px;line-height:29px;color:#182B31;}.record-copy{font-family:AcademySans;font-size:15px;line-height:27px;color:#344C54;margin-top:10px;max-height:162px;overflow:hidden;}.record-quote{font-family:AcademySans;font-size:14px;line-height:25px;color:#6A7578;background-color:#F0EADF;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;padding:10px 12px;margin-top:10px;max-height:100px;overflow:hidden;}.record-hint{font-size:13px;color:#7C878A;margin-top:12px;}.record-actions{flex-direction:row;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:6px;border-top-width:1px;border-top-style:solid;border-top-color:#EFE9DC;}.record-time{width:100%;flex-shrink:0;font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;margin-bottom:4px;}.record-action{font-family:AcademySans;font-size:13px;line-height:20px;min-height:44px;padding:12px 7px;margin:0;background-color:transparent;border-width:0;color:#235663;}.record-remove{color:#7C878A;}
+<style>
+@import '../../styles/app.css';
+.library-header {
+  padding: 16px 0 16px;
+}
+.library-description {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.library-tools {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.new-entry {
+  color: #fcf9f2;
+  font-size: 15px;
+  line-height: 22px;
+  background-color: #235663;
+  border-width: 0;
+  border-radius: 24px;
+  padding: 13px 20px;
+  min-height: 48px;
+  margin: 0;
+}
+.export-entry {
+  background-color: transparent;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #c9bfad;
+  border-radius: 23px;
+  min-height: 46px;
+  padding: 12px 18px;
+  font-size: 14px;
+  line-height: 24px;
+  color: #235663;
+  margin: 0;
+}
+.export-entry-off {
+  border-color: #e4ded2;
+  color: #6f6a5f;
+}
+.library-count {
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+}
+.record-card {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #cfc5b1;
+  padding: 16px;
+  background-color: #fcf9f2;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+.record-heading {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.record-title {
+  min-width: 0;
+  font-family: AcademySerif;
+  font-size: 16px;
+  line-height: 24px;
+  color: #182b31;
+  flex: 1;
+  max-height: 48px;
+  overflow: hidden;
+}
+.record-source {
+  min-width: 0;
+  flex-shrink: 1;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+}
+.record-date {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #182b31;
+}
+.record-copy {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 26px;
+  color: #344c54;
+  margin-top: 8px;
+  max-height: 78px;
+  overflow: hidden;
+}
+.record-quote {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  background-color: #f0eadd;
+  border-left-width: 2px;
+  border-left-style: solid;
+  border-left-color: #cfc5b1;
+  padding: 12px;
+  margin-top: 8px;
+  max-height: 88px;
+  overflow: hidden;
+}
+.record-hint {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.record-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: #e0d8c8;
+}
+.record-time {
+  width: 100%;
+  flex-shrink: 0;
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-bottom: 4px;
+}
+.record-action {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  min-height: 44px;
+  padding: 11px 8px;
+  margin: 0;
+  background-color: transparent;
+  border-width: 0;
+  color: #235663;
+}
+.record-remove {
+  color: #5c6869;
+}
 </style>

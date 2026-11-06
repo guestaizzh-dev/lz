@@ -13,22 +13,40 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { IsBoolean, IsIn, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Length, Matches, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  Matches,
+  Max,
+  Min,
+} from 'class-validator';
 import { AdminGuard, requireRoles, type AuthRequest } from './auth.js';
 import { Database } from './database.js';
 import { MediaService } from './media.js';
 import { Gifts } from './gifts.js';
 import { AppleCommerceService } from './apple-commerce.js';
 class GiftMappingDto {
-  @IsUUID() offerId!:string;
-  @IsString() @Matches(/^[\w-]+(?:\.[\w-]+)+$/) @Length(3,180) bundleId!:string;
-  @IsIn(['Production','Sandbox']) environment!:string;
-  @IsString() @Matches(/^[-\w.]{1,255}$/) externalProductId!:string;
-  @IsInt() @Min(1) @Max(100000) priceMinor!:number;
-  @IsString() @Length(2,500) @Matches(/\S/) reason!:string;
+  @IsUUID() offerId!: string;
+  @IsString() @Matches(/^[\w-]+(?:\.[\w-]+)+$/) @Length(3, 180) bundleId!: string;
+  @IsIn(['Production', 'Sandbox']) environment!: string;
+  @IsString() @Matches(/^[-\w.]{1,255}$/) externalProductId!: string;
+  @IsInt() @Min(1) @Max(100000) priceMinor!: number;
+  @IsString() @Length(2, 500) @Matches(/\S/) reason!: string;
 }
-class GiftMappingStateDto { @IsUUID() id!:string; @IsInt() @Min(1) expectedVersion!:number; @IsBoolean() active!:boolean; @IsString() @Length(2,500) @Matches(/\S/) reason!:string; }
-const safe = (v: unknown) => JSON.parse(JSON.stringify(v, (_, x) => (typeof x === 'bigint' ? String(x) : x)));
+class GiftMappingStateDto {
+  @IsUUID() id!: string;
+  @IsInt() @Min(1) expectedVersion!: number;
+  @IsBoolean() active!: boolean;
+  @IsString() @Length(2, 500) @Matches(/\S/) reason!: string;
+}
+const safe = (v: unknown) =>
+  JSON.parse(JSON.stringify(v, (_, x) => (typeof x === 'bigint' ? String(x) : x)));
 class PackDto {
   @IsOptional()
   @IsUUID()
@@ -149,22 +167,70 @@ export class GiftsAdminController {
         take: 200,
       }),
       salesReady: process.env.GIFT_SALES_ENABLED === 'true',
-      offers:await this.db.saleOffer.findMany({where:{kind:'GIFT',active:true},orderBy:{createdAt:'desc'}}),
-      mappings:await this.db.channelProductMapping.findMany({where:{channel:'APPLE_IAP',productType:'Consumable'},orderBy:{createdAt:'desc'}}),
+      offers: await this.db.saleOffer.findMany({
+        where: { kind: 'GIFT', active: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      mappings: await this.db.channelProductMapping.findMany({
+        where: { channel: 'APPLE_IAP', productType: 'Consumable' },
+        orderBy: { createdAt: 'desc' },
+      }),
     });
   }
-  @Post('apple-mappings') async mapping(@Req() req:AuthRequest,@Body() dto:GiftMappingDto){
-    requireRoles(req,['FINANCE']);if(process.env.NODE_ENV==='production'&&dto.environment!=='Production')throw new BadRequestException('正式服务不能配置沙箱收款');
-    return this.db.$transaction(async tx=>{
-      const {offer}=await this.giftsService.validateAppleOffer(dto.offerId,tx);if(offer.price!==BigInt(dto.priceMinor))throw new ConflictException('App Store人民币价格与充值包不一致');
-      const appScope=dto.bundleId+':'+dto.environment;await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${appScope+':'+dto.externalProductId},0))`;
-      if(await tx.channelProductMapping.count({where:{channel:'APPLE_IAP',appScope,externalProductId:dto.externalProductId}}))throw new ConflictException('该Apple产品已绑定，不能改写历史购买版本');
-      const row=await tx.channelProductMapping.create({data:{offerId:offer.id,channel:'APPLE_IAP',appScope,externalProductId:dto.externalProductId,productType:'Consumable',currency:'CNY',priceMinor:offer.price,minorExponent:2}});
-      await tx.auditLog.create({data:{actorId:req.actor.id,action:'gift.apple.mapping',resource:'channel_product_mapping',resourceId:row.id,reason:dto.reason.trim(),changes:{appScope,productId:row.externalProductId,amount:String(row.priceMinor)}}});return safe(row);
+  @Post('apple-mappings') async mapping(@Req() req: AuthRequest, @Body() dto: GiftMappingDto) {
+    requireRoles(req, ['FINANCE']);
+    if (process.env.NODE_ENV === 'production' && dto.environment !== 'Production')
+      throw new BadRequestException('正式服务不能配置沙箱收款');
+    return this.db.$transaction(async (tx) => {
+      const { offer } = await this.giftsService.validateAppleOffer(dto.offerId, tx);
+      if (offer.price !== BigInt(dto.priceMinor))
+        throw new ConflictException('App Store人民币价格与充值包不一致');
+      const appScope = dto.bundleId + ':' + dto.environment;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${appScope + ':' + dto.externalProductId},0))`;
+      if (
+        await tx.channelProductMapping.count({
+          where: { channel: 'APPLE_IAP', appScope, externalProductId: dto.externalProductId },
+        })
+      )
+        throw new ConflictException('该Apple产品已绑定，不能改写历史购买版本');
+      const row = await tx.channelProductMapping.create({
+        data: {
+          offerId: offer.id,
+          channel: 'APPLE_IAP',
+          appScope,
+          externalProductId: dto.externalProductId,
+          productType: 'Consumable',
+          currency: 'CNY',
+          priceMinor: offer.price,
+          minorExponent: 2,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: req.actor.id,
+          action: 'gift.apple.mapping',
+          resource: 'channel_product_mapping',
+          resourceId: row.id,
+          reason: dto.reason.trim(),
+          changes: { appScope, productId: row.externalProductId, amount: String(row.priceMinor) },
+        },
+      });
+      return safe(row);
     });
   }
-  @Post('apple-mappings/state') activation(@Req() req:AuthRequest,@Body() dto:GiftMappingStateDto){requireRoles(req,['FINANCE']);return this.apple.activate(dto.id,req,dto);}
-  @Post('contracts/:id/proof') contractProof(@Param('id',ParseUUIDPipe) id:string,@Req() req:AuthRequest){return this.media.giftProofTicket(id,req);}
+  @Post('apple-mappings/state') activation(
+    @Req() req: AuthRequest,
+    @Body() dto: GiftMappingStateDto,
+  ) {
+    requireRoles(req, ['FINANCE']);
+    return this.apple.activate(dto.id, req, dto);
+  }
+  @Post('contracts/:id/proof') contractProof(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthRequest,
+  ) {
+    return this.media.giftProofTicket(id, req);
+  }
   @Post('proof')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
   proof(
@@ -193,7 +259,8 @@ export class GiftsAdminController {
       if (dto.id) {
         await tx.$queryRaw`SELECT id FROM "GiftCreditPack" WHERE id=${dto.id} FOR UPDATE`;
         const old = await tx.giftCreditPack.findUniqueOrThrow({ where: { id: dto.id } });
-        if (old.version !== dto.expectedVersion) throw new ConflictException('充值包已变化，请刷新');
+        if (old.version !== dto.expectedVersion)
+          throw new ConflictException('充值包已变化，请刷新');
       }
       if (dto.active && process.env.GIFT_SALES_ENABLED !== 'true')
         throw new BadRequestException('礼物收款与履约验收前不能开放充值包');
@@ -234,7 +301,8 @@ export class GiftsAdminController {
               title: pack.title,
               credits: String(pack.credits),
               version: pack.version,
-              refundPolicy: '未消费余额可申请原路退款，已消费部分不自助退款；Apple交易由Apple审核。',
+              refundPolicy:
+                '未消费余额可申请原路退款，已消费部分不自助退款；Apple交易由Apple审核。',
             },
           },
         });
@@ -260,7 +328,13 @@ export class GiftsAdminController {
   ) {
     requireRoles(req, ['FINANCE']);
     return this.db.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'gift.code:'+dto.code}))`;if(await tx.virtualGift.count({where:{code:dto.code,...(dto.id?{id:{not:dto.id}}:{})}}))throw new ConflictException('礼物编码已使用，请修改');
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'gift.code:' + dto.code}))`;
+      if (
+        await tx.virtualGift.count({
+          where: { code: dto.code, ...(dto.id ? { id: { not: dto.id } } : {}) },
+        })
+      )
+        throw new ConflictException('礼物编码已使用，请修改');
       if (dto.id) {
         await tx.$queryRaw`SELECT id FROM "VirtualGift" WHERE id=${dto.id} FOR UPDATE`;
         const old = await tx.virtualGift.findUniqueOrThrow({ where: { id: dto.id } });
@@ -278,7 +352,12 @@ export class GiftsAdminController {
             },
           })
         : await tx.virtualGift.create({
-            data: { title: dto.title.trim(), code: dto.code, creditCost: BigInt(dto.creditCost), active: dto.active },
+            data: {
+              title: dto.title.trim(),
+              code: dto.code,
+              creditCost: BigInt(dto.creditCost),
+              active: dto.active,
+            },
           });
       await tx.auditLog.create({
         data: {
@@ -303,7 +382,8 @@ export class GiftsAdminController {
     requireRoles(req, ['FINANCE']);
     if (!dto.verified) throw new BadRequestException('请先核对合同双方、签署及分成费率');
     return this.db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "Teacher" WHERE id=${dto.teacherId} FOR UPDATE`;await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'gift.contract:' + dto.contractNo}))`;
+      await tx.$queryRaw`SELECT id FROM "Teacher" WHERE id=${dto.teacherId} FOR UPDATE`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'gift.contract:' + dto.contractNo}))`;
       const teacher = await tx.teacher.findFirst({
           where: { id: dto.teacherId, status: 'PUBLISHED', userId: { not: null }, isDemo: false },
         }),
@@ -347,8 +427,18 @@ export class GiftsAdminController {
       });
       const binding = await tx.giftTeacherContract.upsert({
         where: { teacherId: teacher.id },
-        create: { teacherId: teacher.id, contractId: contract.id, enabled: false, updatedBy: req.actor.id },
-        update: { contractId: contract.id, enabled: false, updatedBy: req.actor.id, version: { increment: 1 } },
+        create: {
+          teacherId: teacher.id,
+          contractId: contract.id,
+          enabled: false,
+          updatedBy: req.actor.id,
+        },
+        update: {
+          contractId: contract.id,
+          enabled: false,
+          updatedBy: req.actor.id,
+          version: { increment: 1 },
+        },
       });
       await tx.auditLog.create({
         data: {
@@ -377,10 +467,15 @@ export class GiftsAdminController {
   ) {
     requireRoles(req, ['FINANCE']);
     return this.db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT "teacherId" FROM "GiftTeacherContract" WHERE "teacherId"=${dto.teacherId} FOR UPDATE`;const old = await tx.giftTeacherContract.findUniqueOrThrow({ where: { teacherId: dto.teacherId } });
+      await tx.$queryRaw`SELECT "teacherId" FROM "GiftTeacherContract" WHERE "teacherId"=${dto.teacherId} FOR UPDATE`;
+      const old = await tx.giftTeacherContract.findUniqueOrThrow({
+        where: { teacherId: dto.teacherId },
+      });
       if (old.version !== dto.expectedVersion || old.contractId !== dto.contractId)
         throw new ConflictException('老师合同已变化，请刷新');
-      const contract = await tx.partnerContract.findUniqueOrThrow({ where: { id: dto.contractId } });
+      const contract = await tx.partnerContract.findUniqueOrThrow({
+        where: { id: dto.contractId },
+      });
       if (
         (
           contract.scopeSnapshot as {

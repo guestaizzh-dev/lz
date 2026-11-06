@@ -1,15 +1,406 @@
-<template><view class="page"><PageHead title="课程优惠券"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><view class="invite-row"><input class="invite-input" v-model="inviteCode" placeholder="粘贴拼团邀请编号" maxlength="36"/><button class="text-button" @click="openGroup">查看拼团</button></view><text class="hint coupon-hint">一单一券，购课时自动选择当前渠道最优优惠。每单至少实付¥0.01。未到期券在取消订单或成功退款后返还。</text><view class="filter-row"><button :class="['filter-pill',tab==='center'?'filter-active':'']" @click="switchTab('center')">领券中心</button><button :class="['filter-pill',tab==='wallet'?'filter-active':'']" @click="switchTab('wallet')">我的券</button></view><ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load(false)"/><ContentState v-else-if="!items.length" title="暂无优惠券" description="后续课程优惠会在这里发布。"/><view v-for="item in items" :key="item.id" class="coupon-card"><view class="row between"><text class="section-title">{{terms(item).title}}</text><text class="coupon-value">{{terms(item).discountKind==='FIXED'?'减 ¥'+money(Number(terms(item).discountValue)):'实付 '+Number(terms(item).discountValue)/100+'%'}}</text></view><text class="hint coupon-hint">{{Number(terms(item).threshold)>0?'课程原价满 ¥'+money(Number(terms(item).threshold))+' 可用':'无金额门槛'}} · {{terms(item).courseIds.length?'指定课程':'全部正式课程'}}</text><text class="hint coupon-hint">{{formatChinaTime(item.expiresAt??item.endsAt??'')}} 到期（北京）</text><text v-if="tab==='wallet'" class="meta">{{stateName(item.state??'')}}</text><button v-else class="secondary-button coupon-action" :disabled="busy||item.remaining===0||(item.claimed??0)>=(item.perUserLimit??0)" @click="claim(item)">{{item.remaining===0?'已领完':(item.claimed??0)>=(item.perUserLimit??0)?'已领取':'领取优惠券'}}</button></view><button v-if="items.length<total" class="secondary-button coupon-action" :disabled="loading" @click="load(true)">查看更多</button></view></scroll-view></view></template>
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="课程优惠券" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content"
+        ><text class="ui-text page-intro"
+          >一单一券，购课时自动选择当前渠道最优优惠；每单至少实付 ¥0.01。</text
+        ><view class="coupon-invite"
+          ><text class="ui-text field-label">拼团邀请编号</text
+          ><view class="invite-row"
+            ><input
+              class="ui-input invite-input"
+              v-model="inviteCode"
+              placeholder="粘贴拼团邀请编号"
+              maxlength="36"
+            /><button class="ui-button primary-button invite-submit" @click="openGroup"
+              >查看拼团</button
+            ></view
+          ></view
+        ><text class="ui-text coupon-terms">未到期券在取消订单或成功退款后返还。</text
+        ><view class="filter-row"
+          ><button
+            class="ui-button"
+            :class="['filter-pill', tab === 'center' ? 'filter-active' : '']"
+            @click="switchTab('center')"
+            >领券中心</button
+          ><button
+            class="ui-button"
+            :class="['filter-pill', tab === 'wallet' ? 'filter-active' : '']"
+            @click="switchTab('wallet')"
+            >我的券</button
+          ></view
+        ><ContentState
+          v-if="loading || error"
+          :loading="loading"
+          :error="error"
+          error-title="优惠券列表未能加载"
+          @retry="load(false)"
+        /><ContentState
+          v-else-if="!items.length"
+          title="暂无优惠券"
+          :description="
+            tab === 'center'
+              ? '课程优惠发布后会出现在这里，领取后可在「我的券」查看。'
+              : '领取优惠券后，可在这里查看可用状态与到期时间。'
+          "
+          action-label="去选课程"
+          @action="openPage('course/library')"
+        /><view v-for="item in items" :key="item.id" class="coupon-card"
+          ><view class="row between"
+            ><text class="ui-text coupon-title">{{ terms(item).title }}</text
+            ><view class="coupon-value"
+              ><text class="ui-text value-prefix">{{
+                terms(item).discountKind === 'FIXED' ? '减' : '实付'
+              }}</text
+              ><text class="ui-text value-number">{{
+                terms(item).discountKind === 'FIXED'
+                  ? money(Number(terms(item).discountValue))
+                  : Number(terms(item).discountValue) / 100
+              }}</text
+              ><text class="ui-text value-unit">{{
+                terms(item).discountKind === 'FIXED' ? '元' : '%'
+              }}</text></view
+            ></view
+          ><text class="ui-text hint coupon-hint"
+            >{{
+              Number(terms(item).threshold) > 0
+                ? '课程原价满 ¥' + money(Number(terms(item).threshold)) + ' 可用'
+                : '无金额门槛'
+            }}
+            · {{ terms(item).courseIds.length ? '指定课程' : '全部正式课程' }}</text
+          ><text class="ui-text hint coupon-hint"
+            >{{ formatChinaTime(item.expiresAt ?? item.endsAt ?? '') }} 到期（北京）</text
+          ><text v-if="tab === 'wallet'" class="ui-text meta">{{
+            stateName(item.state ?? '')
+          }}</text
+          ><button
+            v-if="tab === 'wallet' && item.state === 'AVAILABLE'"
+            class="ui-button secondary-button coupon-action"
+            @click="
+              openPage(
+                terms(item).courseIds.length === 1
+                  ? 'course/detail?id=' + terms(item).courseIds[0]
+                  : 'course/library',
+              )
+            "
+            >去使用</button
+          ><button
+            v-else-if="tab === 'center'"
+            class="ui-button secondary-button coupon-action"
+            :disabled="
+              busy || item.remaining === 0 || (item.claimed ?? 0) >= (item.perUserLimit ?? 0)
+            "
+            @click="claim(item)"
+            >{{
+              item.remaining === 0
+                ? '已领完'
+                : (item.claimed ?? 0) >= (item.perUserLimit ?? 0)
+                  ? '已领取'
+                  : '领取优惠券'
+            }}</button
+          ></view
+        ><button
+          v-if="items.length < total"
+          class="ui-button secondary-button coupon-action"
+          :disabled="loading"
+          @click="load(true)"
+          >查看更多</button
+        ></view
+      ></scroll-view
+    ></view
+  >
+</template>
 <script setup lang="ts">
-import {openPage} from '../../lib/presentation';
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {needLogin,currentUser} from '../../lib/session';import {studyEventId} from '../../lib/learning';import {formatChinaTime} from '../../lib/date-time';
-type Terms={title:string;discountKind:string;discountValue:string;threshold:string;courseIds:string[]};type CouponScope={courseIds:string[]};type Coupon={id:string;title?:string;discountKind?:string;discountValue?:string;threshold?:string;scope?:CouponScope;termsSnapshot?:Terms;expiresAt?:string;endsAt?:string;state?:string;remaining?:number;claimed?:number;perUserLimit?:number};
-const inviteCode=ref('');function openGroup(){if(!/^[0-9a-f-]{36}$/i.test(inviteCode.value.trim())){uni.showToast({title:'请填写完整邀请编号',icon:'none'});return;}openPage('marketing/group?id='+inviteCode.value.trim());}
-const tab=ref('center'),items=ref<Coupon[]>([]),loading=ref(false),error=ref(''),busy=ref(false),total=ref(0);let page=1,generation=0,owner='';const claimKeys:Record<string,string>={};
-function terms(item:Coupon):Terms{return item.termsSnapshot??{title:item.title??'',discountKind:item.discountKind??'FIXED',discountValue:item.discountValue??'0',threshold:item.threshold??'0',courseIds:item.scope?.courseIds??[]};}
-function stateName(state:string){return ({AVAILABLE:'可使用',LOCKED:'待支付订单已占用',USED:'已使用',EXPIRED:'已过期',REVOKED:'已撤销'} as Record<string,string>)[state]??'处理中';}
-async function load(append=false){if(append&&loading.value)return;const turn=++generation,next=append?page+1:1;loading.value=true;error.value='';if(!append)items.value=[];try{const r=await request<{items:Coupon[];total:number}>((tab.value==='center'?'/marketing/coupons':'/me/marketing/coupons')+'?page='+next);if(turn!==generation)return;items.value=append?[...items.value,...r.items]:r.items;page=next;total.value=r.total;}catch(e){if(turn===generation)error.value=(e as Error).message;}finally{if(turn===generation)loading.value=false;}}
-function switchTab(value:string){if(value==='wallet'&&needLogin('/pages/marketing/coupons'))return;tab.value=value;void load();}
-async function claim(item:Coupon){if(busy.value||needLogin('/pages/marketing/coupons'))return;busy.value=true;claimKeys[item.id]??=studyEventId();try{await request('/me/marketing/coupons/'+item.id+'/claim',{method:'POST',data:{requestKey:claimKeys[item.id]}});uni.showToast({title:'已领取，购课时自动匹配',icon:'none'});await load();}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{busy.value=false;}}
-onLoad(options=>{if(options?.tab==='wallet')tab.value='wallet';});
-onShow(()=>{if(owner!==(currentUser.value?.id??'')){owner=currentUser.value?.id??'';for(const key of Object.keys(claimKeys))delete claimKeys[key];if(!owner)tab.value='center';}void load();});onUnload(()=>generation++);
-</script><style>@import '../../styles/app.css';@import '../../styles/marketing.css';.coupon-card{padding:20px 0;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#E3DCCF;}.coupon-value{font-size:20px;line-height:30px;color:#235663;}.coupon-hint{margin-top:8px;}.coupon-action{margin-top:14px;}</style>
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { pageRefresh } from '../../lib/page-refresh';
+import { openPage } from '../../lib/presentation';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import { needLogin, currentUser } from '../../lib/session';
+import { studyEventId } from '../../lib/learning';
+import { formatChinaTime } from '../../lib/date-time';
+type Terms = {
+  title: string;
+  discountKind: string;
+  discountValue: string;
+  threshold: string;
+  courseIds: string[];
+};
+type CouponScope = { courseIds: string[] };
+type Coupon = {
+  id: string;
+  title?: string;
+  discountKind?: string;
+  discountValue?: string;
+  threshold?: string;
+  scope?: CouponScope;
+  termsSnapshot?: Terms;
+  expiresAt?: string;
+  endsAt?: string;
+  state?: string;
+  remaining?: number;
+  claimed?: number;
+  perUserLimit?: number;
+};
+const inviteCode = ref('');
+function openGroup() {
+  if (!/^[0-9a-f-]{36}$/i.test(inviteCode.value.trim())) {
+    uni.showToast({ title: '请填写完整邀请编号', icon: 'none' });
+    return;
+  }
+  openPage('marketing/group?id=' + inviteCode.value.trim());
+}
+const tab = ref('center'),
+  items = ref<Coupon[]>([]),
+  loading = ref(false),
+  error = ref(''),
+  busy = ref(false),
+  total = ref(0);
+let page = 1,
+  generation = 0,
+  owner = '';
+const claimKeys: Record<string, string> = {};
+function terms(item: Coupon): Terms {
+  return (
+    item.termsSnapshot ?? {
+      title: item.title ?? '',
+      discountKind: item.discountKind ?? 'FIXED',
+      discountValue: item.discountValue ?? '0',
+      threshold: item.threshold ?? '0',
+      courseIds: item.scope?.courseIds ?? [],
+    }
+  );
+}
+function stateName(state: string) {
+  return (
+    (
+      {
+        AVAILABLE: '可使用',
+        LOCKED: '待支付订单已占用',
+        USED: '已使用',
+        EXPIRED: '已过期',
+        REVOKED: '已撤销',
+      } as Record<string, string>
+    )[state] ?? '处理中'
+  );
+}
+async function load(append = false) {
+  if (append && loading.value) return;
+  const turn = ++generation,
+    next = append ? page + 1 : 1;
+  loading.value = true;
+  error.value = '';
+  if (!append) items.value = [];
+  try {
+    const r = await request<{ items: Coupon[]; total: number }>(
+      (tab.value === 'center' ? '/marketing/coupons' : '/me/marketing/coupons') + '?page=' + next,
+    );
+    if (turn !== generation) return;
+    items.value = append ? [...items.value, ...r.items] : r.items;
+    page = next;
+    total.value = r.total;
+  } catch (e) {
+    if (turn === generation) error.value = (e as Error).message;
+  } finally {
+    if (turn === generation) loading.value = false;
+  }
+}
+function switchTab(value: string) {
+  if (value === 'wallet' && needLogin('/pages/marketing/coupons')) return;
+  tab.value = value;
+  void load();
+}
+async function claim(item: Coupon) {
+  if (busy.value || needLogin('/pages/marketing/coupons')) return;
+  busy.value = true;
+  claimKeys[item.id] ??= studyEventId();
+  try {
+    await request('/me/marketing/coupons/' + item.id + '/claim', {
+      method: 'POST',
+      data: { requestKey: claimKeys[item.id] },
+    });
+    uni.showToast({ title: '已领取，购课时自动匹配', icon: 'none' });
+    await load();
+  } catch (e) {
+    uni.showToast({ title: (e as Error).message, icon: 'none' });
+  } finally {
+    busy.value = false;
+  }
+}
+onLoad((options) => {
+  if (options?.tab === 'wallet') tab.value = 'wallet';
+});
+onShow(() => {
+  if (owner !== (currentUser.value?.id ?? '')) {
+    owner = currentUser.value?.id ?? '';
+    for (const key of Object.keys(claimKeys)) delete claimKeys[key];
+    if (!owner) tab.value = 'center';
+  }
+  void refreshPage();
+});
+onUnload(() => generation++);
+
+const refreshPage = pageRefresh(
+  async () => {
+    await load();
+  },
+  () => !error.value && !loading.value,
+  60000,
+);
+</script>
+<style>
+@import '../../styles/app.css';
+@import '../../styles/marketing.css';
+/* 课程优惠券：页首 24/34 + 说明 13/22；邀请编号 44 描边输入紧跟主按钮；券卡 16 内边距、券额 24/34 + 单位 12/20 右对齐。 */
+.content {
+  padding-top: 16px;
+  padding-bottom: 40px;
+}
+.page-title {
+  font-family: AcademySerif;
+  font-size: 24px;
+  line-height: 34px;
+  color: #182b31;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+.page-intro {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.hint {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 12px;
+}
+.coupon-invite {
+  margin-top: 16px;
+}
+.field-label {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.invite-row {
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  border-bottom-width: 0;
+}
+.invite-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 24px;
+  color: #182b31;
+}
+.invite-submit {
+  flex-shrink: 0;
+  min-height: 44px;
+  margin: 0 0 0 12px;
+  padding: 10px 18px;
+  font-size: 15px;
+  line-height: 24px;
+  border-radius: 22px;
+}
+.coupon-terms {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 12px;
+}
+.filter-row {
+  margin-top: 24px;
+  border-bottom-width: 0;
+}
+.filter-pill {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 0;
+  font-size: 14px;
+  line-height: 24px;
+  color: #5c6869;
+}
+.filter-active {
+  color: #182b31;
+  border-bottom-color: #235663;
+  font-weight: 600;
+}
+.coupon-card {
+  padding: 16px;
+  margin-top: 16px;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+}
+.coupon-title {
+  flex: 1;
+  min-width: 0;
+  font-family: AcademySerif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #182b31;
+  font-weight: 600;
+  max-height: 52px;
+  overflow: hidden;
+}
+.coupon-value {
+  flex-direction: row;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+.value-prefix {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-bottom: 6px;
+}
+.value-number {
+  font-family: AcademySerif;
+  font-size: 24px;
+  line-height: 34px;
+  color: #235663;
+  font-weight: 600;
+  margin-left: 2px;
+}
+.value-unit {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-left: 3px;
+  margin-bottom: 6px;
+}
+.coupon-hint {
+  margin-top: 8px;
+}
+.coupon-action {
+  margin-top: 16px;
+}
+</style>

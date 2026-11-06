@@ -1,4 +1,4 @@
-﻿import type { RequestOptions } from '@@/plugin-request/request';
+import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { getIntl } from '@umijs/max';
 import { message, notification } from 'antd';
@@ -73,19 +73,18 @@ export const errorConfig: RequestConfig = {
       } else if (error.response) {
         // Axios 的错误
         // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
-        message.error(`Response status:${error.response.status}`);
+        message.error(`请求失败（状态码 ${error.response.status}）`);
       } else if (typeof navigator !== 'undefined' && !navigator.onLine) {
         message.error(
           getIntl().formatMessage({
             id: 'app.request.offline',
-            defaultMessage:
-              'Network unavailable. Please check your connection and try again.',
+            defaultMessage: 'Network unavailable. Please check your connection and try again.',
           }),
         );
       } else if (error.request) {
-        message.error('None response! Please retry.');
+        message.error('网络无响应，请重试');
       } else {
-        message.error('Request error, please retry.');
+        message.error('请求异常，请重试');
       }
     },
   },

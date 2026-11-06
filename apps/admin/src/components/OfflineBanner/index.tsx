@@ -11,15 +11,10 @@ const subscribeOnlineStatus = (callback: () => void) => {
   };
 };
 
-const getOnlineStatus = () =>
-  typeof navigator === 'undefined' ? true : navigator.onLine;
+const getOnlineStatus = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 const OfflineBanner: React.FC = () => {
-  const isOnline = useSyncExternalStore(
-    subscribeOnlineStatus,
-    getOnlineStatus,
-    () => true,
-  );
+  const isOnline = useSyncExternalStore(subscribeOnlineStatus, getOnlineStatus, () => true);
 
   if (isOnline) return null;
 
@@ -31,8 +26,7 @@ const OfflineBanner: React.FC = () => {
       className="academy-offline-banner"
       title={getIntl().formatMessage({
         id: 'app.network.offline',
-        defaultMessage:
-          'You are currently offline. Some features may be unavailable.',
+        defaultMessage: 'You are currently offline. Some features may be unavailable.',
       })}
     />
   );

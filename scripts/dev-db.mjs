@@ -1,7 +1,15 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, symlinkSync, readlinkSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  symlinkSync,
+  readlinkSync,
+} from 'node:fs';
 import { resolve, dirname, join, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -14,12 +22,14 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const alias = join(process.env.LOCALAPPDATA, 'daoxue-academy-dev', 'workspace');
 mkdirSync(dirname(alias), { recursive: true });
 if (!existsSync(alias)) symlinkSync(root, alias, 'junction');
-if (resolve(readlinkSync(alias)).toLowerCase() !== root.toLowerCase()) throw new Error('Development junction belongs to another workspace.');
+if (resolve(readlinkSync(alias)).toLowerCase() !== root.toLowerCase())
+  throw new Error('Development junction belongs to another workspace.');
 function nativeTool(nativePath) {
   // Windows redirects Documents across volumes; package paths can use another drive.
   const marker = nativePath.indexOf('\\node_modules\\');
   const dependencyPath = marker >= 0 ? nativePath.slice(marker + 1) : '';
-  if (!dependencyPath || isAbsolute(dependencyPath) || !existsSync(join(root, dependencyPath))) throw new Error('PostgreSQL dependency path is outside this workspace.');
+  if (!dependencyPath || isAbsolute(dependencyPath) || !existsSync(join(root, dependencyPath)))
+    throw new Error('PostgreSQL dependency path is outside this workspace.');
   return join(alias, dependencyPath);
 }
 const pg_ctl = nativeTool(nativePgCtl);
@@ -29,7 +39,8 @@ const runtime = join(dirname(alias), 'postgres');
 const data = join(runtime, 'data');
 const configPath = join(runtime, 'connection.json');
 const action = process.argv[2] ?? 'start';
-if (process.platform !== 'win32') throw new Error('This helper is Windows-only. Use infra/compose.yaml on Linux.');
+if (process.platform !== 'win32')
+  throw new Error('This helper is Windows-only. Use infra/compose.yaml on Linux.');
 mkdirSync(runtime, { recursive: true });
 const opts = { windowsHide: true, encoding: 'utf8', timeout: 60_000, cwd: alias };
 
@@ -43,28 +54,70 @@ if (action === 'stop') {
 } else if (action === 'start') {
   const config = existsSync(configPath)
     ? JSON.parse(readFileSync(configPath, 'utf8'))
-    : { port: 55432, user: 'daoxue', password: randomBytes(24).toString('hex'), database: 'daoxue_dev' };
+    : {
+        port: 55432,
+        user: 'daoxue',
+        password: randomBytes(24).toString('hex'),
+        database: 'daoxue_dev',
+      };
   if (!existsSync(configPath)) writeFileSync(configPath, JSON.stringify(config), { mode: 0o600 });
   if (!existsSync(join(data, 'PG_VERSION'))) {
     const passwordFile = join(runtime, 'init-password');
     writeFileSync(passwordFile, config.password, { mode: 0o600 });
     try {
-      await run(initdb, ['-D', data, '-U', config.user, '--pwfile', passwordFile,
-        '--encoding=UTF8', '--locale=C', '--auth=scram-sha-256'], opts);
-    } finally { rmSync(passwordFile, { force: true }); }
-    writeFileSync(join(data, 'postgresql.auto.conf'), `listen_addresses = '127.0.0.1'\nport = ${config.port}\n`);
+      await run(
+        initdb,
+        [
+          '-D',
+          data,
+          '-U',
+          config.user,
+          '--pwfile',
+          passwordFile,
+          '--encoding=UTF8',
+          '--locale=C',
+          '--auth=scram-sha-256',
+        ],
+        opts,
+      );
+    } finally {
+      rmSync(passwordFile, { force: true });
+    }
+    writeFileSync(
+      join(data, 'postgresql.auto.conf'),
+      `listen_addresses = '127.0.0.1'\nport = ${config.port}\n`,
+    );
   }
-  try { await run(pg_ctl, ['-D', data, 'status'], opts); }
-  catch { await run(pg_ctl, ['-D', data, '-l', join(runtime, 'server.log'), '-w', 'start'], opts); }
+  try {
+    await run(pg_ctl, ['-D', data, 'status'], opts);
+  } catch {
+    await run(pg_ctl, ['-D', data, '-l', join(runtime, 'server.log'), '-w', 'start'], opts);
+  }
   const { Client } = createRequire(join(root, 'services', 'api', 'package.json'))('pg');
-  const client = new Client({ host: '127.0.0.1', port: config.port, user: config.user, password: config.password, database: 'postgres' });
+  const client = new Client({
+    host: '127.0.0.1',
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: 'postgres',
+  });
   await client.connect();
   try {
     const result = await client.query("SELECT 1 FROM pg_database WHERE datname = 'daoxue_dev'");
     if (result.rowCount === 0) await client.query('CREATE DATABASE daoxue_dev');
-  } finally { await client.end(); }
+  } finally {
+    await client.end();
+  }
   const envPath = join(root, 'services', 'api', '.env');
-  if (!existsSync(envPath)) writeFileSync(envPath,
-    `NODE_ENV=development\nPORT=3000\nDATABASE_URL=postgresql://${config.user}:${config.password}@127.0.0.1:${config.port}/${config.database}\nCORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://127.0.0.1:8765\n`, { mode: 0o600 });
-  console.log(`PostgreSQL ready on 127.0.0.1:${config.port}; local environment created (credentials not printed).`);
-} else { throw new Error('Use start or stop.'); }
+  if (!existsSync(envPath))
+    writeFileSync(
+      envPath,
+      `NODE_ENV=development\nPORT=3000\nDATABASE_URL=postgresql://${config.user}:${config.password}@127.0.0.1:${config.port}/${config.database}\nCORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://127.0.0.1:8765\n`,
+      { mode: 0o600 },
+    );
+  console.log(
+    `PostgreSQL ready on 127.0.0.1:${config.port}; local environment created (credentials not printed).`,
+  );
+} else {
+  throw new Error('Use start or stop.');
+}

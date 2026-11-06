@@ -1,36 +1,357 @@
 <template>
-<view v-if="visible" class="compose-mask" :style="{bottom:keyboardBottom+'px'}" @click="close">
-<view :class="['compose-sheet',compact?'compose-compact':'',dark?'compose-dark':'']" :style="{paddingBottom:Math.max(16,safeBottom)+'px',maxHeight:Math.max(0,windowHeight-keyboardBottom)+'px'}" @click.stop="">
-<view class="compose-head"><view class="compose-heading"><text :class="['compose-title',dark?'compose-light-text':'']">{{title}}</text><text v-if="subtitle" class="compose-subtitle">{{subtitle}}</text></view><button class="compose-close" :class="saving?'is-disabled':''" aria-label="关闭编辑器" @click="close"><image v-if="dark" class="compose-close-icon" src="/static/icons/x-white.png"/><AppIcon v-else name="x" :size="20"/></button></view>
-<scroll-view direction="vertical" class="compose-body" :style="{maxHeight:Math.max(72,windowHeight-keyboardBottom-180)+'px'}"><slot/>
-<scroll-view v-if="quote" direction="vertical" class="compose-quote"><text class="compose-quote-text" :user-select="true">{{quote}}</text></scroll-view>
-<textarea :class="['compose-input',inputFocused?'compose-input-focused':'',compact?'compose-input-compact':'',dark?'compose-input-dark':'']" :value="modelValue" :confirm-type="compact?'send':'done'" @confirm="compact&&submit()" :maxlength="maxlength??10000" :placeholder="placeholder??'写下你的想法…'" :focus="focused" :adjust-position="false" :disabled="saving" @focus="inputFocused=true" @blur="inputFocused=false" @input="emit('update:modelValue',$event.detail.value)"/>
-</scroll-view>
-<text v-if="error" class="compose-error">{{error}}</text>
-<view class="compose-footer"><text class="compose-count">{{modelValue.length}} / {{maxlength??10000}}</text><button :class="['compose-submit',saving||disabled?'compose-submit-disabled':'',dark?'compose-submit-gold':'']" :disabled="saving||disabled" @click="submit">{{saving?(compact?'发送中…':'保存中…'):submitLabel??'保存'}}</button></view>
-</view></view>
+  <view
+    v-if="visible"
+    class="compose-mask"
+    :style="{ bottom: keyboardBottom + 'px' }"
+    @click="close"
+  >
+    <view
+      :class="['compose-sheet', compact ? 'compose-compact' : '', dark ? 'compose-dark' : '']"
+      :style="{
+        paddingBottom: Math.max(16, safeBottom) + 'px',
+        maxHeight: Math.max(0, windowHeight - keyboardBottom) + 'px',
+      }"
+      @click.stop=""
+    >
+      <view class="compose-head"
+        ><view class="compose-heading"
+          ><text class="ui-text" :class="['compose-title', dark ? 'compose-light-text' : '']">{{
+            title
+          }}</text
+          ><text v-if="subtitle" class="ui-text compose-subtitle">{{ subtitle }}</text></view
+        ><button
+          class="ui-button compose-close"
+          :class="saving ? 'is-disabled' : ''"
+          :disabled="saving"
+          aria-label="关闭编辑器"
+          @click="close"
+          ><image v-if="dark" class="compose-close-icon" src="/static/icons/x-white.png" /><AppIcon
+            v-else
+            name="x"
+            :size="20" /></button
+      ></view>
+      <scroll-view
+        direction="vertical"
+        class="compose-body"
+        :style="{ maxHeight: Math.max(72, windowHeight - keyboardBottom - 180) + 'px' }"
+        ><slot />
+        <scroll-view v-if="quote" direction="vertical" class="compose-quote"
+          ><text class="ui-text compose-quote-text" :user-select="true">{{
+            quote
+          }}</text></scroll-view
+        >
+        <textarea
+          class="ui-input"
+          :class="[
+            'compose-input',
+            inputFocused ? 'compose-input-focused' : '',
+            compact ? 'compose-input-compact' : '',
+            dark ? 'compose-input-dark' : '',
+          ]"
+          :value="modelValue"
+          :confirm-type="compact ? 'send' : 'done'"
+          @confirm="compact && submit()"
+          :maxlength="maxlength ?? 10000"
+          :placeholder="placeholder ?? '写下你的想法…'"
+          :focus="focused"
+          :adjust-position="false"
+          :disabled="saving"
+          @focus="inputFocused = true"
+          @blur="inputFocused = false"
+          @input="emit('update:modelValue', $event.detail.value)"
+        />
+      </scroll-view>
+      <text v-if="error" class="ui-text compose-error">{{ error }}</text>
+      <view class="compose-footer"
+        ><text class="ui-text compose-count"
+          >{{ modelValue.length }} / {{ maxlength ?? 10000 }}</text
+        ><button
+          class="ui-button"
+          :class="[
+            'compose-submit',
+            saving || disabled ? 'compose-submit-disabled' : '',
+            dark ? 'compose-submit-gold' : '',
+          ]"
+          :disabled="saving || disabled"
+          @click="submit"
+          ><text :class="['compose-submit-label', dark ? 'compose-submit-label-dark' : '']">{{
+            saving ? (compact ? '发送中…' : '保存中…') : (submitLabel ?? '保存')
+          }}</text></button
+        ></view
+      >
+    </view></view
+  >
 </template>
 <script setup lang="ts">
-import {ref,watch,nextTick,onUnmounted} from 'vue';import AppIcon from './AppIcon.uvue';
-const props=defineProps<{visible:boolean;title:string;subtitle?:string;quote?:string;modelValue:string;placeholder?:string;maxlength?:number;saving?:boolean;error?:string;disabled?:boolean;submitLabel?:string;compact?:boolean;dark?:boolean}>();
-const emit=defineEmits<{'update:modelValue':[value:string];close:[];submit:[]}>();
-const safeBottom=uni.getWindowInfo().safeAreaInsets?.bottom??0;
-const windowHeight=ref(uni.getWindowInfo().windowHeight);onResize(options=>{windowHeight.value=options.size.windowHeight;});
-const focused=ref(false),inputFocused=ref(false),keyboardBottom=ref(0);let initialHeight=uni.getWindowInfo().windowHeight;
-watch(()=>props.visible,visible=>{focused.value=false;if(visible){initialHeight=uni.getWindowInfo().windowHeight;windowHeight.value=initialHeight;nextTick(()=>focused.value=true);}else keyboardBottom.value=0;},{immediate:true});
-function close(){if(!props.saving)emit('close');}
-function submit(){if(!props.saving&&!props.disabled)emit('submit');}
+import { ref, watch, nextTick, onUnmounted } from 'vue';
+import AppIcon from './AppIcon.uvue';
+const props = defineProps<{
+  visible: boolean;
+  title: string;
+  subtitle?: string;
+  quote?: string;
+  modelValue: string;
+  placeholder?: string;
+  maxlength?: number;
+  saving?: boolean;
+  error?: string;
+  disabled?: boolean;
+  submitLabel?: string;
+  compact?: boolean;
+  dark?: boolean;
+}>();
+const emit = defineEmits<{ 'update:modelValue': [value: string]; close: []; submit: [] }>();
+const safeBottom = uni.getWindowInfo().safeAreaInsets?.bottom ?? 0;
+const windowHeight = ref(uni.getWindowInfo().windowHeight);
+onResize((options) => {
+  windowHeight.value = options.size.windowHeight;
+});
+const focused = ref(false),
+  inputFocused = ref(false),
+  keyboardBottom = ref(0);
+let initialHeight = uni.getWindowInfo().windowHeight;
+watch(
+  () => props.visible,
+  (visible) => {
+    focused.value = false;
+    if (visible) {
+      initialHeight = uni.getWindowInfo().windowHeight;
+      windowHeight.value = initialHeight;
+      nextTick(() => (focused.value = true));
+    } else keyboardBottom.value = 0;
+  },
+  { immediate: true },
+);
+function close() {
+  if (!props.saving) emit('close');
+}
+function submit() {
+  if (!props.saving && !props.disabled) emit('submit');
+}
 // #ifdef APP
-function keyboard(event:{height:number}){windowHeight.value=uni.getWindowInfo().windowHeight;keyboardBottom.value=Math.max(0,event.height-Math.max(0,initialHeight-uni.getWindowInfo().windowHeight));}
-const keyboardListener=uni.onKeyboardHeightChange(keyboard);onUnmounted(()=>uni.offKeyboardHeightChange(keyboardListener));
+function keyboard(event: { height: number }) {
+  windowHeight.value = uni.getWindowInfo().windowHeight;
+  keyboardBottom.value = Math.max(
+    0,
+    event.height - Math.max(0, initialHeight - uni.getWindowInfo().windowHeight),
+  );
+}
+const keyboardListener = uni.onKeyboardHeightChange(keyboard);
+onUnmounted(() => uni.offKeyboardHeightChange(keyboardListener));
 // #endif
 </script>
 <style>
-.compose-mask{position:fixed;left:0;right:0;top:0;bottom:0;background-color:rgba(24,43,49,0.42);justify-content:flex-end;z-index:1000;}.compose-sheet{background-color:#FCF9F2;border-top-left-radius:20px;border-top-right-radius:20px;padding:18px 20px 24px;}.compose-body{min-height:0;flex-shrink:1;}.compose-head{flex-shrink:0;flex-direction:row;align-items:center;margin-bottom:14px;}.compose-heading{flex:1;}.compose-title{font-family:AcademySerif;font-size:19px;line-height:28px;color:#182B31;font-weight:600;}.compose-subtitle{font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;margin-top:2px;}.compose-close{width:44px;height:44px;margin:0;padding:0;align-items:center;justify-content:center;background-color:transparent;border-width:0;}.compose-quote{max-height:96px;margin-bottom:12px;background-color:#EFE9DC;border-left-width:2px;border-left-style:solid;border-left-color:#B7AC95;padding:10px 12px;border-radius:0 8px 8px 0;}.compose-quote-text{font-family:AcademySans;font-size:13px;line-height:22px;color:#5F6B6E;}.compose-input{width:100%;height:156px;min-height:72px;flex-shrink:1;background-color:#F5F0E6;border-radius:10px;padding:12px;font-family:AcademySans;font-size:16px;line-height:27px;color:#182B31;}.compose-footer{flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;margin-top:14px;}.compose-count{font-size:12px;color:#7C878A;}.compose-submit{margin:0;min-width:104px;min-height:46px;line-height:22px;padding:12px 22px;background-color:#235663;color:#FCF9F2;border-width:0;border-radius:23px;font-size:14px;}.compose-error{font-size:13px;line-height:22px;color:#B4533F;margin-top:10px;}
+.compose-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(24, 43, 49, 0.42);
+  justify-content: flex-end;
+  z-index: 1000;
+}
+.compose-sheet {
+  background-color: #fcf9f2;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 18px 20px 24px;
+}
+.compose-body {
+  min-height: 0;
+  flex-shrink: 1;
+}
+.compose-head {
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.compose-heading {
+  flex: 1;
+}
+.compose-title {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #182b31;
+  font-weight: 600;
+}
+.compose-subtitle {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #6a7578;
+  margin-top: 2px;
+}
+.compose-close {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border-width: 0;
+}
+.compose-quote {
+  max-height: 96px;
+  margin-bottom: 12px;
+  background-color: #efe9dc;
+  border-left-width: 2px;
+  border-left-style: solid;
+  border-left-color: #b7ac95;
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+}
+.compose-quote-text {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5f6b6e;
+}
+.compose-input {
+  width: 100%;
+  height: 156px;
+  min-height: 72px;
+  flex-shrink: 1;
+  background-color: #f5f0e6;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 27px;
+  color: #182b31;
+}
+.compose-footer {
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.compose-count {
+  font-size: 12px;
+  color: #7c878a;
+}
+.compose-submit {
+  margin: 0;
+  min-width: 104px;
+  min-height: 48px;
+  line-height: 22px;
+  padding: 0 20px;
+  align-items: center;
+  justify-content: center;
+  background-color: #235663;
+  color: #fcf9f2;
+  border-width: 0;
+  border-radius: 12px;
+  font-size: 14px;
+}
+.compose-error {
+  font-size: 13px;
+  line-height: 22px;
+  color: #b4533f;
+  margin-top: 10px;
+}
 /* #ifdef WEB */
-.compose-mask{height:auto;}.compose-input{box-sizing:border-box;}.compose-sheet{max-height:100%!important;min-height:0;padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(23,41,45,0.08);}.compose-submit:disabled{opacity:0.5;}
-@media (min-width:600px){.compose-sheet{width:100%;max-width:640px;align-self:center;box-sizing:border-box;}}
+.compose-mask {
+  height: auto;
+}
+.compose-input {
+  box-sizing: border-box;
+}
+.compose-sheet {
+  max-height: 100% !important;
+  min-height: 0;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 32px rgba(23, 41, 45, 0.08);
+}
+.compose-submit:disabled {
+  opacity: 0.5;
+}
+@media (min-width: 600px) {
+  .compose-sheet {
+    width: 100%;
+    max-width: 640px;
+    align-self: center;
+    box-sizing: border-box;
+  }
+}
 /* #endif */
-.compose-heading{min-width:0;}.compose-input{border-width:1px;border-style:solid;border-color:#D3C9B8;}.compose-input-focused{border-color:#235663;background-color:#FCF9F2;}.compose-count{font-family:AcademySans;line-height:20px;color:#6A7578;margin-right:12px;}.compose-submit{font-family:AcademySans;flex-shrink:0;white-space:normal;}.compose-submit-disabled{opacity:0.5;}.compose-error{font-family:AcademySans;color:#8F4A3C;padding:8px 12px;border-radius:8px;background-color:#F4E8E2;}
-.compose-compact{padding-top:12px;}.compose-input-compact{height:88px;min-height:64px;}.compose-dark{background-color:#191D20;border-top-width:1px;border-top-style:solid;border-top-color:#343A3D;}.compose-light-text{font-family:AcademySans;color:#F5F4EF;font-size:17px;}.compose-input-dark{background-color:#262C30;color:#F5F4EF;border-color:#3D454A;}.compose-submit-gold{background-color:#D6BB84;color:#182B31;}.compose-close-icon{width:20px;height:20px;}
+.compose-heading {
+  min-width: 0;
+}
+.compose-input {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d3c9b8;
+}
+.compose-input-focused {
+  border-color: #235663;
+  background-color: #fcf9f2;
+}
+.compose-count {
+  font-family: sans-serif;
+  line-height: 20px;
+  color: #6a7578;
+  margin-right: 12px;
+}
+.compose-submit {
+  font-family: sans-serif;
+  flex-shrink: 0;
+  white-space: normal;
+}
+.compose-submit-disabled {
+  opacity: 0.5;
+}
+.compose-error {
+  font-family: sans-serif;
+  color: #8f4a3c;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #f4e8e2;
+}
+.compose-compact {
+  padding-top: 12px;
+}
+.compose-input-compact {
+  height: 88px;
+  min-height: 64px;
+}
+.compose-dark {
+  background-color: #191d20;
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: #343a3d;
+}
+.compose-light-text {
+  font-family: sans-serif;
+  color: #f5f4ef;
+  font-size: 17px;
+}
+.compose-input-dark {
+  background-color: #262c30;
+  color: #f5f4ef;
+  border-color: #3d454a;
+}
+.compose-submit-gold {
+  background-color: #d6bb84;
+  color: #182b31;
+}
+.compose-close-icon {
+  width: 20px;
+  height: 20px;
+}
+.compose-submit-label {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 48px;
+  text-align: center;
+  font-weight: 600;
+  color: #fcf9f2;
+}
+.compose-submit-label-dark {
+  color: #182b31;
+}
 </style>

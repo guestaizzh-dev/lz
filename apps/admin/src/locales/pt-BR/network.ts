@@ -1,6 +1,5 @@
 export default {
-  'app.network.offline':
-    'Você está offline no momento. Alguns recursos podem estar indisponíveis.',
+  'app.network.offline': 'Você está offline no momento. Alguns recursos podem estar indisponíveis.',
   'app.error.chunk.title': 'Falha ao carregar a página',
   'app.error.chunk.description.offline':
     'Sua conexão de rede foi perdida. Verifique sua conexão e atualize a página.',
@@ -12,6 +11,5 @@ export default {
   'app.error.retry': 'Tentar novamente',
   'app.error.reload': 'Atualizar página',
   'app.error.home': 'Voltar ao Início',
-  'app.request.offline':
-    'Rede indisponível. Verifique sua conexão e tente novamente.',
+  'app.request.offline': 'Rede indisponível. Verifique sua conexão e tente novamente.',
 };

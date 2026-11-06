@@ -1,55 +1,435 @@
-<template><view class="page"><PageHead title="学习档案"/><scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical"><view class="content">
-<view class="study-summary"><text class="summary-title">我的研习</text><view class="summary-stats"><view class="summary-stat"><text class="stat-number">{{libraryStats?.availableCourses??0}}</text><text class="stat-label">可学课程</text></view><view class="summary-stat"><text class="stat-number">{{libraryStats?.studyingCourses??0}}</text><text class="stat-label">正在学习</text></view><view class="summary-stat"><text class="stat-number">{{summary?.completedCourses??finished}}</text><text class="stat-label">累计完成</text></view></view><text v-if="summary" class="meta">累计研习 {{Math.floor(Number(summary!.watchedSeconds)/60)}} 分钟 · 已完成 {{summary!.completedLessons}} 讲</text></view>
-<view class="list-toolbar"><text class="list-toolbar-copy">课程与研习记录</text><button class="text-button list-toolbar-action" @click="openPage('course/orders')">购课订单 ›</button></view><button v-if="recentCourseId" class="text-button" @click="openPage('course/player?id='+recentCourseId)">继续上次研习 ›</button><view class="detail-tabs"><view v-for="name in tabs" :key="name" :class="['detail-tab',tab===name?'detail-tab-active':'']" @click="!loading&&(tab=name)"><text :class="['detail-tab-text',tab===name?'detail-tab-selected':'']">{{name}}</text></view></view>
-<ContentState v-if="error||(loading&&!items.length)" :loading="loading" :error="error" @retry="load()"/>
-<view v-for="row in visible" :key="row.item.course.id" class="learning-card"><view class="row" @click="openCourse(row.item)"><ArtImage :src="row.item.course.cover" kind="study" :width="76" :height="90"/><view class="learning-copy"><text class="learning-access">{{row.item.deliveryBlocked?'课程暂停播放':row.item.learningLocked?'尚未到研习开放时间':row.item.access==='MEMBER'?'会员可学':row.item.access==='EXPIRED'?'学习权限已到期':row.item.access==='REVOKED'?'学习权限已撤销':row.item.access==='UPCOMING'?'课程尚未到生效时间':'已加入课程'}}</text><text class="learning-title">{{row.item.course.title}}</text><text class="learning-status">{{row.overview.finished?'已完成课程':row.overview.started?'正在学习':'尚未开始'}} · {{row.overview.completed}} / {{row.overview.total}} 讲</text></view></view><view class="learning-progress"><view class="learning-progress-fill" :style="{width:row.overview.percent+'%'}"/></view><text v-if="row.overview.next" class="next-lesson">{{row.overview.finished?'回顾':'下一讲'}} · {{row.overview.next?.title}}</text><text v-else class="next-lesson">章节尚未发布</text><view v-if="canStudy(row.item)" class="learning-links"><button class="learning-link" @click="openPage('community/index?courseId='+row.item.course.id)">同课讨论 ›</button><button class="learning-link" @click="openPage('course/checkin?id='+row.item.course.id)">研习打卡 ›</button><button v-if="row.overview.finished" class="learning-link" @click="openPage('course/certificate?id='+row.item.course.id)">完成记录 ›</button></view><view v-if="row.item.deliveryBlocked" class="learning-actions"><text class="meta">{{row.item.deliveryReason}}</text></view><view v-if="canStudy(row.item)" class="learning-actions"><button class="assignment-link" @click="openPage('course/practice?id='+row.item.course.id)">作业与点评</button><button class="continue-button" :disabled="!row.overview.next" @click="continueStudy(row.item)">{{row.overview.finished?'回顾课程':row.overview.started?'继续学习':'开始学习'}}</button></view><text v-if="!canStudy(row.item)" class="meta">研习记录仍然保留，可在购课订单查看售后，或联系书院核查学习权限。</text><button v-if="!canStudy(row.item)" class="assignment-link" @click="openPage('course/orders')">查看订单与售后 ›</button></view>
-<ContentState v-if="ready&&!loading&&!error&&!visible.length" :title="(libraryStats?.totalCourses??0)>0?'这一栏还没有课程':'还没有加入课程'" :description="(libraryStats?.totalCourses??0)>0?'切换“全部”查看全部研习记录。':'免费课程加入后，以及已购和会员课程，都会在这里显示。'"/>
-<text v-if="moreError" class="footer-note">{{moreError}}</text><button v-if="nextCursor&&!loading" class="secondary-button" @click="load(true)">{{moreError?'重新加载':'加载更多'}}</button>
-<button v-if="ready&&!loading&&!error&&!(libraryStats?.totalCourses??0)" class="secondary-button" @click="browse">去学堂选课</button>
-</view></scroll-view></view></template>
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="学习档案" /><scroll-view
+      :show-scrollbar="false"
+      class="page-scroll"
+      direction="vertical"
+      ><view class="content">
+        <view class="study-summary"
+          ><text class="ui-text summary-title">我的研习</text
+          ><view class="summary-stats"
+            ><view class="summary-stat"
+              ><text class="ui-text stat-number">{{ libraryStats?.availableCourses ?? 0 }}</text
+              ><text class="ui-text stat-label">可学课程</text></view
+            ><view class="summary-stat"
+              ><text class="ui-text stat-number">{{ libraryStats?.studyingCourses ?? 0 }}</text
+              ><text class="ui-text stat-label">正在学习</text></view
+            ><view class="summary-stat"
+              ><text class="ui-text stat-number">{{ summary?.completedCourses ?? finished }}</text
+              ><text class="ui-text stat-label">累计完成</text></view
+            ></view
+          ><text v-if="summary" class="ui-text meta study-summary-meta"
+            >累计研习 {{ Math.floor(Number(summary!.watchedSeconds) / 60) }} 分钟 · 已完成
+            {{ summary!.completedLessons }} 讲</text
+          ></view
+        >
+        <view class="list-toolbar"
+          ><text class="ui-text list-toolbar-copy">课程与研习记录</text
+          ><button
+            class="ui-button text-button list-toolbar-action"
+            @click="openPage('course/orders')"
+            >购课订单 ›</button
+          ></view
+        ><button
+          v-if="recentCourseId"
+          class="ui-button text-button"
+          @click="openPage('course/player?id=' + recentCourseId)"
+          >继续上次研习 ›</button
+        ><view class="detail-tabs"
+          ><view
+            v-for="name in tabs"
+            :key="name"
+            :class="['detail-tab', tab === name ? 'detail-tab-active' : '']"
+            @click="!loading && (tab = name)"
+            ><text
+              class="ui-text"
+              :class="['detail-tab-text', tab === name ? 'detail-tab-selected' : '']"
+              >{{ name }}</text
+            ></view
+          ></view
+        >
+        <ContentState
+          v-if="error || (loading && !items.length)"
+          :loading="loading"
+          :error="error"
+          :error-title="
+            error.indexOf('登录') >= 0
+              ? '请先登录'
+              : error.indexOf('权限') >= 0
+                ? '无权查看学习档案'
+                : '学习档案未能加载'
+          "
+          :retryable="error.indexOf('登录') < 0 && error.indexOf('权限') < 0"
+          :action-label="error.indexOf('权限') >= 0 ? '去学堂选课' : ''"
+          @action="browse"
+          @retry="load()"
+        />
+        <view v-for="row in visible" :key="row.item.course.id" class="learning-card"
+          ><view class="row" @click="openCourse(row.item)"
+            ><ArtImage :src="row.item.course.cover" kind="study" :width="76" :height="90" /><view
+              class="learning-copy"
+              ><text class="ui-text learning-access">{{
+                row.item.deliveryBlocked
+                  ? '课程暂停播放'
+                  : row.item.learningLocked
+                    ? '尚未到研习开放时间'
+                    : row.item.access === 'MEMBER'
+                      ? '会员可学'
+                      : row.item.access === 'EXPIRED'
+                        ? '学习权限已到期'
+                        : row.item.access === 'REVOKED'
+                          ? '学习权限已撤销'
+                          : row.item.access === 'UPCOMING'
+                            ? '课程尚未到生效时间'
+                            : '已加入课程'
+              }}</text
+              ><text class="ui-text learning-title">{{ row.item.course.title }}</text
+              ><text class="ui-text learning-status"
+                >{{
+                  row.overview.finished
+                    ? '已完成课程'
+                    : row.overview.started
+                      ? '正在学习'
+                      : '尚未开始'
+                }}
+                · {{ row.overview.completed }} / {{ row.overview.total }} 讲</text
+              ></view
+            ></view
+          ><view class="learning-progress"
+            ><view
+              class="learning-progress-fill"
+              :style="{ width: row.overview.percent + '%' }" /></view
+          ><text v-if="row.overview.next" class="ui-text next-lesson"
+            >{{ row.overview.finished ? '回顾' : '下一讲' }} · {{ row.overview.next?.title }}</text
+          ><text v-else class="ui-text next-lesson">章节尚未发布</text
+          ><view v-if="canStudy(row.item)" class="learning-links"
+            ><button
+              class="ui-button learning-link"
+              @click="openPage('community/index?courseId=' + row.item.course.id)"
+              >同课讨论 ›</button
+            ><button
+              class="ui-button learning-link"
+              @click="openPage('course/checkin?id=' + row.item.course.id)"
+              >研习打卡 ›</button
+            ><button
+              v-if="row.overview.finished"
+              class="ui-button learning-link"
+              @click="openPage('course/certificate?id=' + row.item.course.id)"
+              >完成记录 ›</button
+            ></view
+          ><view v-if="row.item.deliveryBlocked" class="learning-actions"
+            ><text class="ui-text meta">{{ row.item.deliveryReason }}</text></view
+          ><view v-if="canStudy(row.item)" class="learning-actions"
+            ><button
+              class="ui-button assignment-link"
+              @click="openPage('course/practice?id=' + row.item.course.id)"
+              >作业与点评</button
+            ><button
+              class="ui-button continue-button"
+              :disabled="!row.overview.next"
+              @click="continueStudy(row.item)"
+              >{{
+                row.overview.finished ? '回顾课程' : row.overview.started ? '继续学习' : '开始学习'
+              }}</button
+            ></view
+          ><text v-if="!canStudy(row.item)" class="ui-text meta"
+            >研习记录仍然保留，可在购课订单查看售后，或联系书院核查学习权限。</text
+          ><button
+            v-if="!canStudy(row.item)"
+            class="ui-button assignment-link"
+            @click="openPage('course/orders')"
+            >查看订单与售后 ›</button
+          ></view
+        >
+        <ContentState
+          v-if="ready && !loading && !error && !visible.length"
+          :title="(libraryStats?.totalCourses ?? 0) > 0 ? '这一栏还没有课程' : '还没有加入课程'"
+          :description="
+            (libraryStats?.totalCourses ?? 0) > 0
+              ? '切换“全部”查看全部研习记录。'
+              : '免费课程加入后，以及已购和会员课程，都会在这里显示。'
+          "
+          :action-label="(libraryStats?.totalCourses ?? 0) > 0 ? '' : '去学堂选课'"
+          @action="browse"
+        />
+        <text v-if="moreError" class="ui-text footer-note">{{ moreError }}</text
+        ><button
+          v-if="nextCursor && !loading"
+          class="ui-button secondary-button"
+          @click="load(true)"
+          >{{ moreError ? '重新加载' : '加载更多' }}</button
+        >
+      </view></scroll-view
+    ></view
+  >
+</template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request} from '../../lib/api';import type {Curriculum} from '../../lib/learning';import {studyOverview} from '../../lib/study-overview';import {currentUser,needLogin} from '../../lib/session';import {openPage} from '../../lib/presentation';
-type LearningSummary={watchedSeconds:string;completedLessons:number;completedCourses:number};const summary=ref<LearningSummary|null>(null);
-type LibraryStats={totalCourses:number;availableCourses:number;studyingCourses:number;finishedCourses:number;expiredCourses:number;filteredCourses:number};
-type LibraryPage={items:Curriculum[];nextCursor:string|null;stats:LibraryStats;recentCourseId:string|null};
-const items=ref<Curriculum[]>([]),loading=ref(false),error=ref(''),moreError=ref(''),tab=ref('全部'),tabs=['全部','在学','已完成','已到期'],nextCursor=ref<string|null>(null),libraryStats=ref<LibraryStats|null>(null),recentCourseId=ref<string|null>(null),ready=ref(false);let owner='';
-const rows=computed(()=>items.value.map(item=>({item,overview:studyOverview(item)}))),finished=computed(()=>libraryStats.value?.finishedCourses??0),visible=rows;
-const canStudy=(item:Curriculum)=>!item.deliveryBlocked&&!item.learningLocked&&['ENROLLED','MEMBER'].includes(item.access);
-function openCourse(item:Curriculum){if(item.deliveryBlocked)openPage('course/orders');else if(item.learningLocked)openPage('course/detail?id='+item.course.id);else if(canStudy(item))openPage('course/detail?id='+item.course.id);else openPage('course/orders');}
-async function load(more=false){
-  if(owner!==(currentUser.value?.id??'')){items.value=[];summary.value=null;libraryStats.value=null;nextCursor.value=null;recentCourseId.value=null;owner=currentUser.value?.id??'';}
-  if(needLogin()||loading.value||(more&&!nextCursor.value))return;
-  loading.value=true;error.value='';moreError.value='';
-  const filter=({'全部':'ALL','在学':'STUDYING','已完成':'COMPLETED','已到期':'EXPIRED'} as Record<string,string>)[tab.value];
-  if(!more){items.value=[];nextCursor.value=null;}
-  try{
-    const [courses,stats]=await Promise.all([request<LibraryPage>('/learning/library?filter='+filter+(more?'&cursor='+nextCursor.value:'')),more?Promise.resolve(summary.value):request<LearningSummary>('/learning/summary')]);
-    items.value=more?[...items.value,...courses.items.filter(item=>!items.value.some(old=>old.course.id===item.course.id))]:courses.items;
-    nextCursor.value=courses.nextCursor;libraryStats.value=courses.stats;recentCourseId.value=courses.recentCourseId;summary.value=stats;
-  }catch(e){if(more)moreError.value=(e as Error).message;else error.value=(e as Error).message;}finally{loading.value=false;ready.value=true;}
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ArtImage from '../../components/ArtImage.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request } from '../../lib/api';
+import type { Curriculum } from '../../lib/learning';
+import { studyOverview } from '../../lib/study-overview';
+import { currentUser, needLogin } from '../../lib/session';
+import { openPage } from '../../lib/presentation';
+type LearningSummary = {
+  watchedSeconds: string;
+  completedLessons: number;
+  completedCourses: number;
+};
+const summary = ref<LearningSummary | null>(null);
+type LibraryStats = {
+  totalCourses: number;
+  availableCourses: number;
+  studyingCourses: number;
+  finishedCourses: number;
+  expiredCourses: number;
+  filteredCourses: number;
+};
+type LibraryPage = {
+  items: Curriculum[];
+  nextCursor: string | null;
+  stats: LibraryStats;
+  recentCourseId: string | null;
+};
+const items = ref<Curriculum[]>([]),
+  loading = ref(false),
+  error = ref(''),
+  moreError = ref(''),
+  tab = ref('全部'),
+  tabs = ['全部', '在学', '已完成', '已到期'],
+  nextCursor = ref<string | null>(null),
+  libraryStats = ref<LibraryStats | null>(null),
+  recentCourseId = ref<string | null>(null),
+  ready = ref(false);
+let owner = '';
+const rows = computed(() => items.value.map((item) => ({ item, overview: studyOverview(item) }))),
+  finished = computed(() => libraryStats.value?.finishedCourses ?? 0),
+  visible = rows;
+const canStudy = (item: Curriculum) =>
+  !item.deliveryBlocked && !item.learningLocked && ['ENROLLED', 'MEMBER'].includes(item.access);
+function openCourse(item: Curriculum) {
+  if (item.deliveryBlocked) openPage('course/orders');
+  else if (item.learningLocked) openPage('course/detail?id=' + item.course.id);
+  else if (canStudy(item)) openPage('course/detail?id=' + item.course.id);
+  else openPage('course/orders');
 }
-watch(tab,()=>load());
-function continueStudy(item:Curriculum){const next=studyOverview(item).next;if(next)openPage('course/player?id='+item.course.id+'&lessonId='+next.id);}
-function browse(){uni.switchTab({url:'/pages/academy/index'});}onShow(()=>load());
+async function load(more = false) {
+  if (owner !== (currentUser.value?.id ?? '')) {
+    items.value = [];
+    summary.value = null;
+    libraryStats.value = null;
+    nextCursor.value = null;
+    recentCourseId.value = null;
+    owner = currentUser.value?.id ?? '';
+  }
+  if (needLogin() || loading.value || (more && !nextCursor.value)) return;
+  loading.value = true;
+  error.value = '';
+  moreError.value = '';
+  const filter = (
+    { 全部: 'ALL', 在学: 'STUDYING', 已完成: 'COMPLETED', 已到期: 'EXPIRED' } as Record<
+      string,
+      string
+    >
+  )[tab.value];
+  if (!more) nextCursor.value = null;
+  try {
+    const [courses, stats] = await Promise.all([
+      request<LibraryPage>(
+        '/learning/library?filter=' + filter + (more ? '&cursor=' + nextCursor.value : ''),
+      ),
+      more ? Promise.resolve(summary.value) : request<LearningSummary>('/learning/summary'),
+    ]);
+    items.value = more
+      ? [
+          ...items.value,
+          ...courses.items.filter(
+            (item) => !items.value.some((old) => old.course.id === item.course.id),
+          ),
+        ]
+      : courses.items;
+    nextCursor.value = courses.nextCursor;
+    libraryStats.value = courses.stats;
+    recentCourseId.value = courses.recentCourseId;
+    summary.value = stats;
+  } catch (e) {
+    if (more) moreError.value = (e as Error).message;
+    else error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
+    ready.value = true;
+  }
+}
+watch(tab, () => {
+  items.value = [];
+  ready.value = false;
+  void load();
+});
+function continueStudy(item: Curriculum) {
+  const next = studyOverview(item).next;
+  if (next) openPage('course/player?id=' + item.course.id + '&lessonId=' + next.id);
+}
+function browse() {
+  uni.switchTab({ url: '/pages/academy/index' });
+}
+onShow(() => load());
 </script>
-<style>@import '../../styles/app.css';
-.study-summary{padding:20px;background-color:#182B31;border-radius:12px;margin-top:8px;}
-.summary-title{font-family:AcademySerif;font-size:19px;line-height:28px;color:#E9D7B8;font-weight:600;letter-spacing:0.5px;}
-.summary-stats{flex-direction:row;margin-top:18px;}
-.summary-stat{flex:1;min-width:0;}
-.stat-number{font-family:AcademySerif;font-size:34px;line-height:40px;color:#F1E8D8;font-weight:600;}
-.stat-label{font-size:11px;line-height:20px;color:#BFC8C3;margin-top:2px;}
-.learning-card{border-width:1px;border-style:solid;border-color:#E3DCCF;padding:16px;margin-top:14px;background-color:#FCF9F2;border-radius:12px;}
-.learning-copy{min-width:0;flex:1;padding-left:14px;}
-.learning-access{font-size:10px;color:#A67C46;line-height:18px;letter-spacing:0.6px;}
-.learning-title{font-family:AcademySerif;font-size:18px;line-height:27px;color:#182B31;margin-top:4px;font-weight:600;}
-.learning-status{font-size:12px;line-height:22px;color:#6A7578;margin-top:8px;}
-.learning-progress{height:4px;background-color:#E6E0D5;border-radius:2px;margin-top:16px;overflow:hidden;}
-.learning-progress-fill{height:4px;background-color:#235663;}
-.next-lesson{font-size:13px;line-height:23px;color:#5F6B6E;margin-top:12px;}
-.learning-actions{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:8px;}
-.assignment-link{font-size:13px;line-height:22px;color:#235663;min-height:44px;padding:11px 0;border-width:0;background-color:transparent;margin:0;}
-.continue-button{min-height:46px;font-size:14px;line-height:22px;color:#FCF9F2;background-color:#235663;border-width:0;border-radius:23px;padding:12px 20px;margin:0;}
-.learning-links{flex-direction:row;flex-wrap:wrap;margin-top:6px;}
-.learning-link{font-size:12px;line-height:22px;color:#6A7578;min-height:44px;padding:11px 0;margin:0 18px 0 0;border-width:0;background-color:transparent;}
+<style>
+@import '../../styles/app.css';
+/* 学习档案：墨面统计块三列等宽，数字 24/34 压标签 12/20；课程卡 16 内边距。 */
+.content {
+  padding-bottom: 40px;
+}
+.study-summary {
+  padding: 20px 16px;
+  background-color: #182b31;
+  border-radius: 14px;
+  margin-top: 16px;
+}
+.summary-title {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #f1e8d8;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.summary-stats {
+  flex-direction: row;
+  margin-top: 16px;
+}
+.summary-stat {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+}
+.stat-number {
+  font-family: AcademySerif;
+  font-size: 24px;
+  line-height: 34px;
+  color: #f1e8d8;
+  font-weight: 600;
+  margin-top: 0;
+}
+.stat-label {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #e6ede9;
+  margin-top: 4px;
+}
+.study-summary-meta {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #e6ede9;
+  margin-top: 12px;
+}
+.list-toolbar {
+  margin-top: 24px;
+}
+.learning-card {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #cfc5b1;
+  padding: 16px;
+  margin-top: 12px;
+  background-color: #fcf9f2;
+  border-radius: 14px;
+}
+.learning-copy {
+  min-width: 0;
+  flex: 1;
+  padding-left: 16px;
+}
+.learning-access {
+  font-family: sans-serif;
+  font-size: 11px;
+  color: #8a6635;
+  line-height: 17px;
+  letter-spacing: 0.6px;
+}
+.learning-title {
+  font-family: AcademySerif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #182b31;
+  margin-top: 4px;
+  font-weight: 600;
+  max-height: 52px;
+  overflow: hidden;
+}
+.learning-status {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 8px;
+}
+.learning-progress {
+  height: 4px;
+  background-color: #e4ded2;
+  border-radius: 2px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.learning-progress-fill {
+  height: 4px;
+  background-color: #235663;
+}
+.next-lesson {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 12px;
+}
+.learning-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.assignment-link {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #235663;
+  min-height: 44px;
+  padding: 11px 0;
+  border-width: 0;
+  background-color: transparent;
+  margin: 0;
+}
+.continue-button {
+  min-height: 48px;
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 26px;
+  color: #fcf9f2;
+  background-color: #235663;
+  border-width: 0;
+  border-radius: 24px;
+  padding: 11px 20px;
+  margin: 0;
+}
+.learning-links {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.learning-link {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  min-height: 44px;
+  padding: 11px 0;
+  margin: 0 16px 0 0;
+  border-width: 0;
+  background-color: transparent;
+}
 </style>

@@ -1,0 +1,12 @@
+{
+  "singleQuote": true,
+  "semi": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "endOfLine": "lf",
+  "htmlWhitespaceSensitivity": "strict",
+  "overrides": [
+    { "files": "*.uvue", "options": { "parser": "vue" } },
+    { "files": "*.uts", "options": { "parser": "typescript" } }
+  ]
+}

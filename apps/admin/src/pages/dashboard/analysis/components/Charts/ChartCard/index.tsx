@@ -33,9 +33,7 @@ const ChartCardTotal: React.FC<{
   }
 };
 
-const ChartCardContent: React.FC<
-  ChartCardProps & { styles: Record<string, string> }
-> = ({
+const ChartCardContent: React.FC<ChartCardProps & { styles: Record<string, string> }> = ({
   contentHeight,
   title,
   avatar,
@@ -67,9 +65,7 @@ const ChartCardContent: React.FC<
           height: contentHeight || 'auto',
         }}
       >
-        <div className={contentHeight ? styles.contentFixed : undefined}>
-          {children}
-        </div>
+        <div className={contentHeight ? styles.contentFixed : undefined}>{children}</div>
       </div>
     )}
     {footer && (

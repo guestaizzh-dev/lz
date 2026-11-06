@@ -3,5 +3,16 @@
   "displayName": "书院安全存储",
   "version": "1.0.0",
   "description": "Android Keystore AES-GCM and iOS device-only Keychain storage",
-  "uni_modules": { "dependencies": [], "encrypt": [], "platforms": { "client": { "App": { "app-android": "y", "app-ios": "y" } } } }
+  "uni_modules": {
+    "dependencies": [],
+    "encrypt": [],
+    "platforms": {
+      "client": {
+        "App": {
+          "app-android": "y",
+          "app-ios": "y"
+        }
+      }
+    }
+  }
 }

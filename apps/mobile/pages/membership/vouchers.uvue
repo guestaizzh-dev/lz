@@ -1,0 +1,258 @@
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="视频代金券" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <ContentState v-if="loading || error" :loading="loading" :error="error" @retry="load" />
+        <template v-else-if="data"
+          ><view class="voucher-wallet"
+            ><text class="wallet-caption">我的可用代金券</text
+            ><view class="row wallet-balance"
+              ><text class="wallet-number">{{ data!.voucher.available }}</text
+              ><text class="wallet-unit">份</text></view
+            ><text class="wallet-subtitle"
+              >可抵 ¥{{
+                money(data!.voucher.availableValue ?? data!.voucher.available * data!.voucher.value)
+              }}
+              · 长期有效</text
+            ><text v-if="data!.voucher.held || data!.voucher.refundHeld" class="wallet-subtitle"
+              >订单占用 {{ data!.voucher.held }} 份 · 退款办理中
+              {{ data!.voucher.refundHeld }} 份</text
+            ></view
+          >
+          <view class="commerce-panel"
+            ><text class="commerce-heading">购买代金券</text
+            ><text class="commerce-copy"
+              >每份 ¥{{ money(data!.voucher.price) }}，可抵 ¥{{ money(data!.voucher.value) }}</text
+            ><view class="voucher-pack-options"
+              ><button
+                v-for="pack in [10, 30, 50, 100]"
+                :key="pack"
+                :class="['ui-button voucher-pack', quantity === pack ? 'voucher-pack-active' : '']"
+                @click="quantity = pack"
+                ><text class="voucher-pack-label">{{ pack }}份</text></button
+              ></view
+            ><view class="commerce-row"
+              ><text class="commerce-label">自选份数</text
+              ><QuantityStepper
+                :value="quantity"
+                :max="10000"
+                @change="quantity = Math.max(1, quantity + $event)" /></view
+            ><view class="commerce-row"
+              ><text class="commerce-label">购买金额</text
+              ><text class="commerce-amount"
+                >¥{{ money(quantity * data!.voucher.price) }}</text
+              ></view
+            ><ActionButton
+              :label="data!.voucher.active === false ? '暂停售卖' : '购买代金券'"
+              :disabled="data!.voucher.active === false"
+              @click="buy"
+          /></view>
+          <view class="wallet-history-head"
+            ><text class="commerce-heading">获得与使用记录</text
+            ><button
+              class="ui-button wallet-order-link"
+              @click="openPage('membership/center-orders')"
+              >购买记录 ›</button
+            ></view
+          >
+          <ContentState
+            v-if="!lots.length"
+            title="还没有代金券记录"
+            description="开通会员获赠或单独购买后，将在这里显示。"
+          />
+          <view v-for="lot in lots" :key="lot.id" class="commerce-panel"
+            ><view class="row between"
+              ><text class="commerce-heading"
+                >{{ lot.source === 'MEMBERSHIP' ? '会员赠送' : '单独购买' }} ·
+                {{ lot.quantity }}份</text
+              ><text class="lot-balance">{{
+                lot.suspended ? '权益暂停' : lot.remaining + '份可用'
+              }}</text></view
+            ><text class="commerce-muted"
+              >每份抵扣 ¥{{ money(lot.faceValue) }} · {{ formatChinaTime(lot.createdAt) }}</text
+            ><text class="commerce-copy"
+              >已使用 {{ lot.used }} · 订单占用 {{ lot.held }} · 已退回 {{ lot.refunded }}</text
+            ><button
+              class="ui-button wallet-order-link"
+              @click="openPage('membership/center-purchase?id=' + lot.orderId)"
+              >查看来源订单 ›</button
+            ></view
+          >
+          <button
+            v-if="lots.length < total"
+            class="ui-button outline-action"
+            :disabled="loadingMore"
+            @click="more"
+            >{{ loadingMore ? '加载中…' : '加载更多记录' }}</button
+          >
+        </template></view
+      ></scroll-view
+    ></view
+  >
+</template>
+<script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import QuantityStepper from '../../components/QuantityStepper.uvue';
+import ActionButton from '../../components/ActionButton.uvue';
+import { request, money } from '../../lib/api';
+import { needLogin, currentUser } from '../../lib/session';
+import { openPage } from '../../lib/presentation';
+import { formatChinaTime } from '../../lib/date-time';
+import type { CenterOverview, VoucherLot } from '../../lib/member-center';
+const data = ref<CenterOverview | null>(null),
+  lots = ref<VoucherLot[]>([]),
+  quantity = ref(10),
+  loading = ref(false),
+  loadingMore = ref(false),
+  error = ref(''),
+  total = ref(0);
+let page = 1,
+  revision = 0;
+async function load() {
+  const turn = ++revision;
+  loading.value = true;
+  error.value = '';
+  try {
+    const [overview, wallet] = await Promise.all([
+      request<CenterOverview>('/membership-center'),
+      currentUser.value
+        ? request<{ items: VoucherLot[]; total: number }>('/membership-center/vouchers')
+        : Promise.resolve({ items: [], total: 0 }),
+    ]);
+    if (turn === revision) {
+      data.value = overview;
+      lots.value = wallet.items;
+      total.value = wallet.total;
+      page = 1;
+    }
+  } catch (e) {
+    if (turn === revision) error.value = (e as Error).message;
+  } finally {
+    if (turn === revision) loading.value = false;
+  }
+}
+async function more() {
+  if (loadingMore.value || lots.value.length >= total.value) return;
+  const turn = revision;
+  loadingMore.value = true;
+  try {
+    const result = await request<{ items: VoucherLot[]; total: number }>(
+      '/membership-center/vouchers?page=' + (page + 1),
+    );
+    if (turn === revision) {
+      lots.value.push(...result.items);
+      total.value = result.total;
+      page++;
+    }
+  } catch (e) {
+    uni.showToast({ title: (e as Error).message, icon: 'none' });
+  } finally {
+    loadingMore.value = false;
+  }
+}
+function buy() {
+  if (data.value?.voucher.active === false) return;
+  const path = '/pages/membership/center-purchase?kind=VIDEO_VOUCHER&quantity=' + quantity.value;
+  if (needLogin(path)) return;
+  openPage('membership/center-purchase?kind=VIDEO_VOUCHER&quantity=' + quantity.value);
+}
+onShow(() => void load());
+onUnload(() => {
+  revision++;
+});
+</script>
+<style>
+@import '../../styles/app.css';
+@import '../../styles/commerce.css';
+.voucher-wallet {
+  padding: 22px;
+  background-color: #e6ede9;
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+.wallet-caption {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.wallet-balance {
+  align-items: flex-end;
+  margin-top: 8px;
+}
+.wallet-number {
+  font-family: sans-serif;
+  font-size: 38px;
+  line-height: 46px;
+  color: #182b31;
+  font-weight: 600;
+}
+.wallet-unit {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-left: 8px;
+}
+.wallet-subtitle {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #5c6869;
+  margin-top: 6px;
+}
+.voucher-pack-options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.voucher-pack {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 8px;
+  margin-right: 6px;
+  background-color: #f0ede7;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.voucher-pack-active {
+  background-color: #e6ede9;
+  border-color: #235663;
+}
+.voucher-pack-label {
+  font-family: sans-serif;
+  font-size: 14px;
+  line-height: 44px;
+  color: #235663;
+  font-weight: 600;
+}
+.wallet-history-head {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+}
+.wallet-order-link {
+  align-self: flex-start;
+  padding: 10px 0;
+  min-height: 44px;
+  font-size: 12px;
+  line-height: 22px;
+  color: #235663;
+}
+.lot-balance {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #235663;
+}
+</style>

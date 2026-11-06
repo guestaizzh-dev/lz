@@ -1,6 +1,5 @@
 export default {
-  'app.network.offline':
-    'You are currently offline. Some features may be unavailable.',
+  'app.network.offline': 'You are currently offline. Some features may be unavailable.',
   'app.error.chunk.title': 'Failed to load page',
   'app.error.chunk.description.offline':
     'Your network connection has been lost. Please check your connection and reload.',
@@ -12,6 +11,5 @@ export default {
   'app.error.retry': 'Retry',
   'app.error.reload': 'Reload Page',
   'app.error.home': 'Back Home',
-  'app.request.offline':
-    'Network unavailable. Please check your connection and try again.',
+  'app.request.offline': 'Network unavailable. Please check your connection and try again.',
 };

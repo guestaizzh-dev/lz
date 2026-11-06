@@ -1,33 +1,126 @@
 <template>
-  <view :class="['content-state',error?'content-state-error':loading?'content-state-loading':'']">
-    <view :class="['state-mark',error?'state-mark-error':loading?'state-mark-loading':'']">
-<AppIcon :name="error ? 'cloud-slash' : loading ? 'hourglass' : 'book-open'" :size="29" />
-</view>
-    <text class="state-title">{{ error ? '暂时无法打开' : loading ? '正在整理内容' : title }}</text>
-    <text :class="['state-copy',error?'state-copy-error':'']">{{ error || (loading ? '请稍候，书院内容即将呈现。' : description) }}</text>
-    <button v-if="error" class="state-retry" @click="emit('retry')">重新加载</button>
-    <button v-else-if="!loading && actionLabel" class="state-retry" @click="emit('action')">{{ actionLabel }}</button>
-  </view>
+  <view v-if="loading && !error" class="state-loading-wrap"
+    ><view v-if="showLoading" class="state-loading" aria-label="加载中"
+      ><view class="state-skeleton state-skeleton-title"></view><view class="state-skeleton"></view
+      ><view class="state-skeleton state-skeleton-short"></view></view
+  ></view>
+  <view v-else :class="['content-state', error ? 'content-state-error' : '']"
+    ><view class="state-icon"><AppIcon :name="error ? 'cloud-slash' : icon" :size="26" /></view
+    ><text class="ui-text state-title">{{ error ? errorTitle || '暂时无法加载' : title }}</text
+    ><text class="ui-text state-copy">{{ error || description }}</text
+    ><view v-if="(error && retryable) || actionLabel" class="state-action-wrap"
+      ><ActionButton
+        :label="error && retryable ? '重新加载' : actionLabel"
+        @click="error && retryable ? emit('retry') : emit('action')" /></view
+  ></view>
 </template>
 <script setup lang="ts">
+import { ref, watch, onUnmounted } from 'vue';
 import AppIcon from './AppIcon.uvue';
-withDefaults(defineProps<{ loading?: boolean; error?: string; title?: string; description?: string; actionLabel?: string }>(), { loading: false, error: '', title: '暂无内容', description: '内容发布后会在这里显示。', actionLabel: '' });
+import ActionButton from './ActionButton.uvue';
+const props = withDefaults(
+  defineProps<{
+    loading?: boolean;
+    error?: string;
+    errorTitle?: string;
+    retryable?: boolean;
+    title?: string;
+    description?: string;
+    actionLabel?: string;
+    icon?: string;
+  }>(),
+  {
+    loading: false,
+    error: '',
+    errorTitle: '',
+    retryable: true,
+    title: '暂无内容',
+    description: '内容发布后会显示在这里。',
+    actionLabel: '',
+    icon: 'book-open',
+  },
+);
 const emit = defineEmits<{ retry: []; action: [] }>();
+const showLoading = ref(false);
+let timer: ReturnType<typeof setTimeout> | null = null;
+watch(
+  () => props.loading,
+  (value) => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    showLoading.value = false;
+    if (value)
+      timer = setTimeout(() => {
+        showLoading.value = true;
+      }, 220);
+  },
+  { immediate: true },
+);
+onUnmounted(() => {
+  if (timer) clearTimeout(timer);
+});
 </script>
 <style>
-.content-state { padding: 40px 20px; align-items: center; }
-.state-mark { width: 64px; height: 64px; border-radius: 32px; background-color: #EFE9DC; align-items: center; justify-content: center; margin-bottom: 18px; }
-.state-title { font-family: AcademySerif; color: #182B31; font-size: 18px; line-height:28px;text-align:center;font-weight:600;}
-.state-copy { font-family:AcademySans;margin-top: 8px; color: #6A7578; font-size: 13px; line-height: 23px; text-align: center; }
-.state-mark-error { background-color:#F3E2DB; }
-.state-copy-error { color:#8F4A3C; }
-.state-mark-loading { background-color:#E6EDE9; }
-.state-retry {border-style:solid;border-width:0; background-color: #235663; color: #FCF9F2; border-radius: 24px; font-family:AcademySans;font-size: 14px; min-height:46px;padding: 12px 24px; margin:24px 0 0;line-height:22px;}
+.state-loading-wrap {
+  min-height: 0;
+}
+.state-loading {
+  padding: 20px 0;
+}
+.state-skeleton {
+  height: 10px;
+  border-radius: 5px;
+  background-color: #e4ded2;
+  margin-top: 14px;
+  width: 100%;
+}
+.state-skeleton-title {
+  width: 42%;
+  height: 14px;
+  margin-top: 0;
+}
+.state-skeleton-short {
+  width: 72%;
+}
+/* One state component for empty/error/permission: heading, one line of copy, one filled action. */
+.state-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: #e6ede9;
+  align-items: center;
+  justify-content: center;
+}
+.state-action-wrap {
+  min-width: 128px;
+  margin-top: 20px;
+}
+.content-state {
+  padding: 32px 20px 40px;
+  align-items: center;
+}
+.state-title {
+  font-family: sans-serif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #182b31;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 14px;
+}
+.state-copy {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  text-align: center;
+  margin-top: 8px;
+}
+
 /* #ifdef WEB */
-.state-copy { max-width:34em;overflow-wrap:anywhere; }
-@media (prefers-reduced-motion:no-preference) {
- .state-mark-loading { animation:state-breath 1.6s ease-in-out infinite; }
- @keyframes state-breath { 50% { opacity:0.55; } }
+.state-copy {
+  max-width: 32em;
+  overflow-wrap: anywhere;
 }
 /* #endif */
 </style>

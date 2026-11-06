@@ -1,8 +1,19 @@
-import { BadRequestException, Body, ConflictException, Controller, Injectable, NotFoundException, Post, Req, ServiceUnavailableException, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Injectable,
+  NotFoundException,
+  Post,
+  Req,
+  ServiceUnavailableException,
+  UseGuards,
+} from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { AdminGuard, requireRoles, type AuthRequest } from './auth.js';
 import { Database } from './database.js';
-import { PaymentChannels } from './payment-channels.js';
+
 import { CourseSalesService } from './course-sales.js';
 import { MembershipSalesService } from './membership-sales.js';
 import { ProductSalesService } from './product-sales.js';
@@ -20,7 +31,6 @@ const enabled = () => process.env.PAYMENT_SIMULATION_ENABLED === 'true';
 export class PaymentSimulation {
   constructor(
     private readonly db: Database,
-    private readonly channels: PaymentChannels,
     private readonly courses: CourseSalesService,
     private readonly memberships: MembershipSalesService,
     private readonly products: ProductSalesService,
@@ -46,17 +56,19 @@ export class PaymentSimulation {
     if (order.state !== 'PENDING') throw new ConflictException('订单当前不可支付');
     const service = this.target(order.kind);
     if (!service) throw new BadRequestException('该订单类型暂不支持模拟收款');
-    const attempt = (await this.db.paymentAttempt.findFirst({ where: { orderId, channel: 'SIMULATED' } })) ?? await this.db.paymentAttempt.create({
-      data: {
-        orderId,
-        channel: 'SIMULATED',
-        requestKey: 'sim-' + randomUUID(),
-        state: 'CREATED',
-        amount: order.payableTotal,
-        currency: order.currency,
-        expiresAt: new Date(Date.now() + 15 * 60_000),
-      },
-    });
+    const attempt =
+      (await this.db.paymentAttempt.findFirst({ where: { orderId, channel: 'SIMULATED' } })) ??
+      (await this.db.paymentAttempt.create({
+        data: {
+          orderId,
+          channel: 'SIMULATED',
+          requestKey: 'sim-' + randomUUID(),
+          state: 'CREATED',
+          amount: order.payableTotal,
+          currency: order.currency,
+          expiresAt: new Date(Date.now() + 15 * 60_000),
+        },
+      }));
     const total = Number(order.payableTotal);
     const data = {
       appid: 'SIMULATED',
@@ -78,7 +90,14 @@ export class PaymentSimulation {
         changes: { amount: total, channel: 'SIMULATED', attemptId: attempt.id, kind: order.kind },
       },
     });
-    return { orderId: order.id, orderNo: order.orderNo, kind: order.kind, amount: total, channel: 'SIMULATED', result };
+    return {
+      orderId: order.id,
+      orderNo: order.orderNo,
+      kind: order.kind,
+      amount: total,
+      channel: 'SIMULATED',
+      result,
+    };
   }
 }
 

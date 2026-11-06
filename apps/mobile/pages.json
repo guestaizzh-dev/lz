@@ -1,12 +1,15 @@
 {
   "pages": [
-    {"path":"pages/payment/native","style":{"navigationStyle":"custom"}},
     {
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom"
       }
     },
+    { "path": "pages/membership/center-purchase", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/membership/vouchers", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/membership/center-orders", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/payment/native", "style": { "navigationStyle": "custom" } },
     {
       "path": "pages/academy/index",
       "style": {
@@ -215,7 +218,11 @@
     {
       "path": "pages/live/watch",
       "style": {
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "pageOrientation": "auto",
+        "hideStatusBar": true,
+        "hideBottomNavigationIndicator": true,
+        "backgroundColorContent": "#090C10"
       }
     },
     {

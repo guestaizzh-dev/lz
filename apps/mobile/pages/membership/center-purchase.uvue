@@ -1,0 +1,414 @@
+<template>
+  <view class="page"
+    ><InkBackdrop /><PageHead :title="order ? '订单详情' : '确认购买'" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <ContentState v-if="loading || error" :loading="loading" :error="error" @retry="load" />
+        <template v-else-if="terms">
+          <view class="purchase-head"
+            ><text class="purchase-kicker">{{
+              terms!.kind === 'VIDEO_VOUCHER' ? '视频代金券' : '长期会员 · 一次开通'
+            }}</text
+            ><text class="purchase-title">{{ terms!.title }}</text
+            ><text class="purchase-subtitle">{{
+              terms!.kind === 'VIDEO_VOUCHER'
+                ? terms!.quantity + '份代金券 · 长期有效'
+                : terms!.previousId
+                  ? '补差价升级 · 支付确认后即时生效'
+                  : '支付确认后即时生效，无需续费'
+            }}</text></view
+          >
+          <view v-if="order" class="commerce-notice"
+            ><text class="commerce-notice-title">{{
+              order!.member?.state === 'REFUND_HELD'
+                ? '退款办理中'
+                : order!.state === 'COMPLETED'
+                  ? '购买已确认'
+                  : order!.state === 'CLOSED'
+                    ? '订单已关闭'
+                    : '等待付款确认'
+            }}</text
+            ><text class="commerce-copy">{{
+              order!.state === 'COMPLETED'
+                ? '请在会员中心查看实际会员或代金券。'
+                : '如已扣款，请查询原订单，勿重复付款。'
+            }}</text></view
+          >
+          <view class="commerce-panel"
+            ><text class="commerce-heading">本次获得</text
+            ><template v-if="terms!.grade"
+              ><view class="commerce-row"
+                ><text class="commerce-label">会员资格</text
+                ><text class="commerce-value">{{ terms!.title }} · 长期有效</text></view
+              ><view class="commerce-row"
+                ><text class="commerce-label">生活馆商品</text
+                ><text class="commerce-value">{{
+                  discountText(terms!.grade!.goodsBasisPoints)
+                }}</text></view
+              ><view class="commerce-row"
+                ><text class="commerce-label">图书专享</text
+                ><text class="commerce-value"
+                  >{{ discountText(terms!.grade!.bookBasisPoints) }} · 不折上折</text
+                ></view
+              ><view class="commerce-row"
+                ><text class="commerce-label">{{
+                  terms!.previousId ? '本次补赠' : '开通赠送'
+                }}</text
+                ><text class="commerce-value">{{ terms!.giftQuantity }}份视频代金券</text></view
+              ></template
+            ><template v-else
+              ><view class="commerce-row"
+                ><text class="commerce-label">购买份数</text
+                ><text class="commerce-value">{{ terms!.quantity }}份</text></view
+              ><view class="commerce-row"
+                ><text class="commerce-label">可抵视频金额</text
+                ><text class="commerce-value"
+                  >¥{{ money(terms!.quantity * (terms!.voucherPolicy?.faceValue ?? 300)) }}</text
+                ></view
+              ></template
+            ></view
+          >
+          <view class="commerce-panel"
+            ><text class="commerce-heading">费用明细</text
+            ><view class="commerce-row"
+              ><text class="commerce-label">{{ terms!.previousId ? '升级差价' : '购买金额' }}</text
+              ><text class="commerce-value">¥{{ money(terms!.price) }}</text></view
+            ><view class="commerce-row"
+              ><text class="commerce-label">支付方式</text
+              ><text class="commerce-value">微信扫码支付</text></view
+            ><view class="commerce-row"
+              ><text class="commerce-label">{{ order?.paidAt ? '实际支付' : '应付金额' }}</text
+              ><text class="commerce-amount"
+                >¥{{ money(Number(order?.amount ?? terms!.price)) }}</text
+              ></view
+            ></view
+          >
+          <view class="commerce-panel"
+            ><text class="commerce-heading">购买与退款说明</text
+            ><text class="commerce-copy">{{
+              terms!.grade
+                ? '会员费购买等级资格，不产生可消费余额。升级只补差价和赠券差额，不重复发券。付款7天内未使用或占用本次权益，可申请退款；升级退款恢复原等级。'
+                : '代金券仅用于付费视频，长期有效、不找零、不兑现；份数不足时可用现金补足。尚未使用且未占用的购买份数可申请原路退款。'
+            }}</text
+            ><text class="commerce-copy"
+              >仅在核实支付成功后发放。已经购买的权益以本次订单设置为准。</text
+            ></view
+          >
+          <view v-if="!order" class="commerce-consent" @click="agreed = !agreed"
+            ><view :class="['commerce-check', agreed ? 'commerce-check-on' : '']"
+              ><text v-if="agreed" class="commerce-check-mark">✓</text></view
+            ><text class="commerce-consent-copy">我已确认本次权益、应付金额及退款规则</text></view
+          >
+          <text v-if="notice || (!order && !quote?.paymentEnabled)" class="commerce-alert">{{
+            notice || quote!.unavailableReason
+          }}</text>
+          <view v-if="order" class="commerce-panel"
+            ><text class="commerce-heading">订单与售后</text
+            ><text class="commerce-copy" @click="copyNumber">{{ order!.orderNo }} · 点击复制</text
+            ><text class="commerce-muted">{{ formatChinaTime(order!.createdAt) }}</text
+            ><view class="commerce-action-row"
+              ><view class="commerce-action-cell"
+                ><ActionButton
+                  label="查询订单结果"
+                  tone="ghost"
+                  :loading="busy"
+                  @click="refresh" /></view
+              ><view v-if="order!.canCancel" class="commerce-action-cell"
+                ><ActionButton
+                  label="取消订单"
+                  tone="ghost"
+                  :disabled="busy"
+                  @click="cancel" /></view></view
+            ><view v-if="order!.canRefund" class="commerce-action-row"
+              ><ActionButton
+                label="申请退款"
+                tone="ghost"
+                :disabled="busy"
+                @click="showRefund = true" /></view
+          ></view>
+          <view v-for="refund in order?.refunds ?? []" :key="refund.id" class="commerce-panel"
+            ><text class="commerce-heading"
+              >{{ refundLabel(refund.state) }} · ¥{{
+                money(Number(refund.approvedAmount ?? refund.requestedAmount))
+              }}</text
+            ><text class="commerce-copy">{{ refund.description }}</text
+            ><text v-if="refund.reviewNote" class="commerce-muted">{{
+              refund.reviewNote
+            }}</text></view
+          >
+        </template></view
+      ></scroll-view
+    >
+    <BottomBar v-if="terms && !loading && !error"
+      ><view class="checkout-total"
+        ><text class="commerce-muted">{{ order?.paidAt ? '实付' : '应付' }}</text
+        ><text class="checkout-price"
+          >¥{{ money(Number(order?.amount ?? terms!.price)) }}</text
+        ></view
+      ><view class="checkout-action"
+        ><ActionButton
+          :label="
+            order?.state === 'COMPLETED'
+              ? '查看我的权益'
+              : order?.state === 'CLOSED'
+                ? '返回会员中心'
+                : '确认付款'
+          "
+          :disabled="!order && (!agreed || !quote?.paymentEnabled)"
+          :loading="busy"
+          @click="buy" /></view
+    ></BottomBar>
+    <ComposeSheet
+      :visible="showRefund"
+      title="申请退款"
+      subtitle="仅退回原付款账户，已使用或占用的权益需先处理"
+      v-model="refundReason"
+      :saving="busy"
+      :disabled="refundReason.trim().length < 2"
+      :error="refundError"
+      submit-label="提交申请"
+      @close="showRefund = false"
+      @submit="refund"
+      ><view v-if="order?.terms.kind === 'VIDEO_VOUCHER'" class="commerce-row"
+        ><text class="commerce-label">退券份数</text
+        ><QuantityStepper
+          :value="refundQuantity"
+          :max="order?.lot?.remaining ?? 0"
+          :disabled="busy"
+          @change="refundQuantity = Math.max(1, refundQuantity + $event)" /></view
+    ></ComposeSheet>
+  </view>
+</template>
+<script setup lang="ts">
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import BottomBar from '../../components/BottomBar.uvue';
+import ComposeSheet from '../../components/ComposeSheet.uvue';
+import QuantityStepper from '../../components/QuantityStepper.uvue';
+import ActionButton from '../../components/ActionButton.uvue';
+import { request, money } from '../../lib/api';
+import { needLogin, currentUser } from '../../lib/session';
+import { openPage } from '../../lib/presentation';
+import { studyEventId } from '../../lib/learning';
+import { formatChinaTime } from '../../lib/date-time';
+import { purchasePlatform, refundLabel } from '../../lib/course-sales';
+import { openNativePayment } from '../../lib/native-payment';
+import { discountText } from '../../lib/member-center';
+import type { CenterQuote, CenterOrder } from '../../lib/member-center';
+const quote = ref<CenterQuote | null>(null),
+  order = ref<CenterOrder | null>(null),
+  loading = ref(false),
+  busy = ref(false),
+  error = ref(''),
+  notice = ref(''),
+  agreed = ref(false),
+  showRefund = ref(false),
+  refundReason = ref(''),
+  refundError = ref(''),
+  refundQuantity = ref(1);
+const terms = computed(() => order.value?.terms ?? quote.value);
+let kind = 'MEMBER_LIFETIME',
+  tier = 1,
+  quantity = 1,
+  id = '',
+  key = studyEventId(),
+  refundKey = studyEventId(),
+  revision = 0,
+  owner = '';
+const selection = () => ({
+  kind,
+  platform: purchasePlatform(),
+  ...(kind === 'MEMBER_LIFETIME' ? { tier } : { quantity }),
+});
+const path = () =>
+  '/pages/membership/center-purchase?' +
+  (id
+    ? 'id=' + id
+    : 'kind=' + kind + (kind === 'MEMBER_LIFETIME' ? '&tier=' + tier : '&quantity=' + quantity));
+async function load() {
+  if (busy.value) return;
+  const turn = ++revision,
+    who = currentUser.value?.id ?? '';
+  if (owner !== who) {
+    owner = who;
+    quote.value = null;
+    order.value = null;
+    agreed.value = false;
+    key = studyEventId();
+  }
+  loading.value = true;
+  error.value = '';
+  try {
+    if (id) {
+      if (needLogin(path())) return;
+      const result = await request<CenterOrder>('/membership-center/orders/' + id);
+      if (turn === revision) order.value = result;
+    } else {
+      const values = selection(),
+        params = Object.keys(values)
+          .map(
+            (k) =>
+              encodeURIComponent(k) +
+              '=' +
+              encodeURIComponent(String((values as Record<string, unknown>)[k])),
+          )
+          .join('&');
+      const result = await request<CenterQuote>('/membership-center/quote?' + params);
+      if (turn === revision) {
+        if (quote.value?.quoteHash !== result.quoteHash) {
+          key = studyEventId();
+          agreed.value = false;
+        }
+        quote.value = result;
+      }
+    }
+  } catch (e) {
+    if (turn === revision) error.value = (e as Error).message;
+  } finally {
+    if (turn === revision) loading.value = false;
+  }
+}
+async function buy() {
+  if (busy.value) return;
+  if (order.value && order.value.state !== 'PENDING') {
+    openPage('membership/index');
+    return;
+  }
+  if (needLogin(path())) return;
+  busy.value = true;
+  notice.value = '';
+  try {
+    if (!order.value) {
+      if (!quote.value?.paymentEnabled || !agreed.value) return;
+      order.value = await request<CenterOrder>('/membership-center/orders', {
+        method: 'POST',
+        data: { ...selection(), quoteHash: quote.value.quoteHash, requestKey: key },
+      });
+      id = order.value.id;
+    }
+    if (order.value.canPay) await openNativePayment('CENTER', id);
+    else notice.value = '请查询原订单结果后继续，勿重复付款。';
+  } catch (e) {
+    notice.value = (e as Error).message;
+  } finally {
+    busy.value = false;
+  }
+}
+async function refresh() {
+  if (!id || busy.value) return;
+  busy.value = true;
+  notice.value = '';
+  try {
+    order.value = await request<CenterOrder>('/membership-center/orders/' + id + '/refresh', {
+      method: 'POST',
+    });
+  } catch (e) {
+    notice.value = (e as Error).message;
+  } finally {
+    busy.value = false;
+  }
+}
+function cancel() {
+  if (busy.value) return;
+  uni.showModal({
+    title: '取消本次订单',
+    content: '将先核对付款结果；已经支付的订单保留售后入口。',
+    confirmText: '取消订单',
+    success: async (r) => {
+      if (!r.confirm || busy.value) return;
+      busy.value = true;
+      try {
+        order.value = await request<CenterOrder>('/membership-center/orders/' + id + '/cancel', {
+          method: 'POST',
+        });
+      } catch (e) {
+        notice.value = (e as Error).message;
+      } finally {
+        busy.value = false;
+      }
+    },
+  });
+}
+async function refund() {
+  if (!order.value || busy.value) return;
+  busy.value = true;
+  refundError.value = '';
+  try {
+    order.value = await request<CenterOrder>('/membership-center/orders/' + id + '/refund', {
+      method: 'POST',
+      data: {
+        requestKey: refundKey,
+        reason: refundReason.value,
+        ...(order.value.terms.kind === 'VIDEO_VOUCHER' ? { quantity: refundQuantity.value } : {}),
+      },
+    });
+    showRefund.value = false;
+    refundKey = studyEventId();
+    refundReason.value = '';
+  } catch (e) {
+    refundError.value = (e as Error).message;
+  } finally {
+    busy.value = false;
+  }
+}
+function copyNumber() {
+  if (order.value) uni.setClipboardData({ data: order.value.orderNo });
+}
+onLoad((options) => {
+  id = options?.id ?? '';
+  kind = options?.kind ?? 'MEMBER_LIFETIME';
+  tier = Number(options?.tier ?? 1);
+  quantity = Number(options?.quantity ?? 1);
+});
+onShow(() => void load());
+onUnload(() => {
+  revision++;
+});
+</script>
+<style>
+@import '../../styles/app.css';
+@import '../../styles/commerce.css';
+.purchase-head {
+  padding: 12px 0 20px;
+}
+.purchase-kicker {
+  font-family: sans-serif;
+  font-size: 12px;
+  line-height: 20px;
+  color: #6a7578;
+}
+.purchase-title {
+  font-family: sans-serif;
+  font-size: 25px;
+  line-height: 34px;
+  font-weight: 600;
+  color: #182b31;
+  margin-top: 8px;
+}
+.purchase-subtitle {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 6px;
+}
+.checkout-total {
+  margin-right: 16px;
+  flex: 1;
+  min-width: 0;
+}
+.checkout-price {
+  font-family: sans-serif;
+  font-size: 23px;
+  line-height: 30px;
+  font-weight: 600;
+  color: #b4533f;
+}
+.checkout-action {
+  width: 52%;
+  flex-shrink: 0;
+}
+</style>

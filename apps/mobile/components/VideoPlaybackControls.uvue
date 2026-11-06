@@ -1,0 +1,395 @@
+<template>
+  <view
+    v-if="visible || locked"
+    class="video-controls"
+    :class="fullscreen ? 'video-controls-fullscreen' : ''"
+    @click.stop="!locked && emit('visibility')"
+  >
+    <view v-if="fullscreen && !locked" class="video-fullscreen-head">
+      <view class="video-control-icon">
+        <image
+          class="video-control-image"
+          src="/static/icons/arrow-left-white.png"
+          mode="aspectFit"
+        />
+        <button
+          class="video-control-hit"
+          aria-label="返回竖屏"
+          @click.stop="toggleFullscreen"
+        ></button>
+      </view>
+      <text v-if="fullscreen" class="video-fullscreen-title">{{ title }}</text>
+    </view>
+    <button
+      v-if="fullscreen"
+      class="video-lock"
+      :aria-label="locked ? '解锁播放器' : '锁定播放器'"
+      @click.stop="locked = !locked"
+      >{{ locked ? '解锁' : '锁屏' }}</button
+    >
+    <view v-if="fullscreen && episodesOpen && !locked" class="video-episodes" @click.stop="">
+      <text class="video-episodes-heading">选集</text>
+      <scroll-view direction="vertical" class="video-episodes-scroll">
+        <button
+          v-for="episode in episodes"
+          :key="episode.id"
+          class="video-episode"
+          :class="episode.id === selectedId ? 'video-episode-selected' : ''"
+          :disabled="episode.accessible === false"
+          @click.stop="chooseEpisode(episode.id)"
+          >{{ episode.title }}</button
+        >
+      </scroll-view>
+      <button class="video-episode" @click.stop="episodesOpen = false">关闭</button>
+    </view>
+    <view v-if="open && !locked" class="video-speed-options">
+      <button
+        v-for="rate in [1, 1.25, 1.5, 2]"
+        :key="rate"
+        class="ui-button video-speed-option"
+        :class="value === rate ? 'video-speed-selected' : ''"
+        @click.stop="select(rate)"
+        >{{ rate }}×</button
+      >
+    </view>
+    <view v-if="!locked" class="video-control-surface" @click.stop="">
+      <slider
+        v-if="fullscreen"
+        class="video-control-progress"
+        aria-label="播放进度"
+        :value="dragging ? dragPosition : position"
+        :max="Math.max(1, total)"
+        :disabled="total <= 0"
+        :block-size="12"
+        activeColor="#FFFFFF"
+        backgroundColor="#7C8184"
+        blockColor="#FFFFFF"
+        track-class="video-seek-track"
+        track-active-class="video-seek-active"
+        thumb-class="video-seek-thumb"
+        @changing="drag"
+        @change="seek"
+      />
+      <view class="video-control-bar">
+        <view class="video-control-icon">
+          <image
+            class="video-control-image"
+            mode="aspectFit"
+            :src="playing ? '/static/icons/pause-white.png' : '/static/icons/play-white.png'"
+          />
+          <button
+            class="video-control-hit"
+            role="button"
+            :aria-label="playing ? '暂停视频' : '播放视频'"
+            @click.stop="togglePlayback"
+          ></button>
+        </view>
+        <slider
+          v-if="!fullscreen"
+          :style="{ flex: 1 }"
+          class="video-control-progress"
+          aria-label="播放进度"
+          :value="dragging ? dragPosition : position"
+          :max="Math.max(1, total)"
+          :disabled="total <= 0"
+          :block-size="12"
+          activeColor="#FFFFFF"
+          backgroundColor="#7C8184"
+          blockColor="#FFFFFF"
+          track-class="video-seek-track"
+          track-active-class="video-seek-active"
+          thumb-class="video-seek-thumb"
+          @changing="drag"
+          @change="seek"
+        />
+        <text class="ui-text video-time"
+          >{{ duration(dragging ? dragPosition : position) }} / {{ duration(total) }}</text
+        >
+        <view class="video-control-spacer" />
+        <button
+          v-if="fullscreen && episodes.length > 1"
+          class="video-speed-trigger"
+          @click.stop="
+            episodesOpen = !episodesOpen;
+            open = false;
+          "
+          >选集</button
+        >
+        <button
+          class="ui-button video-speed-trigger"
+          role="button"
+          aria-label="播放速度"
+          @click.stop="open = !open"
+          >{{ value === 1 ? '倍速' : value + '×' }}</button
+        >
+        <view class="video-control-icon">
+          <image
+            class="video-control-image"
+            mode="aspectFit"
+            :src="
+              fullscreen
+                ? '/static/icons/corners-in-white.png'
+                : '/static/icons/corners-out-white.png'
+            "
+          />
+          <button
+            class="video-control-hit"
+            role="button"
+            :aria-label="fullscreen ? '退出视频全屏' : '视频全屏'"
+            @click.stop="toggleFullscreen"
+          ></button>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { duration } from '../lib/learning';
+const props = withDefaults(
+  defineProps<{
+    playerId: string;
+    value: number;
+    visible: boolean;
+    playing: boolean;
+    position: number;
+    total: number;
+    fullscreen: boolean;
+    title?: string;
+    episodes?: Array<{ id: string; title: string; accessible?: boolean }>;
+    selectedId?: string;
+  }>(),
+  { title: '', episodes: () => [], selectedId: '' },
+);
+const emit = defineEmits<{
+  change: [value: number];
+  seek: [value: number];
+  episode: [id: string];
+  visibility: [];
+}>();
+const locked = ref(false),
+  episodesOpen = ref(false),
+  open = ref(false),
+  dragging = ref(false),
+  dragPosition = ref(0);
+function chooseEpisode(id: string) {
+  episodesOpen.value = false;
+  emit('episode', id);
+}
+watch(
+  () => props.fullscreen,
+  () => {
+    locked.value = false;
+    episodesOpen.value = false;
+  },
+);
+function select(rate: number) {
+  emit('change', rate);
+  open.value = false;
+}
+function togglePlayback() {
+  const player = uni.createVideoContext(props.playerId);
+  if (props.playing) player?.pause();
+  else {
+    if (props.total > 0 && props.position >= props.total) emit('seek', 0);
+    player?.play();
+  }
+}
+function toggleFullscreen() {
+  open.value = false;
+  episodesOpen.value = false;
+  const player = uni.createVideoContext(props.playerId);
+  if (props.fullscreen) player?.exitFullScreen();
+  else player?.requestFullScreen({ direction: 90 });
+}
+function drag(event: { detail: { value: number } }) {
+  dragging.value = true;
+  dragPosition.value = event.detail.value;
+}
+function seek(event: { detail: { value: number } }) {
+  dragging.value = false;
+  emit('seek', Math.max(0, Math.min(props.total, event.detail.value)));
+}
+watch(
+  () => props.visible,
+  () => {
+    open.value = false;
+    dragging.value = false;
+  },
+);
+</script>
+<style>
+.video-controls {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  justify-content: flex-end;
+}
+.video-control-surface {
+  background-color: rgba(0, 0, 0, 0.55);
+  padding: 0 6px;
+}
+.video-control-bar {
+  width: 100%;
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  height: 44px;
+  padding: 0 6px;
+}
+.video-control-icon,
+.video-speed-trigger,
+.video-speed-option {
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.video-control-icon {
+  position: relative;
+  width: 44px;
+}
+.video-control-image {
+  width: 22px;
+  height: 22px;
+}
+.video-time {
+  font-size: 10px;
+  line-height: 20px;
+  color: #ffffff;
+  flex-shrink: 0;
+  margin: 0 4px;
+  white-space: nowrap;
+}
+.video-control-progress {
+  height: 24px;
+  margin: 0 10px;
+}
+.video-speed-trigger {
+  width: 46px;
+}
+.video-control-label,
+.video-speed-trigger,
+.video-speed-option {
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 44px;
+}
+.video-speed-options {
+  position: absolute;
+  right: 42px;
+  bottom: 72px;
+  flex-direction: row;
+  background-color: rgba(0, 0, 0, 0.78);
+  border-radius: 8px;
+  padding: 2px;
+}
+.video-speed-option {
+  width: 46px;
+  border-radius: 6px;
+}
+.video-speed-selected {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.video-control-hit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  background-color: transparent;
+}
+.video-control-spacer {
+  flex: 1;
+}
+.video-seek-track {
+  height: 2px;
+  background-color: #7c8184;
+}
+.video-seek-active {
+  height: 2px;
+  background-color: #ffffff;
+}
+.video-seek-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: #ffffff;
+}
+.video-controls-fullscreen {
+  top: 0;
+  height: auto;
+}
+.video-fullscreen-head {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 56px;
+  flex-direction: row;
+  align-items: center;
+}
+.video-fullscreen-title {
+  flex: 1;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 28px;
+  max-height: 56px;
+  overflow: hidden;
+}
+.video-lock {
+  position: absolute;
+  right: 12px;
+  top: 110px;
+  width: 52px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 13px;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.video-episodes {
+  position: absolute;
+  z-index: 12;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 260px;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.9);
+}
+.video-episodes-heading {
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 30px;
+}
+.video-episodes-scroll {
+  flex: 1;
+}
+.video-episode {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 22px;
+  min-height: 44px;
+  padding: 10px;
+  margin: 0;
+  background-color: transparent;
+  border-width: 0;
+}
+.video-episode-selected {
+  color: #a4d6d9;
+}
+</style>

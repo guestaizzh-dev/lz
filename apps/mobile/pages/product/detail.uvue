@@ -1,84 +1,487 @@
 <template>
-<view class="page">
-<PageHead title="书院好物" action="share" @action="share"/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<ContentState v-if="!product" :loading="!error" :error="error" @retry="load"/>
-<view v-else>
-<ArtImage :src="product!.cover" :kind="artwork(product!.cover,product!.category)" :width="width" :height="260" :radius="12"/>
-<text class="detail-title">{{product!.title}}</text>
-<text class="intro">{{product!.subtitle}}</text><view v-for="promotion in (product!.promotions??[]).filter(p=>!selected||p.skuId===selected!.id)" :key="promotion.id+promotion.skuId" class="product-promotion"><text class="item-title">{{promotion.title}}</text><text class="body-copy">{{promotion.kind==='PRODUCT_FLASH'?'活动单价 ¥'+money(promotion.price??0):'指定规格满 ¥'+money(promotion.rules.threshold??0)+' 减 ¥'+money(promotion.rules.reduction??0)}}</text><text class="meta">{{formatChinaTime(promotion.startsAt)}} 至 {{formatChinaTime(promotion.endsAt)}}（北京）</text><text class="footer-note">活动剩余 {{promotion.remaining}} 件，服务端核对限购并在结算择优；同商品不叠加会员折扣。页面展示不占库存。</text></view>
-<view class="row between product-price">
-<text class="price">¥{{money(selected?.price??product!.price)}}</text>
-<text class="tag">{{product!.category}}</text>
-</view>
-<view class="menu-row">
-<text class="menu-label product-label">规格</text>
-<text class="menu-value">{{selected?.title??'尚未配置可售规格'}}</text>
-</view>
-<view v-if="product!.skus?.length" class="sku-options"><button v-for="item in product!.skus" :key="item.id" :class="['sku-button',skuId===item.id?'sku-selected':'']" @click="choose(item.id)">{{item.title}}</button></view>
-<text v-if="selected&&product!.type==='PHYSICAL'" :class="['stock-note',selected!.available>0?'':'stock-out']">{{selected!.available>0?'当前可售 '+selected!.available+' 件':'暂时售罄'}}</text>
-<view v-if="product!.type==='PHYSICAL'" class="menu-row">
-<text class="menu-label product-label">数量</text>
-<view class="stepper">
-<button class="stepper-button" :class="quantity<=1?'is-disabled':''" :disabled="quantity<=1" aria-label="减少数量" @click="dec">−</button>
-<text class="stepper-value">{{quantity}}</text>
-<button class="stepper-button" :class="canAdd?'':'is-disabled'" :disabled="!canAdd" aria-label="增加数量" @click="inc">+</button>
-</view>
-</view>
-<view class="detail-tabs">
-<view v-for="item in ['商品详情','文化溯源','售后说明']" :key="item" :class="['detail-tab',tab===item?'detail-tab-active':'']" @click="tab=item">
-<text :class="['detail-tab-text',tab===item?'detail-tab-selected':'']">{{item}}</text>
-</view>
-</view>
-<text v-if="tab==='商品详情'" class="body-copy" :user-select="true">{{product!.description}}</text>
-<view v-else-if="tab==='文化溯源'"><text class="body-copy" :user-select="true">{{product!.culturalOrigin}}</text><text v-if="!product!.evidence?.length" class="meta">以上为商品文化介绍，尚无审核通过的公开证据。</text><SourceEvidence :items="product!.evidence??[]"/></view>
-<text v-else class="body-copy" :user-select="true">{{product!.refundPolicy??'请在确认订单页面核查配送与售后规则。'}}</text>
-<RelatedContent ref="relatedRef" :resourceId="id"/>
-<text v-if="product!.isDemo" class="demo-note">开发示例 · 不提供真实交易</text>
-</view>
-</view>
-</scroll-view>
-<BottomBar v-if="product"><button v-if="product!.type==='SERVICE'" class="bar-primary" :class="selected?.serviceOfferingId?'':'is-disabled'" @click="serviceBook">选择服务时段</button>
-<button v-if="product!.type==='DIGITAL'" class="bar-primary grow" :disabled="!selected" @click="digitalBuy">查看资料与交付规则</button>
-<button v-if="product!.type==='PHYSICAL'" class="bar-secondary" :class="canBuy&&!busy?'':'is-disabled'" @click="cart()">{{busy?'加入中…':'加入购物车'}}</button>
-<button v-if="product!.type==='PHYSICAL'" class="bar-primary" :class="canBuy?'':'is-disabled'" @click="buy()">确认规格与配送</button>
-</BottomBar>
-</view>
+  <view class="page"
+    ><InkBackdrop />
+    <PageHead title="书院好物" action="share" @action="share" />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+      <view class="content">
+        <ContentState
+          v-if="!product"
+          :loading="!error"
+          :error="error"
+          errorTitle="商品暂时打不开"
+          @retry="load"
+        />
+        <view v-else class="product-detail">
+          <swiper
+            v-if="gallery.length"
+            class="product-gallery"
+            :style="{ height: galleryHeight + 'px' }"
+            @change="galleryIndex = $event.detail.current"
+            :indicator-dots="gallery.length > 1"
+            indicator-color="#C7CCCA"
+            indicator-active-color="#235663"
+          >
+            <swiper-item v-for="(url, index) in gallery" :key="url">
+              <image
+                :src="url"
+                mode="aspectFit"
+                class="product-photo"
+                @load="galleryLoaded(url, $event)"
+                @click="previewPhoto(index)"
+              />
+            </swiper-item>
+          </swiper>
+          <view class="product-summary">
+            <text class="ui-text detail-title">{{ product!.title }}</text>
+            <text class="ui-text intro">{{ product!.subtitle }}</text
+            ><view
+              v-for="promotion in (product!.promotions ?? []).filter(
+                (p) => !selected || p.skuId === selected!.id,
+              )"
+              :key="promotion.id + promotion.skuId"
+              class="product-promotion"
+              ><text class="ui-text item-title">{{ promotion.title }}</text
+              ><text class="ui-text body-copy">{{
+                promotion.kind === 'PRODUCT_FLASH'
+                  ? '活动单价 ¥' + money(promotion.price ?? 0)
+                  : '指定规格满 ¥' +
+                    money(promotion.rules.threshold ?? 0) +
+                    ' 减 ¥' +
+                    money(promotion.rules.reduction ?? 0)
+              }}</text
+              ><text class="ui-text meta"
+                >{{ formatChinaTime(promotion.startsAt) }} 至
+                {{ formatChinaTime(promotion.endsAt) }}（北京）</text
+              ><text class="ui-text footer-note"
+                >活动剩余
+                {{ promotion.remaining }}
+                件</text
+              ></view
+            >
+            <view class="row between product-price">
+              <text class="ui-text price">¥{{ money(selected?.price ?? product!.price) }}</text>
+              <text class="ui-text product-category">{{ product!.category }}</text>
+            </view>
+          </view>
+          <view class="purchase-panel">
+            <view class="row between"
+              ><text class="ui-text purchase-heading">选择规格</text
+              ><text class="ui-text stock-note" v-if="selected && product!.type === 'PHYSICAL'">{{
+                selected!.available > 0 ? '库存 ' + selected!.available + ' 件' : '暂时售罄'
+              }}</text></view
+            >
+            <view v-if="product!.skus?.length" class="sku-options"
+              ><button
+                class="ui-button"
+                v-for="item in product!.skus"
+                :key="item.id"
+                :class="['sku-button', skuId === item.id ? 'sku-selected' : '']"
+                @click="choose(item.id)"
+                ><text :class="['sku-text', skuId === item.id ? 'sku-text-selected' : '']">{{
+                  item.title
+                }}</text></button
+              ></view
+            >
+            <view v-if="product!.type === 'PHYSICAL'" class="row between quantity-row">
+              <text class="ui-text purchase-heading">购买数量</text>
+              <QuantityStepper
+                :value="quantity"
+                :max="Math.min(99, selected?.available ?? 0)"
+                @change="changeQuantity"
+              />
+            </view>
+          </view>
+          <view class="product-information">
+            <view class="detail-tabs">
+              <view
+                v-for="item in ['商品详情', '文化溯源', '售后说明']"
+                :key="item"
+                :class="['detail-tab', tab === item ? 'detail-tab-active' : '']"
+                @click="tab = item"
+              >
+                <text
+                  class="ui-text"
+                  :class="['detail-tab-text', tab === item ? 'detail-tab-selected' : '']"
+                  >{{ item }}</text
+                >
+              </view>
+            </view>
+            <text v-if="tab === '商品详情'" class="ui-text body-copy" :user-select="true">{{
+              product!.description
+            }}</text>
+            <view v-else-if="tab === '文化溯源'"
+              ><text class="ui-text body-copy" :user-select="true">{{
+                product!.culturalOrigin
+              }}</text
+              ><text v-if="!product!.evidence?.length" class="ui-text meta"
+                >以上为商品文化介绍，尚无审核通过的公开证据。</text
+              ><SourceEvidence :items="product!.evidence ?? []"
+            /></view>
+            <text v-else class="ui-text body-copy" :user-select="true">{{
+              product!.refundPolicy ?? '请在确认订单页面核查配送与售后规则。'
+            }}</text>
+            <RelatedContent ref="relatedRef" :resourceId="id" />
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <BottomBar v-if="product"
+      ><button
+        v-if="product!.type === 'SERVICE'"
+        class="ui-button bar-primary"
+        :class="selected?.serviceOfferingId ? '' : 'is-disabled'"
+        @click="serviceBook"
+        >选择服务时段</button
+      >
+      <button
+        v-if="product!.type === 'DIGITAL'"
+        class="ui-button bar-primary grow"
+        :disabled="!selected"
+        @click="digitalBuy"
+        >查看资料与交付规则</button
+      >
+      <button
+        v-if="product!.type === 'PHYSICAL'"
+        class="ui-button bar-secondary product-cart-button"
+        :class="canBuy && !busy ? '' : 'is-disabled'"
+        :disabled="!canBuy || busy"
+        @click="cart()"
+        ><text
+          class="product-cart-label"
+          :class="!canBuy || busy ? 'commerce-label-disabled' : ''"
+          >{{ busy ? '加入中…' : '加入购物车' }}</text
+        ></button
+      >
+      <button
+        v-if="product!.type === 'PHYSICAL'"
+        class="ui-button bar-primary product-buy-button"
+        :class="canBuy ? '' : 'is-disabled'"
+        :disabled="!canBuy"
+        @click="buy()"
+        ><text class="product-buy-label" :class="!canBuy ? 'commerce-label-disabled' : ''"
+          >立即购买</text
+        ></button
+      >
+    </BottomBar>
+  </view>
 </template>
 <script setup lang="ts">
-import {formatChinaTime} from '../../lib/date-time';
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { formatChinaTime } from '../../lib/date-time';
+import QuantityStepper from '../../components/QuantityStepper.uvue';
 import SourceEvidence from '../../components/SourceEvidence.uvue';
 import RelatedContent from '../../components/RelatedContent.uvue';
 import BottomBar from '../../components/BottomBar.uvue';
-import PageHead from '../../components/PageHead.uvue';import ArtImage from '../../components/ArtImage.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import type {Product} from '../../lib/api';import {viewWidth,artwork,openPage,shareContent,showUnavailable} from '../../lib/presentation';import {needLogin} from '../../lib/session';
-const width=viewWidth(),product=ref<Product|null>(null),error=ref(''),quantity=ref(1),tab=ref('商品详情'),skuId=ref(''),busy=ref(false);const selected=computed(()=>product.value?.skus?.find(item=>item.id===skuId.value)??null);const canAdd=computed(()=>!!selected.value&&quantity.value<selected.value.available&&quantity.value<99),canBuy=computed(()=>!!selected.value&&product.value?.type==='PHYSICAL'&&selected.value.available>=quantity.value);function dec(){quantity.value=Math.max(1,quantity.value-1);}function inc(){if(canAdd.value)quantity.value=quantity.value+1;}let id='';async function load(){error.value='';try{product.value=await request<Product>('/catalog/products/'+encodeURIComponent(id));if(!product.value.skus?.some(item=>item.id===skuId.value))skuId.value=product.value.skus?.[0]?.id??'';}catch(e){product.value=null;error.value=(e as Error).message;}}function choose(value:string){skuId.value=value;quantity.value=1;}
-function copySource(url:string){uni.setClipboardData({data:url});}
-async function share(){
-  if(!product.value)return;
-  try{
-    const result=await request<{url:string,shortUrl:string}>('/share/links',{
-      method:'POST',
-      data:{
-        resourceType:'PRODUCT',
-        resourceId:id,
-        title:product.value.title,
-        description:product.value.subtitle,
-        coverUrl:product.value.cover
-      }
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import type { Product } from '../../lib/api';
+import { viewWidth, openPage, showUnavailable } from '../../lib/presentation';
+import { needLogin } from '../../lib/session';
+const width = ref(viewWidth()),
+  product = ref<Product | null>(null),
+  error = ref(''),
+  quantity = ref(1),
+  tab = ref('商品详情'),
+  skuId = ref(''),
+  busy = ref(false);
+const selected = computed(
+  () => product.value?.skus?.find((item) => item.id === skuId.value) ?? null,
+);
+const canAdd = computed(
+    () => !!selected.value && quantity.value < selected.value.available && quantity.value < 99,
+  ),
+  canBuy = computed(
+    () =>
+      !!selected.value &&
+      product.value?.type === 'PHYSICAL' &&
+      selected.value.available >= quantity.value,
+  );
+function changeQuantity(delta: number) {
+  if (delta < 0) quantity.value = Math.max(1, quantity.value - 1);
+  else if (canAdd.value) quantity.value++;
+}
+let id = '';
+const gallery = computed(() =>
+  [...new Set([product.value?.cover ?? '', ...(product.value?.images ?? [])])].filter(Boolean),
+);
+const galleryIndex = ref(0);
+const galleryRatios = ref<Record<string, number>>({});
+const galleryHeight = computed(
+  () => width.value * (galleryRatios.value[gallery.value[galleryIndex.value]] ?? 9 / 16),
+);
+function galleryLoaded(url: string, event: { detail: { width: number; height: number } }) {
+  if (event.detail.width > 0 && event.detail.height > 0)
+    galleryRatios.value[url] = event.detail.height / event.detail.width;
+}
+onResize((event) => {
+  width.value = viewWidth(event.size.windowWidth);
+});
+function previewPhoto(index: number) {
+  uni.previewImage({ urls: gallery.value, current: index });
+}
+async function load() {
+  error.value = '';
+  try {
+    product.value = await request<Product>('/catalog/products/' + encodeURIComponent(id));
+    if (!product.value.skus?.some((item) => item.id === skuId.value))
+      skuId.value = product.value.skus?.[0]?.id ?? '';
+  } catch (e) {
+    product.value = null;
+    error.value = (e as Error).message;
+  }
+}
+function choose(value: string) {
+  skuId.value = value;
+  quantity.value = 1;
+}
+async function share() {
+  if (!product.value) return;
+  try {
+    const result = await request<{ url: string; shortUrl: string }>('/share/links', {
+      method: 'POST',
+      data: {
+        resourceType: 'PRODUCT',
+        resourceId: id,
+        title: product.value.title,
+        description: product.value.subtitle,
+        coverUrl: product.value.cover,
+      },
     });
     uni.setClipboardData({
-      data:result.shortUrl,
-      success:()=>{
-        uni.showToast({title:'分享链接已复制',icon:'success'});
-      }
+      data: result.shortUrl,
+      success: () => {
+        uni.showToast({ title: '分享链接已复制', icon: 'success' });
+      },
     });
-  }catch(e){
-    uni.showToast({title:'生成分享链接失败',icon:'none'});
+  } catch (e) {
+    uni.showToast({ title: '生成分享链接失败', icon: 'none' });
   }
-}async function cart(){const sku=selected.value;if(busy.value||needLogin()||!sku||!canBuy.value){if(sku&&!canBuy.value)uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}busy.value=true;try{await request('/shopping/cart/'+sku.id,{method:'PUT',data:{quantity:quantity.value}});uni.showToast({title:'购物车数量已更新',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});await load();}finally{busy.value=false;}}function digitalBuy(){if(needLogin()||!selected.value)return;openPage('shop/digital-order?skuId='+selected.value.id);}function serviceBook(){if(!selected.value?.serviceOfferingId)return;openPage('booking/confirm?offeringId='+selected.value.serviceOfferingId+'&skuId='+selected.value.id);}function buy(){if(needLogin())return;if(!selected.value){showUnavailable('商品尚未开放','书院配置商品规格后，可以查看下单信息。');return;}if(!canBuy.value){uni.showToast({title:'该规格暂时售罄',icon:'none'});return;}openPage('order/confirm?type=product&id='+id+'&skuId='+skuId.value+'&quantity='+quantity.value);}onLoad(options=>{id=options?.id??'';});onShow(()=>{if(id)load();});
+}
+async function cart() {
+  const sku = selected.value;
+  if (busy.value || needLogin() || !sku || !canBuy.value) {
+    if (sku && !canBuy.value) uni.showToast({ title: '该规格暂时售罄', icon: 'none' });
+    return;
+  }
+  busy.value = true;
+  try {
+    await request('/shopping/cart/' + sku.id, {
+      method: 'PUT',
+      data: { quantity: quantity.value },
+    });
+    uni.showToast({ title: '购物车数量已更新', icon: 'none' });
+  } catch (e) {
+    uni.showToast({ title: (e as Error).message, icon: 'none' });
+    await load();
+  } finally {
+    busy.value = false;
+  }
+}
+function digitalBuy() {
+  if (needLogin() || !selected.value) return;
+  openPage('shop/digital-order?skuId=' + selected.value.id);
+}
+function serviceBook() {
+  if (!selected.value?.serviceOfferingId) return;
+  openPage(
+    'booking/confirm?offeringId=' +
+      selected.value.serviceOfferingId +
+      '&skuId=' +
+      selected.value.id,
+  );
+}
+function buy() {
+  if (needLogin()) return;
+  if (!selected.value) {
+    showUnavailable('商品尚未开放', '书院配置商品规格后，可以查看下单信息。');
+    return;
+  }
+  if (!canBuy.value) {
+    uni.showToast({ title: '该规格暂时售罄', icon: 'none' });
+    return;
+  }
+  openPage(
+    'order/confirm?type=product&id=' + id + '&skuId=' + skuId.value + '&quantity=' + quantity.value,
+  );
+}
+onLoad((options) => {
+  id = options?.id ?? '';
+});
+onShow(() => {
+  if (id) load();
+});
 
-const relatedRef=ref<InstanceType<typeof RelatedContent>|null>(null);
-onShow(()=>{relatedRef.value?.refresh();});
+const relatedRef = ref<InstanceType<typeof RelatedContent> | null>(null);
+onShow(() => {
+  relatedRef.value?.refresh();
+});
 </script>
-<style>@import '../../styles/app.css';.product-price{margin:18px 0 10px;}.product-label{margin-left:0;}.stepper{flex-direction:row;align-items:center;border-style:solid;border-width:1px;border-color:#D3C9B8;border-radius:23px;overflow:hidden;}.stepper-button{width:44px;height:44px;min-height:44px;flex-shrink:0;padding:0;margin:0;background-color:transparent;border-style:solid;border-width:0;color:#235663;font-size:22px;line-height:44px;text-align:center;}.stepper-value{min-width:34px;text-align:center;font-size:14px;color:#182B31;line-height:20px;}.stock-note{font-family:AcademySans;font-size:12px;line-height:20px;color:#6A7578;margin-top:8px;}.stock-out{color:#B4533F;}.sku-options{flex-direction:row;flex-wrap:wrap;margin-top:10px;}.sku-button{font-size:14px;line-height:24px;color:#344C54;background-color:#FCF9F2;min-height:44px;border-radius:6px;border-style:solid;border-width:1px;border-color:#D3C9B8;padding:10px 16px;margin:0 8px 8px 0;}.sku-selected{color:#235663;background-color:#E7EEE9;border-color:#235663;font-weight:600;}.product-promotion{padding:16px;margin-top:16px;background-color:#EFE9DC;border-radius:8px;}</style>
+<style>
+@import '../../styles/app.css';
+.product-gallery {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: transparent;
+}
+.product-photo {
+  width: 100%;
+  height: 100%;
+}
+.content {
+  padding-bottom: 24px;
+}
+.product-summary {
+  padding: 16px 0 18px;
+}
+.detail-title {
+  font-size: 23px;
+  line-height: 32px;
+  margin-top: 0;
+  letter-spacing: 0;
+}
+.intro {
+  font-size: 13px;
+  line-height: 22px;
+  margin-top: 8px;
+  color: #6a7578;
+}
+.product-price {
+  margin: 14px 0 0;
+  align-items: center;
+}
+.price {
+  font-family: sans-serif;
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: 600;
+  color: #b4533f;
+}
+.product-category {
+  font-size: 12px;
+  line-height: 20px;
+  color: #6a7578;
+  background-color: #efe9dc;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.purchase-panel {
+  padding: 14px;
+  background-color: #fcf9f2;
+  border-radius: 14px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5ded1;
+}
+.purchase-heading {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 600;
+  color: #182b31;
+}
+.stock-note {
+  font-size: 12px;
+  line-height: 20px;
+  color: #6a7578;
+}
+.sku-options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.sku-button {
+  min-height: 40px;
+  padding: 8px 14px;
+  margin: 0 8px 8px 0;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5ded1;
+  background-color: #f5f2eb;
+  align-items: center;
+  justify-content: center;
+}
+.sku-selected {
+  background-color: #e6ede9;
+  border-color: #235663;
+}
+.sku-text {
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 22px;
+  color: #344c54;
+}
+.sku-text-selected {
+  color: #235663;
+  font-weight: 600;
+}
+.quantity-row {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: #eae4d9;
+  min-height: 52px;
+}
+.product-information {
+  margin-top: 16px;
+  padding: 0 0 12px;
+}
+.detail-tabs {
+  margin-top: 0;
+  border-top-width: 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.detail-tab-text {
+  font-size: 14px;
+  line-height: 22px;
+  color: #6a7578;
+}
+.detail-tab-selected {
+  color: #235663;
+  font-weight: 600;
+}
+.body-copy {
+  font-size: 14px;
+  line-height: 25px;
+}
+.product-promotion {
+  padding: 12px;
+  margin-top: 12px;
+  background-color: #f1e8d8;
+  border-radius: 10px;
+}
+.product-cart-button,
+.product-buy-button {
+  height: 48px;
+  min-height: 48px;
+  padding: 0 8px;
+  align-items: center;
+  justify-content: center;
+}
+.product-cart-button {
+  flex: 1;
+  margin-right: 10px;
+  background-color: #e6ede9;
+  border-width: 0;
+}
+.product-cart-label,
+.product-buy-label {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 48px;
+  text-align: center;
+  font-weight: 600;
+}
+.product-cart-label {
+  color: #235663;
+}
+.product-buy-label {
+  color: #fcf9f2;
+}
+.commerce-label-disabled {
+  color: #8a887f;
+}
+</style>

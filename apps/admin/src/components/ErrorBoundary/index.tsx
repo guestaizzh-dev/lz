@@ -12,9 +12,7 @@ function isChunkLoadError(error: Error): boolean {
 
 function getSubTitleId(isChunkError: boolean, isOffline: boolean): string {
   if (!isChunkError) return 'app.error.render.description';
-  return isOffline
-    ? 'app.error.chunk.description.offline'
-    : 'app.error.chunk.description.online';
+  return isOffline ? 'app.error.chunk.description.offline' : 'app.error.chunk.description.online';
 }
 
 function renderErrorFallback(
@@ -33,9 +31,7 @@ function renderErrorFallback(
         status="error"
         title={intl.formatMessage({
           id: isChunkError ? 'app.error.chunk.title' : 'app.error.render.title',
-          defaultMessage: isChunkError
-            ? 'Failed to load page'
-            : 'Something went wrong',
+          defaultMessage: isChunkError ? 'Failed to load page' : 'Something went wrong',
         })}
         subTitle={intl.formatMessage({
           id: getSubTitleId(isChunkError, isOffline),
@@ -55,11 +51,7 @@ function renderErrorFallback(
               })}
             </Button>
           ),
-          <Button
-            type={isChunkError ? 'default' : 'primary'}
-            key="reload"
-            onClick={onReload}
-          >
+          <Button type={isChunkError ? 'default' : 'primary'} key="reload" onClick={onReload}>
             {intl.formatMessage({
               id: 'app.error.reload',
               defaultMessage: 'Reload Page',
@@ -111,11 +103,7 @@ export default class ErrorBoundary extends React.Component<
 
   handleOnline = () => {
     this.setState({ isOnline: true });
-    if (
-      this.state.hasError &&
-      this.state.error &&
-      isChunkLoadError(this.state.error)
-    ) {
+    if (this.state.hasError && this.state.error && isChunkLoadError(this.state.error)) {
       window.location.reload();
     }
   };
@@ -145,11 +133,7 @@ export default class ErrorBoundary extends React.Component<
 
   render() {
     if (!this.state.hasError || !this.state.error) {
-      return (
-        <React.Fragment key={this.state.retryCount}>
-          {this.props.children}
-        </React.Fragment>
-      );
+      return <React.Fragment key={this.state.retryCount}>{this.props.children}</React.Fragment>;
     }
     return renderErrorFallback(
       this.state.error,

@@ -6,7 +6,7 @@
   if(embedded)document.body.classList.add('embedded');
   const el=id=>document.getElementById(id),show=(id,visible)=>{el(id).hidden=!visible;};
   let engine=null,config=null,local=null,remote=null,timer=null,renewing=false,playing=false,closed=false,connecting=false,mic=true,camera=true,publishing=false,generation=0,fitting='contain',roomState='CONNECTING',startingPlayback=false,startingPublish=false;
-  const guests=new Map(),guestViews=new Map();let remoteView=null,publishGuard=null,previewing=false,retryTimer=null,retries=0,lastVerified=0,previewError='',audioEnabled=false;
+  const guests=new Map(),guestViews=new Map();let remoteView=null,publishGuard=null,previewing=false,retryTimer=null,retries=0,lastVerified=0,previewError='',audioEnabled=false,decodeBlocked=false,noVideoSamples=0;
   const terminalStatus=code=>[400,401,403,404,409].includes(code);
   const safely=action=>{try{action();}catch{}};
   function retryLater(){
@@ -14,7 +14,9 @@
     retryTimer=setTimeout(()=>{retryTimer=null;if(!closed)void connect();},Math.min(15000,1000*2**retries++));
   }
   let devices={cameras:[],microphones:[]},cameraId='',microphoneId='',switching=false;
-  const postState=()=>{if(!embedded)return;try{window.parent.postMessage({type:'studio-state',live:publishing,ready:!!local,starting:startingPublish,soundRequired:!el('sound').hidden,mic,camera,fitting,role:config?.role,playing,state:roomState,status:el('status').textContent,devices,cameraId,microphoneId,switching},'*');}catch{}};
+  const postState=()=>{if(!embedded)return;const video=el('video').querySelector('video');try{window.parent.postMessage({videoWidth:video?.videoWidth||0,videoHeight:video?.videoHeight||0,type:'studio-state',live:publishing,ready:!!local,starting:startingPublish,soundRequired:!el('sound').hidden,mic,camera,fitting,role:config?.role,playing,state:roomState,status:el('status').textContent,devices,cameraId,microphoneId,switching},'*');}catch{}};
+  el('video').addEventListener('loadedmetadata',postState,true);
+  el('video').addEventListener('resize',postState,true);
   async function deviceList(){try{const rows=await navigator.mediaDevices.enumerateDevices();devices={cameras:rows.filter(d=>d.kind==='videoinput').map((d,i)=>({id:d.deviceId,label:d.label||'摄像头 '+(i+1)})),microphones:rows.filter(d=>d.kind==='audioinput').map((d,i)=>({id:d.deviceId,label:d.label||'麦克风 '+(i+1)}))};postState();}catch{hint('暂时无法读取设备列表，请检查浏览器设备权限');}}
   async function switchDevice(kind,id){if(switching||!engine||!local||!id)return;switching=true;postState();const active=engine,version=generation;
     try{const result=await(kind==='camera'?active.useVideoDevice(local,id):active.useAudioDevice(local,id));if(version!==generation)return;if(result?.errorCode)throw new Error('Device unavailable');if(kind==='camera')cameraId=id;else microphoneId=id;status('设备已切换，请确认画面和声音');}
@@ -29,7 +31,7 @@
     const data=await response.json();if(!response.ok){const error=new Error(Array.isArray(data.message)?data.message.join('；'):data.message||'直播暂不可用');error.status=response.status;throw error;}return data;}finally{clearTimeout(timeout);}
   }
   async function teardown(){
-    generation++;clearTimeout(publishGuard);publishGuard=null;clearTimeout(retryTimer);retryTimer=null;clearInterval(timer);timer=null;const old=engine;engine=null;playing=false;publishing=false;startingPlayback=false;startingPublish=false;previewing=false;roomState='CONNECTING';
+    generation++;clearTimeout(publishGuard);publishGuard=null;clearTimeout(retryTimer);retryTimer=null;clearInterval(timer);timer=null;const old=engine;engine=null;playing=false;publishing=false;startingPlayback=false;startingPublish=false;previewing=false;decodeBlocked=false;noVideoSamples=0;roomState='CONNECTING';
     for(const [id,container] of guests){try{old?.stopPlayingStream(id);}catch{}container.remove();}guests.clear();guestViews.clear();remoteView=null;
     if(old){if(local){safely(()=>old.stopPublishingStream(config.streamId));safely(()=>old.destroyStream(local));local=null;}if(remote){safely(()=>old.stopPlayingStream(config.streamId));remote=null;}safely(()=>old.logoutRoom(config.roomId));safely(()=>old.destroyEngine());}
     el('video').replaceChildren();show('empty',true);for(const id of ['start','mic','camera','stop','sound'])show(id,false);postState();
@@ -90,7 +92,13 @@
           else{active.stopPlayingStream(config.streamId);playing=false;remote=null;show('empty',true);status('主讲暂时离开，正在等待画面恢复','CONNECTED');}
         }
       });
-      active.on('playerStateUpdate',event=>{if(version!==generation)return;if(guests.has(event.streamID)){if(event.state==='NO_PLAY'&&event.errorCode){guests.get(event.streamID).remove();guests.delete(event.streamID);guestViews.delete(event.streamID);hint('学员连麦中断，正在等待恢复');}return;}if(config.role==='HOST'||event.streamID&&event.streamID!==config.streamId)return;if(event.state==='PLAYING'){playing=true;retries=0;clearTimeout(retryTimer);retryTimer=null;status('正在直播','PLAYING');show('empty',false);show('retry',false);}else if(event.state==='NO_PLAY'){playing=false;show('empty',true);status('画面中断，正在尝试恢复','ERROR');show('retry',true);retryLater();}});
+      active.on('playerStateUpdate',event=>{if(version!==generation)return;if(guests.has(event.streamID)){if(event.state==='NO_PLAY'&&event.errorCode){guests.get(event.streamID).remove();guests.delete(event.streamID);guestViews.delete(event.streamID);hint('学员连麦中断，正在等待恢复');}return;}if(config.role==='HOST'||event.streamID&&event.streamID!==config.streamId)return;if(event.errorCode===1003081){decodeBlocked=true;playing=false;status('视频编码不兼容：检测到 B 帧','ERROR');hint('请在 OBS 使用 H.264，将最大 B 帧设为 0；x264 可填写 bframes=0，然后停止并重新推流');show('empty',true);show('retry',true);return;}if(event.state==='PLAYING'&&!decodeBlocked){playing=true;retries=0;clearTimeout(retryTimer);retryTimer=null;status('正在直播','PLAYING');show('empty',false);show('retry',false);}else if(event.state==='NO_PLAY'){playing=false;show('empty',true);status('画面中断，正在尝试恢复','ERROR');show('retry',true);retryLater();}});
+      active.on('playQualityUpdate',(streamID,quality)=>{
+        if(version!==generation||streamID!==config.streamId||config.role==='HOST')return;
+        const video=quality?.video;
+        if(video?.videoFramesDecoded>0&&video.frameWidth>0&&video.frameHeight>0){noVideoSamples=0;decodeBlocked=false;playing=true;retries=0;clearTimeout(retryTimer);retryTimer=null;status('正在直播','PLAYING');show('empty',false);show('retry',false);}
+        else if(video&&video.videoFramesDecoded===0&&++noVideoSamples>=3&&!decodeBlocked){playing=false;status('已连接，但尚未收到可解码的视频画面','ERROR');hint('请检查 OBS 视频编码与网络；推荐 H.264、B 帧 0、关键帧 2 秒，修改后需重新推流');show('empty',true);show('retry',true);}
+      });
       active.on('publisherStateUpdate',event=>{if(version!==generation)return;if(event.state==='PUBLISHING'){publishing=true;clearTimeout(publishGuard);publishGuard=null;startingPublish=false;status('正在直播','PUBLISHING');hint('已开始推流 · 正在等待服务端确认开播');}else if(event.state==='NO_PUBLISH'&&event.errorCode){publishing=false;clearTimeout(publishGuard);publishGuard=null;startingPublish=false;if(local){active.destroyStream(local);local=null;}for(const id of ['mic','camera','stop'])show(id,false);status('推流中断，请重新开播','ERROR');show('empty',true);show('start',true);postState();}});
       const login=Promise.resolve(active.loginRoom(config.roomId,config.token,{userID:config.userId,userName:config.role==='HOST'?'书院主讲':'研习者'},{userUpdate:false})).then(accepted=>accepted===false?false:loggedIn);
       let loginTimeout;

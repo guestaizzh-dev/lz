@@ -1,6 +1,5 @@
 export default {
-  'app.network.offline':
-    'Anda sedang offline. Beberapa fitur mungkin tidak tersedia.',
+  'app.network.offline': 'Anda sedang offline. Beberapa fitur mungkin tidak tersedia.',
   'app.error.chunk.title': 'Gagal memuat halaman',
   'app.error.chunk.description.offline':
     'Koneksi jaringan terputus. Periksa koneksi Anda dan muat ulang halaman.',
@@ -12,6 +11,5 @@ export default {
   'app.error.retry': 'Coba Lagi',
   'app.error.reload': 'Muat Ulang Halaman',
   'app.error.home': 'Kembali ke Beranda',
-  'app.request.offline':
-    'Jaringan tidak tersedia. Periksa koneksi Anda dan coba lagi.',
+  'app.request.offline': 'Jaringan tidak tersedia. Periksa koneksi Anda dan coba lagi.',
 };

@@ -5,21 +5,32 @@ import type { ProLayoutProps } from '@ant-design/pro-components';
  */
 const Settings: ProLayoutProps & {
   logo?: string;
+  locale?: boolean;
 } = {
   navTheme: 'light',
   colorPrimary: '#235663',
   layout: 'side',
-  siderWidth: 236,
+  siderWidth: 232,
   contentWidth: 'Fluid',
-  fixedHeader: false,
+  fixedHeader: true,
   fixSiderbar: true,
   colorWeak: false,
+  // ProLayout types locale as undefined; the layout reads this flag to hide the language menu.
+  locale: false as unknown as undefined,
   title: '老子道学书院',
   logo: '/logo.svg',
   iconfontUrl: '',
   token: {
-    // 参见ts声明，demo 见文档，通过token 修改样式
-    //https://procomponents.ant.design/components/layout#%E9%80%9A%E8%BF%87-token-%E4%BF%AE%E6%94%B9%E6%A0%B7%E5%BC%8F
+    header: { colorBgHeader: '#FBF8F1', heightLayoutHeader: 56 },
+    sider: {
+      colorMenuBackground: '#FBF8F1',
+      colorTextMenuSelected: '#235663',
+      colorBgMenuItemSelected: '#EFE9DA',
+    },
+    pageContainer: {
+      paddingInlinePageContainerContent: 24,
+      paddingBlockPageContainerContent: 20,
+    },
   },
 };
 

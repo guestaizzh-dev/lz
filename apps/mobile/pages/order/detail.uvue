@@ -1,25 +1,276 @@
 <template>
-<view class="page"><PageHead title="订单详情"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content">
-<ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load"/>
-<template v-if="order"><view class="order-heading"><text class="detail-title">{{order!.status==='PENDING'?'待处理':'已关闭'}}</text><text class="meta">测试预占订单 · 未收取费用</text><text v-if="order!.status==='PENDING'" class="body-copy">预占截至 {{date(order!.expiresAt)}}，逾期自动释放库存。</text><text v-else class="body-copy">{{order!.closeReason||'订单已关闭'}}</text></view>
-<view class="order-section"><text class="section-heading">商品信息</text><view v-for="item in order!.items" :key="item.skuId" class="order-item"><text class="item-title" :user-select="true">{{item.title}}</text><view class="row between order-item-info"><text class="meta">{{item.skuTitle}} × {{item.quantity}}</text><text class="price">¥{{money(item.subtotal)}}</text></view></view></view>
-<view class="order-section"><text class="section-heading">收货信息</text><text v-if="order!.address.redacted" class="meta">收货信息已清除</text><template v-else><text class="body-copy" :user-select="true">{{order!.address.recipient}}　{{order!.address.phone}}</text><text class="body-copy" :user-select="true">{{order!.address.province}}{{order!.address.city}}{{order!.address.district}} {{order!.address.detail}}</text></template></view>
-<view class="order-section"><view class="row between"><text class="body-copy">商品金额</text><text class="body-copy">¥{{money(order!.subtotal)}}</text></view><view class="row between"><text class="body-copy">配送费</text><text class="body-copy">¥{{money(order!.shipping)}}</text></view><view class="row between"><text class="item-title">合计</text><text class="price">¥{{money(order!.total)}}</text></view></view>
-<view class="order-section"><text class="meta" :user-select="true">订单编号 {{order!.id}}</text><text class="meta">创建时间 {{date(order!.createdAt)}}</text><button class="secondary-button" @click="copy">复制订单编号</button></view>
-</template></view></scroll-view><BottomBar v-if="order?.status==='PENDING'"><button class="secondary-button grow" :disabled="cancelling" @click="cancel">{{cancelling?'取消中…':'取消订单'}}</button></BottomBar></view>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="订单详情" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <ContentState v-if="loading" :loading="true" />
+        <ContentState
+          v-else-if="error"
+          :error="error"
+          :error-title="
+            errorTone(error) === 'net'
+              ? '网络连接中断'
+              : errorTone(error) === 'param'
+                ? '订单链接不完整'
+                : errorTone(error) === 'gone'
+                  ? '订单不存在'
+                  : '订单信息需要重新确认'
+          "
+          :retryable="errorTone(error) === 'net'"
+          :action-label="errorTone(error) === 'net' ? '' : '查看商品订单'"
+          @retry="load"
+          @action="openPage('shop/orders')"
+        />
+        <template v-if="order">
+          <view class="order-heading"
+            ><text class="ui-text eyebrow">商品订单</text
+            ><text class="ui-text order-status">{{
+              order!.status === 'PENDING' ? '待处理' : '已关闭'
+            }}</text
+            ><text class="ui-text meta">库存预占 · 未收取费用</text
+            ><text v-if="order!.status === 'PENDING'" class="ui-text order-copy"
+              >预占截至 {{ date(order!.expiresAt) }}，逾期自动释放库存。</text
+            ><text v-else class="ui-text order-copy">{{
+              order!.closeReason || '订单已关闭'
+            }}</text></view
+          >
+          <view class="order-card"
+            ><text class="ui-text section-heading">商品信息</text
+            ><view v-for="item in order!.items" :key="item.skuId" class="order-item"
+              ><text class="ui-text item-title" :user-select="true">{{ item.title }}</text
+              ><view class="sum-row order-item-row"
+                ><text class="ui-text sum-label">{{ item.skuTitle }} × {{ item.quantity }}</text
+                ><text class="ui-text sum-value">¥{{ money(item.subtotal) }}</text></view
+              ></view
+            ></view
+          >
+          <view class="order-card"
+            ><text class="ui-text section-heading">收货信息</text
+            ><text v-if="order!.address.redacted" class="ui-text meta">收货信息已清除</text
+            ><template v-else
+              ><text class="ui-text order-copy" :user-select="true"
+                >{{ order!.address.recipient }}　{{ order!.address.phone }}</text
+              ><text class="ui-text meta order-address" :user-select="true"
+                >{{ order!.address.province }}{{ order!.address.city }}{{ order!.address.district }}
+                {{ order!.address.detail }}</text
+              ></template
+            ></view
+          >
+          <view class="order-card"
+            ><text class="ui-text section-heading">费用</text
+            ><view class="sum-row"
+              ><text class="ui-text sum-label">商品金额</text
+              ><text class="ui-text sum-value">¥{{ money(order!.subtotal) }}</text></view
+            ><view class="sum-row"
+              ><text class="ui-text sum-label">配送费</text
+              ><text class="ui-text sum-value">¥{{ money(order!.shipping) }}</text></view
+            ><view class="sum-row sum-row-last"
+              ><text class="ui-text sum-label-total">合计</text
+              ><text class="ui-text sum-value-total">¥{{ money(order!.total) }}</text></view
+            ></view
+          >
+          <view class="order-card"
+            ><text class="ui-text section-heading">订单信息</text
+            ><text class="ui-text meta" :user-select="true">订单编号 {{ order!.id }}</text
+            ><text class="ui-text meta">创建时间 {{ date(order!.createdAt) }}</text
+            ><button class="ui-button secondary-button" @click="copy">复制订单编号</button></view
+          >
+        </template></view
+      ></scroll-view
+    ><BottomBar v-if="order?.status === 'PENDING'"
+      ><button
+        class="ui-button bar-secondary grow"
+        :class="cancelling ? 'is-disabled' : ''"
+        :disabled="cancelling"
+        @click="cancel"
+        >{{ cancelling ? '取消中…' : '取消订单' }}</button
+      ></BottomBar
+    ></view
+  >
 </template>
 <script setup lang="ts">
-import {formatChinaTime} from '../../lib/date-time';
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import BottomBar from '../../components/BottomBar.uvue';
-import {request,money} from '../../lib/api';import {currentUser,needLogin} from '../../lib/session';
-type OrderAddress={recipient?:string;phone?:string;province?:string;city?:string;district?:string;detail?:string;redacted?:boolean};
-type OrderLine={skuId:string;title:string;skuTitle:string;quantity:number;subtotal:number};
-type Order={id:string;status:string;createdAt:string;expiresAt:string;closeReason:string|null;subtotal:number;shipping:number;total:number;address:OrderAddress;items:OrderLine[]};
-const order=ref<Order|null>(null),loading=ref(false),error=ref(''),cancelling=ref(false);let id='',owner='',generation=0;
-const date=(value:string)=>formatChinaTime(value);
-async function load(){const turn=++generation;if(owner!==currentUser.value?.id){order.value=null;owner=currentUser.value?.id??'';}if(needLogin())return;if(!id){error.value='订单地址无效';return;}loading.value=true;error.value='';try{const row=await request<Order>('/orders/'+id);if(turn===generation&&owner===currentUser.value?.id)order.value=row;}catch(e){if(turn===generation)error.value=(e as Error).message;}finally{if(turn===generation)loading.value=false;}}
-function copy(){if(order.value)uni.setClipboardData({data:order.value.id});}
-function cancel(){if(cancelling.value||!order.value)return;uni.showModal({title:'取消这笔订单？',content:'取消后将释放预占库存，本次没有扣款。',confirmText:'取消订单',success:async result=>{if(!result.confirm||cancelling.value)return;cancelling.value=true;try{order.value=await request<Order>('/orders/'+id+'/cancel',{method:'POST'});uni.showToast({title:'订单已取消',icon:'none'});}catch(e){uni.showToast({title:(e as Error).message,icon:'none'});}finally{cancelling.value=false;}}});}
-onLoad(options=>{id=options?.id??'';});onShow(load);
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import { formatChinaTime } from '../../lib/date-time';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import BottomBar from '../../components/BottomBar.uvue';
+import { openPage } from '../../lib/presentation';
+import { request, money } from '../../lib/api';
+import { currentUser, needLogin } from '../../lib/session';
+type OrderAddress = {
+  recipient?: string;
+  phone?: string;
+  province?: string;
+  city?: string;
+  district?: string;
+  detail?: string;
+  redacted?: boolean;
+};
+type OrderLine = {
+  skuId: string;
+  title: string;
+  skuTitle: string;
+  quantity: number;
+  subtotal: number;
+};
+type Order = {
+  id: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+  closeReason: string | null;
+  subtotal: number;
+  shipping: number;
+  total: number;
+  address: OrderAddress;
+  items: OrderLine[];
+};
+const order = ref<Order | null>(null),
+  loading = ref(false),
+  error = ref(''),
+  cancelling = ref(false);
+let id = '',
+  owner = '',
+  generation = 0;
+const date = (value: string) => formatChinaTime(value);
+// 只做展示分档，不参与请求、金额与权限判断。
+const errorTone = (text: string) =>
+  /网络|中断|超时|繁忙|连接/.test(text)
+    ? 'net'
+    : /地址|参数|链接/.test(text)
+      ? 'param'
+      : /不存在|无法打开|已删除|已失效|无效/.test(text)
+        ? 'gone'
+        : 'bad';
+async function load() {
+  const turn = ++generation;
+  if (owner !== currentUser.value?.id) {
+    order.value = null;
+    owner = currentUser.value?.id ?? '';
+  }
+  if (needLogin()) return;
+  if (!id) {
+    error.value = '订单地址无效';
+    return;
+  }
+  loading.value = true;
+  error.value = '';
+  try {
+    const row = await request<Order>('/orders/' + id);
+    if (turn === generation && owner === currentUser.value?.id) order.value = row;
+  } catch (e) {
+    if (turn === generation) error.value = (e as Error).message;
+  } finally {
+    if (turn === generation) loading.value = false;
+  }
+}
+function copy() {
+  if (order.value) uni.setClipboardData({ data: order.value.id });
+}
+function cancel() {
+  if (cancelling.value || !order.value) return;
+  uni.showModal({
+    title: '取消这笔订单？',
+    content: '取消后将释放预占库存，本次没有扣款。',
+    confirmText: '取消订单',
+    success: async (result) => {
+      if (!result.confirm || cancelling.value) return;
+      cancelling.value = true;
+      try {
+        order.value = await request<Order>('/orders/' + id + '/cancel', { method: 'POST' });
+        uni.showToast({ title: '订单已取消', icon: 'none' });
+      } catch (e) {
+        uni.showToast({ title: (e as Error).message, icon: 'none' });
+      } finally {
+        cancelling.value = false;
+      }
+    },
+  });
+}
+onLoad((options) => {
+  id = options?.id ?? '';
+});
+onShow(load);
 </script>
-<style>@import '../../styles/app.css';.order-heading{padding:12px 0 20px;}.order-section{padding:18px 0;border-top-width:1px;border-top-style:solid;border-top-color:#E3DCCF;}.order-item{padding:14px 0;}.order-item-info{margin-top:8px;}</style>
+<style>
+@import '../../styles/app.css';
+.order-heading {
+  padding: 16px 0 4px;
+}
+.order-status {
+  font-family: AcademySerif;
+  font-size: 24px;
+  line-height: 34px;
+  color: #182b31;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.order-copy {
+  font-size: 13px;
+  line-height: 22px;
+  color: #344c54;
+  margin-top: 8px;
+}
+.order-address {
+  margin-top: 6px;
+}
+.order-card {
+  padding: 16px;
+  background-color: #fcf9f2;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #cfc5b1;
+  border-radius: 14px;
+  margin-top: 16px;
+}
+.order-item {
+  padding: 14px 0 0;
+}
+.order-item-row {
+  padding: 12px 0 0;
+  border-bottom-width: 0;
+}
+.sum-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e0d8c8;
+}
+.sum-row-last {
+  border-bottom-width: 0;
+  padding-bottom: 0;
+}
+.sum-label {
+  font-size: 14px;
+  line-height: 24px;
+  color: #344c54;
+}
+.sum-value {
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  text-align: right;
+  margin-left: 12px;
+  width: 62%;
+}
+.sum-label-total {
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  font-weight: 600;
+}
+.sum-value-total {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #b4533f;
+  font-weight: 600;
+  text-align: right;
+  margin-left: 12px;
+}
+</style>

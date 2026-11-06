@@ -1,3 +1,27 @@
+2026-11-05发布：直播与录制结束后，API及后台已上线 `20261105-images-0338`，第87个迁移已应用，21张业务表记录数一致。Android **0.3.38/code43** 最终0338-r2同证书验签通过，原下载页已更新，release revision19。直播默认等比保留完整画面，商品及文章支持完整图片和批量上传，首页“继续探索”更新为图文推荐。公网33项API、整包哈希及Range206校验通过。服务器清理后可用6.8GB。真机/iOS/真实资金未验收，商用38/131。详[123](123-live-full-frame.md)/[124](124-image-gallery-and-recommendations.md)。
+
+2026-11-03最新发布：直播沿用自动旋转，去横屏icon/恢复互动按钮，真实解码尺寸等比减黑边、透明滚动评论与精简底栏；课程/商城视频倍速在底部播放/进度/全屏同排，删除无效登录/进度说明。6逻辑、17直播/7最终倍速页面与静态检查、Android桥接通过。Android **0.3.37/code42** 最终r3云任务 `a01b9e90-d7fa-11f1-af28-4530d228c4a8` 成功，535源文件仅两项既有授权推送覆盖，79页蒸汽编译无本轮ERROR/WARN。APK 51,850,489字节，SHA256 `685f671adb11fe0ea33f21eef0754f0ab4ba894d16421094b8f0d29a7ca9a8f1`，官方apksig v1/v2及同原证书通过，包内最终底栏/直播资源与r3编译产物逐项相同。原下载页已原子更新，release revision18；公网整包哈希/Range206/二维码/健康通过。API直播尺寸补丁 **20261103-live-ui-0337** 已健康上线，86迁移不变、无新迁移，后台0336+121提示补包保留；29项公网/管理只读检查通过。备份academy-20261104T024446Z-LAnnDn.dump及媒体SHA256验证，回退rollback-20261103-live-ui-0337.txt。服务端实际UTC证据为11-04，保留原时间；本任务按用户上下文11-03命名。早期取消0337与有样式问题r2均未发布，仅取最终r3。未进行最终手机/iOS/真实资金验收，商用38/131保持。详[122](122-live-landscape-and-comments.md)。
+
+直播录制提示修正已上线：[121](121-live-recording-notices.md)。准备阶段结束与空录像用普通无回放说明，真实录制/处理故障保留错误与重试；6项逻辑、4类两视口及线上实际记录通过。仅更新后台，API/录制不中断，Android仍0.3.36。
+
+当前商城与视频代金券整改：[120](120-commerce-categories-and-voucher-review.md)。分类驱动独立线上/实物课件，教学课程不强绑；会员赠券、独立券售价/面额/批次、营销优惠券区分与选择、现金/券退款及背景/目录返修已review并通过关联验证。API/后台20261102-commerce-ui-0336及86迁移已上线；Android0.3.36/code41最终r3包已同证书验签并更新原下载页，release revision17；商品弹窗底部操作栏与历史字段返修也已上线。28项公网/8后台页通过，真实资金/iOS及商用38/131保持。
+
+当前直播黑屏整改与发布：[119](119-live-media-and-lifecycle-fixes.md)。真实Windows OBS 1280×720/375帧解码与用户手机有画面已确认；修正B帧兼容及上一场地址，WHIP Bearer留空。API/后台20261102-live-media-0335、Android0.3.35/code40与release revision16已上线，85迁移/21类业务计数保持。评论即时公开；用户已确认新包UI及约30秒Android后台聆听/回前台恢复；双端连麦与长时/锁屏/省电验收仍待，iOS后台尚未实现，38/131保持。
+
+当前直播与商城已发布 [118](118-live-room-mall-release-0334.md)：API/后台 20261102-live-room-mall-0334、Android0.3.34/code39、release revision15；85迁移/21类业务计数保持。用户手机黑屏等反馈继续按 [119](119-live-media-and-lifecycle-fixes.md) 整改，尚未关闭。
+
+当前线上发布与清理：[117](117-member-quality-release-0333.md)。用户最新授权覆盖此前仅本地限制；API/后台20261102-member-quality-0333与85迁移已上线，独立[视频代金券后台](https://cuecanvas.top/video-vouchers)可设置各档赠券。Android0.3.33/code38已同证书验签并更新[原下载页](https://cuecanvas.top/download/)，公网整包哈希通过、release revision14。服务器约17GB可用，备份恢复点保留。
+
+当前全仓代码整理与静态检查：[116](116-code-quality-and-static-checks.md)。31个未用源码删除、统一格式/类型/引用门禁与9组依赖安全修复已完成；本地最终验证状态见116，不发布。
+
+当前长期会员、视频代金券及全局界面整改：[115](115-member-center-and-global-ui.md)。本地业务/全页走查与Android原生编译通过，0.3.32/code37本地APK已云签名、下载及同证书验证；未部署，新会员交易需后端与85迁移配套发布。
+
+当前商品详情/购物车返修：[114](114-product-and-cart-ui.md)。用户要求仅打包，本地0.3.31/code36 APK已云签名及校验通过，不访问服务器或发布。
+
+当前首页启动/学堂按钮返修：[113](113-home-launch-and-academy-icons.md)。源码与浏览器验证通过，Android0.3.30/code35已云签名发布，包内首页启动配置及同证书通过。
+
+当前支付/轮播返修与Android0.3.28发布：[112](112-payment-carousel-and-release-0328.md)；五页截图整改：[111](111-screenshot-ui-adjustments.md)。API/Pro当前20261101-payment-ui-03，真实资金及双端真机验收仍待。
+
 # 老子道学书院 · 文档入口
 
 微信Native扫码、收银台UI与Android0.3.25：[109](109-wechat-native-payment.md)。API/后台已上线，固定二维码可下载新版；实际扫码收退款仍待一笔真实交易验收。
@@ -18,7 +42,7 @@
 
 产品形态：Android / iOS App ＋ Web 运营后台。原文中的“小程序”已按用户纠正改为 App，七个业务板块全部保留。
 
-最新API/后台发布：**`20261031-wechat-native-01`**（Native支付、收银台及财务/指南，保留会员与OBS直播），Android **0.3.25/code30** 已同步固定下载页；见[109](109-wechat-native-payment.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
+历史API/后台发布：**`20261031-wechat-native-01`**（Native支付、收银台及财务/指南，保留会员与OBS直播），Android **0.3.25/code30** 已同步固定下载页；见[109](109-wechat-native-payment.md)与[24 线上部署](24-online-deployment.md)。业务总览见[87](87-project-business-and-architecture-map.md)。
 
 ## 现在只看这几份
 

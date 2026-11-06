@@ -1,7 +1,4 @@
-import {
-  LogoutOutlined,
-  SkinOutlined,
-} from '@ant-design/icons';
+import { LogoutOutlined, SkinOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { App, Spin } from 'antd';
@@ -29,9 +26,7 @@ const menuItems: MenuProps['items'] = [
   },
 ];
 
-export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
-  children,
-}) => {
+export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ children }) => {
   const { initialState, setInitialState } = useModel('@@initialState');
   const { message } = App.useApp();
 

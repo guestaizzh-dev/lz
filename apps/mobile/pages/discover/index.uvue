@@ -1,43 +1,181 @@
 <template>
-<view class="page">
-<InkBackdrop/>
-<SafeTop/>
-<scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
-<view class="content">
-<text class="page-title">发现</text>
-<view class="detail-tabs discover-tabs">
-<view v-for="item in sections" :key="item.label" class="detail-tab" :class="item.label==='文章'?'detail-tab-active':''" @click="openSection(item.path)">
-<text class="detail-tab-text" :class="item.label==='文章'?'detail-tab-selected':''">{{item.label}}</text>
-</view>
-</view>
-<view class="search">
-<AppIcon name="magnifying-glass" :size="16"/>
-<input class="search-input" placeholder="搜索经典和文章" v-model="query" @confirm="load()"/>
-</view>
-<scroll-view class="chip-scroll" direction="horizontal" :show-scrollbar="false">
-<view v-for="item in categories" :key="item.code" :class="['chip',category===item.code?'chip-active':'']" @click="category=item.code">
-<text :class="['chip-text',category===item.code?'chip-text-active':'']">{{item.label}}</text>
-</view>
-</scroll-view>
-<text v-if="categoryError" class="muted" @click="refreshCategories()">{{categoryError}}</text>
-<ContentState v-if="loading&&!articles.length||error" :loading="loading" :error="error" @retry="retry()"/>
-<text v-if="!loading&&!error&&articles.length" class="eyebrow list-eyebrow">文章目录</text>
-<view v-if="!error&&(!loading||articles.length)">
-<ArticleRow v-for="article in articles" :key="article.id" :article="article"/>
-<ContentState v-if="!articles.length" title="没有找到相关内容" description="换个关键词，或看看其他分类。"/>
-<button v-if="nextCursor" :class="['retry',loadingMore?'is-disabled':'']" @click="load(true)">更多文章</button>
-</view>
-</view>
-</scroll-view>
-</view>
+  <view class="page">
+    <InkBackdrop :opacity="0.22" />
+    <SafeTop />
+    <scroll-view :show-scrollbar="false" class="page-scroll" direction="vertical">
+      <view class="content">
+        <text class="page-title">发现</text>
+        <view class="detail-tabs discover-tabs">
+          <view
+            v-for="item in sections"
+            :key="item.label"
+            class="detail-tab"
+            :class="item.label === '文章' ? 'detail-tab-active' : ''"
+            @click="openSection(item.path)"
+          >
+            <text
+              class="detail-tab-text"
+              :class="item.label === '文章' ? 'detail-tab-selected' : ''"
+              >{{ item.label }}</text
+            >
+          </view>
+        </view>
+        <view class="search">
+          <AppIcon name="magnifying-glass" :size="16" />
+          <input
+            class="search-input"
+            placeholder="搜索经典和文章"
+            v-model="query"
+            @confirm="load()"
+          />
+        </view>
+        <scroll-view class="chip-scroll" direction="horizontal" :show-scrollbar="false">
+          <view
+            v-for="item in categories"
+            :key="item.code"
+            :class="['chip', category === item.code ? 'chip-active' : '']"
+            @click="category = item.code"
+          >
+            <text :class="['chip-text', category === item.code ? 'chip-text-active' : '']">{{
+              item.label
+            }}</text>
+          </view>
+        </scroll-view>
+        <text v-if="categoryError" class="muted" @click="refreshCategories()">{{
+          categoryError
+        }}</text>
+        <ContentState
+          v-if="(loading && !articles.length) || error"
+          :loading="loading"
+          :error="error"
+          @retry="retry()"
+        />
+        <text v-if="!loading && !error && articles.length" class="eyebrow list-eyebrow"
+          >文章目录</text
+        >
+        <view v-if="!error && (!loading || articles.length)">
+          <ArticleRow v-for="article in articles" :key="article.id" :article="article" />
+          <ContentState
+            v-if="!articles.length"
+            title="没有找到相关内容"
+            description="换个关键词，或看看其他分类。"
+          />
+          <button
+            v-if="nextCursor"
+            :class="['retry', loadingMore ? 'is-disabled' : '']"
+            @click="load(true)"
+            >更多文章</button
+          >
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </template>
 <script setup lang="ts">
-import {useCategories} from '../../lib/categories';
+import { useCategories } from '../../lib/categories';
 import InkBackdrop from '../../components/InkBackdrop.uvue';
 
 import SafeTop from '../../components/SafeTop.uvue';
-import AppIcon from '../../components/AppIcon.uvue';import ArticleRow from '../../components/ArticleRow.uvue';import ContentState from '../../components/ContentState.uvue';import {useCatalog} from '../../lib/catalog';import {openPage} from '../../lib/presentation';import type {Article} from '../../lib/api';
-const sections=[{label:'文章',path:''},{label:'名师',path:'teacher/index'},{label:'直播',path:'live/index'},{label:'社区',path:'community/index'},{label:'活动',path:'event/index'}];const {categories,categoryError,refreshCategories}=useCategories('ARTICLE');const category=ref('全部'),query=ref('');function openSection(path:string){if(path)openPage(path);}
-const {items:articles,loading,loadingMore,error,nextCursor,load,retry}=useCatalog<Article>('articles',()=>({category:category.value,q:query.value}));watch(category,()=>load());let timer:ReturnType<typeof setTimeout>|null=null;watch(query,()=>{if(timer!==null)clearTimeout(timer);timer=setTimeout(()=>load(),300);});onUnload(()=>{if(timer!==null)clearTimeout(timer);});onLoad(()=>load());onShow(async()=>{await refreshCategories();if(category.value!=='全部'&&!categories.value.some(item=>item.code===category.value))category.value='全部';});onShow(()=>{const value=uni.getStorageSync('searchQuery');if(typeof value==='string'&&value){query.value=value;uni.removeStorageSync('searchQuery');}});
+import AppIcon from '../../components/AppIcon.uvue';
+import ArticleRow from '../../components/ArticleRow.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { useCatalog } from '../../lib/catalog';
+import { openPage } from '../../lib/presentation';
+import type { Article } from '../../lib/api';
+const sections = [
+  { label: '文章', path: '' },
+  { label: '名师', path: 'teacher/index' },
+  { label: '直播', path: 'live/index' },
+  { label: '社区', path: 'community/index' },
+  { label: '活动', path: 'event/index' },
+];
+const { categories, categoryError, refreshCategories } = useCategories('ARTICLE');
+const category = ref('全部'),
+  query = ref('');
+function openSection(path: string) {
+  if (path) openPage(path);
+}
+const {
+  items: articles,
+  loading,
+  loadingMore,
+  error,
+  nextCursor,
+  load,
+  retry,
+} = useCatalog<Article>('articles', () => ({ category: category.value, q: query.value }));
+watch(category, () => load());
+let timer: ReturnType<typeof setTimeout> | null = null;
+watch(query, () => {
+  if (timer !== null) clearTimeout(timer);
+  timer = setTimeout(() => load(), 300);
+});
+onUnload(() => {
+  if (timer !== null) clearTimeout(timer);
+});
+onLoad(() => load());
+onShow(async () => {
+  await refreshCategories();
+  if (category.value !== '全部' && !categories.value.some((item) => item.code === category.value))
+    category.value = '全部';
+});
+onShow(() => {
+  const value = uni.getStorageSync('searchQuery');
+  if (typeof value === 'string' && value) {
+    query.value = value;
+    uni.removeStorageSync('searchQuery');
+  }
+});
 </script>
-<style>@import '../../styles/app.css';.discover-tabs{margin-top:0;margin-bottom:10px;}.list-eyebrow{margin-top:2px;margin-bottom:8px;}</style>
+<style>
+@import '../../styles/app.css';
+.page-title {
+  font-size: 24px;
+  line-height: 34px;
+}
+.discover-tabs {
+  margin-top: 16px;
+  margin-bottom: 0;
+  border-style: solid;
+  border-width: 0;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0d8c8;
+}
+.chip-scroll {
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+.chip {
+  min-height: 40px;
+  padding: 9px 12px;
+  margin-right: 8px;
+  border-bottom-width: 0;
+  border-radius: 10px;
+  background-color: transparent;
+}
+.chip-text {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.chip-active {
+  background-color: #e6ede9;
+}
+.chip-text-active {
+  color: #235663;
+  font-weight: 600;
+}
+.muted {
+  font-size: 12px;
+  line-height: 20px;
+  color: #b4533f;
+  padding: 8px 0 12px;
+}
+.list-eyebrow {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.retry {
+  margin-top: 16px;
+}
+</style>

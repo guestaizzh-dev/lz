@@ -116,11 +116,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "ACTIVE",
-          "FROZEN",
-          "DELETED"
-        ],
+        "choices": ["ACTIVE", "FROZEN", "DELETED"],
         "reference": null
       },
       {
@@ -366,10 +362,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "APP",
-          "ADMIN"
-        ],
+        "choices": ["APP", "ADMIN"],
         "reference": null
       },
       {
@@ -1286,14 +1279,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "UPLOADING",
-          "PROCESSING",
-          "REVIEW",
-          "READY",
-          "REJECTED",
-          "DELETED"
-        ],
+        "choices": ["UPLOADING", "PROCESSING", "REVIEW", "READY", "REJECTED", "DELETED"],
         "reference": null
       },
       {
@@ -1403,15 +1389,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "ARTICLE",
-          "TEACHER",
-          "COURSE",
-          "PRODUCT",
-          "EVENT",
-          "LIVE",
-          "THREAD"
-        ],
+        "choices": ["ARTICLE", "TEACHER", "COURSE", "PRODUCT", "EVENT", "LIVE", "THREAD"],
         "reference": null
       },
       {
@@ -1467,13 +1445,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -1483,12 +1455,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "PUBLIC",
-          "MEMBER",
-          "COURSE",
-          "PRIVATE"
-        ],
+        "choices": ["PUBLIC", "MEMBER", "COURSE", "PRIVATE"],
         "reference": null
       },
       {
@@ -2181,10 +2148,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "PUBLIC",
-          "MEMBER"
-        ],
+        "choices": ["PUBLIC", "MEMBER"],
         "reference": null
       },
       {
@@ -2204,13 +2168,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -2409,13 +2367,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "PARAGRAPH",
-          "QUOTE",
-          "IMAGE",
-          "AUDIO",
-          "VIDEO"
-        ],
+        "choices": ["PARAGRAPH", "QUOTE", "IMAGE", "AUDIO", "VIDEO"],
         "reference": null
       },
       {
@@ -2517,10 +2469,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "LIKE",
-          "FAVORITE"
-        ],
+        "choices": ["LIKE", "FAVORITE"],
         "reference": null
       }
     ],
@@ -3213,13 +3162,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -3421,10 +3364,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "PRIVATE",
-          "PUBLIC"
-        ],
+        "choices": ["PRIVATE", "PUBLIC"],
         "reference": null
       },
       {
@@ -3434,12 +3374,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "OPEN",
-          "ANSWERED",
-          "CLOSED",
-          "REJECTED"
-        ],
+        "choices": ["OPEN", "ANSWERED", "CLOSED", "REJECTED"],
         "reference": null
       },
       {
@@ -3677,12 +3612,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "PHONE",
-          "EXTERNAL_MEETING",
-          "ONSITE",
-          "IN_APP_RTC"
-        ],
+        "choices": ["PHONE", "EXTERNAL_MEETING", "ONSITE", "IN_APP_RTC"],
         "reference": null
       },
       {
@@ -3865,11 +3795,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "OPEN",
-          "CLOSED",
-          "CANCELLED"
-        ],
+        "choices": ["OPEN", "CLOSED", "CANCELLED"],
         "reference": null
       },
       {
@@ -3991,14 +3917,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "PENDING",
-          "CONFIRMED",
-          "CANCEL_PENDING",
-          "CANCELLED",
-          "COMPLETED",
-          "NO_SHOW"
-        ],
+        "choices": ["PENDING", "CONFIRMED", "CANCEL_PENDING", "CANCELLED", "COMPLETED", "NO_SHOW"],
         "reference": null
       },
       {
@@ -4144,13 +4063,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "VIDEO",
-          "AUDIO",
-          "LIVE",
-          "COHORT",
-          "OFFLINE"
-        ],
+        "choices": ["VIDEO", "AUDIO", "LIVE", "COHORT", "OFFLINE"],
         "reference": null
       },
       {
@@ -4303,13 +4216,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -4432,13 +4339,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "TEXT",
-          "VIDEO",
-          "AUDIO",
-          "LIVE",
-          "OFFLINE"
-        ],
+        "choices": ["TEXT", "VIDEO", "AUDIO", "LIVE", "OFFLINE"],
         "reference": null
       },
       {
@@ -4697,13 +4598,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "TEXT",
-          "AUDIO",
-          "VIDEO",
-          "LIVE",
-          "OFFLINE"
-        ],
+        "choices": ["TEXT", "AUDIO", "VIDEO", "LIVE", "OFFLINE"],
         "reference": null
       },
       {
@@ -5037,10 +4932,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "TEACHER",
-          "ASSISTANT"
-        ],
+        "choices": ["TEACHER", "ASSISTANT"],
         "reference": null
       },
       {
@@ -6348,10 +6240,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "PUBLIC",
-          "COURSE"
-        ],
+        "choices": ["PUBLIC", "COURSE"],
         "reference": null
       },
       {
@@ -7881,14 +7770,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "SCHEDULED",
-          "PREPARING",
-          "LIVE",
-          "ENDED",
-          "REPLAY_READY",
-          "CANCELLED"
-        ],
+        "choices": ["SCHEDULED", "PREPARING", "LIVE", "ENDED", "REPLAY_READY", "CANCELLED"],
         "reference": null
       },
       {
@@ -8242,14 +8124,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "WAITING",
-          "APPROVED",
-          "REJECTED",
-          "CONNECTED",
-          "ENDED",
-          "CANCELLED"
-        ],
+        "choices": ["WAITING", "APPROVED", "REJECTED", "CONNECTED", "ENDED", "CANCELLED"],
         "reference": null
       },
       {
@@ -8951,11 +8826,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "PHYSICAL",
-          "DIGITAL",
-          "SERVICE"
-        ],
+        "choices": ["PHYSICAL", "DIGITAL", "SERVICE"],
         "reference": null
       },
       {
@@ -9071,13 +8942,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -10163,11 +10028,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "ORDER",
-          "QUANTITY",
-          "WEIGHT"
-        ],
+        "choices": ["ORDER", "QUANTITY", "WEIGHT"],
         "reference": null
       },
       {
@@ -10452,13 +10313,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "PENDING",
-          "PAID",
-          "FULFILLING",
-          "COMPLETED",
-          "CLOSED"
-        ],
+        "choices": ["PENDING", "PAID", "FULFILLING", "COMPLETED", "CLOSED"],
         "reference": null
       },
       {
@@ -11014,11 +10869,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "HELD",
-          "CONVERTED",
-          "RELEASED"
-        ],
+        "choices": ["HELD", "CONVERTED", "RELEASED"],
         "reference": null
       },
       {
@@ -11329,13 +11180,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "CREATED",
-          "PENDING",
-          "SUCCEEDED",
-          "FAILED",
-          "CLOSED"
-        ],
+        "choices": ["CREATED", "PENDING", "SUCCEEDED", "FAILED", "CLOSED"],
         "reference": null
       },
       {
@@ -11541,13 +11386,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "ACCEPTED",
-          "DUPLICATE",
-          "LATE",
-          "AMOUNT_MISMATCH",
-          "REFUND_REQUIRED"
-        ],
+        "choices": ["ACCEPTED", "DUPLICATE", "LATE", "AMOUNT_MISMATCH", "REFUND_REQUIRED"],
         "reference": null
       },
       {
@@ -11853,11 +11692,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "REFUND_ONLY",
-          "RETURN_REFUND",
-          "EXCHANGE"
-        ],
+        "choices": ["REFUND_ONLY", "RETURN_REFUND", "EXCHANGE"],
         "reference": null
       },
       {
@@ -12185,11 +12020,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "OUTBOUND",
-          "RETURN",
-          "EXCHANGE"
-        ],
+        "choices": ["OUTBOUND", "RETURN", "EXCHANGE"],
         "reference": null
       },
       {
@@ -13213,12 +13044,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "HELD",
-          "CONSUMED",
-          "RELEASED",
-          "REVERSED"
-        ],
+        "choices": ["HELD", "CONSUMED", "RELEASED", "REVERSED"],
         "reference": null
       },
       {
@@ -13721,11 +13547,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "HELD",
-          "CONSUMED",
-          "RELEASED"
-        ],
+        "choices": ["HELD", "CONSUMED", "RELEASED"],
         "reference": null
       },
       {
@@ -14291,13 +14113,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "DRAFT",
-          "REVIEW",
-          "PUBLISHED",
-          "REJECTED",
-          "ARCHIVED"
-        ],
+        "choices": ["DRAFT", "REVIEW", "PUBLISHED", "REJECTED", "ARCHIVED"],
         "reference": null
       },
       {
@@ -15375,13 +15191,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "AVAILABLE",
-          "LOCKED",
-          "USED",
-          "EXPIRED",
-          "REVOKED"
-        ],
+        "choices": ["AVAILABLE", "LOCKED", "USED", "EXPIRED", "REVOKED"],
         "reference": null
       },
       {
@@ -18674,12 +18484,7 @@
         "nullable": false,
         "default": true,
         "initial": null,
-        "choices": [
-          "READY",
-          "RUNNING",
-          "DONE",
-          "DEAD"
-        ],
+        "choices": ["READY", "RUNNING", "DONE", "DEAD"],
         "reference": null
       },
       {
@@ -19522,11 +19327,7 @@
         "nullable": false,
         "default": false,
         "initial": null,
-        "choices": [
-          "HELD",
-          "PAID",
-          "RELEASED"
-        ],
+        "choices": ["HELD", "PAID", "RELEASED"],
         "reference": null
       }
     ],

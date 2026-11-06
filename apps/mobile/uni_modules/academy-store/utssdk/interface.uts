@@ -1,1 +1,1 @@
-export type StoreCommand = (action: string, payload: string) => string
+export type StoreCommand = (action: string, payload: string) => string;

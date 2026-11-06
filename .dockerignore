@@ -13,3 +13,15 @@ outputs
 work
 docs/design-reference
 *.log
+WXCertUtil
+cert
+CA
+bearer
+iconengines
+imageformats
+platforms
+styles
+translations
+*.dll
+*.lib
+*.exe

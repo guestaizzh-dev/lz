@@ -1,10 +1,191 @@
 <template>
-<view class="page"><PageHead title="我的资料"/><scroll-view class="page-scroll" direction="vertical" :show-scrollbar="false"><view class="content"><text class="intro">购买时的资料版本会保留，可在原订单领取文件、查看有效期与售后。</text><ContentState v-if="loading||error" :loading="loading" :error="error" @retry="load(true)"/><view v-for="row in rows" :key="row.id" class="digital-card" @click="openPage('shop/digital-order?id='+row.id)"><view class="row between"><text class="meta">{{formatChinaTime(row.createdAt)}}</text><text class="tag">{{digitalState(row)}}</text></view><text class="item-title digital-title">{{row.pack?.title??'数字资料订单'}}</text><text class="body-copy digital-copy">{{row.pack?.description}}</text><view class="row between"><text class="meta">查看资料与订单 ›</text><text class="price">¥{{money(Number(row.payableTotal))}}</text></view></view><ContentState v-if="!loading&&!error&&!rows.length" title="尚无资料订单" description="可到书院好物查看数字资料，购买后在这里领取。"/><button v-if="!loading&&rows.length<total" class="secondary-button" @click="load(false)">加载更多</button></view></scroll-view></view>
+  <view class="page"
+    ><InkBackdrop /><PageHead title="我的资料" /><scroll-view
+      class="page-scroll"
+      direction="vertical"
+      :show-scrollbar="false"
+      ><view class="content">
+        <ContentState v-if="loading && !rows.length" :loading="true" />
+        <ContentState
+          v-else-if="error"
+          :error="error"
+          :error-title="
+            errorTone(error) === 'net'
+              ? '网络连接中断'
+              : errorTone(error) === 'gone'
+                ? '资料订单不存在'
+                : '资料订单需要重新确认'
+          "
+          :retryable="errorTone(error) === 'net'"
+          :action-label="errorTone(error) === 'net' ? '' : '浏览书院好物'"
+          @retry="load(true)"
+          @action="openPage('shop/index')"
+        />
+        <view
+          v-for="row in rows"
+          :key="row.id"
+          class="digital-card"
+          @click="openPage('shop/digital-order?id=' + row.id)"
+          ><view class="row between"
+            ><text class="ui-text meta">{{ formatChinaTime(row.createdAt) }}</text
+            ><text class="ui-text state-label">{{ digitalState(row) }}</text></view
+          ><text class="ui-text digital-title">{{ row.pack?.title ?? '数字资料订单' }}</text
+          ><text class="ui-text digital-copy">{{ row.pack?.description }}</text
+          ><view class="sum-row digital-foot"
+            ><text class="ui-text sum-label">查看资料与订单 ›</text
+            ><text class="ui-text sum-value-total"
+              >¥{{ money(Number(row.payableTotal)) }}</text
+            ></view
+          ></view
+        >
+        <ContentState
+          v-if="!loading && !error && !rows.length"
+          title="尚无资料订单"
+          description="可到书院好物查看数字资料，购买后在这里领取。"
+          actionLabel="浏览书院好物"
+          @action="openPage('shop/index')"
+        />
+        <button
+          v-if="!loading && rows.length < total"
+          class="ui-button secondary-button"
+          @click="load(false)"
+          >加载更多</button
+        ></view
+      ></scroll-view
+    ></view
+  >
 </template>
 <script setup lang="ts">
-import PageHead from '../../components/PageHead.uvue';import ContentState from '../../components/ContentState.uvue';import {request,money} from '../../lib/api';import {currentUser,needLogin,sessionGeneration} from '../../lib/session';import {openPage} from '../../lib/presentation';import {formatChinaTime} from '../../lib/date-time';import {digitalState} from '../../lib/digital';import type {DigitalOrder} from '../../lib/digital';
-const rows=ref<DigitalOrder[]>([]),loading=ref(false),error=ref(''),total=ref(0);let page=1,sequence=0;
-async function load(reset=true){if(loading.value)return;if(needLogin())return;const turn=++sequence,owner=sessionGeneration();if(reset){page=1;rows.value=[];}loading.value=true;error.value='';try{const result=await request<{items:DigitalOrder[];total:number}>('/commerce/digital-orders?page='+page+'&size=20');if(turn!==sequence||owner!==sessionGeneration())return;rows.value=reset?result.items:[...rows.value,...result.items];total.value=result.total;page++;}catch(e){if(turn===sequence)error.value=(e as Error).message;}finally{if(turn===sequence)loading.value=false;}}
-watch(()=>currentUser.value?.id,()=>{sequence++;rows.value=[];loading.value=false;});onShow(()=>void load(true));onHide(()=>{sequence++;loading.value=false;});
+import InkBackdrop from '../../components/InkBackdrop.uvue';
+import PageHead from '../../components/PageHead.uvue';
+import ContentState from '../../components/ContentState.uvue';
+import { request, money } from '../../lib/api';
+import { currentUser, needLogin, sessionGeneration } from '../../lib/session';
+import { openPage } from '../../lib/presentation';
+import { formatChinaTime } from '../../lib/date-time';
+import { digitalState } from '../../lib/digital';
+import type { DigitalOrder } from '../../lib/digital';
+const rows = ref<DigitalOrder[]>([]),
+  loading = ref(false),
+  error = ref(''),
+  total = ref(0);
+let page = 1,
+  sequence = 0;
+// 只做展示分档，不参与请求、金额与权限判断。
+const errorTone = (text: string) =>
+  /网络|中断|超时|繁忙|连接/.test(text)
+    ? 'net'
+    : /不存在|无法打开|已删除|已失效|无效/.test(text)
+      ? 'gone'
+      : 'bad';
+async function load(reset = true) {
+  if (loading.value) return;
+  if (needLogin()) return;
+  const turn = ++sequence,
+    owner = sessionGeneration();
+  if (reset) {
+    page = 1;
+    rows.value = [];
+  }
+  loading.value = true;
+  error.value = '';
+  try {
+    const result = await request<{ items: DigitalOrder[]; total: number }>(
+      '/commerce/digital-orders?page=' + page + '&size=20',
+    );
+    if (turn !== sequence || owner !== sessionGeneration()) return;
+    rows.value = reset ? result.items : [...rows.value, ...result.items];
+    total.value = result.total;
+    page++;
+  } catch (e) {
+    if (turn === sequence) error.value = (e as Error).message;
+  } finally {
+    if (turn === sequence) loading.value = false;
+  }
+}
+watch(
+  () => currentUser.value?.id,
+  () => {
+    sequence++;
+    rows.value = [];
+    loading.value = false;
+  },
+);
+onShow(() => void load(true));
+onHide(() => {
+  sequence++;
+  loading.value = false;
+});
 </script>
-<style>@import '../../styles/app.css';.digital-card{padding:20px;margin-top:16px;background-color:#FCF9F2;border-radius:10px;border-width:1px;border-style:solid;border-color:#DED6C8;}.digital-title{margin-top:14px;}.digital-copy{margin-top:8px;margin-bottom:16px;}</style>
+<style>
+@import '../../styles/app.css';
+.state-label {
+  font-size: 12px;
+  line-height: 20px;
+  color: #235663;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.digital-card {
+  padding: 16px;
+  margin-top: 16px;
+  background-color: #fcf9f2;
+  border-radius: 14px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #cfc5b1;
+}
+.digital-title {
+  font-family: AcademySerif;
+  font-size: 17px;
+  line-height: 26px;
+  color: #182b31;
+  font-weight: 600;
+  margin-top: 12px;
+  max-height: 48px;
+  overflow: hidden;
+}
+.digital-copy {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+  margin-top: 8px;
+  max-height: 44px;
+  overflow: hidden;
+}
+.sum-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e0d8c8;
+}
+.sum-label {
+  font-size: 13px;
+  line-height: 22px;
+  color: #5c6869;
+}
+.sum-value {
+  font-size: 15px;
+  line-height: 26px;
+  color: #182b31;
+  text-align: right;
+  margin-left: 12px;
+}
+.sum-value-total {
+  font-family: AcademySerif;
+  font-size: 19px;
+  line-height: 28px;
+  color: #b4533f;
+  font-weight: 600;
+  text-align: right;
+  margin-left: 12px;
+}
+.digital-foot {
+  margin-top: 12px;
+  border-bottom-width: 0;
+  padding: 12px 0 0;
+}
+</style>

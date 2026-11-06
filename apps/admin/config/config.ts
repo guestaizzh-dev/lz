@@ -32,8 +32,10 @@ const commitHash =
  * @doc https://umijs.org/docs/api/config#publicpath
  */
 const PUBLIC_PATH: string = '/';
+const FAVICON: string = '/favicon.svg';
 
 export default defineConfig({
+  favicons: [FAVICON],
   alias: {
     '@root': join(__dirname, '..'),
   },
@@ -160,22 +162,45 @@ export default defineConfig({
       variant: 'outlined',
       theme: {
         token: {
-          fontFamily: 'AlibabaSans, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif',
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif',
           colorPrimary: '#235663',
           colorText: '#1E3037',
           colorTextSecondary: '#66777D',
-          colorBgLayout: '#F3F5F4',
+          colorBgLayout: '#F4F3EF',
           colorBorder: '#DCE3E1',
           borderRadius: 8,
           borderRadiusSM: 6,
           borderRadiusLG: 12,
-          controlHeight: 38,
+          controlHeight: 40,
           controlHeightLG: 44,
-          controlHeightSM: 28,
+          controlHeightSM: 30,
           controlOutlineWidth: 3,
           controlOutline: 'rgba(35,86,99,0.14)',
           boxShadow: '0 6px 24px rgba(23,41,45,0.10)',
           boxShadowSecondary: '0 12px 40px rgba(23,41,45,0.12)',
+        },
+        components: {
+          Button: {
+            primaryShadow: 'none',
+            defaultShadow: 'none',
+            dangerShadow: 'none',
+            fontWeight: 500,
+          },
+          Table: {
+            headerBg: '#F7F7F3',
+            headerColor: '#5C6869',
+            rowHoverBg: '#F3F6F3',
+            cellPaddingBlock: 12,
+            cellPaddingInline: 16,
+            borderColor: '#ECEBE5',
+          },
+          Card: { headerHeight: 52, bodyPadding: 20, headerFontSize: 16 },
+          Form: { itemMarginBottom: 20, labelColor: '#344C54', verticalLabelPadding: '0 0 8px' },
+          Tabs: { horizontalItemGutter: 28, itemColor: '#6A7578', itemSelectedColor: '#235663' },
+          Modal: { titleFontSize: 18, borderRadiusLG: 12 },
+          Drawer: { footerPaddingBlock: 16, footerPaddingInline: 24 },
+          Pagination: { itemSize: 34 },
         },
       },
     },
